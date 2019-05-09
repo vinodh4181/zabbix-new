@@ -137,7 +137,9 @@ class CRouter {
 		'popup.mediatypetest.edit'		=> ['CControllerPopupMediatypeTestEdit',	'layout.json',			'popup.mediatypetest.edit'],
 		'popup.mediatypetest.send'		=> ['CControllerPopupMediatypeTestSend',	'layout.json',			null],
 		'trigdesc.update'				=> ['CControllerTrigDescUpdate',			'layout.json',			null],
-		'search'						=> ['CControllerSearch',					'layout.htmlpage',		'search']
+		'search'						=> ['CControllerSearch',					'layout.htmlpage',		'search'],
+		'widget.dev1076a.view'			=> ['CControllerWidgetDev1076aView',		'layout.widget',		'monitoring.widget.dev1076a.view'],
+		'widget.dev1076a.update'		=> ['CControllerWidgetDev1076aUpdate',		'layout.json',			null],
 	];
 
 	public function __construct($action) {

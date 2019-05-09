@@ -48,7 +48,8 @@ class CWidgetConfig {
 			WIDGET_SYSTEM_INFO			=> _('System information'),
 			WIDGET_TRIG_OVER			=> _('Trigger overview'),
 			WIDGET_URL					=> _('URL'),
-			WIDGET_WEB					=> _('Web monitoring')
+			WIDGET_WEB					=> _('Web monitoring'),
+			WIDGET_DEV_1076_A			=> _('Experiment 1'),
 		];
 	}
 
@@ -79,7 +80,8 @@ class CWidgetConfig {
 			WIDGET_SYSTEM_INFO			=> ['width' => 6, 'height' => 5],
 			WIDGET_TRIG_OVER			=> ['width' => 6, 'height' => 5],
 			WIDGET_URL					=> ['width' => 6, 'height' => 5],
-			WIDGET_WEB					=> ['width' => 3, 'height' => 3]
+			WIDGET_WEB					=> ['width' => 3, 'height' => 3],
+			WIDGET_DEV_1076_A			=> ['width' => 6, 'height' => 6],
 		];
 	}
 
@@ -138,6 +140,9 @@ class CWidgetConfig {
 				return 15 * SEC_PER_MIN;
 
 			case WIDGET_URL:
+				return 0;
+
+			case WIDGET_DEV_1076_A:
 				return 0;
 		}
 	}
@@ -234,6 +239,9 @@ class CWidgetConfig {
 
 			case WIDGET_WEB:
 				return new CWidgetFormWeb($data);
+
+			case WIDGET_DEV_1076_A:
+				return new CWidgetFormDev1076a($data);
 
 			default:
 				return new CWidgetForm($data, $type);

@@ -40,6 +40,7 @@ else {
 	$this->addJsFile('class.mapWidget.js');
 	$this->addJsFile('class.svg.canvas.js');
 	$this->addJsFile('class.svg.map.js');
+	$this->addJsFile('class.leaflet-zbx.js');
 
 	$this->includeJSfile('app/views/monitoring.dashboard.view.js.php');
 

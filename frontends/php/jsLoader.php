@@ -87,6 +87,7 @@ $availableJScripts = [
 	'class.curl.js' => '',
 	'class.cverticalaccordion.js' => '',
 	'class.mapWidget.js' => '',
+	'class.leaflet-zbx.js' => '',
 	'class.svg.canvas.js' => 'vector/',
 	'class.svg.map.js' => 'vector/',
 	'class.cviewswitcher.js' => '',

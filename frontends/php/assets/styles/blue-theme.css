@@ -4821,3 +4821,13 @@ table.preprocessing-test-results .rel-container {
 
 #preprocessing-test-form .table-forms-separator {
   margin-top: -2px; }
+
+.leaflet-div-icon {
+  background: transparent;
+  border: 0px none; }
+  .leaflet-div-icon .label {
+    background: white;
+    font-size: 16px;
+    line-height: 1;
+    white-space: nowrap;
+    padding: 3px; }

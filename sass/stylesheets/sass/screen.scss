@@ -6725,6 +6725,19 @@ table.preprocessing-test-results {
 	}
 }
 
+.leaflet-div-icon {
+	background: transparent;
+	border: 0px none;
+
+	.label {
+		background: rgba(255, 255, 255, 1);
+		font-size: 16px;
+		line-height: 1;
+		white-space: nowrap;
+		padding: 3px;
+	}
+}
+
 @if $theme_name == 'dev' {
 
 /*doc
