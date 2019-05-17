@@ -919,6 +919,8 @@ function getMenuPopupScriptData(scripts, hostId, trigger_elmnt) {
 }
 
 jQuery(function($) {
+	// Menu popup DOM element.
+	var $menuPopup;
 
 	/**
 	 * Menu popup.
@@ -943,9 +945,10 @@ jQuery(function($) {
 		init: function(sections, event) {
 			var opener = $(this),
 				id = opener.data('menu-popup-id'),
-				menuPopup = $('#' + id),
 				mapContainer = null,
 				target = event.target;
+
+			$menuPopup = $('#' + id);
 
 			if (event.type === 'contextmenu' || (IE && opener.closest('svg').length > 0)
 					|| event.originalEvent.detail !== 0) {
@@ -957,21 +960,21 @@ jQuery(function($) {
 			// Close other action menus.
 			$('.action-menu-top').not('#' + id).menuPopup('close');
 
-			if (menuPopup.length > 0) {
-				var display = menuPopup.css('display');
+			if ($menuPopup.length > 0) {
+				var display = $menuPopup.css('display');
 
 				// Hide current action menu sub-levels.
-				$('.action-menu', menuPopup).css('display', 'none');
+				$('.action-menu', $menuPopup).css('display', 'none');
 
 				if (display === 'block') {
-					menuPopup.fadeOut(0);
+					$menuPopup.fadeOut(0);
 					$(opener).removeAttr('data-expanded');
 				}
 				else {
-					menuPopup.fadeIn(50);
+					$menuPopup.fadeIn(50);
 				}
 
-				menuPopup.position({
+				$menuPopup.position({
 					of: target,
 					my: 'left top',
 					at: 'left bottom'
@@ -980,43 +983,19 @@ jQuery(function($) {
 			else {
 				id = new Date().getTime();
 
-				menuPopup = $('<ul>', {
+				$menuPopup = $('<ul>', {
 					'id': id,
 					'role': 'menu',
 					'class': 'action-menu action-menu-top',
 					'tabindex': 0
 				});
 
-				// create sections
-				var sections_length = sections.length;
-				if (sections_length) {
-					$.each(sections, function(i, section) {
-						if ((typeof section.label !== 'undefined') && (section.label.length > 0)) {
-							var h3 = $('<h3>').text(section.label);
-							var sectionItem = $('<li>').append(h3);
-						}
-
-						// Add section delimited for all sections except first one.
-						if (i > 0) {
-							menuPopup.append($('<li>').append($('<div>')));
-						}
-						menuPopup.append(sectionItem);
-
-						$.each(section.items, function(i, item) {
-							if (sections_length > 1) {
-								item['ariaLabel'] = section.label + ', ' + item['label'];
-							}
-							menuPopup.append(createMenuItem(item));
-						});
-					});
-				}
-
-				if (sections_length == 1) {
-					menuPopup.attr({'aria-label': sections[0].label});
-				}
+				// Clear old and add new sections.
+				methods.clearSections();
+				methods.addSections(sections);
 
 				// Skip displaying empty menu sections.
-				if (menuPopup.children().length == 0) {
+				if ($menuPopup.children().length == 0) {
 					return;
 				}
 
@@ -1032,7 +1011,7 @@ jQuery(function($) {
 							left: event.pageX
 						}
 					})
-					.append(menuPopup);
+					.append($menuPopup);
 
 					$('body').append(mapContainer);
 				}
@@ -1040,18 +1019,18 @@ jQuery(function($) {
 				else {
 					opener.data('menu-popup-id', id);
 
-					$('body').append(menuPopup);
+					$('body').append($menuPopup);
 				}
 
 				// Hide current action menu sub-levels.
-				$('.action-menu', menuPopup).css('display', 'none');
+				$('.action-menu', $menuPopup).css('display', 'none');
 
 				// display
-				menuPopup
+				$menuPopup
 					.fadeIn(50)
 					.data('is-active', false)
 					.mouseenter(function() {
-						menuPopup.data('is-active', true);
+						$menuPopup.data('is-active', true);
 
 						clearTimeout(window.menuPopupTimeoutHandler);
 					})
@@ -1068,10 +1047,41 @@ jQuery(function($) {
 			addToOverlaysStack('contextmenu', event.target, 'contextmenu');
 
 			$(document)
-				.on('click', {menu: menuPopup, opener: opener}, menuPopupDocumentCloseHandler)
-				.on('keydown', {menu: menuPopup}, menuPopupKeyDownHandler);
+				.on('click', {menu: $menuPopup, opener: opener}, menuPopupDocumentCloseHandler)
+				.on('keydown', {menu: $menuPopup}, menuPopupKeyDownHandler);
 
-			menuPopup.focus();
+			$menuPopup.focus();
+		},
+		clearSections: function() {
+			$menuPopup.empty();
+		},
+		addSections: function(sections) {
+			var sections_length = sections.length;
+			if (sections_length) {
+				$.each(sections, function(i, section) {
+					if ((typeof section.label !== 'undefined') && (section.label.length > 0)) {
+						var h3 = $('<h3>').text(section.label);
+						var sectionItem = $('<li>').append(h3);
+					}
+
+					// Add section delimited for all sections except first one.
+					if (i > 0) {
+						$menuPopup.append($('<li>').append($('<div>')));
+					}
+					$menuPopup.append(sectionItem);
+
+					$.each(section.items, function(i, item) {
+						if (sections_length > 1) {
+							item['ariaLabel'] = section.label + ', ' + item['label'];
+						}
+						$menuPopup.append(createMenuItem(item));
+					});
+				});
+			}
+
+			if (sections_length == 1) {
+				$menuPopup.attr({'aria-label': sections[0].label});
+			}
 		},
 		close: function(trigger_elmnt, return_focus) {
 			var menuPopup = $(this);

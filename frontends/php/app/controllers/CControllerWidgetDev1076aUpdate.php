@@ -38,6 +38,9 @@ class CControllerWidgetDev1076aUpdate extends CController {
 			'preservekeys' => true
 		]);
 
+		//$hosts['10280']['host'] = $hosts['10280']['host'];
+		//$hosts['10280']['iconid'] = 141;
+
 		$output = [
 			'hosts' => $hosts
 		];

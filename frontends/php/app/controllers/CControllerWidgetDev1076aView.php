@@ -47,8 +47,9 @@ class CControllerWidgetDev1076aView extends CControllerWidget {
 			$elements[] = [
 				'type' => 'Feature',
 				'properties' => [
-					'hostname' => $host['host'],
+					'host' => $host['host'],
 					'hostid' => $host['hostid'],
+					'iconid' => 151
 				],
 				'geometry' => [
 					'type' => 'Point',
@@ -62,11 +63,11 @@ class CControllerWidgetDev1076aView extends CControllerWidget {
 
 		$this->setResponse(new CControllerResponseData([
 			'name' => $this->getInput('name', $this->getDefaultHeader()),
-			'elements' => [
-				'type' => 'FeatureCollection',
-				'features' => $elements
-			],
-			//'elements' => $elements,
+//			'elements' => [
+//				'type' => 'FeatureCollection',
+//				'features' => 
+//			],
+			'elements' => $elements,
 			'user' => [
 				'debug_mode' => $this->getDebugMode()
 			]
