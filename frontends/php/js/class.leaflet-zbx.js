@@ -321,7 +321,7 @@ LeafletZBX.prototype.getElementIcon = function(feature) {
 	L.Mixin.ContextMenu = {
 		_init: function() {
 			this.on(contextMenuEvent, this._show, this);
-			this._map.once('contextmenu.hide', this._hide, this);
+			//this._map.once('contextmenu.hide', this._hide, this);
 		},
 		_getItems: function() {
 			var url = new Curl('zabbix.php', true),
