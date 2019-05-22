@@ -27,7 +27,7 @@ $html = (new CDiv())
 $output = [
 	'header' => $data['name'],
 	'body' => $html,
-	'script_inline' => 
+	'script_inline' =>
 		'var LeafletZBX = new LeafletZBX({'.
 			'tile: '.CJs::encodeJson($data['tile']).','.
 			'elements:'.CJs::encodeJson($data['elements']).

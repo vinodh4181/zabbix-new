@@ -35,12 +35,10 @@ function LeafletZBX(data) {
 LeafletZBX.prototype.addShapes = function() {
 	L.circle([57.005581, 24.180795], {
 		color: 'red',
-	    fillColor: '#f03',
-	    fillOpacity: 0.5,
-	    radius: 500
+		fillColor: '#f03',
+		fillOpacity: 0.5,
+		radius: 500
 	}).addTo(this.map);
-
-	
 };
 
 LeafletZBX.prototype.addMinSeverityControl = function() {
@@ -96,7 +94,7 @@ LeafletZBX.prototype.createElementsLayer = function(elements) {
 
 	return L.geoJSON(elements, {
 		layerName: 'map-elements',
-		pointToLayer: function (feature, latlng) {			
+		pointToLayer: function (feature, latlng) {
 			return L.marker(latlng, {
 				icon: obj.getElementIcon(feature)
 			});
@@ -128,7 +126,7 @@ LeafletZBX.prototype.updateMapElements = function(elmnts) {
 				}
 			});
 		}
-	});	
+	});
 };
 
 LeafletZBX.prototype.update = function() {
@@ -154,7 +152,7 @@ LeafletZBX.prototype.getElementIcon = function(feature) {
 	var iconid = feature.properties.iconid,
 		divIcon = {
 			html: '<img src="' + this.icons[iconid].options.iconUrl + '"/>'+
-			  '<span class="label">' + feature.properties.host + '</span>'
+				'<span class="label">' + feature.properties.host + '</span>'
 		};
 
 	return new L.DivIcon(jQuery.extend(divIcon, this.icons[iconid]));
@@ -168,14 +166,14 @@ LeafletZBX.prototype.getElementIcon = function(feature) {
 (function(factory, window) {
 	if (typeof define === 'function' && define.amd) {
 		define(['leaflet'], factory);
-    }
+	}
 	else if (typeof exports === 'object') {
-        module.exports = factory(require('leaflet'));
-    }
+		module.exports = factory(require('leaflet'));
+	}
 
-    if (typeof window !== 'undefined' && window.L) {
-        window.L.ContextMenu = factory(L);
-    }
+	if (typeof window !== 'undefined' && window.L) {
+		window.L.ContextMenu = factory(L);
+	}
 }(function(L) {
 	const contextMenuEvent = 'contextmenu';
 
@@ -378,5 +376,5 @@ LeafletZBX.prototype.getElementIcon = function(feature) {
 	L.Marker.include(L.Mixin.ContextMenu);
 //	L.Path.include(L.Mixin.ContextMenu);
 
-    return L.Map.ContextMenu;
+	return L.Map.ContextMenu;
 }, window));
