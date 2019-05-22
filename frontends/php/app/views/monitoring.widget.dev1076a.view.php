@@ -29,6 +29,7 @@ $output = [
 	'body' => $html,
 	'script_inline' => 
 		'var LeafletZBX = new LeafletZBX({'.
+			'tile: '.CJs::encodeJson($data['tile']).','.
 			'elements:'.CJs::encodeJson($data['elements']).
 		'});'
 ];

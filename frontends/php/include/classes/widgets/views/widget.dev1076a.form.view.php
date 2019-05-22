@@ -30,6 +30,9 @@ $form_list = CWidgetHelper::createFormList($data['dialogue']['name'], $data['dia
 	$data['known_widget_types'], $fields['rf_rate']
 );
 
+// Tile.
+$form_list->addRow(CWidgetHelper::getLabel($fields['tile']), CWidgetHelper::getTextBox($fields['tile']));
+
 // Host groups.
 $field_groupids = CWidgetHelper::getGroup($fields['groupids'],
 	$data['captions']['ms']['groups']['groupids'],

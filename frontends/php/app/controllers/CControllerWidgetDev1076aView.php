@@ -36,12 +36,21 @@ class CControllerWidgetDev1076aView extends CControllerWidget {
 		$elements = [];
 		$error = null;
 
-		$hosts = API::Host()->get([
+		$options = [
 			'output' => ['host', 'hostid'],
 			'selectInventory' => ['location_lat', 'location_lon'],
-			'hostids' => $fields['hostids'],
-			'preservekeys' => true
-		]);
+			'preservekeys' => true,
+			'limit' => 10000
+		];
+
+		if ($fields['hostids']) {
+			$options['hostids'] = $fields['hostids'];
+		}
+		if ($fields['groupids']) {
+			$options['groupids'] = $fields['groupids'];
+		}
+
+		$hosts = API::Host()->get($options);
 
 		foreach ($hosts as $host) {
 			$elements[] = [
@@ -49,7 +58,7 @@ class CControllerWidgetDev1076aView extends CControllerWidget {
 				'properties' => [
 					'host' => $host['host'],
 					'hostid' => $host['hostid'],
-					'iconid' => 151
+					'iconid' => 148
 				],
 				'geometry' => [
 					'type' => 'Point',
@@ -63,11 +72,8 @@ class CControllerWidgetDev1076aView extends CControllerWidget {
 
 		$this->setResponse(new CControllerResponseData([
 			'name' => $this->getInput('name', $this->getDefaultHeader()),
-//			'elements' => [
-//				'type' => 'FeatureCollection',
-//				'features' => 
-//			],
 			'elements' => $elements,
+			'tile' => $fields['tile'],
 			'user' => [
 				'debug_mode' => $this->getDebugMode()
 			]

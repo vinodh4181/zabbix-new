@@ -27,6 +27,12 @@ class CWidgetFormDev1076a extends CWidgetForm {
 	public function __construct($data) {
 		parent::__construct($data, WIDGET_DEV_1076_A);
 
+		// Tile field.
+		$field_tile = new CWidgetFieldTextBox('tile', _('Map tile'));
+		$field_tile->setValue((array_key_exists('tile', $this->data)) ? $this->data['tile'] : '');
+
+		$this->fields[$field_tile->getName()] = $field_tile;
+
 		// Host groups.
 		$field_groups = new CWidgetFieldGroup('groupids', _('Host groups'));
 

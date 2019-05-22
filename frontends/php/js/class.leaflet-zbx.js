@@ -1,16 +1,23 @@
 function LeafletZBX(data) {
-	this.map = L.map('map', {center: [56.955105, 24.216532], zoom: 12});//.on('click', this.mapOnClick);
+	this.map = L.map('map', {center: [56.955105, 24.216532], zoom: 5});//.on('click', this.mapOnClick);
+	//this.map = L.map('map', {center: [56.950176, 24.104731], zoom: 17});//.on('click', this.mapOnClick);
 	this.elements = L.featureGroup().addTo(this.map);//.on('click', this.elementsOnClick);
 	this.icons = {
 		151: L.icon({
 			iconUrl: 'imgstore.php?iconid=151',
 			iconSize: [72, 96],
 			iconAnchor: [36, 96]
+		}),
+		148: L.icon({
+			iconUrl: 'imgstore.php?iconid=148',
+			iconSize: [18, 24],
+			iconAnchor: [9, 12]
 		})
 	};
 
 	// Add tile layer.
 	L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18}).addTo(this.map);
+	//L.tileLayer(data.tile, {maxZoom: 18}).addTo(this.map);
 
 	// Add elements.
 	this.createElementsLayer(data.elements).addTo(this.elements);
