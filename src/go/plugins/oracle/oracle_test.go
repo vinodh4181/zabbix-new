@@ -157,7 +157,7 @@ func getHandlerName(metric string) string {
 }
 
 func TestHandlers(t *testing.T) {
-	for metric, _ := range plugin.Metrics {
+	for metric := range plugin.Metrics {
 		if metric == keyPing || metric == keyCustomQuery {
 			continue
 		}
@@ -181,7 +181,7 @@ func TestHandlers(t *testing.T) {
 		conn.client.Close()
 	}
 
-	for metric, _ := range plugin.Metrics {
+	for metric := range plugin.Metrics {
 		if metric == keyPing || metric == keyCustomQuery {
 			continue
 		}
@@ -196,7 +196,7 @@ func TestHandlers(t *testing.T) {
 	}
 
 	// Test for ErrorTooManyParameters
-	for metric, _ := range plugin.Metrics {
+	for metric := range plugin.Metrics {
 		if metric == keyCustomQuery {
 			continue
 		}

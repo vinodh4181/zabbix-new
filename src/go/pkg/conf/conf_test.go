@@ -216,7 +216,7 @@ func TestNestedArray(t *testing.T) {
 			Value.3 = 6`
 
 	var options Options
-	var expected Options = Options{[][]int{[]int{1, 2}, []int{3, 4}, []int{5, 6}}}
+	var expected Options = Options{[][]int{{1, 2}, {3, 4}, {5, 6}}}
 	checkUnmarshal(t, []byte(input), &expected, &options)
 }
 
@@ -276,9 +276,9 @@ func TestStructMap(t *testing.T) {
 
 	var options Options
 	var expected Options = Options{map[string]Object{
-		"apple":  Object{9, "An apple"},
-		"orange": Object{7, "An orange"},
-		"banana": Object{3, "A banana"}}}
+		"apple":  {9, "An apple"},
+		"orange": {7, "An orange"},
+		"banana": {3, "A banana"}}}
 	checkUnmarshal(t, []byte(input), &expected, &options)
 }
 
@@ -299,7 +299,7 @@ func TestStructPtrMap(t *testing.T) {
 			Index.banana.Description = A banana
 		`
 
-	objects := []Object{Object{9, "An apple"}, Object{7, "An orange"}, Object{3, "A banana"}}
+	objects := []Object{{9, "An apple"}, {7, "An orange"}, {3, "A banana"}}
 	var options Options
 	var expected Options = Options{map[string]*Object{
 		"apple":  &objects[0],
@@ -435,9 +435,9 @@ func TestInterface(t *testing.T) {
 	expectedOpts := RedisOptions{
 		Enable: 1,
 		Sessions: map[string]RedisSession{
-			"Server1": RedisSession{"127.0.0.1", 10001},
-			"Server2": RedisSession{"127.0.0.2", 10002},
-			"Server3": RedisSession{"127.0.0.3", 10003},
+			"Server1": {"127.0.0.1", 10001},
+			"Server2": {"127.0.0.2", 10002},
+			"Server3": {"127.0.0.3", 10003},
 		},
 	}
 

@@ -32,4 +32,3 @@ func arrayToString(unameArray *[65]int8) string {
 	}
 	return string(byteString[:indexLength])
 }
-

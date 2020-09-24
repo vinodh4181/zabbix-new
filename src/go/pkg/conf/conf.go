@@ -143,23 +143,23 @@ loop:
 
 func getTimeSuffix(str string) (string, int) {
 	suffixes := []Suffix{
-		Suffix{
+		{
 			suffix: "s",
 			factor: 1,
 		},
-		Suffix{
+		{
 			suffix: "m",
 			factor: 60,
 		},
-		Suffix{
+		{
 			suffix: "h",
 			factor: 3600,
 		},
-		Suffix{
+		{
 			suffix: "d",
 			factor: 86400,
 		},
-		Suffix{
+		{
 			suffix: "w",
 			factor: (7 * 86400),
 		},

@@ -137,7 +137,6 @@ type cpuUtil struct {
 	err     error
 }
 
-
 func (q *cpuUtilQuery) match(p *procInfo) bool {
 	if q.name != "" && q.name != p.name && q.name != p.arg0 {
 		return false
