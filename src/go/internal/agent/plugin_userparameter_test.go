@@ -1,3 +1,5 @@
+ // +build !golint_check
+
 package agent
 
 import (
