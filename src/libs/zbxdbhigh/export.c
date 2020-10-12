@@ -23,6 +23,9 @@
 
 extern char		*CONFIG_EXPORT_DIR;
 extern zbx_uint64_t	CONFIG_EXPORT_FILE_SIZE;
+extern int CONFIG_EXPORT_HISTORY;
+extern int CONFIG_EXPORT_TRENDS;
+extern int CONFIG_EXPORT_EVENTS;
 
 static char	*history_file_name;
 static FILE	*history_file;
@@ -32,6 +35,7 @@ static FILE	*trends_file;
 
 static char	*problems_file_name;
 static FILE	*problems_file;
+
 static char	*export_dir;
 
 int	zbx_is_export_enabled(void)
@@ -40,6 +44,30 @@ int	zbx_is_export_enabled(void)
 		return FAIL;
 
 	return SUCCEED;
+}
+
+int zbx_is_export_history_enabled(void)
+{
+	if (NULL == CONFIG_EXPORT_HISTORY || 0 == CONFIG_EXPORT_HISTORY)
+		return FAIL;
+
+	return SUCCEED
+}
+
+int zbx_is_export_trends_enabled(void)
+{
+	if (NULL == CONFIG_EXPORT_TRENDS || 0 == CONFIG_EXPORT_TRENDS)
+		return FAIL;
+
+	return SUCCEED
+}
+
+int zbx_is_export_events_enabled(void)
+{
+	if (NULL == CONFIG_EXPORT_EVENTS || 0 == CONFIG_EXPORT_EVENTS)
+		return FAIL;
+
+	return SUCCEED
 }
 
 int	zbx_export_init(char **error)
@@ -78,6 +106,9 @@ int	zbx_export_init(char **error)
 
 void	zbx_history_export_init(const char *process_name, int process_num)
 {
+	if (FAIL == zbx_is_export_history_enabled())
+		return;
+
 	history_file_name = zbx_dsprintf(NULL, "%s/history-%s-%d.ndjson", export_dir, process_name, process_num);
 
 	if (NULL == (history_file = fopen(history_file_name, "a")))
@@ -86,6 +117,12 @@ void	zbx_history_export_init(const char *process_name, int process_num)
 				zbx_strerror(errno));
 		exit(EXIT_FAILURE);
 	}
+}
+
+void	zbx_trends_export_init(const char *process_name, int process_num)
+{
+	if (FAIL == zbx_is_export_trends_enabled())
+		return;
 
 	trends_file_name = zbx_dsprintf(NULL, "%s/trends-%s-%d.ndjson", export_dir, process_name, process_num);
 
@@ -99,6 +136,9 @@ void	zbx_history_export_init(const char *process_name, int process_num)
 
 void	zbx_problems_export_init(const char *process_name, int process_num)
 {
+	if (FAIL == zbx_is_export_events_enabled())
+		return;
+
 	problems_file_name = zbx_dsprintf(NULL, "%s/problems-%s-%d.ndjson", export_dir, process_name, process_num);
 
 	if (NULL == (problems_file = fopen(problems_file_name, "a")))

@@ -219,7 +219,12 @@ zbx_uint64_t	CONFIG_HISTORY_INDEX_CACHE_SIZE	= 4 * ZBX_MEBIBYTE;
 zbx_uint64_t	CONFIG_TRENDS_CACHE_SIZE	= 4 * ZBX_MEBIBYTE;
 zbx_uint64_t	CONFIG_VALUE_CACHE_SIZE		= 8 * ZBX_MEBIBYTE;
 zbx_uint64_t	CONFIG_VMWARE_CACHE_SIZE	= 8 * ZBX_MEBIBYTE;
+
 zbx_uint64_t	CONFIG_EXPORT_FILE_SIZE		= ZBX_GIBIBYTE;
+char	*CONFIG_EXPORT_DIR		= NULL;
+int CONFIG_EXPORT_HISTORY		= 1;
+int CONFIG_EXPORT_TRENDS		= 1;
+int CONFIG_EXPORT_EVENTS		= 1;
 
 int	CONFIG_UNREACHABLE_PERIOD	= 45;
 int	CONFIG_UNREACHABLE_DELAY	= 15;
@@ -242,7 +247,6 @@ char	*CONFIG_DB_TLS_KEY_FILE		= NULL;
 char	*CONFIG_DB_TLS_CA_FILE		= NULL;
 char	*CONFIG_DB_TLS_CIPHER		= NULL;
 char	*CONFIG_DB_TLS_CIPHER_13	= NULL;
-char	*CONFIG_EXPORT_DIR		= NULL;
 int	CONFIG_DBPORT			= 0;
 int	CONFIG_ENABLE_REMOTE_COMMANDS	= 0;
 int	CONFIG_LOG_REMOTE_COMMANDS	= 0;
@@ -820,6 +824,12 @@ static void	zbx_load_config(ZBX_TASK_EX *task)
 			PARM_OPT,	0,			0},
 		{"ExportFileSize",		&CONFIG_EXPORT_FILE_SIZE,		TYPE_UINT64,
 			PARM_OPT,	ZBX_MEBIBYTE,	ZBX_GIBIBYTE},
+		{"ExportHistory",		&CONFIG_EXPORT_HISTORY,		TYPE_INT,
+			PARM_OPT,	1,			1},
+		{"ExportTrends",		&CONFIG_EXPORT_TRENDS,		TYPE_INT,
+			PARM_OPT,	1,			1},
+		{"ExportEvents",		&CONFIG_EXPORT_EVENTS,		TYPE_INT,
+			PARM_OPT,	1,			1},
 		{"StartLLDProcessors",		&CONFIG_LLDWORKER_FORKS,		TYPE_INT,
 			PARM_OPT,	1,			100},
 		{"StatsAllowedIP",		&CONFIG_STATS_ALLOWED_IP,		TYPE_STRING_LIST,
@@ -1317,6 +1327,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 	if (SUCCEED == zbx_is_export_enabled())
 	{
 		zbx_history_export_init("main-process", 0);
+		zbx_trends_export_init("main-process", 0);
 		zbx_problems_export_init("main-process", 0);
 	}
 
