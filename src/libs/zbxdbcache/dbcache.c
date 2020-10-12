@@ -1421,10 +1421,10 @@ static void	DCexport_history_and_trends(const ZBX_DC_HISTORY *history, int histo
 
 	db_get_items_info_by_itemid(&items_info, &item_info_ids);
 
-	if (0 != history_num)
+	if (SUCCEED == zbx_is_export_history_enabled() && 0 != history_num)
 		DCexport_history(history, history_num, &hosts_info, &items_info);
 
-	if (0 != trends_num)
+	if (SUCCEED == zbx_is_export_trends_enabled() && 0 != trends_num)
 		DCexport_trends(trends, trends_num, &hosts_info, &items_info);
 
 	zbx_hashset_destroy(&hosts_info);
@@ -1518,7 +1518,7 @@ static void	DCsync_trends(void)
 
 	UNLOCK_TRENDS;
 
-	if (SUCCEED == zbx_is_export_enabled() && 0 != trends_num)
+	if (SUCCEED == zbx_is_export_trends_enabled() && 0 != trends_num)
 		DCexport_all_trends(trends, trends_num);
 
 	DBbegin();
@@ -3169,13 +3169,14 @@ static void	sync_server_history(int *values_num, int *triggers_num, int *more)
 
 			if (SUCCEED == zbx_is_export_enabled())
 			{
-				if (0 != history_num)
+				if (0 != history_num && ( SUCCEED == zbx_is_export_trends_enabled() || SUCCEED == zbx_is_export_history_enabled() ) )
 				{
 					DCexport_history_and_trends(history, history_num, &itemids, items, errcodes,
 							trends, trends_num);
 				}
 
-				zbx_export_events();
+				if (SUCCEED == zbx_is_export_events_enabled())
+					zbx_export_events();
 			}
 		}
 
