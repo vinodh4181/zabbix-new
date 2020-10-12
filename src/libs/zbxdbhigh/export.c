@@ -48,26 +48,26 @@ int	zbx_is_export_enabled(void)
 
 int zbx_is_export_history_enabled(void)
 {
-	if (NULL == CONFIG_EXPORT_HISTORY || 0 == CONFIG_EXPORT_HISTORY)
+	if (1 != CONFIG_EXPORT_HISTORY)
 		return FAIL;
 
-	return SUCCEED
+	return SUCCEED;
 }
 
 int zbx_is_export_trends_enabled(void)
 {
-	if (NULL == CONFIG_EXPORT_TRENDS || 0 == CONFIG_EXPORT_TRENDS)
+	if (1 != CONFIG_EXPORT_TRENDS)
 		return FAIL;
 
-	return SUCCEED
+	return SUCCEED;
 }
 
 int zbx_is_export_events_enabled(void)
 {
-	if (NULL == CONFIG_EXPORT_EVENTS || 0 == CONFIG_EXPORT_EVENTS)
+	if (1 != CONFIG_EXPORT_EVENTS)
 		return FAIL;
 
-	return SUCCEED
+	return SUCCEED;
 }
 
 int	zbx_export_init(char **error)
