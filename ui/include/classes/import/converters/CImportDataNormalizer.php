@@ -25,11 +25,13 @@
 class CImportDataNormalizer {
 
 	protected $rules;
+	protected $format;
 
 	const EOL_LF = 0x01;
 
-	public function __construct(array $schema) {
+	public function __construct(string $format, array $schema) {
 		$this->rules = $schema;
+		$this->format = $format;
 	}
 
 	public function normalize(array $data): array {
@@ -89,6 +91,12 @@ class CImportDataNormalizer {
 	 */
 	protected function normalizeStrings(string $data, array $rules): string {
 		$data = str_replace("\r\n", "\n", $data);
+
+		// Due to Yaml having no block chomping indicator (-), last new line needs to be stripped.
+		if ($this->format === CImportReaderFactory::YAML && substr($data, -1) === "\n") {
+			$data = substr($data, 0, -1);
+		}
+
 		$data = (array_key_exists('flags', $rules) && $rules['flags'] & self::EOL_LF)
 			? $data
 			: str_replace("\n", "\r\n", $data);

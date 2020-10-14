@@ -215,7 +215,7 @@ class CConfiguration extends CApiService {
 		$data = (new CDefaultImportConverter($schema))->convert($data);
 
 		// Normalize array keys and strings.
-		$data = (new CImportDataNormalizer($schema))->normalize($data);
+		$data = (new CImportDataNormalizer($params['format'], $schema))->normalize($data);
 
 		// Transform converter.
 		$data = (new CTransformImportConverter($schema))->convert($data);
