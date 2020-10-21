@@ -3673,6 +3673,66 @@ out:
 
 /******************************************************************************
  *                                                                            *
+ * Function: vmware_service_get_event_latestpage                              *
+ *                                                                            *
+ * Purpose: reads events from "latest page" and moves it back in time         *
+ *                                                                            *
+ * Parameters: easyhandle     - [IN] the CURL handle                          *
+ *             event_session  - [IN] event session (EventHistoryCollector)    *
+ *                                   identifier                               *
+ *             xdoc           - [OUT] the result as xml document              *
+ *             error          - [OUT] the error message in the case of failure*
+ *                                                                            *
+ * Return value: SUCCEED - the operation has completed successfully           *
+ *               FAIL    - the operation has failed                           *
+ *                                                                            *
+ ******************************************************************************/
+static int	vmware_service_get_event_latestpage(const zbx_vmware_service_t *service, CURL *easyhandle,
+		const char *event_session, xmlDoc **xdoc, char **error)
+{
+#	define ZBX_POST_VMWARE_READ_EVENT_LATEST_PAGE						\
+		ZBX_POST_VSPHERE_HEADER								\
+		"<ns0:RetrievePropertiesEx>"							\
+			"<ns0:_this type=\"PropertyCollector\">%s</ns0:_this>"			\
+			"<ns0:specSet>"								\
+				"<ns0:propSet>"							\
+					"<ns0:type>EventHistoryCollector</ns0:type>"		\
+					"<ns0:pathSet>latestPage</ns0:pathSet>"			\
+				"</ns0:propSet>"						\
+				"<ns0:objectSet>"						\
+					"<ns0:obj type=\"EventHistoryCollector\">%s</ns0:obj>"	\
+				"</ns0:objectSet>"						\
+			"</ns0:specSet>"							\
+			"<ns0:options/>"							\
+		"</ns0:RetrievePropertiesEx>"							\
+		ZBX_POST_VSPHERE_FOOTER
+
+	int	ret = FAIL;
+	char	tmp[MAX_STRING_LEN], *event_session_esc;
+
+	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
+
+	event_session_esc = xml_escape_dyn(event_session);
+
+	zbx_snprintf(tmp, sizeof(tmp), ZBX_POST_VMWARE_READ_EVENT_LATEST_PAGE,
+			vmware_service_objects[service->type].property_collector, event_session_esc);
+
+	zbx_free(event_session_esc);
+
+	if (SUCCEED != zbx_soap_post(__func__, easyhandle, tmp, xdoc, error))
+		goto out;
+
+	ret = SUCCEED;
+out:
+	zabbix_log(LOG_LEVEL_DEBUG, "End of %s():%s", __func__, zbx_result_string(ret));
+
+	return ret;
+
+#	undef ZBX_POST_VMWARE_READ_EVENT_LATEST_PAGE
+}
+
+/******************************************************************************
+ *                                                                            *
  * Function: vmware_service_destroy_event_session                             *
  *                                                                            *
  * Purpose: destroys event session                                            *
@@ -3842,14 +3902,15 @@ static int	vmware_service_put_event_data(zbx_vector_ptr_t *events, zbx_id_xmlnod
  *                                                                            *
  * Parameters: events   - [IN/OUT] the array of parsed events                 *
  *             last_key - [IN] the key of last parsed event                   *
+ *             is_prop  - [IN] read events form RetrieveProperties XML        *
  *             xdoc     - [IN] xml document with eventlog records             *
  *             alloc_sz - [OUT] allocated memory size for events              *
  *                                                                            *
  * Return value: The count of events successfully parsed                      *
  *                                                                            *
  ******************************************************************************/
-static int	vmware_service_parse_event_data(zbx_vector_ptr_t *events, zbx_uint64_t last_key, xmlDoc *xdoc,
-		zbx_uint64_t *alloc_sz)
+static int	vmware_service_parse_event_data(zbx_vector_ptr_t *events, zbx_uint64_t last_key, const int is_prop,
+		xmlDoc *xdoc, zbx_uint64_t *alloc_sz)
 {
 	zbx_vector_id_xmlnode_t	ids;
 	int			i, parsed_num = 0;
@@ -3862,7 +3923,8 @@ static int	vmware_service_parse_event_data(zbx_vector_ptr_t *events, zbx_uint64_
 
 	xpathCtx = xmlXPathNewContext(xdoc);
 
-	if (NULL == (xpathObj = xmlXPathEvalExpression((xmlChar *)"/*/*/*"ZBX_XPATH_LN("returnval"), xpathCtx)))
+	if (NULL == (xpathObj = xmlXPathEvalExpression((xmlChar *)(0 == is_prop ? "/*/*/*"ZBX_XPATH_LN("returnval") :
+			"/*/*/*"ZBX_XPATH_LN("returnval")"/*/*/*"ZBX_XPATH_LN("Event")), xpathCtx)))
 	{
 		zabbix_log(LOG_LEVEL_DEBUG, "Cannot make evenlog list parsing query.");
 		goto clean;
@@ -3916,6 +3978,17 @@ static int	vmware_service_parse_event_data(zbx_vector_ptr_t *events, zbx_uint64_
 		zbx_vector_id_xmlnode_sort(&ids, ZBX_DEFAULT_UINT64_COMPARE_FUNC);
 		zbx_vector_ptr_reserve(events, ids.values_num + events->values_alloc);
 
+		/* validate that last event from "latestPage" is connected with first event from ReadPreviousEvents */
+		if (0 != events->values_num &&
+				((const zbx_vmware_event_t *)events->values[events->values_num - 1])->key !=
+				ids.values[ids.values_num -1].id + 1)
+		{
+			zabbix_log(LOG_LEVEL_TRACE, "%s() clear events:%d", __func__, events->values_num);
+
+			/* if sequence of events is not continuous, ignore events from "latestPage" */
+			zbx_vector_ptr_clear_ext(events, (zbx_clean_func_t)vmware_event_free);
+		}
+
 		/* we are reading "scrollable views" in reverse chronological order, */
 		/* so inside a "scrollable view" latest events should come first too */
 		for (i = ids.values_num - 1; i >= 0; i--)
@@ -3956,6 +4029,9 @@ clean:
 static int	vmware_service_get_event_data(const zbx_vmware_service_t *service, CURL *easyhandle,
 		zbx_vector_ptr_t *events, zbx_uint64_t *alloc_sz, char **error)
 {
+#	define EVENT_TAG	1
+#	define RETURNVAL_TAG	0
+
 	char		*event_session = NULL;
 	int		ret = FAIL, soap_count = 5; /* 10 - initial value of eventlog records number in one response */
 	xmlDoc		*doc = NULL;
@@ -3976,6 +4052,19 @@ static int	vmware_service_get_event_data(const zbx_vmware_service_t *service, CU
 	}
 	else
 		eventlog_last_key = service->eventlog.last_key;
+
+	if (SUCCEED != vmware_service_get_event_latestpage(service, easyhandle, event_session, &doc, error))
+		goto end_session;
+
+	if (0 < vmware_service_parse_event_data(events, eventlog_last_key, EVENT_TAG, doc, alloc_sz) &&
+			((const zbx_vmware_event_t *)events->values[events->values_num - 1])->key ==
+			eventlog_last_key + 1)
+	{
+		zabbix_log(LOG_LEVEL_TRACE, "%s() latestPage events:%d", __func__, events->values_num);
+
+		ret = SUCCEED;
+		goto end_session;
+	}
 
 	do
 	{
@@ -4001,9 +4090,22 @@ static int	vmware_service_get_event_data(const zbx_vmware_service_t *service, CU
 			goto end_session;
 		}
 	}
-	while (0 < vmware_service_parse_event_data(events, eventlog_last_key, doc, alloc_sz));
+	while (0 < vmware_service_parse_event_data(events, eventlog_last_key, RETURNVAL_TAG, doc, alloc_sz));
 
-	ret = SUCCEED;
+	if (0 == eventlog_last_key ||
+			((const zbx_vmware_event_t *)events->values[events->values_num - 1])->key ==
+			eventlog_last_key + 1)
+	{
+		ret = SUCCEED;
+	}
+	else
+	{
+		zabbix_log(LOG_LEVEL_TRACE, "%s() clear events:%d", __func__, events->values_num);
+
+		/* if latestPage did not receive all events, but ReadPreviousEvents received nothing */
+		zbx_vector_ptr_clear_ext(events, (zbx_clean_func_t)vmware_event_free);
+	}
+
 end_session:
 	if (SUCCEED != vmware_service_destroy_event_session(easyhandle, event_session, error))
 		ret = FAIL;
