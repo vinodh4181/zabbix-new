@@ -4012,9 +4012,9 @@ clean:
 
 /******************************************************************************
  *                                                                            *
- * Function: vmware_service_get_event_data                                    *
+ * Function: vmware_service_event_init                                        *
  *                                                                            *
- * Purpose: retrieves event data                                              *
+ * Purpose: initialization of event collector                                 *
  *                                                                            *
  * Parameters: service       - [IN] the vmware service                        *
  *             easyhandle    - [IN] the CURL handle                           *
