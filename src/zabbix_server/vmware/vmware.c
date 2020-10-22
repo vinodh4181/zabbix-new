@@ -4016,34 +4016,62 @@ clean:
  *                                                                            *
  * Purpose: retrieves event data                                              *
  *                                                                            *
- * Parameters: service      - [IN] the vmware service                         *
- *             easyhandle   - [IN] the CURL handle                            *
- *             events       - [OUT] a pointer to the output variable          *
- *             alloc_sz     - [OUT] allocated memory size for events          *
- *             error        - [OUT] the error message in the case of failure  *
+ * Parameters: service       - [IN] the vmware service                        *
+ *             easyhandle    - [IN] the CURL handle                           *
+ *             event_session - [OUT] a pointer to the event session ID        *
+ *             error         - [OUT] the error message in the case of failure *
+ *                                                                            *
+ * Return value: SUCCEED - the operation has completed successfully           *
+ *               FAIL    - the operation has failed                           *
+ *                                                                            *
+ ******************************************************************************/
+static int	vmware_service_event_init(const zbx_vmware_service_t *service, CURL *easyhandle, char **event_session,
+		char **error)
+{
+	int	ret = FAIL;
+
+	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
+
+	if (SUCCEED != vmware_service_get_event_session(service, easyhandle, event_session, error))
+		goto out;
+
+	if (SUCCEED == vmware_service_reset_event_history_collector(easyhandle, *event_session, error))
+		ret = SUCCEED;
+out:
+	if (FAIL == ret && NULL != *event_session)
+		vmware_service_destroy_event_session(easyhandle, *event_session, error);
+
+	zabbix_log(LOG_LEVEL_DEBUG, "End of %s():%s", __func__, zbx_result_string(ret));
+
+	return ret;
+}
+
+/******************************************************************************
+ *                                                                            *
+ * Function: vmware_service_get_event_data                                    *
+ *                                                                            *
+ * Purpose: retrieves event data                                              *
+ *                                                                            *
+ * Parameters: service       - [IN] the vmware service                        *
+ *             easyhandle    - [IN] the CURL handle                           *
+ *             event_session - [IN] a pointer to the event session ID         *
+ *             events        - [OUT] a pointer to the output variable         *
+ *             alloc_sz      - [OUT] allocated memory size for events         *
+ *             error         - [OUT] the error message in the case of failure *
  *                                                                            *
  * Return value: SUCCEED - the operation has completed successfully           *
  *               FAIL    - the operation has failed                           *
  *                                                                            *
  ******************************************************************************/
 static int	vmware_service_get_event_data(const zbx_vmware_service_t *service, CURL *easyhandle,
-		zbx_vector_ptr_t *events, zbx_uint64_t *alloc_sz, char **error)
+		const char *event_session, zbx_vector_ptr_t *events, zbx_uint64_t *alloc_sz, char **error)
 {
 #	define EVENT_TAG	1
 #	define RETURNVAL_TAG	0
 
-	char		*event_session = NULL;
 	int		ret = FAIL, soap_count = 5; /* 10 - initial value of eventlog records number in one response */
 	xmlDoc		*doc = NULL;
 	zbx_uint64_t	eventlog_last_key;
-
-	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
-
-	if (SUCCEED != vmware_service_get_event_session(service, easyhandle, &event_session, error))
-		goto out;
-
-	if (SUCCEED != vmware_service_reset_event_history_collector(easyhandle, event_session, error))
-		goto end_session;
 
 	if (NULL != service->data && 0 != service->data->events.values_num &&
 			((const zbx_vmware_event_t *)service->data->events.values[0])->key > service->eventlog.last_key)
@@ -4109,8 +4137,7 @@ static int	vmware_service_get_event_data(const zbx_vmware_service_t *service, CU
 end_session:
 	if (SUCCEED != vmware_service_destroy_event_session(easyhandle, event_session, error))
 		ret = FAIL;
-out:
-	zbx_free(event_session);
+
 	zbx_xml_free_doc(doc);
 
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s():%s", __func__, zbx_result_string(ret));
@@ -4846,7 +4873,7 @@ static void	vmware_service_update(zbx_vmware_service_t *service)
 	ZBX_HTTPPAGE		page;	/* 347K/87K */
 	unsigned char		skip_old = service->eventlog.skip_old;
 	zbx_uint64_t		events_sz = 0;
-	char			msg[MAX_STRING_LEN / 8];
+	char			msg[MAX_STRING_LEN / 8], *event_session = NULL;
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() '%s'@'%s'", __func__, service->username, service->url);
 
@@ -4883,6 +4910,15 @@ static void	vmware_service_update(zbx_vmware_service_t *service)
 
 	if (SUCCEED != vmware_service_authenticate(service, easyhandle, &page, &data->error))
 		goto clean;
+
+	/* skip collection of event data if we don't know where	*/
+	/* we stopped last time or item can't accept values 	*/
+	if (0 == service->eventlog.req_sz && ZBX_VMWARE_EVENT_KEY_UNINITIALIZED != service->eventlog.last_key &&
+			0 == service->eventlog.skip_old &&
+			SUCCEED != vmware_service_event_init(service, easyhandle, &event_session, &data->error))
+	{
+		goto clean;
+	}
 
 	if (0 != (service->state & ZBX_VMWARE_STATE_NEW) &&
 			SUCCEED != vmware_service_initialize(service, easyhandle, &data->error))
@@ -4935,12 +4971,8 @@ static void	vmware_service_update(zbx_vmware_service_t *service)
 
 	if (0 == service->eventlog.req_sz)
 	{
-		/* skip collection of event data if we don't know where	*/
-		/* we stopped last time or item can't accept values 	*/
-		if (ZBX_VMWARE_EVENT_KEY_UNINITIALIZED != service->eventlog.last_key &&
-				0 == service->eventlog.skip_old &&
-				SUCCEED != vmware_service_get_event_data(service, easyhandle, &data->events,
-				&events_sz, &data->error))
+		if (NULL != event_session && SUCCEED != vmware_service_get_event_data(service, easyhandle,
+				event_session, &data->events, &events_sz, &data->error))
 		{
 			goto clean;
 		}
@@ -4986,6 +5018,7 @@ clean:
 	curl_slist_free_all(headers);
 	curl_easy_cleanup(easyhandle);
 	zbx_free(page.data);
+	zbx_free(event_session);
 
 	zbx_vector_str_clear_ext(&hvs, zbx_str_free);
 	zbx_vector_str_destroy(&hvs);
