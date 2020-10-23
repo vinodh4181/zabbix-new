@@ -4120,20 +4120,19 @@ static int	vmware_service_get_event_data(const zbx_vmware_service_t *service, CU
 	}
 	while (0 < vmware_service_parse_event_data(events, eventlog_last_key, RETURNVAL_TAG, doc, alloc_sz));
 
-	if (0 == eventlog_last_key || 0 == events->values_num ||
-			((const zbx_vmware_event_t *)events->values[events->values_num - 1])->key ==
+	if (0 != eventlog_last_key && 0 != events->values_num &&
+			((const zbx_vmware_event_t *)events->values[events->values_num - 1])->key !=
 			eventlog_last_key + 1)
 	{
-		ret = SUCCEED;
-	}
-	else
-	{
-		zabbix_log(LOG_LEVEL_DEBUG, "%s() clear events:%d", __func__, events->values_num);
+		zabbix_log(LOG_LEVEL_DEBUG, "%s() clear events:%d id gap:%d", __func__, events->values_num,
+				(int)(((const zbx_vmware_event_t *)events->values[events->values_num - 1])->key -
+				(eventlog_last_key + 1)));
 
 		/* if latestPage did not receive all events, but ReadPreviousEvents received nothing */
 		zbx_vector_ptr_clear_ext(events, (zbx_clean_func_t)vmware_event_free);
 	}
 
+	ret = SUCCEED;
 end_session:
 	if (SUCCEED != vmware_service_destroy_event_session(easyhandle, event_session, error))
 		ret = FAIL;
