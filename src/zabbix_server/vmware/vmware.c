@@ -3921,6 +3921,7 @@ static int	vmware_service_parse_event_data(zbx_vector_ptr_t *events, zbx_uint64_
 	xmlXPathContext		*xpathCtx;
 	xmlXPathObject		*xpathObj;
 	xmlNodeSetPtr		nodeset;
+	static int		is_clear = 0;
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() last_key:" ZBX_FS_UI64, __func__, last_key);
 
@@ -3992,6 +3993,10 @@ static int	vmware_service_parse_event_data(zbx_vector_ptr_t *events, zbx_uint64_
 		{
 			zabbix_log(LOG_LEVEL_DEBUG, "%s() events:%d id gap:%d", __func__, events->values_num,
 					(int)(LAST_KEY(events) - (ids.values[ids.values_num -1].id + 1)));
+
+			/* if sequence of events is not continuous, ignore events from "latestPage" property */
+			if (0 != is_clear)
+				zbx_vector_ptr_clear_ext(events, (zbx_clean_func_t)vmware_event_free);
 		}
 
 		/* we are reading "scrollable views" in reverse chronological order, */
@@ -4009,6 +4014,7 @@ clean:
 		xmlXPathFreeObject(xpathObj);
 
 	xmlXPathFreeContext(xpathCtx);
+	is_clear = is_prop;
 
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() parsed:%d", __func__, parsed_num);
 
