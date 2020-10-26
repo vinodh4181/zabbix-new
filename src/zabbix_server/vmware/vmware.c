@@ -3991,7 +3991,8 @@ static int	vmware_service_parse_event_data(zbx_vector_ptr_t *events, zbx_uint64_
 		/* validate that last event from "latestPage" is connected with first event from ReadPreviousEvents */
 		if (0 != events->values_num && LAST_KEY(events) != ids.values[ids.values_num -1].id + 1)
 		{
-			zabbix_log(LOG_LEVEL_DEBUG, "%s() events:%d id gap:%d", __func__, events->values_num,
+			zabbix_log(LOG_LEVEL_DEBUG, "%s() events:%d is_clear:%d id gap:%d", __func__,
+					events->values_num, is_clear,
 					(int)(LAST_KEY(events) - (ids.values[ids.values_num -1].id + 1)));
 
 			/* if sequence of events is not continuous, ignore events from "latestPage" property */
