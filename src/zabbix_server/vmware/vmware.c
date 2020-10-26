@@ -4008,6 +4008,15 @@ static int	vmware_service_parse_event_data(zbx_vector_ptr_t *events, zbx_uint64_
 				parsed_num++;
 		}
 	}
+	else if (0 != last_key && 0 != events->values_num && LAST_KEY(events) != last_key + 1)
+	{
+		zabbix_log(LOG_LEVEL_DEBUG, "%s() events:%d is_clear:%d last_key id gap:%d", __func__,
+				events->values_num, is_clear, (int)(LAST_KEY(events) - (last_key + 1)));
+
+		/* if sequence of events is not continuous, ignore events from "latestPage" property */
+		if (0 != is_clear)
+			zbx_vector_ptr_clear_ext(events, (zbx_clean_func_t)vmware_event_free);
+	}
 
 	zbx_vector_id_xmlnode_destroy(&ids);
 clean:
