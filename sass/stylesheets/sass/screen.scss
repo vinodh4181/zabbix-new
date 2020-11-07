@@ -23,11 +23,14 @@ $browser-sprite-path: '../img/browser-sprite.png?20200407';
 @import "layout/header";
 @import "layout/footer";
 @import "layout/sidebar";
+@import "layout/form-grid";
 
 @import "components/form-search";
 @import "components/menu-main";
 @import "components/menu-user";
 @import "components/message-box";
+@import "components/tabfilter";
+@import "components/z-select";
 
 .link-action {
 	border-bottom: 1px dotted;
@@ -1505,6 +1508,10 @@ form {
 	display: inline-block;
 	padding: 5px;
 	position: relative;
+}
+
+.border-left {
+	border-left: 1px solid $table-border-color;
 }
 
 .drag-drop-area {
@@ -4086,15 +4093,6 @@ $form-icon-btn: (
 		}
 	}
 
-	.hintbox-scrollable {
-		overflow: auto;
-		width: 100%;
-		max-height: calc(100vh - 190px);
-		max-width: 45vw;
-		white-space: nowrap;
-		@extend %webkit-scrollbar;
-	}
-
 	.hintbox-wrap {
 		overflow: auto;
 		max-height: 240px;
@@ -5101,7 +5099,6 @@ a.link-action {
 %status {
 	padding: 2px 3px 1px;
 	font-size: $font-h3-size;
-	text-transform: $font-transform;
 	text-align: center;
 	min-width: .7em;
 	line-height: 1em;
@@ -5611,7 +5608,9 @@ span {
 
 		&:before {
 			top: 42px;
+			right: 1px;
 			bottom: 42px;
+			left: 1px;
 		}
 	}
 }
@@ -5718,12 +5717,12 @@ $browser-logos: (
 }
 
 %cursor-drag {
-	cursor: move; /* fallback if grab cursor is unsupported */
+	cursor: move; // fallback if grab cursor is unsupported
 	cursor: grab;
 }
 
 %cursor-dragging {
-	cursor: move; /* fallback if grabbing cursor is unsupported */
+	cursor: move; // fallback if grabbing cursor is unsupported
 	cursor: grabbing;
 }
 
@@ -6808,17 +6807,6 @@ $range-input-width: 31px;
 	font-size: 0;
 }
 
-.item-test-popup-value-row,
-.preproc-test-popup-value-row {
-	display: flex;
-
-	label {
-		padding: 0 10px;
-		margin-left: auto;
-		line-height: 24px;
-	}
-}
-
 table.preprocessing-test-results {
 	td {
 		vertical-align: top !important;
@@ -7058,6 +7046,29 @@ table.preprocessing-test-results {
 			}
 		}
 	}
+}
+
+.icon-invisible.menu-popup-item,
+.icon-invisible.btn-dropdown-toggle {
+	width: 100%;
+
+	&::before {
+		background: url($sprite-path) no-repeat -87px -800px;
+	}
+
+	&:not(.highlighted):enabled {
+		&:hover,
+		&:focus,
+		&:active,
+		&[aria-expanded="true"] {
+			&::before {
+				background-position: -399px -800px;
+			}
+		}
+	}
+}
+.icon-invisible.btn-dropdown-toggle {
+	margin: 0;
 }
 
 .btn-split {
@@ -7335,4 +7346,75 @@ table.preprocessing-test-results {
 	.table-col-y-axis-side { width: 85px; }
 	.table-col-colour { width: 105px; }
 	.table-col-action { width: 55px; }
+}
+
+z-select,
+.z-select {
+	&.z-select-host-interface {
+		.description:not(:empty) {
+			display: block;
+			margin-top: 5px;
+			color: $input-placeholder-color;
+		}
+
+		&[disabled],
+		li[disabled] {
+			.description:not(:empty) {
+				color: $form-disabled-font-color;
+			}
+		}
+	}
+}
+
+// Dashboard list table.
+.dashboard-list {
+	.dashboard-list-item {
+		display: flex;
+		justify-content: space-between;
+		height: 18px;
+
+		.status-green {
+			background-color: $dashboard-my-bg-color;
+			border-color: $dashboard-my-bg-color;
+		}
+
+		.status-yellow {
+			background-color: $dashboard-shared-bg-color;
+			border-color: $dashboard-shared-bg-color;
+		}
+	}
+}
+
+.multiselect-description-container {
+	display: flex;
+	align-items: center;
+
+	> .multiselect-control {
+		margin-right: 5px;
+	}
+}
+
+// Users permissions tab.
+.rules-status-container {
+	> span {
+		text-transform: none;
+		margin: 3px 3px 3px 0;
+
+		&:last-of-type {
+			margin-right: 0;
+		}
+	}
+
+	> .status-green:not(:last-of-type) {
+		border-right: 1px solid darken(desaturate($alt-green, 10%), 20%);
+	}
+
+	> .status-grey:not(:last-of-type) {
+		border-right: 1px solid $form-disabled-border-color;
+	}
+}
+
+// Used in form lists to separate input elements on sections.
+.input-section-header {
+	padding-top: 10px;
 }

@@ -53,6 +53,10 @@ $fields = [
 	'cert_file' =>			[T_ZBX_STR, O_OPT, null,	null, 				null],
 	'ca_file' =>			[T_ZBX_STR, O_OPT, null,	null, 				null],
 	'cipher_list' =>		[T_ZBX_STR, O_OPT, null,	null, 				null],
+	'creds_storage' =>		[T_ZBX_INT, O_OPT, null,	IN([DB_STORE_CREDS_CONFIG, DB_STORE_CREDS_VAULT]),			null],
+	'vault_url' =>			[T_ZBX_STR, O_OPT, null,	null,				null],
+	'vault_db_path' =>		[T_ZBX_STR, O_OPT, null,	null,				null],
+	'vault_token' =>		[T_ZBX_STR, O_OPT, null,	null,				null],
 	'zbx_server' =>			[T_ZBX_STR, O_OPT, null,	null,				null],
 	'zbx_server_name' =>	[T_ZBX_STR, O_OPT, null,	null,				null],
 	'zbx_server_port' =>	[T_ZBX_INT, O_OPT, null,	BETWEEN(0, 65535),	null, _('Port')],
@@ -167,6 +171,11 @@ $ZBX_SETUP_WIZARD = new CSetupWizard();
 (new CPageHeader(_('Installation')))
 	->addCssFile('assets/styles/'.CHtml::encode($default_theme).'.css')
 	->addJsFile((new CUrl('js/browsers.js'))->getUrl())
+	->addJsFile((new CUrl('jsLoader.php'))
+		->setArgument('ver', ZABBIX_VERSION)
+		->setArgument('lang', $default_lang)
+		->getUrl()
+	)
 	->addJsFile((new CUrl('jsLoader.php'))
 		->setArgument('ver', ZABBIX_VERSION)
 		->setArgument('lang', $default_lang)
