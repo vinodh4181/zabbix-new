@@ -9,7 +9,8 @@ libzbxserver_a_SOURCES = \
 	macrofunc.c \
 	macrofunc.h \
 	zabbix_stats.c \
-	zabbix_stats.h
+	zabbix_stats.h \
+	eval.c
 
 libzbxserver_server_a_SOURCES = \
 	zabbix_stats.h \
