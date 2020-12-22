@@ -3,7 +3,8 @@ SERVER_tests = \
 	get_trigger_expression_constant \
 	evaluate_function \
 	substitute_lld_macros \
-	macro_fmttime
+	macro_fmttime \
+	zbx_expression_eval_parse
 endif
 
 noinst_PROGRAMS = $(SERVER_tests)
@@ -160,5 +161,19 @@ evaluate_function_CFLAGS = $(COMMON_COMPILER_FLAGS) \
 	-I@top_srcdir@/src/libs/zbxalgo \
 	-I@top_srcdir@/src/libs/zbxdbcache \
 	-I@top_srcdir@/src/libs/zbxhistory
+
+	
+zbx_expression_eval_parse_SOURCES = \
+	zbx_expression_eval_parse.c
+
+zbx_expression_eval_parse_LDADD = \
+	$(COMMON_LIB_FILES)
+
+zbx_expression_eval_parse_LDADD += @SERVER_LIBS@
+
+zbx_expression_eval_parse_LDFLAGS =  @SERVER_LDFLAGS@
+
+zbx_expression_eval_parse_CFLAGS = $(COMMON_COMPILER_FLAGS)
 endif
+
 

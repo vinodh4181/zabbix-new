@@ -174,7 +174,9 @@ tests/libs/zbxprometheus/zbx_prometheus_to_json
 tests/libs/zbxregexp/wildcard_match
 tests/libs/zbxserver/evaluate_function
 tests/libs/zbxserver/get_trigger_expression_constant
+tests/libs/zbxserver/macro_fmttime
 tests/libs/zbxserver/substitute_lld_macros
+tests/libs/zbxserver/zbx_expression_eval_parse
 tests/libs/zbxsysinfo/check_key_access_rules
 tests/libs/zbxsysinfo/common/SYSTEM_LOCALTIME
 tests/libs/zbxsysinfo/common/VFS_FILE_EXISTS

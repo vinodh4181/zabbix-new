@@ -107,7 +107,7 @@ static int	eval_parse_macro(zbx_eval_context_t *ctx, size_t pos, zbx_eval_token_
 {
 	zbx_token_t	tok;
 
-	if (0 != (ctx->flags & ZBX_EVAL_PARSE_OBJECTID) &&
+	if (0 != (ctx->flags & ZBX_EVAL_PARSE_FUNCTIONID) &&
 			SUCCEED == zbx_token_parse_objectid(ctx->expression, ctx->expression + pos, &tok))
 	{
 		token->type = ZBX_EVAL_TOKEN_FUNCTIONID;
@@ -116,13 +116,15 @@ static int	eval_parse_macro(zbx_eval_context_t *ctx, size_t pos, zbx_eval_token_
 	else if (SUCCEED == zbx_token_parse_macro(ctx->expression, ctx->expression + pos, &tok))
 	{
 		token->type = ZBX_EVAL_TOKEN_VAR_MACRO;
+		eval_update_const_variable(ctx, token);
 	}
-	else if (SUCCEED == zbx_token_parse_user_macro(ctx->expression, ctx->expression + pos, &tok))
+	else if ('$' == ctx->expression[pos + 1] &&
+			SUCCEED == zbx_token_parse_user_macro(ctx->expression, ctx->expression + pos, &tok))
 	{
 		token->type = ZBX_EVAL_TOKEN_VAR_USERMACRO;
 		eval_update_const_variable(ctx, token);
 	}
-	else if (0 != (ctx->flags & ZBX_EVAL_PARSE_LLD) &&
+	else if (0 != (ctx->flags & ZBX_EVAL_PARSE_LLD) && '#' == ctx->expression[pos + 1] &&
 			SUCCEED == zbx_token_parse_lld_macro(ctx->expression, ctx->expression + pos, &tok))
 	{
 		token->type = ZBX_EVAL_TOKEN_VAR_LLDMACRO;
@@ -337,13 +339,13 @@ static int	eval_parse_keyword_token(zbx_eval_context_t *ctx, size_t pos, zbx_eva
 	else
 		return FAIL;
 
-	if ('(' == ctx->expression[token->loc.r + 1] || 0 != is_whitespace(ctx->expression[token->loc.r + 1]))
-	{
-		token->loc.l = pos;
-		return SUCCEED;
-	}
+	/* keyword must be followed by whitespace or opening parenthesis */
+	if ('(' != ctx->expression[token->loc.r + 1] && SUCCEED != is_whitespace(ctx->expression[token->loc.r + 1]))
+		return FAIL;
 
-	return FAIL;
+	token->loc.l = pos;
+
+	return SUCCEED;
 }
 
 /******************************************************************************
@@ -496,6 +498,11 @@ static int	eval_parse_time_token(zbx_eval_context_t *ctx, size_t pos, zbx_eval_t
  ******************************************************************************/
 static int	eval_parse_token(zbx_eval_context_t *ctx, size_t pos, zbx_eval_token_t *token, char **error)
 {
+	size_t	skip;
+
+	skip = eval_get_whitespace_len(ctx, pos);
+	pos += skip;
+
 	switch (ctx->expression[pos])
 	{
 		case '{':
@@ -504,10 +511,10 @@ static int	eval_parse_token(zbx_eval_context_t *ctx, size_t pos, zbx_eval_token_
 			eval_parse_character_token(pos, ZBX_EVAL_TOKEN_OP_ADD, token);
 			return SUCCEED;
 		case '-':
-			if (0 != (ctx->last_token_type & ZBX_EVAL_CLASS_OPERATOR2))
+			if (0 == (ctx->last_token_type & ZBX_EVAL_CLASS_OPERAND))
 				eval_parse_character_token(pos, ZBX_EVAL_TOKEN_OP_MINUS, token);
 			else
-				eval_parse_character_token(pos, ZBX_EVAL_TOKEN_OP_DIV, token);
+				eval_parse_character_token(pos, ZBX_EVAL_TOKEN_OP_SUB, token);
 			return SUCCEED;
 		case '/':
 			if (ZBX_EVAL_TOKEN_GROUP_OPEN == ctx->last_token_type &&
@@ -576,11 +583,17 @@ static int	eval_parse_token(zbx_eval_context_t *ctx, size_t pos, zbx_eval_token_
 		default:
 			if (0 != isalpha((unsigned char)ctx->expression[pos]))
 			{
-				if (SUCCEED == eval_parse_keyword_token(ctx, pos, token) ||
-						SUCCEED == eval_parse_function_token(ctx, pos, token))
+				int	ret;
+
+				/* keyword must be separated by whitespace or '(', ')', ',' characters */
+				if ((0 != skip || 0 != (ctx->last_token_type & ZBX_EVAL_CLASS_SEPARATOR) ||
+						ZBX_EVAL_TOKEN_GROUP_CLOSE == ctx->last_token_type))
 				{
-					return SUCCEED;
+					ret = eval_parse_keyword_token(ctx, pos, token);
 				}
+
+				if (SUCCEED == ret || SUCCEED == eval_parse_function_token(ctx, pos, token))
+					return SUCCEED;
 			}
 			*error = zbx_dsprintf(*error, "invalid token starting with \"%s\"", ctx->expression + pos);
 			return FAIL;
@@ -692,8 +705,6 @@ static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression
 	{
 		zbx_eval_token_t	token = {0};
 
-		pos += eval_get_whitespace_len(ctx, pos);
-
 		if (SUCCEED != eval_parse_token(ctx, pos, &token, error))
 			goto out;
 
@@ -711,11 +722,12 @@ static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression
 			goto out;
 		}
 
-		if ((ZBX_EVAL_TOKEN_GROUP_CLOSE == token.type || ZBX_EVAL_TOKEN_COMMA == token.type) &&
-				ZBX_EVAL_TOKEN_COMMA == ctx->last_token_type)
-		{
+		if (ZBX_EVAL_TOKEN_GROUP_CLOSE == token.type && ZBX_EVAL_TOKEN_COMMA == ctx->last_token_type)
 			eval_append_arg_null(ctx);
-		}
+
+
+		if (ZBX_EVAL_TOKEN_COMMA == token.type && 0 != (ctx->last_token_type & ZBX_EVAL_CLASS_SEPARATOR))
+			eval_append_arg_null(ctx);
 
 		if (ZBX_EVAL_TOKEN_GROUP_OPEN == token.type)
 		{
@@ -742,10 +754,11 @@ static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression
 		{
 			/* right parenthesis must follow and operand, right parenthesis or function */
 			if (0 == (ctx->last_token_type & ZBX_EVAL_CLASS_OPERAND) &&
-					(ZBX_EVAL_TOKEN_GROUP_OPEN != ctx->last_token_type || ctx->ops.values_num < 2 ||
+					0 == (ctx->last_token_type & ZBX_EVAL_CLASS_SEPARATOR) &&
+					(ctx->ops.values_num < 2 ||
 					ZBX_EVAL_TOKEN_MATH_FUNCTION != ctx->ops.values[ctx->ops.values_num - 2].type))
 			{
-				*error = zbx_dsprintf(*error, "right parenthesis must follow and operand or right"
+				*error = zbx_dsprintf(*error, "right parenthesis must follow an operand or left"
 						" parenthesis at \"%s\"", ctx->expression + pos);
 				goto out;
 			}
@@ -797,7 +810,7 @@ static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression
 			if (0 != (token.type & ZBX_EVAL_CLASS_OPERATOR2) &&
 					0 == (ctx->last_token_type & ZBX_EVAL_BEFORE_OPERATOR))
 			{
-				*error = zbx_dsprintf(*error, "binary operator cannot be used after operator at \"%s\"",
+				*error = zbx_dsprintf(*error, "binary operator must be used after operand at \"%s\"",
 						ctx->expression + pos);
 				goto out;
 			}
@@ -815,7 +828,8 @@ static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression
 			{
 				optoken = &ctx->ops.values[ctx->ops.values_num - 1];
 
-				if ((optoken->type & ZBX_EVAL_OP_PRIORITY) > (token.type & ZBX_EVAL_OP_PRIORITY))
+				if ((optoken->type & ZBX_EVAL_OP_PRIORITY) > (token.type & ZBX_EVAL_OP_PRIORITY) ||
+						0 != (token.type & ZBX_EVAL_CLASS_OPERATOR1))
 					break;
 
 				if (ZBX_EVAL_TOKEN_GROUP_OPEN == optoken->type)
@@ -830,6 +844,13 @@ static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression
 		ctx->last_token_type = token.type;
 		pos = token.loc.r + 1;
 	}
+
+	if (0 != (ctx->last_token_type & ZBX_EVAL_CLASS_OPERATOR))
+	{
+		*error = zbx_strdup(*error, "expression ends with operator");
+		goto out;
+	}
+
 	for (; 0 < ctx->ops.values_num; ctx->ops.values_num--)
 	{
 		optoken = &ctx->ops.values[ctx->ops.values_num - 1];
@@ -841,6 +862,12 @@ static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression
 		}
 
 		eval_append_operator(ctx, optoken);
+	}
+
+	if (0 == ctx->stack.values_num)
+	{
+		*error = zbx_strdup(*error, "empty expression");
+		goto out;
 	}
 
 	ret = SUCCEED;
