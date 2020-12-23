@@ -166,6 +166,13 @@ typedef zbx_uint32_t zbx_token_type_t;
 #define	ZBX_EVAL_PARSE_TRIGGER_EXPRESSSION	ZBX_EVAL_PARSE_FUNCTIONID
 #define	ZBX_EVAL_PARSE_CALC_EXPRESSSION		ZBX_EVAL_PARSE_ITEM_QUERY
 
+#define ZBX_EVAL_COMPOSE_QUOTE_MACRO		__UINT64_C(0x0001)
+#define ZBX_EVAL_COMPOSE_QUOTE_USERMACRO	__UINT64_C(0x0002)
+#define ZBX_EVAL_COMPOSE_QUOTE_LLDMACRO		__UINT64_C(0x0004)
+
+#define ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION	(ZBX_EVAL_COMPOSE_QUOTE_MACRO | ZBX_EVAL_COMPOSE_QUOTE_USERMACRO)
+#define ZBX_EVAL_COMPOSE_LLD_EXPRESSION		ZBX_EVAL_COMPOSE_QUOTE_LLDMACRO
+
 typedef struct
 {
 	zbx_token_type_t	type;
@@ -194,6 +201,6 @@ void	zbx_expression_eval_clean(zbx_eval_context_t *ctx);
 void	zbx_expression_eval_serialize(const zbx_eval_context_t *ctx, zbx_mem_malloc_func_t malloc_func,
 		unsigned char **data);
 void	zbx_expression_eval_deserialize(zbx_eval_context_t *ctx, const char *expression, const unsigned char *data);
-void	zbx_expression_eval_compose(const zbx_eval_context_t *ctx, char **expression);
+void	zbx_expression_eval_compose(const zbx_eval_context_t *ctx,  zbx_uint64_t flags, char **expression);
 
 #endif

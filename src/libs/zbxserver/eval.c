@@ -1169,6 +1169,104 @@ static int	compare_tokens_by_loc(const void *d1, const void *d2)
 
 /******************************************************************************
  *                                                                            *
+ * Function: eval_token_print_alloc                                           *
+ *                                                                            *
+ * Purpose: print token into string quoting/escaping if necessary             *
+ *                                                                            *
+ * Parameters: str        - [IN/OUT] the output buffer                        *
+ *             str_alloc  - [IN/OUT] the output buffer size                   *
+ *             str_offset - [IN/OUT] the output buffer offset                 *
+ *             token      - [IN] the token to print                           *
+ *             flags      - [IN] token quoting rules                          *
+ *                                                                            *
+ ******************************************************************************/
+static void	eval_token_print_alloc(char **str, size_t *str_alloc, size_t *str_offset, const zbx_eval_token_t *token,
+		zbx_uint64_t flags)
+{
+	int		quoted = 0, len, check_value = 0;
+	const char	*src;
+	char		*dst;
+	size_t		size;
+
+	if (NULL == token->value)
+		return;
+
+	switch (token->type)
+	{
+		case ZBX_EVAL_TOKEN_VAR_STR:
+			quoted = 1;
+			break;
+		case ZBX_EVAL_TOKEN_VAR_MACRO:
+			if (0 != (flags & ZBX_EVAL_COMPOSE_QUOTE_MACRO))
+				check_value = 1;
+			break;
+		case ZBX_EVAL_TOKEN_VAR_USERMACRO:
+			if (0 != (flags & ZBX_EVAL_COMPOSE_QUOTE_USERMACRO))
+				check_value = 1;
+			break;
+		case ZBX_EVAL_TOKEN_VAR_LLDMACRO:
+			if (0 != (flags & ZBX_EVAL_COMPOSE_QUOTE_LLDMACRO))
+				check_value = 1;
+			break;
+	}
+
+	if (0 != check_value)
+	{
+		if (SUCCEED != zbx_number_parse(token->value, &len) || strlen(token->value) != (size_t)len)
+			quoted = 1;
+	}
+
+	if (0 == quoted)
+	{
+		zbx_strcpy_alloc(str, str_alloc, str_offset, token->value);
+		return;
+	}
+
+	for (size = 2, src = token->value; '\0' != *src; src++)
+	{
+		switch (*src)
+		{
+			case '\\':
+			case '"':
+				size++;
+		}
+		size++;
+	}
+
+	if (*str_alloc - *str_offset <= size)
+	{
+		do
+		{
+			*str_alloc *= 2;
+		}
+		while (*str_alloc - *str_offset <= size);
+
+		*str = zbx_realloc(*str, *str_alloc);
+	}
+
+	dst = *str + *str_offset;
+	*dst++ = '"';
+
+	for (src = token->value; '\0' != *src; src++, dst++)
+	{
+		switch (*src)
+		{
+			case '\\':
+			case '"':
+				*dst++ = '\\';
+				break;
+		}
+
+		*dst = *src;
+	}
+
+	*dst++ = '"';
+	*dst = '\0';
+	*str_offset += size;
+}
+
+/******************************************************************************
+ *                                                                            *
  * Function: zbx_expression_eval_compose                                      *
  *                                                                            *
  * Purpose: compose expression by replacing processed tokens (with values) in *
@@ -1178,7 +1276,7 @@ static int	compare_tokens_by_loc(const void *d1, const void *d2)
  *             expression - [OUT] the composed expression                     *
  *                                                                            *
  ******************************************************************************/
-void	zbx_expression_eval_compose(const zbx_eval_context_t *ctx, char **expression)
+void	zbx_expression_eval_compose(const zbx_eval_context_t *ctx, zbx_uint64_t flags, char **expression)
 {
 	zbx_vector_ptr_t	tokens;
 	const zbx_eval_token_t	*token;
@@ -1195,7 +1293,6 @@ void	zbx_expression_eval_compose(const zbx_eval_context_t *ctx, char **expressio
 
 	zbx_vector_ptr_sort(&tokens, compare_tokens_by_loc);
 
-
 	for (i = 0; i < tokens.values_num; i++)
 	{
 		token = (const zbx_eval_token_t *)tokens.values[i];
@@ -1206,7 +1303,7 @@ void	zbx_expression_eval_compose(const zbx_eval_context_t *ctx, char **expressio
 					token->loc.l - pos);
 		}
 		pos = token->loc.r + 1;
-		zbx_strcpy_alloc(expression, &expression_alloc, &expression_offset, token->value);
+		eval_token_print_alloc(expression, &expression_alloc, &expression_offset, token, flags);
 	}
 
 	if ('\0' != ctx->expression[pos])
@@ -1214,3 +1311,5 @@ void	zbx_expression_eval_compose(const zbx_eval_context_t *ctx, char **expressio
 
 	zbx_vector_ptr_destroy(&tokens);
 }
+
+
