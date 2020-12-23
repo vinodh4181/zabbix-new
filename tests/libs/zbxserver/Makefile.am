@@ -4,7 +4,8 @@ SERVER_tests = \
 	evaluate_function \
 	substitute_lld_macros \
 	macro_fmttime \
-	zbx_expression_eval_parse
+	zbx_expression_eval_parse \
+	zbx_expression_eval_serialize
 endif
 
 noinst_PROGRAMS = $(SERVER_tests)
@@ -171,9 +172,22 @@ zbx_expression_eval_parse_LDADD = \
 
 zbx_expression_eval_parse_LDADD += @SERVER_LIBS@
 
-zbx_expression_eval_parse_LDFLAGS =  @SERVER_LDFLAGS@
+zbx_expression_eval_parse_LDFLAGS = @SERVER_LDFLAGS@
 
 zbx_expression_eval_parse_CFLAGS = $(COMMON_COMPILER_FLAGS)
-endif
 
+
+zbx_expression_eval_serialize_SOURCES = \
+	zbx_expression_eval_serialize.c
+
+zbx_expression_eval_serialize_LDADD = \
+	$(COMMON_LIB_FILES)
+
+zbx_expression_eval_serialize_LDADD += @SERVER_LIBS@
+
+zbx_expression_eval_serialize_LDFLAGS = @SERVER_LDFLAGS@
+
+zbx_expression_eval_serialize_CFLAGS = $(COMMON_COMPILER_FLAGS)
+
+endif
 
