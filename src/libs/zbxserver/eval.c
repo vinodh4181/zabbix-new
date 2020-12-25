@@ -1013,7 +1013,7 @@ static	void	reserve_buffer(unsigned char **buffer, size_t *buffer_size, size_t r
 
 /******************************************************************************
  *                                                                            *
- * Function: zbx_expression_eval_parse                                        *
+ * Function: zbx_eval_parse_expression                                        *
  *                                                                            *
  * Purpose: parse expression into tokens in postfix notation order            *
  *                                                                            *
@@ -1047,7 +1047,7 @@ void	zbx_eval_clean(zbx_eval_context_t *ctx)
 
 /******************************************************************************
  *                                                                            *
- * Function: zbx_expression_eval_serialize                                    *
+ * Function: zbx_eval_serialize                                               *
  *                                                                            *
  * Purpose: serialize evaluation context into buffer                          *
  *                                                                            *
@@ -1113,7 +1113,7 @@ void	zbx_eval_serialize(const zbx_eval_context_t *ctx, zbx_mem_malloc_func_t mal
 
 /******************************************************************************
  *                                                                            *
- * Function: zbx_expression_eval_deserialize                                  *
+ * Function: zbx_eval_deserialize                                             *
  *                                                                            *
  * Purpose: deserialize evaluation context from buffer                        *
  *                                                                            *
@@ -1276,7 +1276,7 @@ static void	eval_token_print_alloc(char **str, size_t *str_alloc, size_t *str_of
 
 /******************************************************************************
  *                                                                            *
- * Function: zbx_expression_eval_compose                                      *
+ * Function: zbx_eval_compose_expression                                      *
  *                                                                            *
  * Purpose: compose expression by replacing processed tokens (with values) in *
  *          the original expression                                           *
