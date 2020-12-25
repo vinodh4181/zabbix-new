@@ -24,7 +24,7 @@
 
 #include "common.h"
 #include "zbxserver.h"
-#include "mock_expression_eval.h"
+#include "mock_eval.h"
 
 const char	*mock_token_type2str(zbx_uint32_t type)
 {
@@ -194,7 +194,7 @@ void	zbx_mock_test_entry(void **state)
 	ZBX_UNUSED(state);
 
 	flags = mock_expression_eval_flags("in.flags");
-	returned_ret = zbx_expression_eval_parse(&ctx, zbx_mock_get_parameter_string("in.expression"), flags, &error);
+	returned_ret = zbx_eval_parse_expression(&ctx, zbx_mock_get_parameter_string("in.expression"), flags, &error);
 	expected_ret = zbx_mock_str_to_return_code(zbx_mock_get_parameter_string("out.result"));
 	if (SUCCEED != returned_ret)
 		printf("ERROR: %s\n", error);
@@ -205,7 +205,7 @@ void	zbx_mock_test_entry(void **state)
 	if (SUCCEED == expected_ret)
 		compare_stack(&ctx, "out.stack");
 
-	zbx_expression_eval_clean(&ctx);
+	zbx_eval_clean(&ctx);
 	zbx_free(error);
 
 }

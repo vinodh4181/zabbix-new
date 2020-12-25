@@ -24,7 +24,7 @@
 
 #include "common.h"
 #include "zbxserver.h"
-#include "mock_expression_eval.h"
+#include "mock_eval.h"
 
 zbx_uint64_t	mock_compose_flags(const char *path)
 {
@@ -99,7 +99,7 @@ void	zbx_mock_test_entry(void **state)
 
 	flags = mock_expression_eval_flags("in.flags");
 
-	if (SUCCEED != zbx_expression_eval_parse(&ctx, zbx_mock_get_parameter_string("in.expression"), flags, &error))
+	if (SUCCEED != zbx_eval_parse_expression(&ctx, zbx_mock_get_parameter_string("in.expression"), flags, &error))
 			fail_msg("failed to parse expression: %s", error);
 
 	replace_values(&ctx, "in.replace");
@@ -107,10 +107,10 @@ void	zbx_mock_test_entry(void **state)
 	exp_expression = zbx_mock_get_parameter_string("out.expression");
 
 	flags = mock_compose_flags("in.compose");
-	zbx_expression_eval_compose(&ctx, flags, &ret_expression);
+	zbx_eval_compose_expression(&ctx, flags, &ret_expression);
 
 	zbx_mock_assert_str_eq("invalid composed expression", exp_expression, ret_expression);
 
 	zbx_free(ret_expression);
-	zbx_expression_eval_clean(&ctx);
+	zbx_eval_clean(&ctx);
 }

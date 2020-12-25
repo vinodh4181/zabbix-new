@@ -1,7 +1,7 @@
 ---
 test case: Replace '{$U} -> 10'
 in:
-  flags: []
+  flags: [ZBX_EVAL_PARSE_USERMACRO]
   compose: [ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION]
   expression: '1 + {$U}'
   replace: 
@@ -11,7 +11,7 @@ out:
 ---
 test case: Replace '{$U} -> xyz'
 in:
-  flags: []
+  flags: [ZBX_EVAL_PARSE_USERMACRO]
   compose: [ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION]
   expression: '1 + {$U}'
   replace: 
@@ -21,7 +21,7 @@ out:
 ---
 test case: Replace '{$U} -> x\y/z'
 in:
-  flags: []
+  flags: [ZBX_EVAL_PARSE_USERMACRO]
   compose: [ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION]
   expression: '1 + {$U}'
   replace: 
@@ -31,7 +31,7 @@ out:
 ---
 test case: Replace '{$U} -> xyz'
 in:
-  flags: []
+  flags: [ZBX_EVAL_PARSE_USERMACRO,ZBX_EVAL_PARSE_FUNCTION]
   compose: [ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION]
   expression: 'strlen({$U})'
   replace: 
@@ -41,7 +41,7 @@ out:
 ---
 test case: Replace '"{$U}" -> 123'
 in:
-  flags: []
+  flags: [ZBX_EVAL_PARSE_USERMACRO,ZBX_EVAL_PARSE_FUNCTION]
   compose: [ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION]
   expression: 'strlen("{$U}")'
   replace: 
@@ -51,7 +51,7 @@ out:
 ---
 test case: Replace '"{#LLD}" -> c:\data'
 in:
-  flags: [ZBX_EVAL_PARSE_FUNCTIONID]
+  flags: [ZBX_EVAL_PARSE_FUNCTIONID,ZBX_EVAL_PARSE_USERMACRO]
   compose: [ZBX_EVAL_COMPOSE_LLD_EXPRESSION]
   expression: '{123} < {$LIMIT:"{#LLD}"}'
   replace: 
@@ -61,7 +61,7 @@ out:
 ---
 test case: Replace '"{$U}" -> 123'
 in:
-  flags: [ZBX_EVAL_PARSE_LLD]
+  flags: [ZBX_EVAL_PARSE_LLDMACRO,ZBX_EVAL_PARSE_FUNCTION]
   compose: [ZBX_EVAL_COMPOSE_LLD_EXPRESSION]
   expression: 'strlen({#U})'
   replace: 

@@ -25,7 +25,7 @@
 #include "zbxserialize.h"
 #include "zbxserver.h"
 
-ZBX_VECTOR_IMPL(token, zbx_eval_token_t)
+ZBX_VECTOR_IMPL(eval_token, zbx_eval_token_t)
 
 static int	is_whitespace(unsigned char c)
 {
@@ -113,18 +113,19 @@ static int	eval_parse_macro(zbx_eval_context_t *ctx, size_t pos, zbx_eval_token_
 		token->type = ZBX_EVAL_TOKEN_FUNCTIONID;
 		token->opt = ctx->functionid_index++;
 	}
-	else if (SUCCEED == zbx_token_parse_macro(ctx->expression, ctx->expression + pos, &tok))
+	else if (0 != (ctx->flags & ZBX_EVAL_PARSE_MACRO) &&
+			SUCCEED == zbx_token_parse_macro(ctx->expression, ctx->expression + pos, &tok))
 	{
 		token->type = ZBX_EVAL_TOKEN_VAR_MACRO;
 		eval_update_const_variable(ctx, token);
 	}
-	else if ('$' == ctx->expression[pos + 1] &&
+	else if (0 != (ctx->flags & ZBX_EVAL_PARSE_USERMACRO) && '$' == ctx->expression[pos + 1] &&
 			SUCCEED == zbx_token_parse_user_macro(ctx->expression, ctx->expression + pos, &tok))
 	{
 		token->type = ZBX_EVAL_TOKEN_VAR_USERMACRO;
 		eval_update_const_variable(ctx, token);
 	}
-	else if (0 != (ctx->flags & ZBX_EVAL_PARSE_LLD) && '#' == ctx->expression[pos + 1] &&
+	else if (0 != (ctx->flags & ZBX_EVAL_PARSE_LLDMACRO) && '#' == ctx->expression[pos + 1] &&
 			SUCCEED == zbx_token_parse_lld_macro(ctx->expression, ctx->expression + pos, &tok))
 	{
 		token->type = ZBX_EVAL_TOKEN_VAR_LLDMACRO;
@@ -578,26 +579,34 @@ static int	eval_parse_token(zbx_eval_context_t *ctx, size_t pos, zbx_eval_token_
 			else
 				return eval_parse_number_token(ctx, pos, token, error);
 		case ',':
-			eval_parse_character_token(pos, ZBX_EVAL_TOKEN_COMMA, token);
-			return SUCCEED;
+			if (0 != (ctx->flags & ZBX_EVAL_PARSE_FUNCTION))
+			{
+				eval_parse_character_token(pos, ZBX_EVAL_TOKEN_COMMA, token);
+				return SUCCEED;
+			}
+			break;
 		default:
 			if (0 != isalpha((unsigned char)ctx->expression[pos]))
 			{
-				int	ret;
-
 				/* keyword must be separated by whitespace or '(', ')', ',' characters */
 				if ((0 != skip || 0 != (ctx->last_token_type & ZBX_EVAL_CLASS_SEPARATOR) ||
 						ZBX_EVAL_TOKEN_GROUP_CLOSE == ctx->last_token_type))
 				{
-					ret = eval_parse_keyword_token(ctx, pos, token);
+					if (SUCCEED == eval_parse_keyword_token(ctx, pos, token))
+						return SUCCEED;
 				}
 
-				if (SUCCEED == ret || SUCCEED == eval_parse_function_token(ctx, pos, token))
+				if (0 != (ctx->flags & ZBX_EVAL_PARSE_FUNCTION) &&
+						SUCCEED == eval_parse_function_token(ctx, pos, token))
+				{
 					return SUCCEED;
+				}
 			}
-			*error = zbx_dsprintf(*error, "invalid token starting with \"%s\"", ctx->expression + pos);
-			return FAIL;
+			break;
 	}
+
+	*error = zbx_dsprintf(*error, "invalid token starting with \"%s\"", ctx->expression + pos);
+	return FAIL;
 }
 
 /******************************************************************************
@@ -629,7 +638,7 @@ static void	eval_append_operator(zbx_eval_context_t *ctx, zbx_eval_token_t *toke
 		token->opt = params;
 	}
 
-	zbx_vector_token_append_ptr(&ctx->stack, token);
+	zbx_vector_eval_token_append_ptr(&ctx->stack, token);
 }
 
 /******************************************************************************
@@ -645,7 +654,7 @@ static void	eval_append_arg_null(zbx_eval_context_t *ctx)
 {
 	zbx_eval_token_t	null_token = {.type = ZBX_EVAL_TOKEN_ARG_NULL};
 
-	zbx_vector_token_append_ptr(&ctx->stack, &null_token);
+	zbx_vector_eval_token_append_ptr(&ctx->stack, &null_token);
 }
 
 /******************************************************************************
@@ -667,7 +676,7 @@ static void	eval_clean(zbx_eval_context_t *ctx)
 			zbx_free(ctx->stack.values[i].value);
 	}
 
-	zbx_vector_token_destroy(&ctx->stack);
+	zbx_vector_eval_token_destroy(&ctx->stack);
 }
 
 /******************************************************************************
@@ -678,28 +687,28 @@ static void	eval_clean(zbx_eval_context_t *ctx)
  *                                                                            *
  * Parameters: ctx        - [OUT] the evaluation context                      *
  *             expression - [IN] the expression to parse                      *
- *             flags      - [IN] the parsing rules flags                      *
+ *             rules      - [IN] the parsing rules                            *
  *             error      - [OUT] the error message in the case of failure    *
  *                                                                            *
  * Return value: SUCCEED - expression was parsed successfully                 *
  *               FAIL    - otherwise                                          *
  *                                                                            *
  ******************************************************************************/
-static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression, zbx_uint64_t flags, char **error)
+static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression, zbx_uint64_t rules, char **error)
 {
 	size_t			pos = 0;
 	int			ret = FAIL;
 	zbx_eval_token_t	*optoken;
 
 	ctx->expression = expression;
-	ctx->flags = flags;
+	ctx->flags = rules;
 	ctx->last_token_type = ZBX_EVAL_CLASS_SEPARATOR;
 	ctx->const_index = 0;
 	ctx->functionid_index = 0;
-	zbx_vector_token_create(&ctx->stack);
-	zbx_vector_token_reserve(&ctx->stack, 16);
-	zbx_vector_token_create(&ctx->ops);
-	zbx_vector_token_reserve(&ctx->ops, 16);
+	zbx_vector_eval_token_create(&ctx->stack);
+	zbx_vector_eval_token_reserve(&ctx->stack, 16);
+	zbx_vector_eval_token_create(&ctx->ops);
+	zbx_vector_eval_token_reserve(&ctx->ops, 16);
 
 	while ('\0' != expression[pos])
 	{
@@ -738,7 +747,7 @@ static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression
 				goto out;
 			}
 
-			zbx_vector_token_append_ptr(&ctx->ops, &token);
+			zbx_vector_eval_token_append_ptr(&ctx->ops, &token);
 		}
 		else if (0 != (token.type & ZBX_EVAL_CLASS_FUNCTION))
 		{
@@ -748,7 +757,7 @@ static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression
 						" at \"%s\"", ctx->expression + pos);
 				goto out;
 			}
-			zbx_vector_token_append_ptr(&ctx->ops, &token);
+			zbx_vector_eval_token_append_ptr(&ctx->ops, &token);
 		}
 		else if (ZBX_EVAL_TOKEN_GROUP_CLOSE == token.type)
 		{
@@ -802,7 +811,7 @@ static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression
 						ctx->expression + pos);
 				goto out;
 			}
-			zbx_vector_token_append_ptr(&ctx->stack, &token);
+			zbx_vector_eval_token_append_ptr(&ctx->stack, &token);
 		}
 		else if (0 != (token.type & ZBX_EVAL_CLASS_OPERATOR))
 		{
@@ -838,7 +847,7 @@ static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression
 				eval_append_operator(ctx, optoken);
 			}
 
-			zbx_vector_token_append_ptr(&ctx->ops, &token);
+			zbx_vector_eval_token_append_ptr(&ctx->ops, &token);
 		}
 
 		ctx->last_token_type = token.type;
@@ -872,7 +881,7 @@ static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression
 
 	ret = SUCCEED;
 out:
-	zbx_vector_token_destroy(&ctx->ops);
+	zbx_vector_eval_token_destroy(&ctx->ops);
 
 	if (SUCCEED != ret)
 		eval_clean(ctx);
@@ -1010,16 +1019,16 @@ static	void	reserve_buffer(unsigned char **buffer, size_t *buffer_size, size_t r
  *                                                                            *
  * Parameters: ctx        - [OUT] the evaluation context                      *
  *             expression - [IN] the expression to parse                      *
- *             flags      - [IN] the parsing rules flags                      *
+ *             rules      - [IN] the parsing rules                            *
  *             error      - [OUT] the error message in the case of failure    *
  *                                                                            *
  * Return value: SUCCEED - expression was parsed successfully                 *
  *               FAIL    - otherwise                                          *
  *                                                                            *
  ******************************************************************************/
-int	zbx_expression_eval_parse(zbx_eval_context_t *ctx, const char *expression, zbx_uint64_t flags, char **error)
+int	zbx_eval_parse_expression(zbx_eval_context_t *ctx, const char *expression, zbx_uint64_t rules, char **error)
 {
-	return eval_parse_expression(ctx, expression, flags, error);
+	return eval_parse_expression(ctx, expression, rules, error);
 }
 
 /******************************************************************************
@@ -1031,7 +1040,7 @@ int	zbx_expression_eval_parse(zbx_eval_context_t *ctx, const char *expression, z
  * Parameters: ctx   - [IN] the evaluation context                            *
  *                                                                            *
  ******************************************************************************/
-void	zbx_expression_eval_clean(zbx_eval_context_t *ctx)
+void	zbx_eval_clean(zbx_eval_context_t *ctx)
 {
 	eval_clean(ctx);
 }
@@ -1056,7 +1065,7 @@ void	zbx_expression_eval_clean(zbx_eval_context_t *ctx)
  *                                                                            *
  *                                                                            *
  ******************************************************************************/
-void	zbx_expression_eval_serialize(const zbx_eval_context_t *ctx, zbx_mem_malloc_func_t malloc_func,
+void	zbx_eval_serialize(const zbx_eval_context_t *ctx, zbx_mem_malloc_func_t malloc_func,
 		unsigned char **data)
 {
 	int		i;
@@ -1114,7 +1123,7 @@ void	zbx_expression_eval_serialize(const zbx_eval_context_t *ctx, zbx_mem_malloc
  *             data       - [IN] the buffer with serialized context           *
  *                                                                            *
  ******************************************************************************/
-void	zbx_expression_eval_deserialize(zbx_eval_context_t *ctx, const char *expression, const unsigned char *data)
+void	zbx_eval_deserialize(zbx_eval_context_t *ctx, const char *expression, const unsigned char *data)
 {
 	zbx_uint32_t	i, tokens_num;
 
@@ -1122,8 +1131,8 @@ void	zbx_expression_eval_deserialize(zbx_eval_context_t *ctx, const char *expres
 	ctx->expression = expression;
 
 	data += deserialize_uint31_compact(data, &tokens_num);
-	zbx_vector_token_create(&ctx->stack);
-	zbx_vector_token_reserve(&ctx->stack, tokens_num);
+	zbx_vector_eval_token_create(&ctx->stack);
+	zbx_vector_eval_token_reserve(&ctx->stack, tokens_num);
 	ctx->stack.values_num = tokens_num;
 
 	for (i = 0; i < tokens_num; i++)
@@ -1177,11 +1186,11 @@ static int	compare_tokens_by_loc(const void *d1, const void *d2)
  *             str_alloc  - [IN/OUT] the output buffer size                   *
  *             str_offset - [IN/OUT] the output buffer offset                 *
  *             token      - [IN] the token to print                           *
- *             flags      - [IN] token quoting rules                          *
+ *             rules      - [IN] token quoting rules                          *
  *                                                                            *
  ******************************************************************************/
 static void	eval_token_print_alloc(char **str, size_t *str_alloc, size_t *str_offset, const zbx_eval_token_t *token,
-		zbx_uint64_t flags)
+		zbx_uint64_t rules)
 {
 	int		quoted = 0, len, check_value = 0;
 	const char	*src;
@@ -1197,15 +1206,15 @@ static void	eval_token_print_alloc(char **str, size_t *str_alloc, size_t *str_of
 			quoted = 1;
 			break;
 		case ZBX_EVAL_TOKEN_VAR_MACRO:
-			if (0 != (flags & ZBX_EVAL_COMPOSE_QUOTE_MACRO))
+			if (0 != (rules & ZBX_EVAL_QUOTE_MACRO))
 				check_value = 1;
 			break;
 		case ZBX_EVAL_TOKEN_VAR_USERMACRO:
-			if (0 != (flags & ZBX_EVAL_COMPOSE_QUOTE_USERMACRO))
+			if (0 != (rules & ZBX_EVAL_QUOTE_USERMACRO))
 				check_value = 1;
 			break;
 		case ZBX_EVAL_TOKEN_VAR_LLDMACRO:
-			if (0 != (flags & ZBX_EVAL_COMPOSE_QUOTE_LLDMACRO))
+			if (0 != (rules & ZBX_EVAL_QUOTE_LLDMACRO))
 				check_value = 1;
 			break;
 	}
@@ -1273,10 +1282,11 @@ static void	eval_token_print_alloc(char **str, size_t *str_alloc, size_t *str_of
  *          the original expression                                           *
  *                                                                            *
  * Parameters: ctx        - [IN] the evaluation context                       *
+ *             rules      - [IN] the expression composition rules             *
  *             expression - [OUT] the composed expression                     *
  *                                                                            *
  ******************************************************************************/
-void	zbx_expression_eval_compose(const zbx_eval_context_t *ctx, zbx_uint64_t flags, char **expression)
+void	zbx_eval_compose_expression(const zbx_eval_context_t *ctx, zbx_uint64_t rules, char **expression)
 {
 	zbx_vector_ptr_t	tokens;
 	const zbx_eval_token_t	*token;
@@ -1303,7 +1313,7 @@ void	zbx_expression_eval_compose(const zbx_eval_context_t *ctx, zbx_uint64_t fla
 					token->loc.l - pos);
 		}
 		pos = token->loc.r + 1;
-		eval_token_print_alloc(expression, &expression_alloc, &expression_offset, token, flags);
+		eval_token_print_alloc(expression, &expression_alloc, &expression_offset, token, rules);
 	}
 
 	if ('\0' != ctx->expression[pos])

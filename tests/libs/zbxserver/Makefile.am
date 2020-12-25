@@ -4,9 +4,9 @@ SERVER_tests = \
 	evaluate_function \
 	substitute_lld_macros \
 	macro_fmttime \
-	zbx_expression_eval_parse \
-	zbx_expression_eval_serialize \
-	zbx_expression_eval_compose
+	zbx_eval_parse_expression \
+	zbx_eval_serialize \
+	zbx_eval_compose_expression
 endif
 
 noinst_PROGRAMS = $(SERVER_tests)
@@ -165,45 +165,45 @@ evaluate_function_CFLAGS = $(COMMON_COMPILER_FLAGS) \
 	-I@top_srcdir@/src/libs/zbxhistory
 
 	
-zbx_expression_eval_parse_SOURCES = \
-	zbx_expression_eval_parse.c \
-	mock_expression_eval.c mock_expression_eval.h
+zbx_eval_parse_expression_SOURCES = \
+	zbx_eval_parse_expression.c \
+	mock_eval.c mock_eval.h
 
-zbx_expression_eval_parse_LDADD = \
+zbx_eval_parse_expression_LDADD = \
 	$(COMMON_LIB_FILES)
 
-zbx_expression_eval_parse_LDADD += @SERVER_LIBS@
+zbx_eval_parse_expression_LDADD += @SERVER_LIBS@
 
-zbx_expression_eval_parse_LDFLAGS = @SERVER_LDFLAGS@
+zbx_eval_parse_expression_LDFLAGS = @SERVER_LDFLAGS@
 
-zbx_expression_eval_parse_CFLAGS = $(COMMON_COMPILER_FLAGS)
+zbx_eval_parse_expression_CFLAGS = $(COMMON_COMPILER_FLAGS)
 
 
-zbx_expression_eval_serialize_SOURCES = \
-	zbx_expression_eval_serialize.c
+zbx_eval_serialize_SOURCES = \
+	zbx_eval_serialize.c
 
-zbx_expression_eval_serialize_LDADD = \
+zbx_eval_serialize_LDADD = \
 	$(COMMON_LIB_FILES)
 
-zbx_expression_eval_serialize_LDADD += @SERVER_LIBS@
+zbx_eval_serialize_LDADD += @SERVER_LIBS@
 
-zbx_expression_eval_serialize_LDFLAGS = @SERVER_LDFLAGS@
+zbx_eval_serialize_LDFLAGS = @SERVER_LDFLAGS@
 
-zbx_expression_eval_serialize_CFLAGS = $(COMMON_COMPILER_FLAGS)
+zbx_eval_serialize_CFLAGS = $(COMMON_COMPILER_FLAGS)
 
 
-zbx_expression_eval_compose_SOURCES = \
-	zbx_expression_eval_compose.c \
-	mock_expression_eval.c mock_expression_eval.h
+zbx_eval_compose_expression_SOURCES = \
+	zbx_eval_compose_expression.c \
+	mock_eval.c mock_eval.h
 
-zbx_expression_eval_compose_LDADD = \
+zbx_eval_compose_expression_LDADD = \
 	$(COMMON_LIB_FILES)
 
-zbx_expression_eval_compose_LDADD += @SERVER_LIBS@
+zbx_eval_compose_expression_LDADD += @SERVER_LIBS@
 
-zbx_expression_eval_compose_LDFLAGS = @SERVER_LDFLAGS@
+zbx_eval_compose_expression_LDFLAGS = @SERVER_LDFLAGS@
 
-zbx_expression_eval_compose_CFLAGS = $(COMMON_COMPILER_FLAGS)
+zbx_eval_compose_expression_CFLAGS = $(COMMON_COMPILER_FLAGS)
 
 endif
 

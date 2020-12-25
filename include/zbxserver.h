@@ -124,23 +124,23 @@ int	xml_xpath_check(const char *xpath, char *error, size_t errlen);
 #define ZBX_EVAL_BEFORE_OPERAND		(ZBX_EVAL_CLASS_OPERATOR | ZBX_EVAL_CLASS_SEPARATOR)
 #define ZBX_EVAL_BEFORE_OPERATOR	(ZBX_EVAL_CLASS_OPERAND)
 
-#define ZBX_EVAL_OP_SET_PRIORITY(x)	((x) << 22)
-#define ZBX_EVAL_OP_PRIORITY		ZBX_EVAL_OP_SET_PRIORITY(0xf)
+#define ZBX_EVAL_OP_SET_PRECEDENCE(x)	((x) << 22)
+#define ZBX_EVAL_OP_PRIORITY		ZBX_EVAL_OP_SET_PRECEDENCE(0xf)
 
-#define ZBX_EVAL_TOKEN_OP_ADD		(1 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRIORITY(4))
-#define ZBX_EVAL_TOKEN_OP_SUB		(2 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRIORITY(4))
-#define ZBX_EVAL_TOKEN_OP_MUL		(3 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRIORITY(3))
-#define ZBX_EVAL_TOKEN_OP_DIV		(4 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRIORITY(3))
-#define ZBX_EVAL_TOKEN_OP_MINUS		(5 | ZBX_EVAL_CLASS_OPERATOR1 | ZBX_EVAL_OP_SET_PRIORITY(2))
-#define ZBX_EVAL_TOKEN_OP_EQ		(6 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRIORITY(7))
-#define ZBX_EVAL_TOKEN_OP_LT		(7 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRIORITY(6))
-#define ZBX_EVAL_TOKEN_OP_GT		(8 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRIORITY(6))
-#define ZBX_EVAL_TOKEN_OP_LE		(9 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRIORITY(6))
-#define ZBX_EVAL_TOKEN_OP_GE		(10 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRIORITY(6))
-#define ZBX_EVAL_TOKEN_OP_NE		(11 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRIORITY(7))
-#define ZBX_EVAL_TOKEN_OP_AND		(12 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRIORITY(11))
-#define ZBX_EVAL_TOKEN_OP_OR		(13 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRIORITY(12))
-#define ZBX_EVAL_TOKEN_OP_NOT		(14 | ZBX_EVAL_CLASS_OPERATOR1 | ZBX_EVAL_OP_SET_PRIORITY(2))
+#define ZBX_EVAL_TOKEN_OP_ADD		(1 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRECEDENCE(4))
+#define ZBX_EVAL_TOKEN_OP_SUB		(2 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRECEDENCE(4))
+#define ZBX_EVAL_TOKEN_OP_MUL		(3 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRECEDENCE(3))
+#define ZBX_EVAL_TOKEN_OP_DIV		(4 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRECEDENCE(3))
+#define ZBX_EVAL_TOKEN_OP_MINUS		(5 | ZBX_EVAL_CLASS_OPERATOR1 | ZBX_EVAL_OP_SET_PRECEDENCE(2))
+#define ZBX_EVAL_TOKEN_OP_EQ		(6 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRECEDENCE(7))
+#define ZBX_EVAL_TOKEN_OP_LT		(7 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRECEDENCE(6))
+#define ZBX_EVAL_TOKEN_OP_GT		(8 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRECEDENCE(6))
+#define ZBX_EVAL_TOKEN_OP_LE		(9 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRECEDENCE(6))
+#define ZBX_EVAL_TOKEN_OP_GE		(10 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRECEDENCE(6))
+#define ZBX_EVAL_TOKEN_OP_NE		(11 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRECEDENCE(7))
+#define ZBX_EVAL_TOKEN_OP_AND		(12 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRECEDENCE(11))
+#define ZBX_EVAL_TOKEN_OP_OR		(13 | ZBX_EVAL_CLASS_OPERATOR2 | ZBX_EVAL_OP_SET_PRECEDENCE(12))
+#define ZBX_EVAL_TOKEN_OP_NOT		(14 | ZBX_EVAL_CLASS_OPERATOR1 | ZBX_EVAL_OP_SET_PRECEDENCE(2))
 #define ZBX_EVAL_TOKEN_VAR_NUM		(15 | ZBX_EVAL_CLASS_OPERAND)
 #define ZBX_EVAL_TOKEN_VAR_STR		(16 | ZBX_EVAL_CLASS_OPERAND)
 #define ZBX_EVAL_TOKEN_VAR_MACRO	(17 | ZBX_EVAL_CLASS_OPERAND)
@@ -156,22 +156,32 @@ int	xml_xpath_check(const char *xpath, char *error, size_t errlen);
 #define ZBX_EVAL_TOKEN_ARG_TIME		(27 | ZBX_EVAL_CLASS_OPERAND)
 #define ZBX_EVAL_TOKEN_ARG_NULL		(28 | ZBX_EVAL_CLASS_OPERAND)
 
+/* expression parsing rules */
+
+#define ZBX_EVAL_PARSE_MACRO		__UINT64_C(0x0001)
+#define ZBX_EVAL_PARSE_USERMACRO	__UINT64_C(0x0002)
+#define ZBX_EVAL_PARSE_LLDMACRO		__UINT64_C(0x0004)
+#define ZBX_EVAL_PARSE_FUNCTIONID	__UINT64_C(0x0008)
+#define ZBX_EVAL_PARSE_ITEM_QUERY	__UINT64_C(0x0010)
+#define ZBX_EVAL_PARSE_FUNCTION		__UINT64_C(0x0020)
+#define ZBX_EVAL_PARSE_CONST_INDEX	__UINT64_C(0x0040)
+
+#define	ZBX_EVAL_PARSE_TRIGGER_EXPRESSSION	(ZBX_EVAL_PARSE_MACRO | ZBX_EVAL_PARSE_USERMACRO |	\
+						ZBX_EVAL_PARSE_FUNCTIONID | ZBX_EVAL_PARSE_FUNCTION)
+
+#define	ZBX_EVAL_PARSE_CALC_EXPRESSSION		(ZBX_EVAL_PARSE_MACRO | ZBX_EVAL_PARSE_USERMACRO |	\
+						ZBX_EVAL_PARSE_ITEM_QUERY | ZBX_EVAL_PARSE_FUNCTION)
+
+/* expression composition rules */
+
+#define ZBX_EVAL_QUOTE_MACRO			__UINT64_C(0x0001)
+#define ZBX_EVAL_QUOTE_USERMACRO		__UINT64_C(0x0002)
+#define ZBX_EVAL_QUOTE_LLDMACRO			__UINT64_C(0x0004)
+
+#define ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION	(ZBX_EVAL_QUOTE_MACRO | ZBX_EVAL_QUOTE_USERMACRO)
+#define ZBX_EVAL_COMPOSE_LLD_EXPRESSION		ZBX_EVAL_QUOTE_LLDMACRO
+
 typedef zbx_uint32_t zbx_token_type_t;
-
-#define ZBX_EVAL_PARSE_FUNCTIONID	__UINT64_C(0x0001)
-#define ZBX_EVAL_PARSE_ITEM_QUERY	__UINT64_C(0x0002)
-#define ZBX_EVAL_PARSE_LLD		__UINT64_C(0x0004)
-#define ZBX_EVAL_PARSE_CONST_INDEX	__UINT64_C(0x0008)
-
-#define	ZBX_EVAL_PARSE_TRIGGER_EXPRESSSION	ZBX_EVAL_PARSE_FUNCTIONID
-#define	ZBX_EVAL_PARSE_CALC_EXPRESSSION		ZBX_EVAL_PARSE_ITEM_QUERY
-
-#define ZBX_EVAL_COMPOSE_QUOTE_MACRO		__UINT64_C(0x0001)
-#define ZBX_EVAL_COMPOSE_QUOTE_USERMACRO	__UINT64_C(0x0002)
-#define ZBX_EVAL_COMPOSE_QUOTE_LLDMACRO		__UINT64_C(0x0004)
-
-#define ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION	(ZBX_EVAL_COMPOSE_QUOTE_MACRO | ZBX_EVAL_COMPOSE_QUOTE_USERMACRO)
-#define ZBX_EVAL_COMPOSE_LLD_EXPRESSION		ZBX_EVAL_COMPOSE_QUOTE_LLDMACRO
 
 typedef struct
 {
@@ -182,7 +192,7 @@ typedef struct
 }
 zbx_eval_token_t;
 
-ZBX_VECTOR_DECL(token, zbx_eval_token_t)
+ZBX_VECTOR_DECL(eval_token, zbx_eval_token_t)
 
 typedef struct
 {
@@ -191,16 +201,15 @@ typedef struct
 	int			const_index;
 	int			functionid_index;
 	zbx_uint64_t		flags;
-	zbx_vector_token_t	stack;
-	zbx_vector_token_t	ops;
+	zbx_vector_eval_token_t	stack;
+	zbx_vector_eval_token_t	ops;
 }
 zbx_eval_context_t;
 
-int	zbx_expression_eval_parse(zbx_eval_context_t *ctx, const char *expression, zbx_uint64_t flags, char **error);
-void	zbx_expression_eval_clean(zbx_eval_context_t *ctx);
-void	zbx_expression_eval_serialize(const zbx_eval_context_t *ctx, zbx_mem_malloc_func_t malloc_func,
-		unsigned char **data);
-void	zbx_expression_eval_deserialize(zbx_eval_context_t *ctx, const char *expression, const unsigned char *data);
-void	zbx_expression_eval_compose(const zbx_eval_context_t *ctx,  zbx_uint64_t flags, char **expression);
+int	zbx_eval_parse_expression(zbx_eval_context_t *ctx, const char *expression, zbx_uint64_t rules, char **error);
+void	zbx_eval_clean(zbx_eval_context_t *ctx);
+void	zbx_eval_serialize(const zbx_eval_context_t *ctx, zbx_mem_malloc_func_t malloc_func, unsigned char **data);
+void	zbx_eval_deserialize(zbx_eval_context_t *ctx, const char *expression, const unsigned char *data);
+void	zbx_eval_compose_expression(const zbx_eval_context_t *ctx,  zbx_uint64_t rules, char **expression);
 
 #endif

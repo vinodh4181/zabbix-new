@@ -51,7 +51,7 @@ static void	mock_read_token(zbx_eval_token_t *token, zbx_mock_handle_t htoken)
 	}
 }
 
-static void	mock_read_stack(zbx_vector_token_t *stack, const char *path)
+static void	mock_read_stack(zbx_vector_eval_token_t *stack, const char *path)
 {
 	zbx_mock_handle_t	hstack, htoken, hrepeat;
 	zbx_mock_error_t	err;
@@ -66,14 +66,14 @@ static void	mock_read_stack(zbx_vector_token_t *stack, const char *path)
 			fail_msg("cannot read token $%d", stack->values_num);
 
 		mock_read_token(&token, htoken);
-		zbx_vector_token_append_ptr(stack, &token);
+		zbx_vector_eval_token_append_ptr(stack, &token);
 	}
 
 	if (ZBX_MOCK_SUCCESS == zbx_mock_in_parameter("repeat", &hrepeat))
 	{
 		const char		*repeat;
 		int			i, repeat_num;
-		zbx_vector_token_t	template;
+		zbx_vector_eval_token_t	template;
 
 		if (ZBX_MOCK_SUCCESS != (err = zbx_mock_string(hrepeat, &repeat)))
 			fail_msg("cannot read repeat number: %s", zbx_mock_error_string(err));
@@ -81,19 +81,19 @@ static void	mock_read_stack(zbx_vector_token_t *stack, const char *path)
 		if (SUCCEED != is_uint32(repeat, &repeat_num))
 			fail_msg("invalid repeat value");
 
-		zbx_vector_token_create(&template);
-		zbx_vector_token_append_array(&template, stack->values, stack->values_num);
+		zbx_vector_eval_token_create(&template);
+		zbx_vector_eval_token_append_array(&template, stack->values, stack->values_num);
 
 		for (i = 0; i < repeat_num - 1; i++)
 		{
-			zbx_vector_token_append_array(stack, template.values, template.values_num);
+			zbx_vector_eval_token_append_array(stack, template.values, template.values_num);
 		}
 
-		zbx_vector_token_destroy(&template);
+		zbx_vector_eval_token_destroy(&template);
 	}
 }
 
-static void	mock_compare_stacks(const zbx_vector_token_t *stack1, const zbx_vector_token_t *stack2)
+static void	mock_compare_stacks(const zbx_vector_eval_token_t *stack1, const zbx_vector_eval_token_t *stack2)
 {
 	int	i;
 
@@ -126,20 +126,20 @@ void	zbx_mock_test_entry(void **state)
 	ZBX_UNUSED(state);
 
 	memset(&ctx1, 0, sizeof(ctx1));
-	zbx_vector_token_create(&ctx1.stack);
+	zbx_vector_eval_token_create(&ctx1.stack);
 
 	memset(&ctx2, 0, sizeof(ctx2));
-	zbx_vector_token_create(&ctx2.stack);
+	zbx_vector_eval_token_create(&ctx2.stack);
 
 	mock_read_stack(&ctx1.stack, "in.stack");
 
-	zbx_expression_eval_serialize(&ctx1, NULL, &data);
-	zbx_expression_eval_deserialize(&ctx2, NULL, data);
+	zbx_eval_serialize(&ctx1, NULL, &data);
+	zbx_eval_deserialize(&ctx2, NULL, data);
 
 	zbx_free(data);
 
 	mock_compare_stacks(&ctx1.stack, &ctx2.stack);
 
-	zbx_expression_eval_clean(&ctx1);
-	zbx_expression_eval_clean(&ctx2);
+	zbx_eval_clean(&ctx1);
+	zbx_eval_clean(&ctx2);
 }

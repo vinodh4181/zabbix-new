@@ -42,10 +42,16 @@ zbx_uint64_t	mock_expression_eval_flags(const char *path)
 
 		if (0 == strcmp(flag, "ZBX_EVAL_PARSE_FUNCTIONID"))
 			flags |= ZBX_EVAL_PARSE_FUNCTIONID;
+		else if (0 == strcmp(flag, "ZBX_EVAL_PARSE_FUNCTION"))
+			flags |= ZBX_EVAL_PARSE_FUNCTION;
 		else if (0 == strcmp(flag, "ZBX_EVAL_PARSE_ITEM_QUERY"))
 			flags |= ZBX_EVAL_PARSE_ITEM_QUERY;
-		else if (0 == strcmp(flag, "ZBX_EVAL_PARSE_LLD"))
-			flags |= ZBX_EVAL_PARSE_LLD;
+		else if (0 == strcmp(flag, "ZBX_EVAL_PARSE_MACRO"))
+			flags |= ZBX_EVAL_PARSE_MACRO;
+		else if (0 == strcmp(flag, "ZBX_EVAL_PARSE_USERMACRO"))
+			flags |= ZBX_EVAL_PARSE_USERMACRO;
+		else if (0 == strcmp(flag, "ZBX_EVAL_PARSE_LLDMACRO"))
+			flags |= ZBX_EVAL_PARSE_LLDMACRO;
 		else if (0 == strcmp(flag, "ZBX_EVAL_PARSE_CONST_INDEX"))
 			flags |= ZBX_EVAL_PARSE_CONST_INDEX;
 		else
