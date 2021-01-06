@@ -41,11 +41,11 @@ static void	mock_read_token(zbx_eval_token_t *token, zbx_mock_handle_t htoken)
 		if (ZBX_MOCK_SUCCESS != (err = zbx_mock_string(hvalue, &value)))
 			fail_msg("cannot read token value: %s", zbx_mock_error_string(err));
 
-		token->value = zbx_strdup(NULL, value);
+		zbx_variant_set_str(&token->value, zbx_strdup(NULL, value));
 	}
 	else
 	{
-		token->value = NULL;
+		zbx_variant_set_none(&token->value);
 		token->loc.l = (size_t)zbx_mock_get_object_member_uint64(htoken, "left");
 		token->loc.r = (size_t)zbx_mock_get_object_member_uint64(htoken, "right");
 	}
@@ -111,10 +111,12 @@ static void	mock_compare_stacks(const zbx_vector_eval_token_t *stack1, const zbx
 		zbx_mock_assert_uint64_eq(msg, stack1->values[i].loc.l, stack2->values[i].loc.l);
 		zbx_mock_assert_uint64_eq(msg, stack1->values[i].loc.r, stack2->values[i].loc.r);
 
-		if (NULL != stack1->values[i].value)
-			zbx_mock_assert_str_eq(msg, stack1->values[i].value, stack2->values[i].value);
-		else
-			zbx_mock_assert_ptr_eq(msg, stack1->values[i].value, stack2->values[i].value);
+		if (0 != zbx_variant_compare(&stack1->values[i].value, &stack2->values[i].value))
+		{
+			fail_msg("%sexpected value '%s' while got '%s'", msg,
+					zbx_variant_value_desc(&stack1->values[i].value),
+					zbx_variant_value_desc(&stack2->values[i].value));
+		}
 	}
 }
 

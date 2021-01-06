@@ -25,6 +25,7 @@
 #include "json.h"
 #include "json_parser.h"
 #include "jsonpath.h"
+#include "zbxvariant.h"
 
 #include "../zbxalgo/vectorimpl.h"
 

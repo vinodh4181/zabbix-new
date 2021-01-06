@@ -81,7 +81,7 @@ static void	replace_values(zbx_eval_context_t *ctx, const char *path)
 			if (data_len == token->loc.r - token->loc.l + 1 &&
 					0 == memcmp(data, ctx->expression + token->loc.l, data_len))
 			{
-				token->value = zbx_strdup(NULL, value);
+				zbx_variant_set_str(&token->value, zbx_strdup(NULL, value));
 				break;
 			}
 		}

@@ -22,6 +22,7 @@
 
 #include "zbxalgo.h"
 #include "../zbxalgo/vectorimpl.h"
+#include "zbxvariant.h"
 #include "zbxserialize.h"
 #include "zbxserver.h"
 
@@ -69,6 +70,8 @@ static size_t	eval_get_whitespace_len(zbx_eval_context_t *ctx, size_t pos)
  ******************************************************************************/
 static void	eval_update_const_variable(zbx_eval_context_t *ctx, zbx_eval_token_t *token)
 {
+	zbx_variant_set_none(&token->value);
+
 	if (0 != (ctx->flags & ZBX_EVAL_PARSE_CONST_INDEX))
 	{
 		int	i;
@@ -474,6 +477,8 @@ static int	eval_parse_time_token(zbx_eval_context_t *ctx, size_t pos, zbx_eval_t
 			token->type = ZBX_EVAL_TOKEN_ARG_TIME;
 			token->loc.l = pos;
 			token->loc.r = ptr - ctx->expression - 1;
+			zbx_variant_set_none(&token->value);
+
 			return SUCCEED;
 		}
 	}
@@ -671,10 +676,7 @@ static void	eval_clean(zbx_eval_context_t *ctx)
 	int	i;
 
 	for (i = 0; i < ctx->stack.values_num; i++)
-	{
-		if (NULL != ctx->stack.values[i].value)
-			zbx_free(ctx->stack.values[i].value);
-	}
+		zbx_variant_clear(&ctx->stack.values[i].value);
 
 	zbx_vector_eval_token_destroy(&ctx->stack);
 }
@@ -1011,6 +1013,80 @@ static	void	reserve_buffer(unsigned char **buffer, size_t *buffer_size, size_t r
 	*ptr = *buffer + offset;
 }
 
+static void	serialize_variant(unsigned char **buffer, size_t *size, const zbx_variant_t *value,
+		unsigned char **ptr)
+{
+	size_t		len;
+
+	reserve_buffer(buffer, size, 1, ptr);
+	**ptr = value->type;
+	(*ptr)++;
+
+	switch (value->type)
+	{
+		case ZBX_VARIANT_UI64:
+			reserve_buffer(buffer, size, sizeof(value->data.ui64), ptr);
+			*ptr += zbx_serialize_uint64(*ptr, value->data.ui64);
+			break;
+		case ZBX_VARIANT_DBL:
+			reserve_buffer(buffer, size, sizeof(value->data.dbl), ptr);
+			*ptr += zbx_serialize_double(*ptr, value->data.dbl) + 1;
+			break;
+		case ZBX_VARIANT_STR:
+			len = strlen(value->data.str) + 1;
+			reserve_buffer(buffer, size, len, ptr);
+			memcpy(*ptr, value->data.str, len);
+			*ptr += len;
+			break;
+		case ZBX_VARIANT_NONE:
+			break;
+		default:
+			THIS_SHOULD_NEVER_HAPPEN;
+			(*ptr)[-1] = ZBX_VARIANT_NONE;
+			break;
+	}
+}
+
+static zbx_uint32_t	deserialize_variant(const unsigned char *ptr,  zbx_variant_t *value)
+{
+	const unsigned char	*start = ptr;
+	unsigned char		type;
+	zbx_uint64_t		ui64;
+	double			dbl;
+	char			*str;
+	size_t			len;
+
+	ptr += zbx_deserialize_char(ptr, &type);
+
+	switch (type)
+	{
+		case ZBX_VARIANT_UI64:
+			ptr += zbx_deserialize_uint64(ptr, &ui64);
+			zbx_variant_set_ui64(value, ui64);
+			break;
+		case ZBX_VARIANT_DBL:
+			ptr += zbx_deserialize_uint64(ptr, &dbl);
+			zbx_variant_set_dbl(value, dbl);
+			break;
+		case ZBX_VARIANT_STR:
+			len = strlen((const char *)ptr) + 1;
+			str = zbx_malloc(NULL, len);
+			memcpy(str, ptr, len);
+			zbx_variant_set_str(value, str);
+			ptr += len;
+			break;
+		case ZBX_VARIANT_NONE:
+			zbx_variant_set_none(value);
+			break;
+		default:
+			THIS_SHOULD_NEVER_HAPPEN;
+			zbx_variant_set_none(value);
+			break;
+	}
+
+	return ptr - start;
+}
+
 /******************************************************************************
  *                                                                            *
  * Function: zbx_eval_parse_expression                                        *
@@ -1087,19 +1163,12 @@ void	zbx_eval_serialize(const zbx_eval_context_t *ctx, zbx_mem_malloc_func_t mal
 		ptr += zbx_serialize_value(ptr, token->type);
 		ptr += serialize_uint31_compact(ptr, token->opt);
 
-		if (NULL == token->value)
+		serialize_variant(&buffer, &buffer_size, &token->value, &ptr);
+
+		if (ZBX_VARIANT_NONE == token->value.type)
 		{
-			ptr += serialize_uint31_compact(ptr, 0);
 			ptr += serialize_uint31_compact(ptr, token->loc.l);
 			ptr += serialize_uint31_compact(ptr, token->loc.r);
-		}
-		else
-		{
-			ptr += serialize_uint31_compact(ptr, 1);
-			len = strlen(token->value) + 1;
-			reserve_buffer(&buffer, &buffer_size, len, &ptr);
-			memcpy(ptr, token->value, len);
-			ptr += len;
 		}
 	}
 
@@ -1138,32 +1207,22 @@ void	zbx_eval_deserialize(zbx_eval_context_t *ctx, const char *expression, const
 	for (i = 0; i < tokens_num; i++)
 	{
 		zbx_eval_token_t	*token = &ctx->stack.values[i];
-		zbx_uint32_t		flag;
 
 		data += zbx_deserialize_value(data, &token->type);
 		data += deserialize_uint31_compact(data, &token->opt);
-		data += deserialize_uint31_compact(data, &flag);
+		data += deserialize_variant(data, &token->value);
 
-		if (0 == flag)
+		if (ZBX_VARIANT_NONE == token->value.type)
 		{
 			zbx_uint32_t	pos;
 
-			token->value = NULL;
 			data += deserialize_uint31_compact(data, &pos);
 			token->loc.l = pos;
 			data += deserialize_uint31_compact(data, &pos);
 			token->loc.r = pos;
 		}
 		else
-		{
-			zbx_uint32_t	len;
-
 			token->loc.l = token->loc.r = 0;
-			len = strlen((char *)data) + 1;
-			token->value = zbx_malloc(NULL, len);
-			memcpy(token->value, data, len);
-			data += len;
-		}
 	}
 }
 
@@ -1193,11 +1252,11 @@ static void	eval_token_print_alloc(char **str, size_t *str_alloc, size_t *str_of
 		zbx_uint64_t rules)
 {
 	int		quoted = 0, len, check_value = 0;
-	const char	*src;
+	const char	*src, *value_str;
 	char		*dst;
 	size_t		size;
 
-	if (NULL == token->value)
+	if (ZBX_VARIANT_NONE == token->value.type)
 		return;
 
 	switch (token->type)
@@ -1221,17 +1280,22 @@ static void	eval_token_print_alloc(char **str, size_t *str_alloc, size_t *str_of
 
 	if (0 != check_value)
 	{
-		if (SUCCEED != zbx_number_parse(token->value, &len) || strlen(token->value) != (size_t)len)
+		if (ZBX_VARIANT_STR == token->value.type && (SUCCEED != zbx_number_parse(token->value.data.str, &len) ||
+				strlen(token->value.data.str) != (size_t)len))
+		{
 			quoted = 1;
+		}
 	}
+
+	value_str = zbx_variant_value_desc(&token->value);
 
 	if (0 == quoted)
 	{
-		zbx_strcpy_alloc(str, str_alloc, str_offset, token->value);
+		zbx_strcpy_alloc(str, str_alloc, str_offset, value_str);
 		return;
 	}
 
-	for (size = 2, src = token->value; '\0' != *src; src++)
+	for (size = 2, src = value_str; '\0' != *src; src++)
 	{
 		switch (*src)
 		{
@@ -1256,7 +1320,7 @@ static void	eval_token_print_alloc(char **str, size_t *str_alloc, size_t *str_of
 	dst = *str + *str_offset;
 	*dst++ = '"';
 
-	for (src = token->value; '\0' != *src; src++, dst++)
+	for (src = value_str; '\0' != *src; src++, dst++)
 	{
 		switch (*src)
 		{
@@ -1297,7 +1361,7 @@ void	zbx_eval_compose_expression(const zbx_eval_context_t *ctx, zbx_uint64_t rul
 
 	for (i = 0; i < ctx->stack.values_num; i++)
 	{
-		if (NULL != ctx->stack.values[i].value)
+		if (ZBX_VARIANT_NONE != ctx->stack.values[i].value.type)
 			zbx_vector_ptr_append(&tokens, &ctx->stack.values[i]);
 	}
 

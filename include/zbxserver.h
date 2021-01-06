@@ -24,6 +24,7 @@
 #include "db.h"
 #include "dbcache.h"
 #include "zbxjson.h"
+#include "zbxvariant.h"
 
 #define MACRO_TYPE_MESSAGE_NORMAL	0x00000001
 #define MACRO_TYPE_MESSAGE_RECOVERY	0x00000002
@@ -188,7 +189,7 @@ typedef struct
 	zbx_token_type_t	type;
 	zbx_uint32_t		opt;
 	zbx_strloc_t		loc;
-	char			*value;
+	zbx_variant_t		value;
 }
 zbx_eval_token_t;
 

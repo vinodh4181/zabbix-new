@@ -165,10 +165,10 @@ static void	dump_token(zbx_eval_context_t *ctx, zbx_eval_token_t *token)
 	}
 	else
 	{
-		if (NULL == token->value)
+		if (ZBX_VARIANT_NONE == token->value.type)
 			printf("\t%.*s", (int)(token->loc.r - token->loc.l + 1), ctx->expression + token->loc.l);
 		else
-			printf("\t'%s'", token->value);
+			printf("\t'%s'", zbx_variant_value_desc(&token->value));
 	}
 
 	printf(" : %s (%d)\n", mock_token_type2str(token->type), token->opt);

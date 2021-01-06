@@ -17,31 +17,15 @@
 ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 **/
 
-#ifndef ZABBIX_PREPROC_HISTORY_H
-#define ZABBIX_PREPROC_HISTORY_H
-
 #include "common.h"
-#include "dbcache.h"
-#include "zbxvariant.h"
+#include "log.h"
 
-typedef struct
+#include "zbxalgo.h"
+#include "zbxserver.h"
+
+
+int	zbx_eval_execute(const zbx_eval_context_t *ctx, )
 {
-	int		index;
-	zbx_variant_t	value;
-	zbx_timespec_t	ts;
+
+	return FAIL;
 }
-zbx_preproc_op_history_t;
-
-typedef struct
-{
-	zbx_uint64_t		itemid;
-	zbx_vector_ptr_t	history;
-}
-zbx_preproc_history_t;
-
-void	zbx_preproc_op_history_free(zbx_preproc_op_history_t *ophistory);
-void	zbx_preproc_history_pop_value(zbx_vector_ptr_t *history, int index, zbx_variant_t *value, zbx_timespec_t *ts);
-void	zbx_preproc_history_add_value(zbx_vector_ptr_t *history, int index, zbx_variant_t *data,
-		const zbx_timespec_t *ts);
-
-#endif
