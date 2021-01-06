@@ -20,6 +20,12 @@ in:
   - type: 1
     opt: 0
     value: ''
+  - type: 1
+    opt: 0
+    value: '12345678901234567890'
+  - type: 1
+    opt: 0
+    value: '1.234e10'
 ---
 test case: Stack size
 in:

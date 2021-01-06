@@ -36,12 +36,19 @@ static void	mock_read_token(zbx_eval_token_t *token, zbx_mock_handle_t htoken)
 	if (ZBX_MOCK_SUCCESS == zbx_mock_object_member(htoken, "value", &hvalue))
 	{
 		const char	*value;
+		zbx_uint64_t	ui64;
+		int		len;
 
 		token->loc.l = token->loc.r = 0;
 		if (ZBX_MOCK_SUCCESS != (err = zbx_mock_string(hvalue, &value)))
 			fail_msg("cannot read token value: %s", zbx_mock_error_string(err));
 
-		zbx_variant_set_str(&token->value, zbx_strdup(NULL, value));
+		if (SUCCEED == is_uint64(value, &ui64))
+			zbx_variant_set_ui64(&token->value, ui64);
+		else if (SUCCEED == zbx_number_parse(value, &len) && strlen(value) == (size_t)len)
+			zbx_variant_set_dbl(&token->value, atof(value));
+		else
+			zbx_variant_set_str(&token->value, zbx_strdup(NULL, value));
 	}
 	else
 	{
