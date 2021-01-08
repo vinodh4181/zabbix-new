@@ -22,6 +22,6 @@
 #ifndef ZABBIX_MOCK_EXPRESSION_EVAL_H
 #define ZABBIX_MOCK_EXPRESSION_EVAL_H
 
-zbx_uint64_t	mock_expression_eval_flags(const char *path);
+zbx_uint64_t	mock_expression_eval_rules(const char *path);
 
 #endif

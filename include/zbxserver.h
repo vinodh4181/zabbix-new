@@ -148,7 +148,7 @@ int	xml_xpath_check(const char *xpath, char *error, size_t errlen);
 #define ZBX_EVAL_TOKEN_VAR_USERMACRO	(18 | ZBX_EVAL_CLASS_OPERAND)
 #define ZBX_EVAL_TOKEN_VAR_LLDMACRO	(19 | ZBX_EVAL_CLASS_OPERAND)
 #define ZBX_EVAL_TOKEN_FUNCTIONID	(20 | ZBX_EVAL_CLASS_OPERAND)
-#define ZBX_EVAL_TOKEN_MATH_FUNCTION	(21 | ZBX_EVAL_CLASS_FUNCTION)
+#define ZBX_EVAL_TOKEN_FUNCTION		(21 | ZBX_EVAL_CLASS_FUNCTION)
 #define ZBX_EVAL_TOKEN_HIST_FUNCTION	(22 | ZBX_EVAL_CLASS_FUNCTION)
 #define ZBX_EVAL_TOKEN_GROUP_OPEN	(23 | ZBX_EVAL_CLASS_SEPARATOR)
 #define ZBX_EVAL_TOKEN_GROUP_CLOSE	(24 | ZBX_EVAL_CLASS_OPERAND)
@@ -175,14 +175,31 @@ int	xml_xpath_check(const char *xpath, char *error, size_t errlen);
 
 /* expression composition rules */
 
-#define ZBX_EVAL_QUOTE_MACRO			__UINT64_C(0x0001)
-#define ZBX_EVAL_QUOTE_USERMACRO		__UINT64_C(0x0002)
-#define ZBX_EVAL_QUOTE_LLDMACRO			__UINT64_C(0x0004)
+#define ZBX_EVAL_QUOTE_MACRO			__UINT64_C(0x00010000)
+#define ZBX_EVAL_QUOTE_USERMACRO		__UINT64_C(0x00020000)
+#define ZBX_EVAL_QUOTE_LLDMACRO			__UINT64_C(0x00040000)
 
 #define ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION	(ZBX_EVAL_QUOTE_MACRO | ZBX_EVAL_QUOTE_USERMACRO)
 #define ZBX_EVAL_COMPOSE_LLD_EXPRESSION		ZBX_EVAL_QUOTE_LLDMACRO
 
+/* expression evaluation rules */
+
+#define ZBX_EVAL_PROCESS_ERROR		__UINT64_C(0x000100000000)
+#define ZBX_EVAL_PROCESS_HISTORY	__UINT64_C(0x000200000000)
+#define ZBX_EVAL_PROCESS_FUNCTIONID	__UINT64_C(0x000400000000)
+
+#define ZBX_EVAL_EXECUTE_TRIGGER	(ZBX_EVAL_PROCESS_ERROR | ZBX_EVAL_PROCESS_FUNCTIONID)
+#define ZBX_EVAL_EXECUTE_CALCULATED	(ZBX_EVAL_PROCESS_HISTORY)
+
+
+#define ZBX_EVAL_TRIGGER_EXPRESSION	(ZBX_EVAL_PARSE_TRIGGER_EXPRESSSION | \
+					ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION | \
+					ZBX_EVAL_EXECUTE_TRIGGER)
+
 typedef zbx_uint32_t zbx_token_type_t;
+
+typedef	int (*zbx_eval_function_cb_t)(const char *name, size_t len, int args_num, const zbx_variant_t *args,
+		zbx_variant_t *value, char **error);
 
 typedef struct
 {
@@ -201,9 +218,10 @@ typedef struct
 	zbx_token_type_t	last_token_type;
 	int			const_index;
 	int			functionid_index;
-	zbx_uint64_t		flags;
+	zbx_uint64_t		rules;
 	zbx_vector_eval_token_t	stack;
 	zbx_vector_eval_token_t	ops;
+	zbx_eval_function_cb_t	function_cb;
 }
 zbx_eval_context_t;
 
@@ -211,6 +229,8 @@ int	zbx_eval_parse_expression(zbx_eval_context_t *ctx, const char *expression, z
 void	zbx_eval_clean(zbx_eval_context_t *ctx);
 void	zbx_eval_serialize(const zbx_eval_context_t *ctx, zbx_mem_malloc_func_t malloc_func, unsigned char **data);
 void	zbx_eval_deserialize(zbx_eval_context_t *ctx, const char *expression, const unsigned char *data);
-void	zbx_eval_compose_expression(const zbx_eval_context_t *ctx,  zbx_uint64_t rules, char **expression);
-
+void	zbx_eval_compose_expression(const zbx_eval_context_t *ctx, char **expression);
+int	zbx_eval_execute(zbx_eval_context_t *ctx, zbx_variant_t *value, char **error);
+int	zbx_eval_execute_ext(zbx_eval_context_t *ctx, zbx_eval_function_cb_t function_cb, zbx_variant_t *value,
+		char **error);
 #endif

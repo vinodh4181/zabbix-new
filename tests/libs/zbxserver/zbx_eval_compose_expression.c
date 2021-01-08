@@ -26,34 +26,6 @@
 #include "zbxserver.h"
 #include "mock_eval.h"
 
-zbx_uint64_t	mock_compose_flags(const char *path)
-{
-	zbx_uint64_t		flags = 0;
-	zbx_mock_handle_t	hflags, hflag;
-	zbx_mock_error_t	err;
-	int			flags_num;
-
-	hflags = zbx_mock_get_parameter_handle(path);
-	while (ZBX_MOCK_END_OF_VECTOR != (err = (zbx_mock_vector_element(hflags, &hflag))))
-	{
-		const char	*flag;
-
-		if (ZBX_MOCK_SUCCESS != err || ZBX_MOCK_SUCCESS != (err = zbx_mock_string(hflag, &flag)))
-			fail_msg("Cannot read flag #%d: %s", flags_num, zbx_mock_error_string(err));
-
-		if (0 == strcmp(flag, "ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION"))
-			flags |= ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION;
-		else if (0 == strcmp(flag, "ZBX_EVAL_COMPOSE_LLD_EXPRESSION"))
-			flags |= ZBX_EVAL_COMPOSE_LLD_EXPRESSION;
-		else
-			fail_msg("Unsupported flag: %s", flag);
-
-		flags_num++;
-	}
-
-	return flags;
-}
-
 static void	replace_values(zbx_eval_context_t *ctx, const char *path)
 {
 	zbx_mock_handle_t	htokens, htoken;
@@ -92,22 +64,21 @@ void	zbx_mock_test_entry(void **state)
 {
 	zbx_eval_context_t	ctx;
 	char			*error = NULL, *ret_expression = NULL;
-	zbx_uint32_t		flags;
+	zbx_uint32_t		rules;
 	const char		*exp_expression;
 
 	ZBX_UNUSED(state);
 
-	flags = mock_expression_eval_flags("in.flags");
+	rules = mock_expression_eval_rules("in.rules");
 
-	if (SUCCEED != zbx_eval_parse_expression(&ctx, zbx_mock_get_parameter_string("in.expression"), flags, &error))
+	if (SUCCEED != zbx_eval_parse_expression(&ctx, zbx_mock_get_parameter_string("in.expression"), rules, &error))
 			fail_msg("failed to parse expression: %s", error);
 
 	replace_values(&ctx, "in.replace");
 
 	exp_expression = zbx_mock_get_parameter_string("out.expression");
 
-	flags = mock_compose_flags("in.compose");
-	zbx_eval_compose_expression(&ctx, flags, &ret_expression);
+	zbx_eval_compose_expression(&ctx, &ret_expression);
 
 	zbx_mock_assert_str_eq("invalid composed expression", exp_expression, ret_expression);
 

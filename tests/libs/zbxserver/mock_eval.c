@@ -25,40 +25,44 @@
 #include "common.h"
 #include "zbxserver.h"
 
-zbx_uint64_t	mock_expression_eval_flags(const char *path)
+zbx_uint64_t	mock_expression_eval_rules(const char *path)
 {
-	zbx_uint64_t		flags = 0;
-	zbx_mock_handle_t	hflags, hflag;
+	zbx_uint64_t		rules = 0;
+	zbx_mock_handle_t	hrules, hflag;
 	zbx_mock_error_t	err;
-	int			flags_num;
+	int			rules_num;
 
-	hflags = zbx_mock_get_parameter_handle(path);
-	while (ZBX_MOCK_END_OF_VECTOR != (err = (zbx_mock_vector_element(hflags, &hflag))))
+	hrules = zbx_mock_get_parameter_handle(path);
+	while (ZBX_MOCK_END_OF_VECTOR != (err = (zbx_mock_vector_element(hrules, &hflag))))
 	{
 		const char	*flag;
 
 		if (ZBX_MOCK_SUCCESS != err || ZBX_MOCK_SUCCESS != (err = zbx_mock_string(hflag, &flag)))
-			fail_msg("Cannot read flag #%d: %s", flags_num, zbx_mock_error_string(err));
+			fail_msg("Cannot read flag #%d: %s", rules_num, zbx_mock_error_string(err));
 
 		if (0 == strcmp(flag, "ZBX_EVAL_PARSE_FUNCTIONID"))
-			flags |= ZBX_EVAL_PARSE_FUNCTIONID;
+			rules |= ZBX_EVAL_PARSE_FUNCTIONID;
 		else if (0 == strcmp(flag, "ZBX_EVAL_PARSE_FUNCTION"))
-			flags |= ZBX_EVAL_PARSE_FUNCTION;
+			rules |= ZBX_EVAL_PARSE_FUNCTION;
 		else if (0 == strcmp(flag, "ZBX_EVAL_PARSE_ITEM_QUERY"))
-			flags |= ZBX_EVAL_PARSE_ITEM_QUERY;
+			rules |= ZBX_EVAL_PARSE_ITEM_QUERY;
 		else if (0 == strcmp(flag, "ZBX_EVAL_PARSE_MACRO"))
-			flags |= ZBX_EVAL_PARSE_MACRO;
+			rules |= ZBX_EVAL_PARSE_MACRO;
 		else if (0 == strcmp(flag, "ZBX_EVAL_PARSE_USERMACRO"))
-			flags |= ZBX_EVAL_PARSE_USERMACRO;
+			rules |= ZBX_EVAL_PARSE_USERMACRO;
 		else if (0 == strcmp(flag, "ZBX_EVAL_PARSE_LLDMACRO"))
-			flags |= ZBX_EVAL_PARSE_LLDMACRO;
+			rules |= ZBX_EVAL_PARSE_LLDMACRO;
 		else if (0 == strcmp(flag, "ZBX_EVAL_PARSE_CONST_INDEX"))
-			flags |= ZBX_EVAL_PARSE_CONST_INDEX;
+			rules |= ZBX_EVAL_PARSE_CONST_INDEX;
+		else if (0 == strcmp(flag, "ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION"))
+			rules |= ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION;
+		else if (0 == strcmp(flag, "ZBX_EVAL_COMPOSE_LLD_EXPRESSION"))
+			rules |= ZBX_EVAL_COMPOSE_LLD_EXPRESSION;
 		else
 			fail_msg("Unsupported flag: %s", flag);
 
-		flags_num++;
+		rules_num++;
 	}
 
-	return flags;
+	return rules;
 }

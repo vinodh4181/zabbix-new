@@ -26,7 +26,7 @@
 #include "zbxserver.h"
 #include "mock_eval.h"
 
-const char	*mock_token_type2str(zbx_uint32_t type)
+static const char	*mock_token_type2str(zbx_uint32_t type)
 {
 #define ZBX_MOCK_TOKEN_CASE(x)	case ZBX_EVAL_TOKEN_##x: return "ZBX_EVAL_TOKEN_" #x;
 
@@ -52,7 +52,7 @@ const char	*mock_token_type2str(zbx_uint32_t type)
 		ZBX_MOCK_TOKEN_CASE(VAR_USERMACRO)
 		ZBX_MOCK_TOKEN_CASE(VAR_LLDMACRO)
 		ZBX_MOCK_TOKEN_CASE(FUNCTIONID)
-		ZBX_MOCK_TOKEN_CASE(MATH_FUNCTION)
+		ZBX_MOCK_TOKEN_CASE(FUNCTION)
 		ZBX_MOCK_TOKEN_CASE(HIST_FUNCTION)
 		ZBX_MOCK_TOKEN_CASE(GROUP_OPEN)
 		ZBX_MOCK_TOKEN_CASE(GROUP_CLOSE)
@@ -68,7 +68,7 @@ const char	*mock_token_type2str(zbx_uint32_t type)
 #undef ZBX_MOCK_TOKEN_CASE
 }
 
-zbx_uint32_t	mock_token_str2type(const char *str)
+static zbx_uint32_t	mock_token_str2type(const char *str)
 {
 #define ZBX_MOCK_TOKEN_IF(x)	if (0 == strcmp(str, "ZBX_EVAL_TOKEN_" #x)) return ZBX_EVAL_TOKEN_##x;
 
@@ -92,7 +92,7 @@ zbx_uint32_t	mock_token_str2type(const char *str)
 	ZBX_MOCK_TOKEN_IF(VAR_USERMACRO)
 	ZBX_MOCK_TOKEN_IF(VAR_LLDMACRO)
 	ZBX_MOCK_TOKEN_IF(FUNCTIONID)
-	ZBX_MOCK_TOKEN_IF(MATH_FUNCTION)
+	ZBX_MOCK_TOKEN_IF(FUNCTION)
 	ZBX_MOCK_TOKEN_IF(HIST_FUNCTION)
 	ZBX_MOCK_TOKEN_IF(GROUP_OPEN)
 	ZBX_MOCK_TOKEN_IF(GROUP_CLOSE)
@@ -189,12 +189,12 @@ void	zbx_mock_test_entry(void **state)
 	int			returned_ret, expected_ret;
 	zbx_eval_context_t	ctx;
 	char			*error = NULL;
-	zbx_uint64_t		flags;
+	zbx_uint64_t		rules;
 
 	ZBX_UNUSED(state);
 
-	flags = mock_expression_eval_flags("in.flags");
-	returned_ret = zbx_eval_parse_expression(&ctx, zbx_mock_get_parameter_string("in.expression"), flags, &error);
+	rules = mock_expression_eval_rules("in.rules");
+	returned_ret = zbx_eval_parse_expression(&ctx, zbx_mock_get_parameter_string("in.expression"), rules, &error);
 	expected_ret = zbx_mock_str_to_return_code(zbx_mock_get_parameter_string("out.result"));
 	if (SUCCEED != returned_ret)
 		printf("ERROR: %s\n", error);
