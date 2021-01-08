@@ -58,6 +58,12 @@ zbx_uint64_t	mock_expression_eval_rules(const char *path)
 			rules |= ZBX_EVAL_COMPOSE_TRIGGER_EXPRESSION;
 		else if (0 == strcmp(flag, "ZBX_EVAL_COMPOSE_LLD_EXPRESSION"))
 			rules |= ZBX_EVAL_COMPOSE_LLD_EXPRESSION;
+		else if (0 == strcmp(flag, "ZBX_EVAL_PROCESS_ERROR"))
+			rules |= ZBX_EVAL_PROCESS_ERROR;
+		else if (0 == strcmp(flag, "ZBX_EVAL_PROCESS_HISTORY"))
+			rules |= ZBX_EVAL_PROCESS_HISTORY;
+		else if (0 == strcmp(flag, "ZBX_EVAL_PROCESS_FUNCTIONID"))
+			rules |= ZBX_EVAL_PROCESS_FUNCTIONID;
 		else
 			fail_msg("Unsupported flag: %s", flag);
 

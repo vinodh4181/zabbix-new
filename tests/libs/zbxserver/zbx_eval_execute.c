@@ -28,22 +28,35 @@
 
 static void	replace_values(zbx_eval_context_t *ctx, const char *path)
 {
-	zbx_mock_handle_t	htokens, htoken;
+	zbx_mock_handle_t	htokens, htoken, hdata;
 	zbx_mock_error_t	err;
 
-	htokens = zbx_mock_get_parameter_handle(path);
+	if (ZBX_MOCK_SUCCESS != zbx_mock_parameter(path, &htokens))
+		return;
 
 	while (ZBX_MOCK_END_OF_VECTOR != (err = (zbx_mock_vector_element(htokens, &htoken))))
 	{
-		const char	*data, *value;
+		const char	*data, *value = NULL, *error = NULL;
 		int		i;
 		size_t		data_len;
 
 		if (ZBX_MOCK_SUCCESS != err)
-			fail_msg("cannot read token value");
+			fail_msg("cannot read token contents");
 
 		data = zbx_mock_get_object_member_string(htoken, "token");
-		value = zbx_mock_get_object_member_string(htoken, "value");
+		if (ZBX_MOCK_SUCCESS == zbx_mock_object_member(htoken, "value", &hdata))
+		{
+			if (ZBX_MOCK_SUCCESS != zbx_mock_string(hdata, &value))
+				fail_msg("invalid token value");
+		}
+		else if (ZBX_MOCK_SUCCESS == zbx_mock_object_member(htoken, "error", &hdata))
+		{
+			if (ZBX_MOCK_SUCCESS != zbx_mock_string(hdata, &error))
+				fail_msg("invalid token error");
+		}
+		else
+			fail_msg("invalid token contents");
+
 		data_len = strlen(data);
 
 		for (i = 0; i < ctx->stack.values_num; i++)
@@ -53,7 +66,10 @@ static void	replace_values(zbx_eval_context_t *ctx, const char *path)
 			if (data_len == token->loc.r - token->loc.l + 1 &&
 					0 == memcmp(data, ctx->expression + token->loc.l, data_len))
 			{
-				zbx_variant_set_str(&token->value, zbx_strdup(NULL, value));
+				if (NULL != value)
+					zbx_variant_set_str(&token->value, zbx_strdup(NULL, value));
+				else
+					zbx_variant_set_error(&token->value, zbx_strdup(NULL, error));
 				break;
 			}
 		}
@@ -63,25 +79,38 @@ static void	replace_values(zbx_eval_context_t *ctx, const char *path)
 void	zbx_mock_test_entry(void **state)
 {
 	zbx_eval_context_t	ctx;
-	char			*error = NULL, *ret_expression = NULL;
+	char			*error = NULL;
 	zbx_uint64_t		rules;
-	const char		*exp_expression;
+	int			expected_ret, returned_ret;
+	zbx_variant_t		value;
 
 	ZBX_UNUSED(state);
 
 	rules = mock_expression_eval_rules("in.rules");
+	expected_ret = zbx_mock_str_to_return_code(zbx_mock_get_parameter_string("out.result"));
 
 	if (SUCCEED != zbx_eval_parse_expression(&ctx, zbx_mock_get_parameter_string("in.expression"), rules, &error))
-			fail_msg("failed to parse expression: %s", error);
+	{
+		if (SUCCEED != expected_ret)
+			return;
+		fail_msg("failed to parse expression: %s", error);
+	}
 
 	replace_values(&ctx, "in.replace");
 
-	exp_expression = zbx_mock_get_parameter_string("out.expression");
+	returned_ret = zbx_eval_execute(&ctx, &value, &error);
 
-	zbx_eval_compose_expression(&ctx, &ret_expression);
+	if (SUCCEED != returned_ret)
+		printf("ERROR: %s\n", error);
 
-	zbx_mock_assert_str_eq("invalid composed expression", exp_expression, ret_expression);
+	zbx_mock_assert_result_eq("return value", expected_ret, returned_ret);
 
-	zbx_free(ret_expression);
+	if (SUCCEED == expected_ret)
+	{
+		zbx_mock_assert_str_eq("output value", zbx_mock_get_parameter_string("out.value"),
+				zbx_variant_value_desc(&value));
+		zbx_variant_clear(&value);
+	}
+
 	zbx_eval_clean(&ctx);
 }

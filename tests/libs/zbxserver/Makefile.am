@@ -6,7 +6,8 @@ SERVER_tests = \
 	macro_fmttime \
 	zbx_eval_parse_expression \
 	zbx_eval_serialize \
-	zbx_eval_compose_expression
+	zbx_eval_compose_expression \
+	zbx_eval_execute
 endif
 
 noinst_PROGRAMS = $(SERVER_tests)
@@ -43,7 +44,6 @@ COMMON_LIB_FILES = \
 	$(top_srcdir)/src/libs/zbxsysinfo/common/libcommonsysinfo.a \
 	$(top_srcdir)/src/libs/zbxsysinfo/simple/libsimplesysinfo.a \
 	$(top_srcdir)/src/libs/zbxmemory/libzbxmemory.a \
-	$(top_srcdir)/src/libs/zbxregexp/libzbxregexp.a \
 	$(top_srcdir)/src/libs/zbxself/libzbxself.a \
 	$(top_srcdir)/src/libs/zbxalgo/libzbxalgo.a \
 	$(top_srcdir)/src/libs/zbxsys/libzbxsys.a \
@@ -63,6 +63,7 @@ COMMON_LIB_FILES = \
 	$(top_srcdir)/src/libs/zbxcrypto/libzbxcrypto.a \
 	$(top_srcdir)/src/libs/zbxcommshigh/libzbxcommshigh.a \
 	$(top_srcdir)/src/libs/zbxjson/libzbxjson.a \
+	$(top_srcdir)/src/libs/zbxregexp/libzbxregexp.a \
 	$(top_srcdir)/src/libs/zbxhttp/libzbxhttp.a \
 	$(top_srcdir)/src/libs/zbxipcservice/libzbxipcservice.a \
 	$(top_srcdir)/src/libs/zbxexec/libzbxexec.a \
@@ -204,6 +205,20 @@ zbx_eval_compose_expression_LDADD += @SERVER_LIBS@
 zbx_eval_compose_expression_LDFLAGS = @SERVER_LDFLAGS@
 
 zbx_eval_compose_expression_CFLAGS = $(COMMON_COMPILER_FLAGS)
+
+
+zbx_eval_execute_SOURCES = \
+	zbx_eval_execute.c \
+	mock_eval.c mock_eval.h
+
+zbx_eval_execute_LDADD = \
+	$(COMMON_LIB_FILES)
+
+zbx_eval_execute_LDADD += @SERVER_LIBS@
+
+zbx_eval_execute_LDFLAGS = @SERVER_LDFLAGS@
+
+zbx_eval_execute_CFLAGS = $(COMMON_COMPILER_FLAGS)
 
 endif
 

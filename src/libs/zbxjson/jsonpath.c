@@ -29,8 +29,6 @@
 
 #include "../zbxalgo/vectorimpl.h"
 
-ZBX_VECTOR_IMPL(var, zbx_variant_t)
-
 typedef struct
 {
 	char		*name;

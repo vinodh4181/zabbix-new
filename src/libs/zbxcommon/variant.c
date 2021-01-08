@@ -20,6 +20,11 @@
 #include "common.h"
 #include "zbxalgo.h"
 #include "zbxvariant.h"
+#include "log.h"
+
+#include "../zbxalgo/vectorimpl.h"
+
+ZBX_VECTOR_IMPL(var, zbx_variant_t)
 
 void	*zbx_variant_data_bin_copy(const void *bin)
 {

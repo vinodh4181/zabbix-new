@@ -101,6 +101,50 @@ static int	eval_execute_op_unary(const zbx_eval_context_t *ctx, const zbx_eval_t
 
 /******************************************************************************
  *                                                                            *
+ * Function: eval_execute_op_logic_err                                        *
+ *                                                                            *
+ * Purpose: evaluate logical or/and operator with one operand being error     *
+ *                                                                            *
+ * Parameters: token  - [IN] the operator token                               *
+ *             value  - [IN] the other operand                                *
+ *             result - [OUT] the resulting value                             *
+ *                                                                            *
+ * Return value: SUCCEED - the oeprator was evaluated successfully            *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
+static int	eval_execute_op_logic_err(const zbx_eval_token_t *token, const zbx_variant_t *value, double *result)
+{
+	zbx_variant_t	zero;
+
+	if (ZBX_VARIANT_ERR == value->type)
+		return FAIL;
+
+	zbx_variant_set_dbl(&zero, 0);
+
+	switch (token->type)
+	{
+		case ZBX_EVAL_TOKEN_OP_AND:
+			if (SUCCEED == zbx_variant_compare(value, &zero))
+			{
+				*result = 0;
+				return SUCCEED;
+			}
+			break;
+		case ZBX_EVAL_TOKEN_OP_OR:
+			if (SUCCEED != zbx_variant_compare(value, &zero))
+			{
+				*result = 1;
+				return SUCCEED;
+			}
+			break;
+	}
+
+	return FAIL;
+}
+
+/******************************************************************************
+ *                                                                            *
  * Function: eval_execute_op_binary                                           *
  *                                                                            *
  * Purpose: evaluate binary operator                                          *
@@ -117,9 +161,8 @@ static int	eval_execute_op_unary(const zbx_eval_context_t *ctx, const zbx_eval_t
 static int	eval_execute_op_binary(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
 		zbx_vector_var_t *output, char **error)
 {
-	zbx_variant_t	*left, *right;
+	zbx_variant_t	*left, *right, zero;
 	double		value;
-	int		err_left, err_right;
 
 	if (2 > output->values_num)
 	{
@@ -132,6 +175,35 @@ static int	eval_execute_op_binary(const zbx_eval_context_t *ctx, const zbx_eval_
 	left = &output->values[output->values_num - 2];
 	right = &output->values[output->values_num - 1];
 
+	/* process error operands */
+
+	if (ZBX_VARIANT_ERR == left->type)
+	{
+		if (ZBX_EVAL_TOKEN_OP_AND == token->type || ZBX_EVAL_TOKEN_OP_OR == token->type)
+		{
+			if (SUCCEED == eval_execute_op_logic_err(token, right, &value))
+				goto finish;
+		}
+
+		zbx_variant_clear(right);
+		output->values_num--;
+
+		return SUCCEED;
+	}
+	else if (ZBX_VARIANT_ERR == right->type)
+	{
+		if (ZBX_EVAL_TOKEN_OP_AND == token->type || ZBX_EVAL_TOKEN_OP_OR == token->type)
+		{
+			if (SUCCEED == eval_execute_op_logic_err(token, left, &value))
+				goto finish;
+		}
+		zbx_variant_clear(left);
+		*left = *right;
+		output->values_num--;
+
+		return SUCCEED;
+	}
+
 	/* check logical operators */
 
 	switch (token->type)
@@ -143,52 +215,49 @@ static int	eval_execute_op_binary(const zbx_eval_context_t *ctx, const zbx_eval_
 			value = (0 == zbx_variant_compare(left, right) ? 0 : 1);
 			goto finish;
 		case ZBX_EVAL_TOKEN_OP_LT:
-			value = (0 > zbx_variant_compare(left, right) ? 0 : 1);
+			value = (0 > zbx_variant_compare(left, right) ? 1 : 0);
 			goto finish;
 		case ZBX_EVAL_TOKEN_OP_LE:
-			value = (0 >= zbx_variant_compare(left, right) ? 0 : 1);
+			value = (0 >= zbx_variant_compare(left, right) ? 1 : 0);
 			goto finish;
 		case ZBX_EVAL_TOKEN_OP_GT:
-			value = (0 < zbx_variant_compare(left, right) ? 0 : 1);
+			value = (0 < zbx_variant_compare(left, right) ? 1 : 0);
 			goto finish;
 		case ZBX_EVAL_TOKEN_OP_GE:
-			value = (0 <= zbx_variant_compare(left, right) ? 0 : 1);
+			value = (0 <= zbx_variant_compare(left, right) ? 1 : 0);
 			goto finish;
 	}
-
-	err_left = zbx_variant_convert(left, ZBX_VARIANT_DBL);
-	err_right = zbx_variant_convert(right, ZBX_VARIANT_DBL);
 
 	/* check logical operators */
 
 	switch (token->type)
 	{
 		case ZBX_EVAL_TOKEN_OP_AND:
-			if ((SUCCEED == err_left && SUCCEED == zbx_variant_compare(left, 0)) ||
-					(SUCCEED == err_right && SUCCEED == zbx_variant_compare(right, 0)))
-			{
+			zbx_variant_set_dbl(&zero, 0);
+			if (SUCCEED == zbx_variant_compare(left, &zero) || SUCCEED == zbx_variant_compare(right, &zero))
 				value = 0;
-				goto finish;
-			}
-			break;
-		case ZBX_EVAL_TOKEN_OP_OR:
-			if ((SUCCEED == err_left && SUCCEED != zbx_variant_compare(left, 0)) ||
-					(SUCCEED == err_right && SUCCEED != zbx_variant_compare(right, 0)))
-			{
+			else
 				value = 1;
-				goto finish;
-			}
-			break;
+			goto finish;
+		case ZBX_EVAL_TOKEN_OP_OR:
+			zbx_variant_set_dbl(&zero, 0);
+			if (SUCCEED != zbx_variant_compare(left, &zero) || SUCCEED != zbx_variant_compare(right, &zero))
+				value = 1;
+			else
+				value = 0;
+			goto finish;
 	}
 
-	if (SUCCEED != err_left)
+	/* check arithmetic operators */
+
+	if (SUCCEED != zbx_variant_convert(left, ZBX_VARIANT_DBL))
 	{
 		*error = zbx_dsprintf(*error, "invalid left operand value \"%s\" of type \"%s\"",
 				zbx_variant_value_desc(left), zbx_variant_type_desc(left));
 		return FAIL;
 	}
 
-	if (SUCCEED != err_right)
+	if (SUCCEED != zbx_variant_convert(right, ZBX_VARIANT_DBL))
 	{
 		*error = zbx_dsprintf(*error, "invalid right operand value \"%s\" of type \"%s\"",
 				zbx_variant_value_desc(right), zbx_variant_type_desc(right));
