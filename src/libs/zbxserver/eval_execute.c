@@ -34,6 +34,9 @@ typedef enum
 }
 zbx_eval_math_func_t;
 
+
+static zbx_variant_t	var_zero = {.type = ZBX_VARIANT_DBL, .data = {.dbl = 0}};
+
 /******************************************************************************
  *                                                                            *
  * Function: eval_execute_op_unary                                            *
@@ -64,6 +67,9 @@ static int	eval_execute_op_unary(const zbx_eval_context_t *ctx, const zbx_eval_t
 
 	right = &output->values[output->values_num - 1];
 
+	if (ZBX_VARIANT_ERR == right->type)
+		return SUCCEED;
+
 	switch (token->type)
 	{
 		case ZBX_EVAL_TOKEN_OP_MINUS:
@@ -77,14 +83,7 @@ static int	eval_execute_op_unary(const zbx_eval_context_t *ctx, const zbx_eval_t
 			value = -right->data.dbl;
 			break;
 		case ZBX_EVAL_TOKEN_OP_NOT:
-			if (SUCCEED != zbx_variant_convert(right, ZBX_VARIANT_DBL))
-			{
-				*error = zbx_dsprintf(*error, "invalid value \"%s\" of type \"%s\" for logical not"
-						" operator at \"%s\"", zbx_variant_value_desc(right),
-						zbx_variant_type_desc(right), ctx->expression + token->loc.l);
-				return FAIL;
-			}
-			value = (SUCCEED == zbx_double_compare(right->data.dbl, 0) ? 1 : 0);
+			value = (SUCCEED == zbx_variant_compare(right, &var_zero) ? 1 : 0);
 			break;
 		default:
 			THIS_SHOULD_NEVER_HAPPEN;
@@ -115,24 +114,20 @@ static int	eval_execute_op_unary(const zbx_eval_context_t *ctx, const zbx_eval_t
  ******************************************************************************/
 static int	eval_execute_op_logic_err(const zbx_eval_token_t *token, const zbx_variant_t *value, double *result)
 {
-	zbx_variant_t	zero;
-
 	if (ZBX_VARIANT_ERR == value->type)
 		return FAIL;
-
-	zbx_variant_set_dbl(&zero, 0);
 
 	switch (token->type)
 	{
 		case ZBX_EVAL_TOKEN_OP_AND:
-			if (SUCCEED == zbx_variant_compare(value, &zero))
+			if (SUCCEED == zbx_variant_compare(value, &var_zero))
 			{
 				*result = 0;
 				return SUCCEED;
 			}
 			break;
 		case ZBX_EVAL_TOKEN_OP_OR:
-			if (SUCCEED != zbx_variant_compare(value, &zero))
+			if (SUCCEED != zbx_variant_compare(value, &var_zero))
 			{
 				*result = 1;
 				return SUCCEED;
@@ -161,7 +156,7 @@ static int	eval_execute_op_logic_err(const zbx_eval_token_t *token, const zbx_va
 static int	eval_execute_op_binary(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
 		zbx_vector_var_t *output, char **error)
 {
-	zbx_variant_t	*left, *right, zero;
+	zbx_variant_t	*left, *right;
 	double		value;
 
 	if (2 > output->values_num)
@@ -233,16 +228,20 @@ static int	eval_execute_op_binary(const zbx_eval_context_t *ctx, const zbx_eval_
 	switch (token->type)
 	{
 		case ZBX_EVAL_TOKEN_OP_AND:
-			zbx_variant_set_dbl(&zero, 0);
-			if (SUCCEED == zbx_variant_compare(left, &zero) || SUCCEED == zbx_variant_compare(right, &zero))
+			if (SUCCEED == zbx_variant_compare(left, &var_zero) ||
+					SUCCEED == zbx_variant_compare(right, &var_zero))
+			{
 				value = 0;
+			}
 			else
 				value = 1;
 			goto finish;
 		case ZBX_EVAL_TOKEN_OP_OR:
-			zbx_variant_set_dbl(&zero, 0);
-			if (SUCCEED != zbx_variant_compare(left, &zero) || SUCCEED != zbx_variant_compare(right, &zero))
+			if (SUCCEED != zbx_variant_compare(left, &var_zero) ||
+					SUCCEED != zbx_variant_compare(right, &var_zero))
+			{
 				value = 1;
+			}
 			else
 				value = 0;
 			goto finish;
@@ -387,6 +386,31 @@ static int	eval_compare_token(const zbx_eval_context_t *ctx, const zbx_strloc_t 
 
 /******************************************************************************
  *                                                                            *
+ * Function: eval_function_return                                             *
+ *                                                                            *
+ * Purpose: handle function return                                            *
+ *                                                                            *
+ * Parameters: args_num - [IN] the number of function arguments               *
+ *             value    - [IN] the return value                               *
+ *             output   - [IN/OUT] the output value stack                     *
+ *                                                                            *
+ * Comments: The function arguments on output stack are replaced with the     *
+ *           return value.                                                    *
+ *                                                                            *
+ ******************************************************************************/
+static void	eval_function_return(int args_num, zbx_variant_t *value, zbx_vector_var_t *output)
+{
+	int	i;
+
+	for (i = output->values_num - args_num; i < output->values_num; i++)
+		zbx_variant_clear(&output->values[i]);
+	output->values_num -= args_num;
+
+	zbx_vector_var_append_ptr(output, value);
+}
+
+/******************************************************************************
+ *                                                                            *
  * Function: eval_execute_process_function                                    *
  *                                                                            *
  * Purpose: process built-in function                                         *
@@ -417,6 +441,15 @@ static int	eval_execute_process_function(const zbx_eval_context_t *ctx, zbx_eval
 
 	for (i = output->values_num - token->opt; i < output->values_num; i++)
 	{
+		if (ZBX_VARIANT_ERR == &output->values[i].type)
+		{
+			/* first error argument is used as function return value */
+			value = output->values[i];
+			zbx_variant_set_none(&output->values[i]);
+			eval_function_return(token->opt, &value, output);
+			return SUCCEED;
+		}
+
 		if (SUCCEED != zbx_variant_convert(&output->values[i], ZBX_VARIANT_DBL))
 		{
 			*error = zbx_dsprintf(*error, "invalid value \"%s\" of type \"%s\" for math function at \"%s\"",
@@ -459,12 +492,8 @@ static int	eval_execute_process_function(const zbx_eval_context_t *ctx, zbx_eval
 			tmp = 0;
 	}
 
-	for (i = output->values_num - token->opt; i < output->values_num; i++)
-		zbx_variant_clear(&output->values[i]);
-	output->values_num -= token->opt;
-
 	zbx_variant_set_dbl(&value, tmp);
-	zbx_vector_var_append_ptr(output, &value);
+	eval_function_return(token->opt, &value, output);
 
 	return SUCCEED;
 }
@@ -491,10 +520,7 @@ static int	eval_execute_process_function(const zbx_eval_context_t *ctx, zbx_eval
 static int	eval_execute_cb_function(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
 		zbx_vector_var_t *output, char **error)
 {
-	int		i;
-	zbx_variant_t	value;
-	char		*errvalue = NULL;
-	zbx_variant_t	*args;
+	zbx_variant_t	value, *args;
 
 	if (NULL == ctx->function_cb)
 	{
@@ -505,23 +531,12 @@ static int	eval_execute_cb_function(const zbx_eval_context_t *ctx, const zbx_eva
 	args = (0 == token->opt ? NULL : &output->values[output->values_num - token->opt]);
 
 	if (SUCCEED != ctx->function_cb(ctx->expression + token->loc.l, token->loc.r - token->loc.l + 1,
-			token->opt, args, &value, &errvalue))
+			token->opt, args, &value, error))
 	{
-		if (0 == (ctx->rules & ZBX_EVAL_PROCESS_ERROR))
-		{
-			*error = errvalue;
-			return FAIL;
-		}
-
-		zbx_variant_set_error(&value, errvalue);
+		return FAIL;
 	}
 
-	for (i = output->values_num - token->opt; i < output->values_num; i++)
-		zbx_variant_clear(&output->values[i]);
-	output->values_num -= token->opt;
-
-	zbx_vector_var_append_ptr(output, &value);
-
+	eval_function_return(token->opt, &value, output);
 	return SUCCEED;
 }
 
