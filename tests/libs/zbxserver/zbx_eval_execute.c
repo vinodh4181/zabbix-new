@@ -92,7 +92,10 @@ void	zbx_mock_test_entry(void **state)
 	if (SUCCEED != zbx_eval_parse_expression(&ctx, zbx_mock_get_parameter_string("in.expression"), rules, &error))
 	{
 		if (SUCCEED != expected_ret)
+		{
+			zbx_free(error);
 			return;
+		}
 		fail_msg("failed to parse expression: %s", error);
 	}
 
@@ -111,6 +114,8 @@ void	zbx_mock_test_entry(void **state)
 				zbx_variant_value_desc(&value));
 		zbx_variant_clear(&value);
 	}
+	else
+		zbx_free(error);
 
 	zbx_eval_clean(&ctx);
 }
