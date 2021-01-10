@@ -69,7 +69,7 @@ void	zbx_mock_test_entry(void **state)
 
 	ZBX_UNUSED(state);
 
-	rules = mock_expression_eval_rules("in.rules");
+	rules = mock_eval_read_rules("in.rules");
 
 	if (SUCCEED != zbx_eval_parse_expression(&ctx, zbx_mock_get_parameter_string("in.expression"), rules, &error))
 			fail_msg("failed to parse expression: %s", error);

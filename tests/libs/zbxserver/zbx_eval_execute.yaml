@@ -63,7 +63,7 @@ out:
 ---
 test case: Expression '{123}'
 in:
-  rules: [ZBX_EVAL_PARSE_FUNCTIONID,ZBX_EVAL_PROCESS_FUNCTIONID]
+  rules: [ZBX_EVAL_PARSE_FUNCTIONID]
   expression: '{123}'
   replace: 
   - {token: '{123}', value: '4'}
@@ -73,7 +73,7 @@ out:
 ---
 test case: Expression '{123}'
 in:
-  rules: [ZBX_EVAL_PARSE_FUNCTIONID,ZBX_EVAL_PROCESS_FUNCTIONID]
+  rules: [ZBX_EVAL_PARSE_FUNCTIONID]
   expression: '{123}'
 out:
   result: FAIL

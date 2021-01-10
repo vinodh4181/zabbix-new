@@ -178,6 +178,7 @@ tests/libs/zbxserver/macro_fmttime
 tests/libs/zbxserver/substitute_lld_macros
 tests/libs/zbxserver/zbx_eval_compose_expression
 tests/libs/zbxserver/zbx_eval_execute
+tests/libs/zbxserver/zbx_eval_execute_ext
 tests/libs/zbxserver/zbx_eval_parse_expression
 tests/libs/zbxserver/zbx_eval_serialize
 tests/libs/zbxsysinfo/check_key_access_rules

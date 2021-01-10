@@ -7,7 +7,8 @@ SERVER_tests = \
 	zbx_eval_parse_expression \
 	zbx_eval_serialize \
 	zbx_eval_compose_expression \
-	zbx_eval_execute
+	zbx_eval_execute \
+	zbx_eval_execute_ext
 endif
 
 noinst_PROGRAMS = $(SERVER_tests)
@@ -219,6 +220,20 @@ zbx_eval_execute_LDADD += @SERVER_LIBS@
 zbx_eval_execute_LDFLAGS = @SERVER_LDFLAGS@
 
 zbx_eval_execute_CFLAGS = $(COMMON_COMPILER_FLAGS)
+
+
+zbx_eval_execute_ext_SOURCES = \
+	zbx_eval_execute_ext.c \
+	mock_eval.c mock_eval.h
+
+zbx_eval_execute_ext_LDADD = \
+	$(COMMON_LIB_FILES)
+
+zbx_eval_execute_ext_LDADD += @SERVER_LIBS@
+
+zbx_eval_execute_ext_LDFLAGS = @SERVER_LDFLAGS@
+
+zbx_eval_execute_ext_CFLAGS = $(COMMON_COMPILER_FLAGS)
 
 endif
 

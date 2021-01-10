@@ -23,18 +23,6 @@
 #include "zbxalgo.h"
 #include "zbxserver.h"
 
-/* the built-in functions */
-typedef enum
-{
-	ZBX_EVAL_FUNC_UNKNOWN,
-	ZBX_EVAL_FUNC_MIN,
-	ZBX_EVAL_FUNC_MAX,
-	ZBX_EVAL_FUNC_SUM,
-	ZBX_EVAL_FUNC_AVG,
-}
-zbx_eval_math_func_t;
-
-
 static zbx_variant_t	var_zero = {.type = ZBX_VARIANT_DBL, .data = {.dbl = 0}};
 
 /******************************************************************************
@@ -411,88 +399,283 @@ static void	eval_function_return(int args_num, zbx_variant_t *value, zbx_vector_
 
 /******************************************************************************
  *                                                                            *
- * Function: eval_execute_process_function                                    *
+ * Function: eval_prepare_math_function_args                                  *
  *                                                                            *
- * Purpose: process built-in function                                         *
+ * Purpose: validate and prepare (convert to floating values) math function   *
+ *          arguments                                                         *
  *                                                                            *
- * Parameters: ctx      - [IN] the evaluation context                         *
- *             function - [IN] the function to process                        *
- *             token    - [IN] the function token                             *
- *             output   - [IN/OUT] the output value stack                     *
- *             error    - [OUT] the error message in the case of failure      *
+ * Parameters: ctx    - [IN] the evaluation context                           *
+ *             token  - [IN] the function token                               *
+ *             output - [IN/OUT] the output value stack                       *
+ *             error  - [OUT] the error message in the case of failure        *
  *                                                                            *
- * Return value: SUCCEED - the function was executed successfully             *
- *               FAIL    - otherwise                                          *
+ * Return value: SUCCEED - function arguments contain error values - the      *
+ *                         first error is returned as function value without  *
+ *                         evaluating the function                            *
+ *               FAIL    - argument validation/conversion failed              *
+ *               UNKNOWN - argument conversion succeeded, function result is  *
+ *                         unknown at the moment, function must be evaluated  *
+ *                         with the prepared arguments                        *
+ *                                                                            *
+ * Comments: Math function accepts either 1+ arguments that can be converted  *
+ *           to floating values or a single argument of floating value vector.*
  *                                                                            *
  ******************************************************************************/
-static int	eval_execute_process_function(const zbx_eval_context_t *ctx, zbx_eval_math_func_t function,
-		const zbx_eval_token_t *token, zbx_vector_var_t *output, char **error)
+static int	eval_prepare_math_function_args(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
+		zbx_vector_var_t *output, char **error)
 {
-	int		i;
-	double		tmp;
-	zbx_variant_t	value;
+	int	i;
 
-	if ((zbx_uint32_t)output->values_num < token->opt)
+	if (0 == token->opt)
 	{
 		*error = zbx_dsprintf(*error, "not enough arguments for function at \"%s\"",
 				ctx->expression + token->loc.l);
 		return FAIL;
 	}
 
-	for (i = output->values_num - token->opt; i < output->values_num; i++)
-	{
-		if (ZBX_VARIANT_ERR == &output->values[i].type)
-		{
-			/* first error argument is used as function return value */
-			value = output->values[i];
-			zbx_variant_set_none(&output->values[i]);
-			eval_function_return(token->opt, &value, output);
-			return SUCCEED;
-		}
+	i = output->values_num - token->opt;
 
-		if (SUCCEED != zbx_variant_convert(&output->values[i], ZBX_VARIANT_DBL))
+	if (ZBX_VARIANT_DBL_VECTOR != output->values[i].type)
+	{
+		for (; i < output->values_num; i++)
 		{
-			*error = zbx_dsprintf(*error, "invalid value \"%s\" of type \"%s\" for math function at \"%s\"",
-					zbx_variant_value_desc(&output->values[i]),
-					zbx_variant_type_desc(&output->values[i]), ctx->expression + token->loc.l);
+			if (ZBX_VARIANT_ERR == output->values[i].type)
+			{
+				zbx_variant_t	value = value = output->values[i];
+
+				/* first error argument is used as function return value */
+				zbx_variant_set_none(&output->values[i]);
+				eval_function_return(token->opt, &value, output);
+
+				return SUCCEED;
+			}
+
+			if (SUCCEED != zbx_variant_convert(&output->values[i], ZBX_VARIANT_DBL))
+			{
+				*error = zbx_dsprintf(*error, "invalid value \"%s\" of type \"%s\" for function at"
+						" \"%s\"", zbx_variant_value_desc(&output->values[i]),
+						zbx_variant_type_desc(&output->values[i]),
+						ctx->expression + token->loc.l);
+				return FAIL;
+			}
+		}
+	}
+	else
+	{
+		if (1 != token->opt)
+		{
+			*error = zbx_dsprintf(*error, "too many arguments for function at \"%s\"",
+					ctx->expression + token->loc.l);
 			return FAIL;
 		}
 	}
 
-	i = output->values_num - token->opt;
-	tmp = output->values[i++].data.dbl;
+	return UNKNOWN;
+}
 
-	switch (function)
+/******************************************************************************
+ *                                                                            *
+ * Function: eval_execute_function_min                                        *
+ *                                                                            *
+ * Purpose: evaluate min() function                                           *
+ *                                                                            *
+ * Parameters: ctx    - [IN] the evaluation context                           *
+ *             token  - [IN] the function token                               *
+ *             output - [IN/OUT] the output value stack                       *
+ *             error  - [OUT] the error message in the case of failure        *
+ *                                                                            *
+ * Return value: SUCCEED - function evaluation succeeded                      *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
+static int	eval_execute_function_min(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
+		zbx_vector_var_t *output, char **error)
+{
+	int		i, ret;
+	double		min;
+	zbx_variant_t	value;
+
+	if (UNKNOWN != (ret = eval_prepare_math_function_args(ctx, token, output, error)))
+		return ret;
+
+	i = output->values_num - token->opt;
+
+	if (ZBX_VARIANT_DBL_VECTOR != output->values[i].type)
 	{
-		case ZBX_EVAL_FUNC_MIN:
-			for (; i < output->values_num; i++)
-			{
-				if (tmp > output->values[i].data.dbl)
-					tmp = output->values[i].data.dbl;
-			}
-			break;
-		case ZBX_EVAL_FUNC_MAX:
-			for (; i < output->values_num; i++)
-			{
-				if (tmp < output->values[i].data.dbl)
-					tmp = output->values[i].data.dbl;
-			}
-			break;
-		case ZBX_EVAL_FUNC_SUM:
-			for (; i < output->values_num; i++)
-				tmp += output->values[i].data.dbl;
-			break;
-		case ZBX_EVAL_FUNC_AVG:
-			for (; i < output->values_num; i++)
-				tmp += output->values[i].data.dbl;
-			tmp /= token->opt;
-			break;
-		default:
-			THIS_SHOULD_NEVER_HAPPEN;
-			tmp = 0;
+		min = output->values[i++].data.dbl;
+
+		for (; i < output->values_num; i++)
+		{
+			if (min > output->values[i].data.dbl)
+				min = output->values[i].data.dbl;
+		}
+	}
+	else
+	{
+		zbx_vector_dbl_t	*dbl_vector = output->values[i].data.dbl_vector;
+
+		min = dbl_vector->values[0];
+
+		for (i = 1; i < dbl_vector->values_num; i++)
+		{
+			if (min > dbl_vector->values[i])
+				min = dbl_vector->values[i];
+		}
 	}
 
-	zbx_variant_set_dbl(&value, tmp);
+	zbx_variant_set_dbl(&value, min);
+	eval_function_return(token->opt, &value, output);
+
+	return SUCCEED;
+}
+
+/******************************************************************************
+ *                                                                            *
+ * Function: eval_execute_function_max                                        *
+ *                                                                            *
+ * Purpose: evaluate max() function                                           *
+ *                                                                            *
+ * Parameters: ctx    - [IN] the evaluation context                           *
+ *             token  - [IN] the function token                               *
+ *             output - [IN/OUT] the output value stack                       *
+ *             error  - [OUT] the error message in the case of failure        *
+ *                                                                            *
+ * Return value: SUCCEED - function evaluation succeeded                      *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
+static int	eval_execute_function_max(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
+		zbx_vector_var_t *output, char **error)
+{
+	int		i, ret;
+	double		max;
+	zbx_variant_t	value;
+
+	if (UNKNOWN != (ret = eval_prepare_math_function_args(ctx, token, output, error)))
+		return ret;
+
+	i = output->values_num - token->opt;
+
+	if (ZBX_VARIANT_DBL_VECTOR != output->values[i].type)
+	{
+		max = output->values[i++].data.dbl;
+
+		for (; i < output->values_num; i++)
+		{
+			if (max < output->values[i].data.dbl)
+				max = output->values[i].data.dbl;
+		}
+	}
+	else
+	{
+		zbx_vector_dbl_t	*dbl_vector = output->values[i].data.dbl_vector;
+
+		max = dbl_vector->values[0];
+
+		for (i = 1; i < dbl_vector->values_num; i++)
+		{
+			if (max < dbl_vector->values[i])
+				max = dbl_vector->values[i];
+		}
+	}
+
+	zbx_variant_set_dbl(&value, max);
+	eval_function_return(token->opt, &value, output);
+
+	return SUCCEED;
+}
+
+/******************************************************************************
+ *                                                                            *
+ * Function: eval_execute_function_sum                                        *
+ *                                                                            *
+ * Purpose: evaluate sum() function                                           *
+ *                                                                            *
+ * Parameters: ctx    - [IN] the evaluation context                           *
+ *             token  - [IN] the function token                               *
+ *             output - [IN/OUT] the output value stack                       *
+ *             error  - [OUT] the error message in the case of failure        *
+ *                                                                            *
+ * Return value: SUCCEED - function evaluation succeeded                      *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
+static int	eval_execute_function_sum(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
+		zbx_vector_var_t *output, char **error)
+{
+	int		i, ret;
+	double		sum;
+	zbx_variant_t	value;
+
+	if (UNKNOWN != (ret = eval_prepare_math_function_args(ctx, token, output, error)))
+		return ret;
+
+	i = output->values_num - token->opt;
+
+	if (ZBX_VARIANT_DBL_VECTOR != output->values[i].type)
+	{
+		for (; i < output->values_num; i++)
+			sum += output->values[i].data.dbl;
+	}
+	else
+	{
+		zbx_vector_dbl_t	*dbl_vector = output->values[i].data.dbl_vector;
+
+		for (i = 0; i < dbl_vector->values_num; i++)\
+			sum += dbl_vector->values[i];
+	}
+
+	zbx_variant_set_dbl(&value, sum);
+	eval_function_return(token->opt, &value, output);
+
+	return SUCCEED;
+}
+
+/******************************************************************************
+ *                                                                            *
+ * Function: eval_execute_function_avg                                        *
+ *                                                                            *
+ * Purpose: evaluate avg() function                                           *
+ *                                                                            *
+ * Parameters: ctx    - [IN] the evaluation context                           *
+ *             token  - [IN] the function token                               *
+ *             output - [IN/OUT] the output value stack                       *
+ *             error  - [OUT] the error message in the case of failure        *
+ *                                                                            *
+ * Return value: SUCCEED - function evaluation succeeded                      *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
+static int	eval_execute_function_avg(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
+		zbx_vector_var_t *output, char **error)
+{
+	int		i, ret;
+	double		avg;
+	zbx_variant_t	value;
+
+	if (UNKNOWN != (ret = eval_prepare_math_function_args(ctx, token, output, error)))
+		return ret;
+
+	i = output->values_num - token->opt;
+
+	if (ZBX_VARIANT_DBL_VECTOR != output->values[i].type)
+	{
+		for (; i < output->values_num; i++)
+			avg += output->values[i].data.dbl;
+
+		avg /= token->opt;
+	}
+	else
+	{
+		zbx_vector_dbl_t	*dbl_vector = output->values[i].data.dbl_vector;
+
+		for (i = 0; i < dbl_vector->values_num; i++)\
+			avg += dbl_vector->values[i];
+
+		avg /= dbl_vector->values_num;
+	}
+
+	zbx_variant_set_dbl(&value, avg);
 	eval_function_return(token->opt, &value, output);
 
 	return SUCCEED;
@@ -536,6 +719,13 @@ static int	eval_execute_cb_function(const zbx_eval_context_t *ctx, const zbx_eva
 		return FAIL;
 	}
 
+	if (ZBX_VARIANT_ERR == value.type && 0 == (ctx->rules & ZBX_EVAL_PROCESS_ERROR))
+	{
+		*error = zbx_dsprintf(*error, "%s at \"%s\"", value.data.err, ctx->expression + token->loc.l);
+		zbx_variant_clear(&value);
+		return FAIL;
+	}
+
 	eval_function_return(token->opt, &value, output);
 	return SUCCEED;
 }
@@ -562,19 +752,19 @@ static int	eval_execute_function(const zbx_eval_context_t *ctx, const zbx_eval_t
 
 	if ((zbx_uint32_t)output->values_num < token->opt)
 	{
-		*error = zbx_dsprintf(*error, "not enough function arguments at \"%s\"",
+		*error = zbx_dsprintf(*error, "not enough arguments for function at \"%s\"",
 				ctx->expression + token->loc.l);
 		return FAIL;
 	}
 
 	if (SUCCEED == eval_compare_token(ctx, &token->loc, "min", ZBX_CONST_STRLEN("min")))
-		return eval_execute_process_function(ctx, ZBX_EVAL_FUNC_MIN, token, output, error);
+		return eval_execute_function_min(ctx, token, output, error);
 	if (SUCCEED == eval_compare_token(ctx, &token->loc, "max", ZBX_CONST_STRLEN("max")))
-		return eval_execute_process_function(ctx, ZBX_EVAL_FUNC_MAX, token, output, error);
+		return eval_execute_function_max(ctx, token, output, error);
 	if (SUCCEED == eval_compare_token(ctx, &token->loc, "sum", ZBX_CONST_STRLEN("sum")))
-		return eval_execute_process_function(ctx, ZBX_EVAL_FUNC_SUM, token, output, error);
+		return eval_execute_function_sum(ctx, token, output, error);
 	if (SUCCEED == eval_compare_token(ctx, &token->loc, "avg", ZBX_CONST_STRLEN("avg")))
-		return eval_execute_process_function(ctx, ZBX_EVAL_FUNC_AVG, token, output, error);
+		return eval_execute_function_avg(ctx, token, output, error);
 
 	if (FAIL == eval_execute_cb_function(ctx, token, output, &errmsg))
 	{
@@ -605,12 +795,6 @@ static int	eval_execute_hist_function(const zbx_eval_context_t *ctx, const zbx_e
 		zbx_vector_var_t *output, char **error)
 {
 	char	*errmsg = NULL;
-
-	if (0 == (ctx->rules & ZBX_EVAL_PROCESS_HISTORY))
-	{
-		*error = zbx_strdup(*error, "history functions are not supported");
-		return FAIL;
-	}
 
 	if (FAIL == eval_execute_cb_function(ctx, token, output, &errmsg))
 	{
@@ -670,12 +854,6 @@ static int	eval_execute(const zbx_eval_context_t *ctx, zbx_variant_t *value, cha
 					break;
 				case ZBX_EVAL_TOKEN_ARG_QUERY:
 				case ZBX_EVAL_TOKEN_ARG_TIME:
-					if (0 == (ctx->rules & ZBX_EVAL_PROCESS_HISTORY))
-					{
-						*error = zbx_strdup(*error, "history function arguments are"
-								" not supported");
-						goto out;
-					}
 					if (SUCCEED != eval_execute_push_value(ctx, token, &output, error))
 						goto out;
 					break;
@@ -688,12 +866,6 @@ static int	eval_execute(const zbx_eval_context_t *ctx, zbx_variant_t *value, cha
 						goto out;
 					break;
 				case ZBX_EVAL_TOKEN_FUNCTIONID:
-					if (0 == (ctx->rules & ZBX_EVAL_PROCESS_FUNCTIONID))
-					{
-						*error = zbx_strdup(*error, "trigger history functions are"
-								" not supported");
-						goto out;
-					}
 					if (ZBX_VARIANT_NONE == token->value.type)
 					{
 						*error = zbx_strdup(*error, "trigger history functions must be"

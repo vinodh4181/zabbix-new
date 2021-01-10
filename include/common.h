@@ -91,6 +91,7 @@ extern char ZABBIX_EVENT_SOURCE[ZBX_SERVICE_NAME_LEN];
 #	define ZBX_FALLTHROUGH
 #endif
 
+#define UNKNOWN		1
 #define	SUCCEED		0
 #define	FAIL		-1
 #define	NOTSUPPORTED	-2

@@ -193,7 +193,7 @@ void	zbx_mock_test_entry(void **state)
 
 	ZBX_UNUSED(state);
 
-	rules = mock_expression_eval_rules("in.rules");
+	rules = mock_eval_read_rules("in.rules");
 	returned_ret = zbx_eval_parse_expression(&ctx, zbx_mock_get_parameter_string("in.expression"), rules, &error);
 	expected_ret = zbx_mock_str_to_return_code(zbx_mock_get_parameter_string("out.result"));
 	if (SUCCEED != returned_ret)
