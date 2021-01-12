@@ -1137,7 +1137,7 @@ void	zbx_eval_clean(zbx_eval_context_t *ctx)
  *           serialized, making it impossible to reconstruct the expression   *
  *           text with replaced tokens.                                       *
  *           Context serialization/deserialization must be used for           *
- *           context caching in configuration cache or similar plac                                                                 *
+ *           context caching.                                                 *
  *                                                                            *
  *                                                                            *
  ******************************************************************************/
@@ -1189,15 +1189,18 @@ void	zbx_eval_serialize(const zbx_eval_context_t *ctx, zbx_mem_malloc_func_t mal
  * Parameters: ctx        - [OUT] the evaluation context                      *
  *             expression - [IN] the expression the evaluation context was    *
  *                               created from                                 *
+ *             rules      - [IN] the composition and evaluation rules         *
  *             data       - [IN] the buffer with serialized context           *
  *                                                                            *
  ******************************************************************************/
-void	zbx_eval_deserialize(zbx_eval_context_t *ctx, const char *expression, const unsigned char *data)
+void	zbx_eval_deserialize(zbx_eval_context_t *ctx, const char *expression, zbx_uint64_t rules,
+		const unsigned char *data)
 {
 	zbx_uint32_t	i, tokens_num;
 
 	memset(ctx, 0, sizeof(zbx_eval_context_t));
 	ctx->expression = expression;
+	ctx->rules = rules;
 
 	data += deserialize_uint31_compact(data, &tokens_num);
 	zbx_vector_eval_token_create(&ctx->stack);

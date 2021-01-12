@@ -194,6 +194,23 @@ int	xml_xpath_check(const char *xpath, char *error, size_t errlen);
 
 typedef zbx_uint32_t zbx_token_type_t;
 
+/******************************************************************************
+ *                                                                            *
+ * Typedef: zbx_eval_function_cb_t                                            *
+ *                                                                            *
+ * Purpose: define callback function to calculate custom functions            *
+ *                                                                            *
+ * Parameters: name     - [IN] the function name (not zero terminated)        *
+ *             len      - [IN] the function name length                       *
+ *             args_num - [IN] the number of function arguments               *
+ *             args     - [IN] an array of the function arguments.            *
+ *             value    - [OUT] the function return value                     *
+ *             error    - [OUT] the error message if function failed          *
+ *                                                                            *
+ * Return value: SUCCEED - the function was executed successfully             *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
 typedef	int (*zbx_eval_function_cb_t)(const char *name, size_t len, int args_num, const zbx_variant_t *args,
 		zbx_variant_t *value, char **error);
 
@@ -224,7 +241,8 @@ zbx_eval_context_t;
 int	zbx_eval_parse_expression(zbx_eval_context_t *ctx, const char *expression, zbx_uint64_t rules, char **error);
 void	zbx_eval_clean(zbx_eval_context_t *ctx);
 void	zbx_eval_serialize(const zbx_eval_context_t *ctx, zbx_mem_malloc_func_t malloc_func, unsigned char **data);
-void	zbx_eval_deserialize(zbx_eval_context_t *ctx, const char *expression, const unsigned char *data);
+void	zbx_eval_deserialize(zbx_eval_context_t *ctx, const char *expression, zbx_uint64_t rules,
+		const unsigned char *data);
 void	zbx_eval_compose_expression(const zbx_eval_context_t *ctx, char **expression);
 int	zbx_eval_execute(zbx_eval_context_t *ctx, zbx_variant_t *value, char **error);
 int	zbx_eval_execute_ext(zbx_eval_context_t *ctx, zbx_eval_function_cb_t function_cb, zbx_variant_t *value,

@@ -695,10 +695,6 @@ static int	eval_execute_function_avg(const zbx_eval_context_t *ctx, const zbx_ev
  * Return value: SUCCEED - the function was executed successfully             *
  *               FAIL    - otherwise                                          *
  *                                                                            *
- * Comments: If error processing is enabled then an error returned by the     *
- *           callback function will be placed on output stack rather than     *
- *           returned as error.                                               *
- *                                                                            *
  ******************************************************************************/
 static int	eval_execute_cb_function(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
 		zbx_vector_var_t *output, char **error)
@@ -912,7 +908,7 @@ out:
  *                                                                            *
  * Function: zbx_eval_execute                                                 *
  *                                                                            *
- * Purpose: evaluate pre-parsed expression                                    *
+ * Purpose: evaluate parsed expression                                        *
  *                                                                            *
  * Parameters: ctx   - [IN] the evaluation context                            *
  *             value - [OUT] the resulting value                              *
@@ -932,7 +928,7 @@ int	zbx_eval_execute(zbx_eval_context_t *ctx, zbx_variant_t *value, char **error
  *                                                                            *
  * Function: zbx_eval_execute_ext                                             *
  *                                                                            *
- * Purpose: evaluate pre-parsed expression with callback for custom function  *
+ * Purpose: evaluate parsed expression with callback for custom function      *
  *          processing                                                        *
  *                                                                            *
  * Parameters: ctx         - [IN] the evaluation context                      *

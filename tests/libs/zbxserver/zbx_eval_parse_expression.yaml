@@ -911,6 +911,15 @@ in:
   expression: '1 + not'
 out:
   result: FAIL
+---
+test case: Fail '1 +not 2'
+in:
+  rules: []
+  expression: '1 +not 2'
+out:
+out:
+  stack: 
+  result: FAIL
 --- # constant variable index
 test case: Succeed '1+2*3-{MACRO}'
 in:

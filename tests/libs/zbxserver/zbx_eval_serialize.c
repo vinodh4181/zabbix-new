@@ -143,7 +143,7 @@ void	zbx_mock_test_entry(void **state)
 	mock_read_stack(&ctx1.stack, "in.stack");
 
 	zbx_eval_serialize(&ctx1, NULL, &data);
-	zbx_eval_deserialize(&ctx2, NULL, data);
+	zbx_eval_deserialize(&ctx2, NULL, 0, data);
 
 	zbx_free(data);
 
