@@ -683,6 +683,48 @@ static int	eval_execute_function_avg(const zbx_eval_context_t *ctx, const zbx_ev
 
 /******************************************************************************
  *                                                                            *
+ * Function: eval_execute_function_strlen                                     *
+ *                                                                            *
+ * Purpose: evaluate strlen() function                                        *
+ *                                                                            *
+ * Parameters: ctx    - [IN] the evaluation context                           *
+ *             token  - [IN] the function token                               *
+ *             output - [IN/OUT] the output value stack                       *
+ *             error  - [OUT] the error message in the case of failure        *
+ *                                                                            *
+ * Return value: SUCCEED - function evaluation succeeded                      *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
+static int	eval_execute_function_strlen(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
+		zbx_vector_var_t *output, char **error)
+{
+	zbx_variant_t	*arg, value;
+
+	if (1 != token->opt)
+	{
+		*error = zbx_dsprintf(*error, "invalid number of arguments for function at \"%s\"",
+				ctx->expression + token->loc.l);
+		return FAIL;
+	}
+
+
+	arg = &output->values[output->values_num - 1];
+
+	if (SUCCEED != zbx_variant_convert(arg, ZBX_VARIANT_STR))
+	{
+		*error = zbx_dsprintf(*error, "invalid function argument at \"%s\"", ctx->expression + token->loc.l);
+		return FAIL;
+	}
+
+	zbx_variant_set_dbl(&value, strlen(arg->data.str));
+	eval_function_return(1, &value, output);
+
+	return SUCCEED;
+}
+
+/******************************************************************************
+ *                                                                            *
  * Function: eval_execute_cb_function                                         *
  *                                                                            *
  * Purpose: evaluate function by calling custom callback (if configured)      *
@@ -728,7 +770,7 @@ static int	eval_execute_cb_function(const zbx_eval_context_t *ctx, const zbx_eva
 
 /******************************************************************************
  *                                                                            *
- * Function: eval_execute_math_function                                       *
+ * Function: eval_execute_function                                            *
  *                                                                            *
  * Purpose: evaluate normal (non history) function                            *
  *                                                                            *
@@ -761,6 +803,8 @@ static int	eval_execute_function(const zbx_eval_context_t *ctx, const zbx_eval_t
 		return eval_execute_function_sum(ctx, token, output, error);
 	if (SUCCEED == eval_compare_token(ctx, &token->loc, "avg", ZBX_CONST_STRLEN("avg")))
 		return eval_execute_function_avg(ctx, token, output, error);
+	if (SUCCEED == eval_compare_token(ctx, &token->loc, "strlen", ZBX_CONST_STRLEN("strlen")))
+		return eval_execute_function_strlen(ctx, token, output, error);
 
 	if (FAIL == eval_execute_cb_function(ctx, token, output, &errmsg))
 	{
