@@ -764,9 +764,9 @@ static int	eval_execute_function_abs(const zbx_eval_context_t *ctx, const zbx_ev
 
 /******************************************************************************
  *                                                                            *
- * Function: eval_execute_function_strlen                                     *
+ * Function: eval_execute_function_length                                     *
  *                                                                            *
- * Purpose: evaluate strlen() function                                        *
+ * Purpose: evaluate length() function                                        *
  *                                                                            *
  * Parameters: ctx    - [IN] the evaluation context                           *
  *             token  - [IN] the function token                               *
@@ -777,7 +777,7 @@ static int	eval_execute_function_abs(const zbx_eval_context_t *ctx, const zbx_ev
  *               FAIL    - otherwise                                          *
  *                                                                            *
  ******************************************************************************/
-static int	eval_execute_function_strlen(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
+static int	eval_execute_function_length(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
 		zbx_vector_var_t *output, char **error)
 {
 	int		ret;
@@ -889,8 +889,8 @@ static int	eval_execute_function(const zbx_eval_context_t *ctx, const zbx_eval_t
 		return eval_execute_function_avg(ctx, token, output, error);
 	if (SUCCEED == eval_compare_token(ctx, &token->loc, "abs", ZBX_CONST_STRLEN("abs")))
 		return eval_execute_function_abs(ctx, token, output, error);
-	if (SUCCEED == eval_compare_token(ctx, &token->loc, "strlen", ZBX_CONST_STRLEN("strlen")))
-		return eval_execute_function_strlen(ctx, token, output, error);
+	if (SUCCEED == eval_compare_token(ctx, &token->loc, "length", ZBX_CONST_STRLEN("length")))
+		return eval_execute_function_length(ctx, token, output, error);
 
 	if (FAIL == eval_execute_cb_function(ctx, token, output, &errmsg))
 	{

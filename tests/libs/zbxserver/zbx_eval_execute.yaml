@@ -524,41 +524,41 @@ out:
   result: SUCCEED
   value: 0
 ---
-test case: Expression 'strlen("")'
+test case: Expression 'length("")'
 in:
   rules: [ZBX_EVAL_PARSE_FUNCTION]
-  expression: 'strlen("")'
+  expression: 'length("")'
 out:
   result: SUCCEED
   value: '0'
 ---
-test case: Expression 'strlen("abc")'
+test case: Expression 'length("abc")'
 in:
   rules: [ZBX_EVAL_PARSE_FUNCTION]
-  expression: 'strlen("abc")'
+  expression: 'length("abc")'
 out:
   result: SUCCEED
   value: '3'
 ---
-test case: Expression 'strlen(4)'
+test case: Expression 'length(4)'
 in:
   rules: [ZBX_EVAL_PARSE_FUNCTION]
-  expression: 'strlen(4)'
+  expression: 'length(4)'
 out:
   result: SUCCEED
   value: '1'
 ---
-test case: Expression 'strlen()'
+test case: Expression 'length()'
 in:
   rules: [ZBX_EVAL_PARSE_FUNCTION]
-  expression: 'strlen()'
+  expression: 'length()'
 out:
   result: FAIL
 ---
-test case: Expression 'strlen(1, 2)'
+test case: Expression 'length(1, 2)'
 in:
   rules: [ZBX_EVAL_PARSE_FUNCTION]
-  expression: 'strlen(1, 2)'
+  expression: 'length(1, 2)'
 out:
   result: FAIL
 ---
