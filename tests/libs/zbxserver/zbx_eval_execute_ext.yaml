@@ -22,7 +22,7 @@ out:
   result: SUCCEED
   value: 42
 ---
-test case: Expression 'min(hist(/host/key,1h))'
+test case: Expression 'sum(hist(/host/key,1h))'
 in:
   rules: [ZBX_EVAL_PARSE_FUNCTION,ZBX_EVAL_PARSE_ITEM_QUERY]
   expression: 'sum(hist(/host/key,1h))'
@@ -34,7 +34,7 @@ out:
   result: SUCCEED
   value: 6
 ---
-test case: Expression 'min(hist(/host/key,1h),0)'
+test case: Expression 'sum(hist(/host/key,1h),0)'
 in:
   rules: [ZBX_EVAL_PARSE_FUNCTION,ZBX_EVAL_PARSE_ITEM_QUERY]
   expression: 'sum(hist(/host/key,1h),0)'
@@ -88,6 +88,17 @@ in:
   - name: err
     args_num: 0
     reterr: 'forced return error'
+out:
+  result: FAIL
+---
+test case: Expression 'sum(hist(/host/key,1h))'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION,ZBX_EVAL_PARSE_ITEM_QUERY]
+  expression: 'sum(hist(/host/key,1h))'
+  callbacks:
+  - name: hist
+    args_num: 2
+    retval: []
 out:
   result: FAIL
 ...

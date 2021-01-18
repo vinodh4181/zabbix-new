@@ -399,6 +399,55 @@ static void	eval_function_return(int args_num, zbx_variant_t *value, zbx_vector_
 
 /******************************************************************************
  *                                                                            *
+ * Function: eval_validate_function_args                                      *
+ *                                                                            *
+ * Purpose: validate function arguments                                       *
+ *                                                                            *
+ * Parameters: ctx    - [IN] the evaluation context                           *
+ *             token  - [IN] the function token                               *
+ *             output - [IN/OUT] the output value stack                       *
+ *             error  - [OUT] the error message in the case of failure        *
+ *                                                                            *
+ * Return value: SUCCEED - function arguments contain error values - the      *
+ *                         first error is returned as function value without  *
+ *                         evaluating the function                            *
+ *               FAIL    - argument validation failed                         *
+ *               UNKNOWN - argument validation succeeded, function result is  *
+ *                         unknown at the moment, function must be evaluated  *
+ *                         with the prepared arguments                        *
+ *                                                                            *
+ ******************************************************************************/
+static int	eval_validate_function_args(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
+		zbx_vector_var_t *output, char **error)
+{
+	int	i;
+
+	if (0 == token->opt)
+	{
+		*error = zbx_dsprintf(*error, "not enough arguments for function at \"%s\"",
+				ctx->expression + token->loc.l);
+		return FAIL;
+	}
+
+	for (i = output->values_num - token->opt; i < output->values_num; i++)
+	{
+		if (ZBX_VARIANT_ERR == output->values[i].type)
+		{
+			zbx_variant_t	value = value = output->values[i];
+
+			/* first error argument is used as function return value */
+			zbx_variant_set_none(&output->values[i]);
+			eval_function_return(token->opt, &value, output);
+
+			return SUCCEED;
+		}
+	}
+
+	return UNKNOWN;
+}
+
+/******************************************************************************
+ *                                                                            *
  * Function: eval_prepare_math_function_args                                  *
  *                                                                            *
  * Purpose: validate and prepare (convert to floating values) math function   *
@@ -418,20 +467,17 @@ static void	eval_function_return(int args_num, zbx_variant_t *value, zbx_vector_
  *                         with the prepared arguments                        *
  *                                                                            *
  * Comments: Math function accepts either 1+ arguments that can be converted  *
- *           to floating values or a single argument of floating value vector.*
+ *           to floating values or a single argument of non-zero length       *
+ *           floating value vector.                                           *
  *                                                                            *
  ******************************************************************************/
 static int	eval_prepare_math_function_args(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
 		zbx_vector_var_t *output, char **error)
 {
-	int	i;
+	int	i, ret;
 
-	if (0 == token->opt)
-	{
-		*error = zbx_dsprintf(*error, "not enough arguments for function at \"%s\"",
-				ctx->expression + token->loc.l);
-		return FAIL;
-	}
+	if (UNKNOWN != (ret = eval_validate_function_args(ctx, token, output, error)))
+		return ret;
 
 	i = output->values_num - token->opt;
 
@@ -439,17 +485,6 @@ static int	eval_prepare_math_function_args(const zbx_eval_context_t *ctx, const 
 	{
 		for (; i < output->values_num; i++)
 		{
-			if (ZBX_VARIANT_ERR == output->values[i].type)
-			{
-				zbx_variant_t	value = value = output->values[i];
-
-				/* first error argument is used as function return value */
-				zbx_variant_set_none(&output->values[i]);
-				eval_function_return(token->opt, &value, output);
-
-				return SUCCEED;
-			}
-
 			if (SUCCEED != zbx_variant_convert(&output->values[i], ZBX_VARIANT_DBL))
 			{
 				*error = zbx_dsprintf(*error, "invalid value \"%s\" of type \"%s\" for function at"
@@ -465,6 +500,13 @@ static int	eval_prepare_math_function_args(const zbx_eval_context_t *ctx, const 
 		if (1 != token->opt)
 		{
 			*error = zbx_dsprintf(*error, "too many arguments for function at \"%s\"",
+					ctx->expression + token->loc.l);
+			return FAIL;
+		}
+
+		if (0 == output->values[i].data.dbl_vector->values_num)
+		{
+			*error = zbx_dsprintf(*error, "empty vector argument for function at \"%s\"",
 					ctx->expression + token->loc.l);
 			return FAIL;
 		}
@@ -683,6 +725,45 @@ static int	eval_execute_function_avg(const zbx_eval_context_t *ctx, const zbx_ev
 
 /******************************************************************************
  *                                                                            *
+ * Function: eval_execute_function_abs                                     *
+ *                                                                            *
+ * Purpose: evaluate abs() function                                        *
+ *                                                                            *
+ * Parameters: ctx    - [IN] the evaluation context                           *
+ *             token  - [IN] the function token                               *
+ *             output - [IN/OUT] the output value stack                       *
+ *             error  - [OUT] the error message in the case of failure        *
+ *                                                                            *
+ * Return value: SUCCEED - function evaluation succeeded                      *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
+static int	eval_execute_function_abs(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
+		zbx_vector_var_t *output, char **error)
+{
+	int		ret;
+	zbx_variant_t	*arg, value;
+
+	if (1 != token->opt)
+	{
+		*error = zbx_dsprintf(*error, "invalid number of arguments for function at \"%s\"",
+				ctx->expression + token->loc.l);
+		return FAIL;
+	}
+
+	if (UNKNOWN != (ret = eval_prepare_math_function_args(ctx, token, output, error)))
+		return ret;
+
+	arg = &output->values[output->values_num - 1];
+	zbx_variant_set_dbl(&value, fabs(arg->data.dbl));
+	eval_function_return(token->opt, &value, output);
+
+	return SUCCEED;
+}
+
+
+/******************************************************************************
+ *                                                                            *
  * Function: eval_execute_function_strlen                                     *
  *                                                                            *
  * Purpose: evaluate strlen() function                                        *
@@ -699,6 +780,7 @@ static int	eval_execute_function_avg(const zbx_eval_context_t *ctx, const zbx_ev
 static int	eval_execute_function_strlen(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
 		zbx_vector_var_t *output, char **error)
 {
+	int		ret;
 	zbx_variant_t	*arg, value;
 
 	if (1 != token->opt)
@@ -708,6 +790,8 @@ static int	eval_execute_function_strlen(const zbx_eval_context_t *ctx, const zbx
 		return FAIL;
 	}
 
+	if (UNKNOWN != (ret = eval_validate_function_args(ctx, token, output, error)))
+		return ret;
 
 	arg = &output->values[output->values_num - 1];
 
@@ -803,6 +887,8 @@ static int	eval_execute_function(const zbx_eval_context_t *ctx, const zbx_eval_t
 		return eval_execute_function_sum(ctx, token, output, error);
 	if (SUCCEED == eval_compare_token(ctx, &token->loc, "avg", ZBX_CONST_STRLEN("avg")))
 		return eval_execute_function_avg(ctx, token, output, error);
+	if (SUCCEED == eval_compare_token(ctx, &token->loc, "abs", ZBX_CONST_STRLEN("abs")))
+		return eval_execute_function_abs(ctx, token, output, error);
 	if (SUCCEED == eval_compare_token(ctx, &token->loc, "strlen", ZBX_CONST_STRLEN("strlen")))
 		return eval_execute_function_strlen(ctx, token, output, error);
 

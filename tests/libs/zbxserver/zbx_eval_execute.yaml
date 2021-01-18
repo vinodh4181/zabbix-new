@@ -561,5 +561,35 @@ in:
   expression: 'strlen(1, 2)'
 out:
   result: FAIL
+---
+test case: Expression 'abs(5)'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'abs(5)'
+out:
+  result: SUCCEED
+  value: '5'
+---
+test case: Expression 'abs(-10)'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'abs(-10)'
+out:
+  result: SUCCEED
+  value: '10'
+---
+test case: Expression 'abs()'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'abs()'
+out:
+  result: FAIL
+---
+test case: Expression 'abs("xyz")'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'abs("xyz")'
+out:
+  result: FAIL
 ...
 
