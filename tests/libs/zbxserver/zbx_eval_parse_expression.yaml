@@ -1192,10 +1192,10 @@ in:
 out:
   result: FAIL
 ---
-test case: Fail 'min(,1m)'
+test case: Fail 'min(,1m:now-1d)'
 in:
   rules: [ZBX_EVAL_PARSE_ITEM_QUERY,ZBX_EVAL_PARSE_FUNCTION]
-  expression: 'min(,1m)'
+  expression: 'min(,1m:now-1d)'
 out:
   result: FAIL
 ---
@@ -1220,6 +1220,44 @@ out:
   - {type: ZBX_EVAL_TOKEN_ARG_TIME, token: '5m:now-1h', opt: 0}
   - {type: ZBX_EVAL_TOKEN_HIST_FUNCTION, token: 'min', opt: 2}
   result: SUCCEED
+--- # time variables
+test case: Succeed '1w + 2d + 3h + 4m + 5s'
+in:
+  rules: [ZBX_EVAL_PARSE_CONST_INDEX]
+  expression: '1w + 2d + 3h + 4m + 5s '
+out:
+  stack: 
+  - {type: ZBX_EVAL_TOKEN_VAR_TIME, token: '1w', opt: 0}
+  - {type: ZBX_EVAL_TOKEN_VAR_TIME, token: '2d', opt: 1}
+  - {type: ZBX_EVAL_TOKEN_OP_ADD, token: '+', opt: 0}
+  - {type: ZBX_EVAL_TOKEN_VAR_TIME, token: '3h', opt: 2}
+  - {type: ZBX_EVAL_TOKEN_OP_ADD, token: '+', opt: 0}
+  - {type: ZBX_EVAL_TOKEN_VAR_TIME, token: '4m', opt: 3}
+  - {type: ZBX_EVAL_TOKEN_OP_ADD, token: '+', opt: 0}
+  - {type: ZBX_EVAL_TOKEN_VAR_TIME, token: '5s', opt: 4}
+  - {type: ZBX_EVAL_TOKEN_OP_ADD, token: '+', opt: 0}
+  result: SUCCEED
+---
+test case: Succeed '1w + 2d + 3h + 4m + 5s'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'min(1w, 2d, 3h, 4m, 5s)'
+out:
+  stack:
+  - {type: ZBX_EVAL_TOKEN_VAR_TIME, token: '1w', opt: 0}
+  - {type: ZBX_EVAL_TOKEN_VAR_TIME, token: '2d', opt: 0}
+  - {type: ZBX_EVAL_TOKEN_VAR_TIME, token: '3h', opt: 0}
+  - {type: ZBX_EVAL_TOKEN_VAR_TIME, token: '4m', opt: 0}
+  - {type: ZBX_EVAL_TOKEN_VAR_TIME, token: '5s', opt: 0}
+  - {type: ZBX_EVAL_TOKEN_FUNCTION, token: 'min', opt: 5}
+  result: SUCCEED
+---
+test case: Fail '10y'
+in:
+  rules: []
+  expression: '10y'
+out:
+  result: FAIL
 ...
 
 

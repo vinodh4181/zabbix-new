@@ -48,6 +48,7 @@ static const char	*mock_token_type2str(zbx_uint32_t type)
 		ZBX_MOCK_TOKEN_CASE(OP_NOT)
 		ZBX_MOCK_TOKEN_CASE(VAR_NUM)
 		ZBX_MOCK_TOKEN_CASE(VAR_STR)
+		ZBX_MOCK_TOKEN_CASE(VAR_TIME)
 		ZBX_MOCK_TOKEN_CASE(VAR_MACRO)
 		ZBX_MOCK_TOKEN_CASE(VAR_USERMACRO)
 		ZBX_MOCK_TOKEN_CASE(VAR_LLDMACRO)
@@ -60,6 +61,7 @@ static const char	*mock_token_type2str(zbx_uint32_t type)
 		ZBX_MOCK_TOKEN_CASE(ARG_QUERY)
 		ZBX_MOCK_TOKEN_CASE(ARG_TIME)
 		ZBX_MOCK_TOKEN_CASE(ARG_NULL)
+		ZBX_MOCK_TOKEN_CASE(ARG_RAW)
 	}
 
 	fail_msg("unknown token type: %d", type);
@@ -88,6 +90,7 @@ static zbx_uint32_t	mock_token_str2type(const char *str)
 	ZBX_MOCK_TOKEN_IF(OP_NOT)
 	ZBX_MOCK_TOKEN_IF(VAR_NUM)
 	ZBX_MOCK_TOKEN_IF(VAR_STR)
+	ZBX_MOCK_TOKEN_IF(VAR_TIME)
 	ZBX_MOCK_TOKEN_IF(VAR_MACRO)
 	ZBX_MOCK_TOKEN_IF(VAR_USERMACRO)
 	ZBX_MOCK_TOKEN_IF(VAR_LLDMACRO)
@@ -100,6 +103,7 @@ static zbx_uint32_t	mock_token_str2type(const char *str)
 	ZBX_MOCK_TOKEN_IF(ARG_QUERY)
 	ZBX_MOCK_TOKEN_IF(ARG_TIME)
 	ZBX_MOCK_TOKEN_IF(ARG_NULL)
+	ZBX_MOCK_TOKEN_IF(ARG_RAW)
 
 	fail_msg("unknown token type %s", str);
 	return 0;

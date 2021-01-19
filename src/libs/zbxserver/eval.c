@@ -280,6 +280,8 @@ static int	eval_parse_string_token(zbx_eval_context_t *ctx, size_t pos, zbx_eval
  * Return value: SUCCEED - token was parsed successfully                      *
  *               FAIL    - otherwise                                          *
  *                                                                            *
+ *  Comments: Time suffixes s,m,h,d,w are supported.                          *
+ *                                                                            *
  ******************************************************************************/
 static int	eval_parse_number_token(zbx_eval_context_t *ctx, size_t pos, zbx_eval_token_t *token, char **error)
 {
@@ -290,12 +292,21 @@ static int	eval_parse_number_token(zbx_eval_context_t *ctx, size_t pos, zbx_eval
 	if (FAIL == zbx_number_parse(ctx->expression + pos, &len))
 		goto error;
 
-	tmp = strtod(ctx->expression + pos, &end);
+	if (SUCCEED == is_time_suffix(ctx->expression + pos, NULL, len + 1))
+	{
+		len++;
+		token->type = ZBX_EVAL_TOKEN_VAR_TIME;
+	}
+	else
+	{
+		tmp = strtod(ctx->expression + pos, &end);
 
-	if (ctx->expression + pos + len != end || HUGE_VAL == tmp || -HUGE_VAL == tmp || EDOM == errno)
-		goto error;
+		if (ctx->expression + pos + len != end || HUGE_VAL == tmp || -HUGE_VAL == tmp || EDOM == errno)
+			goto error;
 
-	token->type = ZBX_EVAL_TOKEN_VAR_NUM;
+		token->type = ZBX_EVAL_TOKEN_VAR_NUM;
+	}
+
 	token->loc.l = pos;
 	token->loc.r = pos + len - 1;
 	eval_update_const_variable(ctx, token);
@@ -590,6 +601,8 @@ static int	eval_parse_token(zbx_eval_context_t *ctx, size_t pos, zbx_eval_token_
 				return SUCCEED;
 			}
 			break;
+		case '\0':
+			return SUCCEED;
 		default:
 			if (0 != isalpha((unsigned char)ctx->expression[pos]))
 			{
@@ -718,6 +731,9 @@ static int	eval_parse_expression(zbx_eval_context_t *ctx, const char *expression
 
 		if (SUCCEED != eval_parse_token(ctx, pos, &token, error))
 			goto out;
+
+		if (0 == token.type)
+			break;
 
 		/* serialization used to for parsed expression caching has limits expression to 0x7fffffff */
 		if ((zbx_uint32_t)0x7fffffff < token.loc.r)
