@@ -24,6 +24,7 @@
 
 #include "common.h"
 #include "zbxserver.h"
+#include "log.h"
 #include "mock_eval.h"
 
 void	zbx_mock_test_entry(void **state)
@@ -33,6 +34,8 @@ void	zbx_mock_test_entry(void **state)
 	zbx_uint64_t		rules;
 	int			expected_ret, returned_ret;
 	zbx_variant_t		value;
+	zbx_mock_handle_t	htime;
+	zbx_timespec_t		ts, *pts = NULL;
 
 	ZBX_UNUSED(state);
 
@@ -49,7 +52,23 @@ void	zbx_mock_test_entry(void **state)
 
 	mock_eval_read_values(&ctx, "in.replace");
 
-	returned_ret = zbx_eval_execute(&ctx, &value, &error);
+	if (ZBX_MOCK_SUCCESS == zbx_mock_parameter("in.time", &htime))
+	{
+		const char	*str;
+
+		if (ZBX_MOCK_SUCCESS != zbx_mock_string(htime, &str))
+			fail_msg("invalid in.time field");
+
+		if (ZBX_MOCK_SUCCESS != zbx_strtime_to_timespec(str, &ts))
+			fail_msg("Invalid in.time format");
+
+		if (0 != setenv("TZ", zbx_mock_get_parameter_string("in.timezone"), 1))
+				fail_msg("Cannot set 'TZ' environment variable: %s", zbx_strerror(errno));
+
+		pts = &ts;
+	}
+
+	returned_ret = zbx_eval_execute(&ctx, pts, &value, &error);
 
 	if (SUCCEED != returned_ret)
 		printf("ERROR: %s\n", error);

@@ -591,5 +591,100 @@ in:
   expression: 'abs("xyz")'
 out:
   result: FAIL
+---
+test case: Expression 'date(1)'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'date(1)'
+  timezone: :Europe/Riga
+  time: 2020-09-01 01:02:03 +03:00
+out:
+  result: FAIL
+---
+test case: Expression 'date()'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'date()'
+  timezone: :Europe/Riga
+  time: 2020-09-01 01:02:03 +03:00
+out:
+  result: SUCCEED
+  value: '20200901'
+---
+test case: Expression 'time(1)'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'time(1)'
+  timezone: :Europe/Riga
+  time: 2020-09-01 01:02:03 +03:00
+out:
+  result: FAIL
+---
+test case: Expression 'time()'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'time()'
+  timezone: :Europe/Riga
+  time: 2020-09-01 01:02:03 +03:00
+out:
+  result: SUCCEED
+  value: '010203'
+---
+test case: Expression 'now(1)'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'now(1)'
+  timezone: :Europe/Riga
+  time: 2020-09-01 01:02:03 +03:00
+out:
+  result: FAIL
+---
+test case: Expression 'now()'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'now()'
+  timezone: :Europe/Riga
+  time: 2020-09-01 01:02:03 +03:00
+out:
+  result: SUCCEED
+  value: '1598911323'
+---
+test case: Expression 'dayofmonth(1)'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'dayofmonth(1)'
+  timezone: :Europe/Riga
+  time: 2020-09-01 01:02:03 +03:00
+out:
+  result: FAIL
+---
+test case: Expression 'dayofmonth()'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'dayofmonth()'
+  timezone: :Europe/Riga
+  time: 2020-09-01 01:02:03 +03:00
+out:
+  result: SUCCEED
+  value: '1'
+---
+test case: Expression 'dayofweek(1)'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'dayofweek(1)'
+  timezone: :Europe/Riga
+  time: 2020-09-01 01:02:03 +03:00
+out:
+  result: FAIL
+---
+test case: Expression 'dayofweek()'
+in:
+  rules: [ZBX_EVAL_PARSE_FUNCTION]
+  expression: 'dayofweek()'
+  timezone: :Europe/Riga
+  time: 2020-09-01 01:02:03 +03:00
+out:
+  result: SUCCEED
+  value: '2'
 ...
 

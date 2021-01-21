@@ -761,7 +761,6 @@ static int	eval_execute_function_abs(const zbx_eval_context_t *ctx, const zbx_ev
 	return SUCCEED;
 }
 
-
 /******************************************************************************
  *                                                                            *
  * Function: eval_execute_function_length                                     *
@@ -807,6 +806,183 @@ static int	eval_execute_function_length(const zbx_eval_context_t *ctx, const zbx
 	return SUCCEED;
 }
 
+/******************************************************************************
+ *                                                                            *
+ * Function: eval_execute_function_date                                       *
+ *                                                                            *
+ * Purpose: evaluate date() function                                          *
+ *                                                                            *
+ * Parameters: ctx    - [IN] the evaluation context                           *
+ *             token  - [IN] the function token                               *
+ *             output - [IN/OUT] the output value stack                       *
+ *             error  - [OUT] the error message in the case of failure        *
+ *                                                                            *
+ * Return value: SUCCEED - function evaluation succeeded                      *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
+static int	eval_execute_function_date(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
+		zbx_vector_var_t *output, char **error)
+{
+	zbx_variant_t	value;
+	struct tm	*tm;
+	time_t		now;
+
+	if (0 != token->opt)
+	{
+		*error = zbx_dsprintf(*error, "invalid number of arguments for function at \"%s\"",
+				ctx->expression + token->loc.l);
+		return FAIL;
+	}
+
+	now = ctx->ts.sec;
+	tm = localtime(&now);
+	zbx_variant_set_str(&value, zbx_dsprintf(NULL, "%.4d%.2d%.2d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday));
+	eval_function_return(0, &value, output);
+
+	return SUCCEED;
+}
+
+/******************************************************************************
+ *                                                                            *
+ * Function: eval_execute_function_time                                       *
+ *                                                                            *
+ * Purpose: evaluate time() function                                          *
+ *                                                                            *
+ * Parameters: ctx    - [IN] the evaluation context                           *
+ *             token  - [IN] the function token                               *
+ *             output - [IN/OUT] the output value stack                       *
+ *             error  - [OUT] the error message in the case of failure        *
+ *                                                                            *
+ * Return value: SUCCEED - function evaluation succeeded                      *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
+static int	eval_execute_function_time(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
+		zbx_vector_var_t *output, char **error)
+{
+	zbx_variant_t	value;
+	struct tm	*tm;
+	time_t		now;
+
+	if (0 != token->opt)
+	{
+		*error = zbx_dsprintf(*error, "invalid number of arguments for function at \"%s\"",
+				ctx->expression + token->loc.l);
+		return FAIL;
+	}
+
+	now = ctx->ts.sec;
+	tm = localtime(&now);
+	zbx_variant_set_str(&value, zbx_dsprintf(NULL, "%.2d%.2d%.2d", tm->tm_hour, tm->tm_min, tm->tm_sec));
+	eval_function_return(0, &value, output);
+
+	return SUCCEED;
+}
+/******************************************************************************
+ *                                                                            *
+ * Function: eval_execute_function_now                                        *
+ *                                                                            *
+ * Purpose: evaluate now() function                                           *
+ *                                                                            *
+ * Parameters: ctx    - [IN] the evaluation context                           *
+ *             token  - [IN] the function token                               *
+ *             output - [IN/OUT] the output value stack                       *
+ *             error  - [OUT] the error message in the case of failure        *
+ *                                                                            *
+ * Return value: SUCCEED - function evaluation succeeded                      *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
+static int	eval_execute_function_now(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
+		zbx_vector_var_t *output, char **error)
+{
+	zbx_variant_t	value;
+
+	if (0 != token->opt)
+	{
+		*error = zbx_dsprintf(*error, "invalid number of arguments for function at \"%s\"",
+				ctx->expression + token->loc.l);
+		return FAIL;
+	}
+
+	zbx_variant_set_str(&value, zbx_dsprintf(NULL, "%d", ctx->ts.sec));
+	eval_function_return(0, &value, output);
+
+	return SUCCEED;
+}
+/******************************************************************************
+ *                                                                            *
+ * Function: eval_execute_function_dayofweek                                  *
+ *                                                                            *
+ * Purpose: evaluate dayofweek() function                                     *
+ *                                                                            *
+ * Parameters: ctx    - [IN] the evaluation context                           *
+ *             token  - [IN] the function token                               *
+ *             output - [IN/OUT] the output value stack                       *
+ *             error  - [OUT] the error message in the case of failure        *
+ *                                                                            *
+ * Return value: SUCCEED - function evaluation succeeded                      *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
+static int	eval_execute_function_dayofweek(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
+		zbx_vector_var_t *output, char **error)
+{
+	zbx_variant_t	value;
+	struct tm	*tm;
+	time_t		now;
+
+	if (0 != token->opt)
+	{
+		*error = zbx_dsprintf(*error, "invalid number of arguments for function at \"%s\"",
+				ctx->expression + token->loc.l);
+		return FAIL;
+	}
+
+	now = ctx->ts.sec;
+	tm = localtime(&now);
+	zbx_variant_set_str(&value, zbx_dsprintf(NULL, "%d", 0 == tm->tm_wday ? 7 : tm->tm_wday));
+	eval_function_return(0, &value, output);
+
+	return SUCCEED;
+}
+/******************************************************************************
+ *                                                                            *
+ * Function: eval_execute_function_dayofmonth                                 *
+ *                                                                            *
+ * Purpose: evaluate dayofmonth() function                                    *
+ *                                                                            *
+ * Parameters: ctx    - [IN] the evaluation context                           *
+ *             token  - [IN] the function token                               *
+ *             output - [IN/OUT] the output value stack                       *
+ *             error  - [OUT] the error message in the case of failure        *
+ *                                                                            *
+ * Return value: SUCCEED - function evaluation succeeded                      *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
+static int	eval_execute_function_dayofmonth(const zbx_eval_context_t *ctx, const zbx_eval_token_t *token,
+		zbx_vector_var_t *output, char **error)
+{
+	zbx_variant_t	value;
+	struct tm	*tm;
+	time_t		now;
+
+	if (0 != token->opt)
+	{
+		*error = zbx_dsprintf(*error, "invalid number of arguments for function at \"%s\"",
+				ctx->expression + token->loc.l);
+		return FAIL;
+	}
+
+	now = ctx->ts.sec;
+	tm = localtime(&now);
+	zbx_variant_set_str(&value, zbx_dsprintf(NULL, "%d", tm->tm_mday));
+	eval_function_return(0, &value, output);
+
+	return SUCCEED;
+}
 /******************************************************************************
  *                                                                            *
  * Function: eval_execute_cb_function                                         *
@@ -891,6 +1067,16 @@ static int	eval_execute_function(const zbx_eval_context_t *ctx, const zbx_eval_t
 		return eval_execute_function_abs(ctx, token, output, error);
 	if (SUCCEED == eval_compare_token(ctx, &token->loc, "length", ZBX_CONST_STRLEN("length")))
 		return eval_execute_function_length(ctx, token, output, error);
+	if (SUCCEED == eval_compare_token(ctx, &token->loc, "date", ZBX_CONST_STRLEN("date")))
+		return eval_execute_function_date(ctx, token, output, error);
+	if (SUCCEED == eval_compare_token(ctx, &token->loc, "time", ZBX_CONST_STRLEN("time")))
+		return eval_execute_function_time(ctx, token, output, error);
+	if (SUCCEED == eval_compare_token(ctx, &token->loc, "now", ZBX_CONST_STRLEN("now")))
+		return eval_execute_function_now(ctx, token, output, error);
+	if (SUCCEED == eval_compare_token(ctx, &token->loc, "dayofweek", ZBX_CONST_STRLEN("dayofweek")))
+		return eval_execute_function_dayofweek(ctx, token, output, error);
+	if (SUCCEED == eval_compare_token(ctx, &token->loc, "dayofmonth", ZBX_CONST_STRLEN("dayofmonth")))
+		return eval_execute_function_dayofmonth(ctx, token, output, error);
 
 	if (FAIL == eval_execute_cb_function(ctx, token, output, &errmsg))
 	{
@@ -1036,11 +1222,34 @@ out:
 
 /******************************************************************************
  *                                                                            *
+ * Function: eval_init_execute_context                                        *
+ *                                                                            *
+ * Purpose: initialize execution context                                      *
+ *                                                                            *
+ * Parameters: ctx   - [IN] the evaluation context                            *
+ *             ts    - [IN] the timestamp of the execution time               *
+ *             function_cb - [IN] the callback for function processing        *
+ *                                                                            *
+ ******************************************************************************/
+static void	eval_init_execute_context(zbx_eval_context_t *ctx, const zbx_timespec_t *ts,
+		zbx_eval_function_cb_t function_cb)
+{
+	ctx->function_cb = function_cb;
+
+	if (NULL == ts)
+		ctx->ts.sec = ctx->ts.ns = 0;
+	else
+		ctx->ts = *ts;
+}
+
+/******************************************************************************
+ *                                                                            *
  * Function: zbx_eval_execute                                                 *
  *                                                                            *
  * Purpose: evaluate parsed expression                                        *
  *                                                                            *
  * Parameters: ctx   - [IN] the evaluation context                            *
+ *             ts    - [IN] the timestamp of the execution time               *
  *             value - [OUT] the resulting value                              *
  *             error - [OUT] the error message in the case of failure         *
  *                                                                            *
@@ -1048,9 +1257,10 @@ out:
  *               FAIL    - otherwise                                          *
  *                                                                            *
  ******************************************************************************/
-int	zbx_eval_execute(zbx_eval_context_t *ctx, zbx_variant_t *value, char **error)
+int	zbx_eval_execute(zbx_eval_context_t *ctx, const zbx_timespec_t *ts, zbx_variant_t *value, char **error)
 {
-	ctx->function_cb = NULL;
+	eval_init_execute_context(ctx, ts, NULL);
+
 	return eval_execute(ctx, value, error);
 }
 
@@ -1062,6 +1272,7 @@ int	zbx_eval_execute(zbx_eval_context_t *ctx, zbx_variant_t *value, char **error
  *          processing                                                        *
  *                                                                            *
  * Parameters: ctx         - [IN] the evaluation context                      *
+ *             ts    - [IN] the timestamp of the execution time               *
  *             function_cb - [IN] the callback for function processing        *
  *             value       - [OUT] the resulting value                        *
  *             error       - [OUT] the error message in the case of failure   *
@@ -1073,9 +1284,10 @@ int	zbx_eval_execute(zbx_eval_context_t *ctx, zbx_variant_t *value, char **error
  *           functions.                                                       *
  *                                                                            *
  ******************************************************************************/
-int	zbx_eval_execute_ext(zbx_eval_context_t *ctx, zbx_eval_function_cb_t function_cb, zbx_variant_t *value,
-		char **error)
+int	zbx_eval_execute_ext(zbx_eval_context_t *ctx, const zbx_timespec_t *ts, zbx_eval_function_cb_t function_cb,
+		zbx_variant_t *value, char **error)
 {
-	ctx->function_cb = function_cb;
+	eval_init_execute_context(ctx, ts, function_cb);
+
 	return eval_execute(ctx, value, error);
 }

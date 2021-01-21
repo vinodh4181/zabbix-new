@@ -234,6 +234,7 @@ typedef struct
 	int			const_index;
 	int			functionid_index;
 	zbx_uint64_t		rules;
+	zbx_timespec_t		ts;
 	zbx_vector_eval_token_t	stack;
 	zbx_vector_eval_token_t	ops;
 	zbx_eval_function_cb_t	function_cb;
@@ -246,7 +247,7 @@ void	zbx_eval_serialize(const zbx_eval_context_t *ctx, zbx_mem_malloc_func_t mal
 void	zbx_eval_deserialize(zbx_eval_context_t *ctx, const char *expression, zbx_uint64_t rules,
 		const unsigned char *data);
 void	zbx_eval_compose_expression(const zbx_eval_context_t *ctx, char **expression);
-int	zbx_eval_execute(zbx_eval_context_t *ctx, zbx_variant_t *value, char **error);
-int	zbx_eval_execute_ext(zbx_eval_context_t *ctx, zbx_eval_function_cb_t function_cb, zbx_variant_t *value,
-		char **error);
+int	zbx_eval_execute(zbx_eval_context_t *ctx, const zbx_timespec_t *ts, zbx_variant_t *value, char **error);
+int	zbx_eval_execute_ext(zbx_eval_context_t *ctx, const zbx_timespec_t *ts, zbx_eval_function_cb_t function_cb,
+		zbx_variant_t *value, char **error);
 #endif
