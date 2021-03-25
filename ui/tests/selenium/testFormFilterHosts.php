@@ -26,6 +26,7 @@ require_once dirname(__FILE__).'/common/testFormFilter.php';
 class testFormFilterHosts extends testFormFilter {
 
 	public $url = 'zabbix.php?action=host.view';
+	public $form_name = 'host_view';
 
 	public static function getCheckCreatedFilterData() {
 		return [

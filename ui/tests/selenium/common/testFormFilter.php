@@ -30,6 +30,8 @@ class testFormFilter extends CWebTest {
 
 	// URL to page with filters: Hosts or Problems.
 	public $url;
+	// Result form name.
+	public $form_name;
 
 	/**
 	 * Attach MessageBehavior to the test.
@@ -46,20 +48,19 @@ class testFormFilter extends CWebTest {
 	 * @param array $data  given data provider
 	 */
 	public function checkFilters($data) {
-		$this->page->waitUntilReady();
 		$filter_container = $this->query('xpath://ul[@class="ui-sortable-container ui-sortable"]')->asFilterTab()->one();
+		$filter_form = $this->query('xpath://form[@name='.CXPathHelper::escapeQuotes($this->form_name).']')->one();
 
 		switch ($data['expected']) {
 			case TEST_GOOD:
-				$table = $this->query('class:list-table')->asTable()->waitUntilReady()->one();
-				$rows = $table->getRows();
+				$rows = $this->query('class:list-table')->asTable()->waitUntilReady()->one()->getRows();
 				$filtered_rows_count = ($rows->count() === 1 && $rows->asText() === ['No data found.'])
 					? 0
 					: $rows->count();
 
 				// Checking that data exists after saving filter.
 				if (array_key_exists('filter_form', $data)) {
-					$form = $this->query('id:tabfilter_'.$data['tab_id'])->asForm()->one();
+					$form = $this->query('id:tabfilter_'.$data['tab_id'])->waitUntilVisible()->asForm()->one();
 					$form->checkValue($data['filter_form']);
 				}
 
@@ -73,6 +74,7 @@ class testFormFilter extends CWebTest {
 				// Checking that hosts/problems amount displayed near name in filter tab.
 				if (array_key_exists('Show number of records', $data['filter'])) {
 					$this->query('xpath://a[@class="icon-home tabfilter-item-link"]')->one()->click();
+					$filter_form->waitUntilReloaded();
 					$this->assertEquals($filtered_rows_count, $this->query('xpath://li[@data-target="tabfilter_'.
 							$data['tab_id'].'"]/a')->one()->getAttribute('data-counter'));
 				}
@@ -99,9 +101,11 @@ class testFormFilter extends CWebTest {
 	public function updateFilterForm($user) {
 		$this->page->userLogin($user, 'zabbix');
 		$this->page->open($this->url)->waitUntilReady();
+		$filter_form = $this->query('xpath://form[@name='.CXPathHelper::escapeQuotes($this->form_name).']')->one();
 		// Changing filter data.
 		$filter_container = $this->query('xpath://ul[@class="ui-sortable-container ui-sortable"]')->asFilterTab()->one();
 		$filter_container->selectTab('update_tab');
+		$filter_form->waitUntilReloaded();
 		$form = $this->query('id:tabfilter_1')->asForm()->waitUntilReady()->one();
 		$result_before = $this->getTableResults();
 
@@ -109,32 +113,35 @@ class testFormFilter extends CWebTest {
 			$form->fill(['Host groups' => ['Zabbix servers']]);
 			if ($i === 0) {
 				$this->query('name:filter_apply')->one()->click();
+				$filter_form->waitUntilReloaded();
 				$this->assertFalse($result_before === $this->getTableResults());
 			}
 			$this->query('xpath://li[@data-target="tabfilter_0"]/a')->one()->click();
-			$this->page->waitUntilReady();
+			$filter_form->waitUntilReloaded();
 			$this->assertEquals('italic', $this->query('xpath://li[@data-target="tabfilter_1"]/a[@class="tabfilter-item-link"]')
 			->one()->getCSSValue('font-style'));
 			$filter_container->selectTab('update_tab');
+			$filter_form->waitUntilReloaded();
 			if ($i === 0) {
 				$this->query('button:Reset')->one()->click();
+				$this->page->waitUntilReady();
 			}
 			else {
 				$this->assertTrue($result_before === $this->getTableResults());
 				$this->query('button:Update')->one()->click();
+				// Wait until the status of the updated tab changes and the table of results is reloaded.
+				$this->query('xpath://li[@data-target="tabfilter_1" and contains(@class, "unsaved")]')->waitUntilNotPresent();
+				$filter_form->waitUntilReloaded();
 			}
 		}
-
-		// This time needed for filter to update table with results.
-		sleep(1);
 
 		// Getting changed host/problem result and then comparing it with displayed result from dropdown.
 		$result = $this->getTableResults();
 		$this->query('xpath://li[@data-target="tabfilter_0"]/a')->one()->click();
+		$filter_form->waitUntilReloaded();
 		$this->query('xpath://button[@data-action="toggleTabsList"]')->one()->click();
-		$this->page->waitUntilReady();
 		$this->assertEquals($result, $this->query('xpath://a[@aria-label="update_tab"]')
-				->one()->getAttribute('data-counter'));
+				->one()->waitUntilVisible()->getAttribute('data-counter'));
 
 		// Checking that hosts/problems amount in filter displayed near name at the tab changed.
 		$this->assertEquals($result, $this->query('xpath://li[@data-target="tabfilter_1"]/a')
@@ -215,14 +222,15 @@ class testFormFilter extends CWebTest {
 	public function createFilter($data, $user = null) {
 		$this->page->userLogin($user, 'zabbix');
 		$this->page->open($this->url)->waitUntilReady();
+		$filter_form = $this->query('xpath://form[@name='.CXPathHelper::escapeQuotes($this->form_name).']')->one();
 
 		// Checking if home tab is selected.
 		$xpath = 'xpath://li[@data-target="tabfilter_0"]';
 		if ($this->query($xpath)->one()->getAttribute('class') === 'tabfilter-item-label') {
 			$this->query($xpath.'/a')->waitUntilClickable()->one()->click();
+			$filter_form->waitUntilReloaded();
 		}
 
-		$this->page->waitUntilReady();
 		if (array_key_exists('filter_form', $data)) {
 			$home_form = $this->query('xpath://div[@id="tabfilter_0"]/form')->asForm()->one();
 			$home_form->fill($data['filter_form']);
@@ -232,7 +240,14 @@ class testFormFilter extends CWebTest {
 		$dialog = COverlayDialogElement::find()->asForm()->all()->last()->waitUntilReady();
 		$dialog->fill($data['filter']);
 		$dialog->submit();
-		$this->page->waitUntilReady();
+		if (CTestArrayHelper::get($data, 'expected', TEST_GOOD) === TEST_GOOD) {
+			COverlayDialogElement::ensureNotPresent();
+			$this->page->waitUntilReady();
+			$filter_form->waitUntilReloaded();
+		}
+		else {
+			COverlayDialogElement::find()->asForm()->all()->last()->waitUntilReady();
+		}
 	}
 
 	/**

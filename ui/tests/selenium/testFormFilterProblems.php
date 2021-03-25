@@ -26,6 +26,7 @@ require_once dirname(__FILE__).'/common/testFormFilter.php';
 class testFormFilterProblems extends testFormFilter {
 
 	public $url = 'zabbix.php?action=problem.view';
+	public $form_name = 'problem';
 
 	public static function getCheckCreatedFilterData() {
 		return [
@@ -202,7 +203,7 @@ class testFormFilterProblems extends testFormFilter {
 		$table = $this->query('class:list-table')->asTable()->waitUntilReady()->one();
 
 		// Checking result amount before changing time period.
-		$this->assertEquals($table->getRows()->count(), 2);
+		$this->assertEquals(2, $table->getRows()->count());
 
 		if ($data['filter']['Name'] === 'Timeselect_1') {
 			// Enable Set custom time period option.
@@ -210,6 +211,7 @@ class testFormFilterProblems extends testFormFilter {
 			$dialog = COverlayDialogElement::find()->asForm()->all()->last()->waitUntilReady();
 			$dialog->fill(['Set custom time period' => true, 'From' => '2020-10-23 18:00']);
 			$dialog->submit();
+			COverlayDialogElement::ensureNotPresent();
 			$this->page->waitUntilReady();
 		}
 		else {

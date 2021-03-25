@@ -350,9 +350,11 @@ class testPageMonitoringHosts extends CWebTest {
 	public function testPageMonitoringHosts_CheckFilter($data) {
 		$this->page->login()->open('zabbix.php?action=host.view&filter_rst=1');
 		$form = $this->query('name:zbx_filter')->waitUntilPresent()->asForm()->one();
+		$result_form = $this->query('xpath://form[@name="host_view"]')->one();
 		$form->fill($data['filter']);
 		$this->query('button:Apply')->one()->waitUntilClickable()->click();
 		$this->page->waitUntilReady();
+		$result_form->waitUntilReloaded();
 		$this->assertTableDataColumn($data['expected']);
 	}
 
