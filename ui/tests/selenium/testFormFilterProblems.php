@@ -68,8 +68,7 @@ class testFormFilterProblems extends testFormFilter {
 					],
 					'filter' => [
 						'Show number of records' => true
-					],
-					'tab_id' => '1'
+					]
 				]
 			],
 			[
@@ -80,8 +79,7 @@ class testFormFilterProblems extends testFormFilter {
 					],
 					'filter' => [
 						'Name' => 'simple_name'
-					],
-					'tab_id' => '2'
+					]
 				]
 			],
 			// Dataprovider with symbols instead of name.
@@ -94,8 +92,7 @@ class testFormFilterProblems extends testFormFilter {
 					'filter' => [
 						'Name' => '*;%№:?(',
 						'Show number of records' => true
-					],
-					'tab_id' => '3'
+					]
 				]
 			],
 			// Dataprovider with name as cyrillic.
@@ -107,8 +104,7 @@ class testFormFilterProblems extends testFormFilter {
 					],
 					'filter' => [
 						'Name' => 'кирилица'
-					],
-					'tab_id' => '4'
+					]
 				]
 			],
 			// Two dataproviders with same name and options.
@@ -117,8 +113,7 @@ class testFormFilterProblems extends testFormFilter {
 					'expected' => TEST_GOOD,
 					'filter' => [
 						'Name' => 'duplicated_name'
-					],
-					'tab_id' => '5'
+					]
 				]
 			],
 			[
@@ -126,8 +121,7 @@ class testFormFilterProblems extends testFormFilter {
 					'expected' => TEST_GOOD,
 					'filter' => [
 						'Name' => 'duplicated_name'
-					],
-					'tab_id' => '6'
+					]
 				]
 			]
 		];
@@ -199,8 +193,9 @@ class testFormFilterProblems extends testFormFilter {
 		$this->createFilter($data, 'Admin');
 		$filter_container = $this->query('xpath://ul[@class="ui-sortable-container ui-sortable"]')->asFilterTab()->one();
 		$formid = $this->query('xpath://a[text()="'.$data['filter']['Name'].'"]/parent::li')->waitUntilVisible()->one()->getAttribute('data-target');
-		$form = $this->query('id:'.$formid)->asForm()->one();
+		$form = $this->query('id', $formid)->asForm()->one();
 		$table = $this->query('class:list-table')->asTable()->waitUntilReady()->one();
+		$result_form = $this->query('xpath://form[@name="problem"]')->one();
 
 		// Checking result amount before changing time period.
 		$this->assertEquals(2, $table->getRows()->count());
@@ -212,6 +207,7 @@ class testFormFilterProblems extends testFormFilter {
 			$dialog->fill(['Set custom time period' => true, 'From' => '2020-10-23 18:00']);
 			$dialog->submit();
 			COverlayDialogElement::ensureNotPresent();
+			$result_form->waitUntilReloaded();
 			$this->page->waitUntilReady();
 		}
 		else {
@@ -222,6 +218,7 @@ class testFormFilterProblems extends testFormFilter {
 			$this->query('id:apply')->one()->click();
 			$filter_container->selectTab($data['filter']['Name']);
 			$this->query('button:Update')->one()->click();
+			$result_form->waitUntilReloaded();
 			$this->page->waitUntilReady();
 		}
 

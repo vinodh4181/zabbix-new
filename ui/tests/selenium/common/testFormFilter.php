@@ -53,6 +53,11 @@ class testFormFilter extends CWebTest {
 
 		switch ($data['expected']) {
 			case TEST_GOOD:
+				// Filter default name is Untitled.
+				$data['filter']['Name'] = CTestArrayHelper::get($data, 'filter.Name', 'Untitled');
+				$formid = $this->query('xpath://a[text()="'.$data['filter']['Name'].'"]/parent::li')->waitUntilVisible()
+						->all()->last()->getAttribute('data-target');
+
 				$rows = $this->query('class:list-table')->asTable()->waitUntilReady()->one()->getRows();
 				$filtered_rows_count = ($rows->count() === 1 && $rows->asText() === ['No data found.'])
 					? 0
@@ -60,13 +65,8 @@ class testFormFilter extends CWebTest {
 
 				// Checking that data exists after saving filter.
 				if (array_key_exists('filter_form', $data)) {
-					$form = $this->query('id:tabfilter_'.$data['tab_id'])->waitUntilVisible()->asForm()->one();
+					$form = $this->query('id', $formid)->waitUntilVisible()->asForm()->one();
 					$form->checkValue($data['filter_form']);
-				}
-
-				// Filter default name is Untitled.
-				if (!array_key_exists('Name', $data['filter'])) {
-					$data['filter']['Name'] = 'Untitled';
 				}
 
 				$this->checkName($data['filter']['Name']);
@@ -75,8 +75,8 @@ class testFormFilter extends CWebTest {
 				if (array_key_exists('Show number of records', $data['filter'])) {
 					$this->query('xpath://a[@class="icon-home tabfilter-item-link"]')->one()->click();
 					$filter_form->waitUntilReloaded();
-					$this->assertEquals($filtered_rows_count, $this->query('xpath://li[@data-target="tabfilter_'.
-							$data['tab_id'].'"]/a')->one()->getAttribute('data-counter'));
+					$this->assertEquals($filtered_rows_count, $this->query('xpath://li[@data-target="'.
+							$formid.'"]/a')->one()->getAttribute('data-counter'));
 				}
 
 				// Checking that dropdown/popup tab works.
