@@ -106,7 +106,9 @@ zabbix_export:
         	else {
         		params['X-S4-Status'] = 'new';
         	}
-        
+
+            params['X-S4-SourceSystem'] = 'Zabbix';
+
             payload = JSON.stringify(params);
             Zabbix.log(4, '[ SIGNL4 Webhook ] Sending request: ' + payload);
         
