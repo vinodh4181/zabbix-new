@@ -59,6 +59,10 @@ static size_t		sql_alloc = 4 * ZBX_KIBIBYTE;
 
 extern unsigned char	program_type;
 extern int		CONFIG_DOUBLE_PRECISION;
+extern int		process_num;
+
+/* flag set by signal to clear history cache */
+extern volatile sig_atomic_t	zbx_hc_clear_all;
 
 #define ZBX_IDS_SIZE	9
 
@@ -103,6 +107,9 @@ ZBX_DC_IDS;
 
 static ZBX_DC_IDS	*ids = NULL;
 
+#define ZBX_HC_CONTROL_CLEAR	0x01
+#define ZBX_HC_CONTROL_PAUSED	0x02
+
 typedef struct
 {
 	zbx_list_t	list;
@@ -124,6 +131,14 @@ typedef struct
 	int			trends_last_cleanup_hour;
 	int			history_num_total;
 	int			history_progress_ts;
+
+	/* History syncer control flags, one for each syncer.                            */
+	/* When history cache clear request is requested the first dbsyncer control flag */
+	/* is set to ZBX_HC_CONTROL_CLEAR. When first process control flag is set to     */
+	/* to ZBX_HC_CONTROL_CLEAR the other syncers sets their control flags to         */
+	/* ZBX_HC_CONTROL_PAUSED. When all syncers are paused the first syncer clears    */
+	/* history cache and resets all control flags.                                   */
+	unsigned char		*control;
 
 	unsigned char		db_trigger_queue_lock;
 
@@ -185,6 +200,7 @@ static void	hc_queue_item(zbx_hc_item_t *item);
 static int	hc_queue_elem_compare_func(const void *d1, const void *d2);
 static int	hc_queue_get_size(void);
 static int	hc_get_history_compression_age(void);
+static void	hc_queue_clear(void);
 
 /******************************************************************************
  *                                                                            *
@@ -2913,6 +2929,58 @@ static void	sync_proxy_history(int *total_num, int *more)
 
 /******************************************************************************
  *                                                                            *
+ * Function: hc_queue_try_clear                                               *
+ *                                                                            *
+ * Purpose: pauses history syncers and clears history cache if all syncers    *
+ *          are paused                                                        *
+ *                                                                            *
+ * Return value: SUCCEED - the cache clear is in progress                     *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
+static int	hc_queue_try_clear()
+{
+	if (0 != zbx_hc_clear_all)
+	{
+		cache->control[0] = ZBX_HC_CONTROL_CLEAR;
+		zbx_hc_clear_all = 0;
+	}
+
+	if (ZBX_HC_CONTROL_CLEAR == cache->control[0])
+	{
+		if (1 == process_num)
+		{
+			int	i;
+
+			/* check if the rest of syncers have been paused */
+			for (i = 1; i < CONFIG_HISTSYNCER_FORKS; i++)
+			{
+				if (ZBX_HC_CONTROL_PAUSED != cache->control[i])
+					break;
+			}
+
+			if (i == CONFIG_HISTSYNCER_FORKS)
+			{
+				memset(cache->control, 0, CONFIG_HISTSYNCER_FORKS);
+				hc_queue_clear();
+			}
+		}
+		else
+		{
+			if (ZBX_HC_CONTROL_PAUSED != cache->control[process_num - 1])
+			{
+				cache->control[process_num - 1] = ZBX_HC_CONTROL_PAUSED;
+				zabbix_log(LOG_LEVEL_WARNING, "paused while waiting for history cache to be"
+						" cleared");
+			}
+		}
+	}
+
+	return ZBX_HC_CONTROL_CLEAR == cache->control[0] ? SUCCEED : FAIL;
+}
+
+/******************************************************************************
+ *                                                                            *
  * Function: sync_server_history                                              *
  *                                                                            *
  * Purpose: flush history cache to database, process triggers of flushed      *
@@ -3009,7 +3077,11 @@ static void	sync_server_history(int *values_num, int *triggers_num, int *more)
 		*more = ZBX_SYNC_DONE;
 
 		LOCK_CACHE;
-		hc_pop_items(&history_items);		/* select and take items out of history cache */
+
+		/* select and take items out of history cache unless history cache is being cleared */
+		if (SUCCEED != hc_queue_try_clear())
+			hc_pop_items(&history_items);
+
 		UNLOCK_CACHE;
 
 		if (0 != history_items.values_num)
@@ -4307,6 +4379,36 @@ void	hc_push_items(zbx_vector_ptr_t *history_items)
 
 /******************************************************************************
  *                                                                            *
+ * Function: hc_clear_queue                                                   *
+ *                                                                            *
+ * Purpose: clears history cache queue and removes queued data                *
+ *                                                                            *
+ ******************************************************************************/
+static void	hc_queue_clear(void)
+{
+	zbx_hc_item_t		*item;
+	zbx_hc_data_t		*data, *data_free;
+	zbx_hashset_iter_t	iter;
+
+	zbx_hashset_iter_reset(&cache->history_items, &iter);
+	while (NULL != (item = (zbx_hc_item_t *)zbx_hashset_iter_next(&iter)))
+	{
+		for (data = item->tail; data != NULL;)
+		{
+			data_free = data;
+			data = data->next;
+			hc_free_data(data_free);
+		}
+	}
+	zbx_hashset_clear(&cache->history_items);
+	zbx_binary_heap_clear(&cache->history_queue);
+
+	zabbix_log(LOG_LEVEL_WARNING, "history cache cleared, removed:%d values", cache->history_num);
+	cache->history_num = 0;
+}
+
+/******************************************************************************
+ *                                                                            *
  * Function: hc_queue_get_size                                                *
  *                                                                            *
  * Purpose: retrieve the size of history queue                                *
@@ -4451,6 +4553,10 @@ int	init_database_cache(char **error)
 	cache->history_progress_ts = 0;
 
 	cache->db_trigger_queue_lock = 1;
+
+	/* initialize history syncer control flags */
+	cache->control = (unsigned char *)__hc_index_mem_malloc_func(NULL, CONFIG_HISTSYNCER_FORKS);
+	memset(cache->control, 0, CONFIG_HISTSYNCER_FORKS);
 
 	if (NULL == sql)
 		sql = (char *)zbx_malloc(sql, sql_alloc);
