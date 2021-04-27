@@ -8,6 +8,7 @@ libzbxcommon_a_SOURCES = \
 	file.c \
 	iprange.c \
 	misc.c \
+	prof.c \
 	setproctitle.c \
 	str.c \
 	variant.c \
