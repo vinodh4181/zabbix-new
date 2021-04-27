@@ -102,7 +102,7 @@ int	zbx_history_add_values(const zbx_vector_ptr_t *history)
 {
 	int	i, flags = 0, ret = SUCCEED;
 	void	*prof_func = zbx_prof_start(__func__);
-	
+
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
 	for (i = 0; i < ITEM_VALUE_TYPE_MAX; i++)
