@@ -64,8 +64,8 @@ zbx_rwlock_name_t;
 #	define ZBX_MUTEX_NULL			NULL
 #	define ZBX_RWLOCK_NULL			NULL
 
-#	define zbx_rwlock_wrlock(rwlock)	__zbx_rwlock_wrlock(__FILE__, __LINE__, rwlock)
-#	define zbx_rwlock_rdlock(rwlock)	__zbx_rwlock_rdlock(__FILE__, __LINE__, rwlock)
+#	define zbx_rwlock_wrlock(rwlock)	do {void	*prof_func = zbx_prof_start(__func__); __zbx_rwlock_wrlock(__FILE__, __LINE__, rwlock); zbx_prof_end(prof_func); }while(0);
+#	define zbx_rwlock_rdlock(rwlock)	do {void	*prof_func = zbx_prof_start(__func__); __zbx_rwlock_rdlock(__FILE__, __LINE__, rwlock); zbx_prof_end(prof_func); }while(0);
 #	define zbx_rwlock_unlock(rwlock)	__zbx_rwlock_unlock(__FILE__, __LINE__, rwlock)
 
 typedef pthread_mutex_t * zbx_mutex_t;
@@ -93,7 +93,7 @@ int		zbx_rwlock_create(zbx_rwlock_t *rwlock, zbx_rwlock_name_t name, char **erro
 zbx_mutex_t	zbx_mutex_addr_get(zbx_mutex_name_t mutex_name);
 zbx_rwlock_t	zbx_rwlock_addr_get(zbx_rwlock_name_t rwlock_name);
 #endif	/* _WINDOWS */
-#	define zbx_mutex_lock(mutex)		__zbx_mutex_lock(__FILE__, __LINE__, mutex)
+#	define zbx_mutex_lock(mutex)		do {void	*prof_func = zbx_prof_start(__func__); __zbx_mutex_lock(__FILE__, __LINE__, mutex); zbx_prof_end(prof_func); }while(0);
 #	define zbx_mutex_unlock(mutex)		__zbx_mutex_unlock(__FILE__, __LINE__, mutex)
 
 int	zbx_mutex_create(zbx_mutex_t *mutex, zbx_mutex_name_t name, char **error);

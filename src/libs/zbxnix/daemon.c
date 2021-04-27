@@ -68,6 +68,12 @@ static void	common_sigusr_handler(int flags)
 						zabbix_get_log_level_string());
 			}
 			break;
+		case ZBX_RTC_PROF_ENABLE:
+			zbx_enable_prof();
+			break;
+		case ZBX_RTC_PROF_DISABLE:
+			zbx_disable_prof();
+			break;
 		case ZBX_RTC_LOG_LEVEL_DECREASE:
 			if (SUCCEED != zabbix_decrease_log_level())
 			{
@@ -229,6 +235,8 @@ static void	user1_signal_handler(int sig, siginfo_t *siginfo, void *context)
 			break;
 		case ZBX_RTC_LOG_LEVEL_INCREASE:
 		case ZBX_RTC_LOG_LEVEL_DECREASE:
+		case ZBX_RTC_PROF_ENABLE:
+		case ZBX_RTC_PROF_DISABLE:
 			if ((ZBX_RTC_LOG_SCOPE_FLAG | ZBX_RTC_LOG_SCOPE_PID) == ZBX_RTC_GET_SCOPE(flags))
 				zbx_signal_process_by_pid(ZBX_RTC_GET_DATA(flags), flags);
 			else

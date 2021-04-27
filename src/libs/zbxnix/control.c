@@ -134,6 +134,20 @@ int	parse_rtc_options(const char *opt, unsigned char program_type, int *message)
 		if (SUCCEED != parse_log_level_options(opt, ZBX_CONST_STRLEN(ZBX_LOG_LEVEL_INCREASE), &scope, &data))
 			return FAIL;
 	}
+	else if (0 == strncmp(opt, ZBX_PROF_ENABLE, ZBX_CONST_STRLEN(ZBX_PROF_ENABLE)))
+	{
+		command = ZBX_RTC_PROF_ENABLE;
+
+		if (SUCCEED != parse_log_level_options(opt, ZBX_CONST_STRLEN(ZBX_PROF_ENABLE), &scope, &data))
+			return FAIL;
+	}
+	else if (0 == strncmp(opt, ZBX_PROF_DISABLE, ZBX_CONST_STRLEN(ZBX_PROF_DISABLE)))
+	{
+		command = ZBX_RTC_PROF_DISABLE;
+
+		if (SUCCEED != parse_log_level_options(opt, ZBX_CONST_STRLEN(ZBX_PROF_DISABLE), &scope, &data))
+			return FAIL;
+	}
 	else if (0 == strncmp(opt, ZBX_LOG_LEVEL_DECREASE, ZBX_CONST_STRLEN(ZBX_LOG_LEVEL_DECREASE)))
 	{
 		command = ZBX_RTC_LOG_LEVEL_DECREASE;

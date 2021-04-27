@@ -1197,6 +1197,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 	zbx_tls_init_parent();
 #endif
 	zabbix_log(LOG_LEVEL_INFORMATION, "server #0 started [main process]");
+	zbx_reset_prof();
 
 	for (i = 0; i < threads_num; i++)
 	{

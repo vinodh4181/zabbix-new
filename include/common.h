@@ -440,7 +440,8 @@ zbx_graph_yaxis_types_t;
 #define ZBX_LOG_LEVEL_DECREASE	"log_level_decrease"
 #define ZBX_SNMP_CACHE_RELOAD	"snmp_cache_reload"
 #define ZBX_DIAGINFO		"diaginfo"
-
+#define ZBX_PROF_ENABLE		"prof_enable"
+#define ZBX_PROF_DISABLE	"prof_disable"
 /* value for not supported items */
 #define ZBX_NOTSUPPORTED	"ZBX_NOTSUPPORTED"
 /* the error message for not supported items when reason is unknown */
@@ -933,7 +934,8 @@ zbx_task_t;
 #define ZBX_RTC_CONFIG_CACHE_RELOAD	8
 #define ZBX_RTC_SNMP_CACHE_RELOAD	9
 #define ZBX_RTC_DIAGINFO		10
-
+#define ZBX_RTC_PROF_ENABLE		11
+#define ZBX_RTC_PROF_DISABLE		12
 typedef enum
 {
 	HTTPTEST_AUTH_NONE = 0,
@@ -1095,6 +1097,13 @@ char	*str_linefeed(const char *src, size_t maxline, const char *delim);
 void	zbx_strarr_init(char ***arr);
 void	zbx_strarr_add(char ***arr, const char *entry);
 void	zbx_strarr_free(char **arr);
+
+void	zbx_print_prof(void);
+void	zbx_enable_prof(void);
+void	zbx_disable_prof(void);
+void	*zbx_prof_start(const char *func_name);
+void	zbx_prof_end(void *func_profile);
+void	zbx_reset_prof(void);
 
 #if defined(__GNUC__) || defined(__clang__)
 #	define __zbx_attr_format_printf(idx1, idx2) __attribute__((__format__(__printf__, (idx1), (idx2))))

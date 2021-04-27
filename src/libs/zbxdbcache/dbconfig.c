@@ -11809,7 +11809,7 @@ void	zbx_dc_items_update_nextcheck(DC_ITEM *items, zbx_agent_value_t *values, in
 	ZBX_DC_ITEM	*dc_item;
 	ZBX_DC_HOST	*dc_host;
 
-	WRLOCK_CACHE;
+	RDLOCK_CACHE;
 
 	for (i = 0; i < values_num; i++)
 	{

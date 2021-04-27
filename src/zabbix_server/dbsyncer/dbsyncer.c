@@ -135,9 +135,11 @@ ZBX_THREAD_ENTRY(dbsyncer_thread, args)
 		}
 
 		/* database APIs might not handle signals correctly and hang, block signals to avoid hanging */
+		void	*prof_func = zbx_prof_start(__func__);
 		block_signals();
 		zbx_sync_history_cache(&values_num, &triggers_num, &more);
 		unblock_signals();
+		zbx_prof_end(prof_func);
 
 		total_values_num += values_num;
 		total_triggers_num += triggers_num;
