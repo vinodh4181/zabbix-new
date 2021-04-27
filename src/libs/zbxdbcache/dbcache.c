@@ -1921,9 +1921,11 @@ static void	normalize_item_value(const DC_ITEM *item, ZBX_DC_HISTORY *hdata)
  ******************************************************************************/
 static zbx_item_diff_t	*calculate_item_update(const DC_ITEM *item, const ZBX_DC_HISTORY *h)
 {
-	zbx_uint64_t	flags = ZBX_FLAGS_ITEM_DIFF_UPDATE_LASTCLOCK;
+	zbx_uint64_t	flags;
 	const char	*item_error = NULL;
 	zbx_item_diff_t	*diff;
+
+	flags = item->host.proxy_hostid == 0 ? ZBX_FLAGS_ITEM_DIFF_UPDATE_LASTCLOCK : 0;
 
 	if (0 != (ZBX_DC_FLAG_META & h->flags))
 	{
@@ -1972,6 +1974,9 @@ static zbx_item_diff_t	*calculate_item_update(const DC_ITEM *item, const ZBX_DC_
 
 	if (NULL != item_error)
 		flags |= ZBX_FLAGS_ITEM_DIFF_UPDATE_ERROR;
+
+	if (0 == flags)
+		return NULL;
 
 	diff = (zbx_item_diff_t *)zbx_malloc(NULL, sizeof(zbx_item_diff_t));
 	diff->itemid = item->itemid;
@@ -2568,8 +2573,9 @@ static void	DCmass_prepare_history(ZBX_DC_HISTORY *history, const zbx_vector_uin
 
 		normalize_item_value(item, h);
 
-		diff = calculate_item_update(item, h);
-		zbx_vector_ptr_append(item_diff, diff);
+		if (NULL != (diff = calculate_item_update(item, h)))
+			zbx_vector_ptr_append(item_diff, diff);
+
 		DCinventory_value_add(inventory_values, item, h);
 
 		if (0 != item->host.proxy_hostid && FAIL == is_item_processed_by_server(item->type, item->key_orig))
@@ -4235,6 +4241,7 @@ int	hc_queue_get_size(void)
 
 int	hc_get_history_compression_age(void)
 {
+#if defined(HAVE_POSTGRESQL)
 	zbx_config_t	cfg;
 	int		compression_age = 0;
 
@@ -4250,6 +4257,9 @@ int	hc_get_history_compression_age(void)
 	zbx_config_clean(&cfg);
 
 	return compression_age;
+#else
+	return 0;
+#endif
 }
 
 /******************************************************************************

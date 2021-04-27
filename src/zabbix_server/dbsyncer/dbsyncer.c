@@ -121,6 +121,8 @@ ZBX_THREAD_ENTRY(dbsyncer_thread, args)
 
 	for (;;)
 	{
+		void	*prof_func;
+
 		sec = zbx_time();
 		zbx_update_env(sec);
 
@@ -135,7 +137,7 @@ ZBX_THREAD_ENTRY(dbsyncer_thread, args)
 		}
 
 		/* database APIs might not handle signals correctly and hang, block signals to avoid hanging */
-		void	*prof_func = zbx_prof_start(__func__);
+		prof_func = zbx_prof_start(__func__);
 		block_signals();
 		zbx_sync_history_cache(&values_num, &triggers_num, &more);
 		unblock_signals();

@@ -6,6 +6,7 @@ typedef struct
 	const char	*func_name;
 	double		start;
 	double		sec;
+	int		locked;
 }
 ZBX_FUNC_PROFILE;
 
@@ -36,6 +37,7 @@ void	*zbx_prof_start(const char *func_name)
 			func_profile = zbx_malloc(NULL, sizeof(ZBX_FUNC_PROFILE));
 			func_profile->func_name = func_name;
 			func_profile->sec = 0;
+			func_profile->locked = 0;
 
 			zbx_vector_ptr_append(&zbx_func_profiles, func_profile);
 			zbx_vector_ptr_sort(&zbx_func_profiles, zbx_default_ptr_ptr_compare_func);
@@ -44,6 +46,7 @@ void	*zbx_prof_start(const char *func_name)
 			func_profile = zbx_func_profiles.values[i];
 
 		func_profile->start = zbx_time();
+		func_profile->locked++;
 
 		return func_profile;
 	}
@@ -53,7 +56,7 @@ void	*zbx_prof_start(const char *func_name)
 
 void	zbx_prof_end(void *func_profile)
 {
-	if (1 == zbx_prof_enabled && NULL != func_profile)
+	if (NULL != func_profile && 1 == zbx_prof_enabled)
 	{
 		((ZBX_FUNC_PROFILE *)func_profile)->sec += zbx_time() - ((ZBX_FUNC_PROFILE *)func_profile)->start;
 		((ZBX_FUNC_PROFILE *)func_profile)->start = 0;
@@ -73,8 +76,8 @@ void	zbx_print_prof(void)
 		for (i = 0; i < zbx_func_profiles.values_num; i++)
 		{
 			func_profile = zbx_func_profiles.values[i];
-			zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "%s() "ZBX_FS_DBL "\n", func_profile->func_name,
-					func_profile->sec);
+			zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "%s() locked:%d seconds:"ZBX_FS_DBL "\n",
+					func_profile->func_name, func_profile->locked, func_profile->sec);
 		}
 
 		if (0 != sql_offset)
