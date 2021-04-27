@@ -7779,13 +7779,30 @@ void	zbx_dc_get_timer_triggers_by_triggerids(zbx_hashset_t *trigger_info, zbx_ve
  ******************************************************************************/
 void	zbx_dc_get_timer_triggerids(zbx_vector_uint64_t *triggerids, int now, int limit)
 {
+	zbx_binary_heap_elem_t	*elem;
+	ZBX_DC_TRIGGER		*dc_trigger;
+	int			found = 0;
+
+	RDLOCK_CACHE;
+
+	if (SUCCEED != zbx_binary_heap_empty(&config->timer_queue))
+	{
+		elem = zbx_binary_heap_find_min(&config->timer_queue);
+		dc_trigger = (ZBX_DC_TRIGGER *)elem->data;
+
+		if (dc_trigger->nextcheck <= now)
+			found = 1;
+	}
+
+	UNLOCK_CACHE;
+
+	if (0 == found)
+		return;
+
 	WRLOCK_CACHE;
 
 	while (SUCCEED != zbx_binary_heap_empty(&config->timer_queue) && 0 != limit)
 	{
-		zbx_binary_heap_elem_t	*elem;
-		ZBX_DC_TRIGGER		*dc_trigger;
-
 		elem = zbx_binary_heap_find_min(&config->timer_queue);
 		dc_trigger = (ZBX_DC_TRIGGER *)elem->data;
 
