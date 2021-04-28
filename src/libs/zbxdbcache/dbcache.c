@@ -1925,7 +1925,7 @@ static zbx_item_diff_t	*calculate_item_update(const DC_ITEM *item, const ZBX_DC_
 	const char	*item_error = NULL;
 	zbx_item_diff_t	*diff;
 
-	flags = item->host.proxy_hostid == 0 ? 0 : 0;
+	flags = item->host.proxy_hostid == 0 ? ZBX_FLAGS_ITEM_DIFF_UPDATE_LASTCLOCK : 0;
 
 	if (0 != (ZBX_DC_FLAG_META & h->flags))
 	{
