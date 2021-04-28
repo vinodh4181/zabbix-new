@@ -45,8 +45,8 @@ void	*zbx_prof_start(const char *func_name)
 		else
 			func_profile = zbx_func_profiles.values[i];
 
-		func_profile->start = zbx_time();
 		func_profile->locked++;
+		func_profile->start = zbx_time();
 
 		return func_profile;
 	}

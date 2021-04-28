@@ -1925,7 +1925,7 @@ static zbx_item_diff_t	*calculate_item_update(const DC_ITEM *item, const ZBX_DC_
 	const char	*item_error = NULL;
 	zbx_item_diff_t	*diff;
 
-	flags = item->host.proxy_hostid == 0 ? ZBX_FLAGS_ITEM_DIFF_UPDATE_LASTCLOCK : 0;
+	flags = item->host.proxy_hostid == 0 ? 0 : 0;
 
 	if (0 != (ZBX_DC_FLAG_META & h->flags))
 	{
@@ -2878,6 +2878,10 @@ static void	sync_server_history(int *values_num, int *triggers_num, int *more)
 	zbx_vector_ptr_t		history_items, trigger_diff, item_diff, inventory_values;
 	zbx_vector_uint64_pair_t	trends_diff, proxy_subscribtions;
 	ZBX_DC_HISTORY			history[ZBX_HC_SYNC_MAX];
+	unsigned char			host_retrieve_mode;
+	extern char			*CONFIG_EXPORT_DIR;
+
+	host_retrieve_mode = NULL == CONFIG_EXPORT_DIR ? ZBX_ITEM_GET_SOME : ZBX_ITEM_GET_SOME_WITH_HOSTNAME;
 
 	if (NULL == history_float && NULL != history_float_cbs)
 	{
@@ -2972,7 +2976,8 @@ static void	sync_server_history(int *values_num, int *triggers_num, int *more)
 
 			zbx_vector_uint64_sort(&itemids, ZBX_DEFAULT_UINT64_COMPARE_FUNC);
 
-			DCconfig_get_items_by_itemids(items, itemids.values, errcodes, history_num);
+			DCconfig_get_items_by_itemids_partial(items, itemids.values, errcodes, history_num,
+					host_retrieve_mode);
 
 			DCmass_prepare_history(history, &itemids, items, errcodes, history_num, &item_diff,
 					&inventory_values, compression_age, &proxy_subscribtions);
