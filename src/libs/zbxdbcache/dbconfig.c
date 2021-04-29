@@ -7642,7 +7642,8 @@ void	DCconfig_unlock_triggers(const zbx_vector_uint64_t *triggerids)
 	int		i;
 	ZBX_DC_TRIGGER	*dc_trigger;
 
-	WRLOCK_CACHE;
+	/* no other process can modify already locked triggers without write lock */
+	RDLOCK_CACHE;
 
 	for (i = 0; i < triggerids->values_num; i++)
 	{
