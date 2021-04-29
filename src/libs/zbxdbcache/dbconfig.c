@@ -7637,7 +7637,7 @@ void	DCconfig_lock_triggers_by_triggerids(zbx_vector_uint64_t *triggerids_in, zb
  * Author: Aleksandrs Saveljevs                                               *
  *                                                                            *
  ******************************************************************************/
-void	DCconfig_unlock_triggers(const zbx_vector_uint64_t *triggerids, zbx_vector_uint64_pair_t *proxy_subscriptions)
+void	DCconfig_unlock_triggers(const zbx_vector_uint64_t *triggerids)
 {
 	int		i;
 	ZBX_DC_TRIGGER	*dc_trigger;
@@ -7651,9 +7651,6 @@ void	DCconfig_unlock_triggers(const zbx_vector_uint64_t *triggerids, zbx_vector_
 
 		dc_trigger->locked = 0;
 	}
-
-	if (NULL != proxy_subscriptions)
-		zbx_dc_proxy_update_nodata(proxy_subscriptions);
 
 	UNLOCK_CACHE;
 }
@@ -12302,6 +12299,8 @@ void	zbx_dc_proxy_update_nodata(zbx_vector_uint64_pair_t *subscriptions)
 	int			i;
 	zbx_uint64_pair_t	p;
 
+	WRLOCK_CACHE;
+
 	for (i = 0; i < subscriptions->values_num; i++)
 	{
 		p = subscriptions->values[i];
@@ -12330,6 +12329,8 @@ void	zbx_dc_proxy_update_nodata(zbx_vector_uint64_pair_t *subscriptions)
 		proxy->nodata_win.period_end = 0;
 		proxy->nodata_win.values_num = 0;
 	}
+
+	UNLOCK_CACHE;
 }
 
 /******************************************************************************

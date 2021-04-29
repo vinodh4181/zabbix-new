@@ -85,7 +85,7 @@ void	zbx_print_prof(void)
 			zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "%s() locked:%u wait:"ZBX_FS_DBL
 					" busy:"ZBX_FS_DBL "\n",
 					func_profile->func_name, func_profile->locked, func_profile->sec,
-					func_profile->sec_processing);
+					func_profile->sec_processing - func_profile->sec);
 		}
 
 		if (0 != sql_offset)

@@ -679,7 +679,7 @@ void	DCconfig_clean_functions(DC_FUNCTION *functions, int *errcodes, size_t num)
 void	DCconfig_clean_triggers(DC_TRIGGER *triggers, int *errcodes, size_t num);
 int	DCconfig_lock_triggers_by_history_items(zbx_vector_ptr_t *history_items, zbx_vector_uint64_t *triggerids);
 void	DCconfig_lock_triggers_by_triggerids(zbx_vector_uint64_t *triggerids_in, zbx_vector_uint64_t *triggerids_out);
-void	DCconfig_unlock_triggers(const zbx_vector_uint64_t *triggerids, zbx_vector_uint64_pair_t *proxy_subscriptions);
+void	DCconfig_unlock_triggers(const zbx_vector_uint64_t *triggerids);
 void	DCconfig_unlock_all_triggers(void);
 void	DCconfig_get_triggers_by_itemids(zbx_hashset_t *trigger_info, zbx_vector_ptr_t *trigger_order,
 		const zbx_uint64_t *itemids, const zbx_timespec_t *timespecs, int itemids_num);

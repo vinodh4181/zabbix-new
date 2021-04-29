@@ -3057,14 +3057,17 @@ static void	sync_server_history(int *values_num, int *triggers_num, int *more)
 			zbx_vector_uint64_clear(&timer_triggerids);
 		}
 
-		if (0 != triggerids.values_num || 0 != proxy_subscribtions.values_num)
+		if (0 != triggerids.values_num)
+		{
+			*triggers_num += triggerids.values_num;
+			DCconfig_unlock_triggers(&triggerids);
+			zbx_vector_uint64_clear(&triggerids);
+		}
+
+		if (0 != proxy_subscribtions.values_num)
 		{
 			zbx_vector_uint64_pair_sort(&proxy_subscribtions, ZBX_DEFAULT_UINT64_COMPARE_FUNC);
-
-			*triggers_num += triggerids.values_num;
-			DCconfig_unlock_triggers(&triggerids, &proxy_subscribtions);
-
-			zbx_vector_uint64_clear(&triggerids);
+			zbx_dc_proxy_update_nodata(&proxy_subscribtions);
 			zbx_vector_uint64_pair_clear(&proxy_subscribtions);
 		}
 

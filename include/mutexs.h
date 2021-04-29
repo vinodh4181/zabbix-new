@@ -94,8 +94,8 @@ int		zbx_rwlock_create(zbx_rwlock_t *rwlock, zbx_rwlock_name_t name, char **erro
 zbx_mutex_t	zbx_mutex_addr_get(zbx_mutex_name_t mutex_name);
 zbx_rwlock_t	zbx_rwlock_addr_get(zbx_rwlock_name_t rwlock_name);
 #endif	/* _WINDOWS */
-#	define zbx_mutex_lock(mutex)		do {void	*prof_func = zbx_prof_start(__func__); __zbx_mutex_lock(__FILE__, __LINE__, mutex); zbx_prof_end(prof_func); }while(0);
-#	define zbx_mutex_unlock(mutex)		__zbx_mutex_unlock(__FILE__, __LINE__, mutex)
+#	define zbx_mutex_lock(mutex)		do {void	*prof_func = zbx_prof_start(__func__); zbx_func_profile = prof_func; __zbx_mutex_lock(__FILE__, __LINE__, mutex); zbx_prof_end(prof_func); }while(0);
+#	define zbx_mutex_unlock(mutex)		do {__zbx_mutex_unlock(__FILE__, __LINE__, mutex); zbx_prof_end_processing(zbx_func_profile);}while(0);
 
 int	zbx_mutex_create(zbx_mutex_t *mutex, zbx_mutex_name_t name, char **error);
 void	__zbx_mutex_lock(const char *filename, int line, zbx_mutex_t mutex);
