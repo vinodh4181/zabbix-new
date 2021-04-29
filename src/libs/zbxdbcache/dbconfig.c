@@ -89,7 +89,6 @@ typedef int (*zbx_value_validator_func_t)(const char *macro, const char *value, 
 ZBX_DC_CONFIG	*config = NULL;
 zbx_rwlock_t	config_lock = ZBX_RWLOCK_NULL;
 static zbx_mem_info_t	*config_mem;
-void			*config_prof;
 
 extern unsigned char	program_type;
 extern int		CONFIG_TIMER_FORKS;
