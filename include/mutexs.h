@@ -61,12 +61,13 @@ typedef enum
 zbx_rwlock_name_t;
 
 #ifdef HAVE_PTHREAD_PROCESS_SHARED
+extern void	*zbx_func_profile;
 #	define ZBX_MUTEX_NULL			NULL
 #	define ZBX_RWLOCK_NULL			NULL
 
-#	define zbx_rwlock_wrlock(rwlock)	do {void	*prof_func = zbx_prof_start(__func__); __zbx_rwlock_wrlock(__FILE__, __LINE__, rwlock); zbx_prof_end(prof_func); }while(0);
-#	define zbx_rwlock_rdlock(rwlock)	do {void	*prof_func = zbx_prof_start(__func__); __zbx_rwlock_rdlock(__FILE__, __LINE__, rwlock); zbx_prof_end(prof_func); }while(0);
-#	define zbx_rwlock_unlock(rwlock)	__zbx_rwlock_unlock(__FILE__, __LINE__, rwlock)
+#	define zbx_rwlock_wrlock(rwlock)	do {void	*prof_func = zbx_prof_start(__func__); zbx_func_profile = prof_func; __zbx_rwlock_wrlock(__FILE__, __LINE__, rwlock); zbx_prof_end(prof_func); }while(0);
+#	define zbx_rwlock_rdlock(rwlock)	do {void	*prof_func = zbx_prof_start(__func__); zbx_func_profile = prof_func; __zbx_rwlock_rdlock(__FILE__, __LINE__, rwlock); zbx_prof_end(prof_func); }while(0);
+#	define zbx_rwlock_unlock(rwlock)	do {__zbx_rwlock_unlock(__FILE__, __LINE__, rwlock); zbx_prof_end_processing(zbx_func_profile);}while(0);
 
 typedef pthread_mutex_t * zbx_mutex_t;
 typedef pthread_rwlock_t * zbx_rwlock_t;

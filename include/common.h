@@ -1103,6 +1103,7 @@ void	zbx_enable_prof(void);
 void	zbx_disable_prof(void);
 void	*zbx_prof_start(const char *func_name);
 void	zbx_prof_end(void *func_profile);
+void	zbx_prof_end_processing(void *func_profile);
 void	zbx_reset_prof(void);
 
 #if defined(__GNUC__) || defined(__clang__)

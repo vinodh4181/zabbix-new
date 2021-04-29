@@ -6,12 +6,14 @@ typedef struct
 	const char	*func_name;
 	double		start;
 	double		sec;
+	double		sec_processing;
 	unsigned int	locked;
 }
 ZBX_FUNC_PROFILE;
 
 static zbx_vector_ptr_t	zbx_func_profiles;
 static volatile int	zbx_prof_enabled;
+void			*zbx_func_profile;
 
 static int	zbx_default_ptr_ptr_compare_func(const void *d1, const void *d2)
 {
@@ -38,6 +40,7 @@ void	*zbx_prof_start(const char *func_name)
 			func_profile->func_name = func_name;
 			func_profile->sec = 0;
 			func_profile->locked = 0;
+			func_profile->sec_processing = 0;
 
 			zbx_vector_ptr_append(&zbx_func_profiles, func_profile);
 			zbx_vector_ptr_sort(&zbx_func_profiles, zbx_default_ptr_ptr_compare_func);
@@ -57,10 +60,13 @@ void	*zbx_prof_start(const char *func_name)
 void	zbx_prof_end(void *func_profile)
 {
 	if (NULL != func_profile && 1 == zbx_prof_enabled)
-	{
 		((ZBX_FUNC_PROFILE *)func_profile)->sec += zbx_time() - ((ZBX_FUNC_PROFILE *)func_profile)->start;
-		((ZBX_FUNC_PROFILE *)func_profile)->start = 0;
-	}
+}
+
+void	zbx_prof_end_processing(void *func_profile)	/* nested locks not supported but currently don't need */
+{
+	if (NULL != func_profile && 1 == zbx_prof_enabled)
+		((ZBX_FUNC_PROFILE *)func_profile)->sec_processing += zbx_time() - ((ZBX_FUNC_PROFILE *)func_profile)->start;
 }
 
 void	zbx_print_prof(void)
@@ -76,8 +82,10 @@ void	zbx_print_prof(void)
 		for (i = 0; i < zbx_func_profiles.values_num; i++)
 		{
 			func_profile = zbx_func_profiles.values[i];
-			zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "%s() locked:%u seconds:"ZBX_FS_DBL "\n",
-					func_profile->func_name, func_profile->locked, func_profile->sec);
+			zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "%s() locked:%u wait:"ZBX_FS_DBL
+					" busy:"ZBX_FS_DBL "\n",
+					func_profile->func_name, func_profile->locked, func_profile->sec,
+					func_profile->sec_processing);
 		}
 
 		if (0 != sql_offset)
