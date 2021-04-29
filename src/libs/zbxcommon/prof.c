@@ -6,7 +6,7 @@ typedef struct
 	const char	*func_name;
 	double		start;
 	double		sec;
-	int		locked;
+	unsigned int	locked;
 }
 ZBX_FUNC_PROFILE;
 
@@ -76,7 +76,7 @@ void	zbx_print_prof(void)
 		for (i = 0; i < zbx_func_profiles.values_num; i++)
 		{
 			func_profile = zbx_func_profiles.values[i];
-			zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "%s() locked:%d seconds:"ZBX_FS_DBL "\n",
+			zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "%s() locked:%u seconds:"ZBX_FS_DBL "\n",
 					func_profile->func_name, func_profile->locked, func_profile->sec);
 		}
 
