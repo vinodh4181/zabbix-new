@@ -126,7 +126,7 @@ static int	tm_try_task_close_problem(zbx_uint64_t taskid)
 				ZBX_STR2UINT64(eventid, row[1]);
 				tm_execute_task_close_problem(taskid, triggerid, eventid, userid);
 
-				DCconfig_unlock_triggers(&locked_triggerids);
+				DCconfig_unlock_triggers(&locked_triggerids, NULL);
 
 				ret = SUCCEED;
 			}
