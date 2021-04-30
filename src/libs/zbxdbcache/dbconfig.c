@@ -6316,6 +6316,7 @@ static void	DCget_host(DC_HOST *dst_host, const ZBX_DC_HOST *src_host, unsigned 
 	dst_host->hostid = src_host->hostid;
 	dst_host->proxy_hostid = src_host->proxy_hostid;
 	dst_host->status = src_host->status;
+
 	strscpy(dst_host->host, src_host->host);
 
 	if (ZBX_ITEM_GET_SYNC_WITH_HOSTNAME & mode)
@@ -6702,13 +6703,17 @@ static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned 
 
 	dst_item->type = src_item->type;
 	dst_item->value_type = src_item->value_type;
+
 	dst_item->state = src_item->state;
 	dst_item->lastlogsize = src_item->lastlogsize;
 	dst_item->mtime = src_item->mtime;
+
 	dst_item->history = src_item->history;
+
 	dst_item->inventory_link = src_item->inventory_link;
 	dst_item->valuemapid = src_item->valuemapid;
 	dst_item->status = src_item->status;
+
 	dst_item->history_sec = src_item->history_sec;
 	strscpy(dst_item->key_orig, src_item->key);
 
@@ -7215,7 +7220,7 @@ void	DCconfig_get_items_by_itemids_partial(DC_ITEM *items, const zbx_uint64_t *i
 {
 	size_t			i;
 	const ZBX_DC_ITEM	*dc_item;
-	const ZBX_DC_HOST	*dc_host;
+	const ZBX_DC_HOST	*dc_host = NULL;
 
 	memset(items, 0, sizeof(DC_ITEM) * (size_t)num);
 
@@ -7223,16 +7228,23 @@ void	DCconfig_get_items_by_itemids_partial(DC_ITEM *items, const zbx_uint64_t *i
 
 	for (i = 0; i < num; i++)
 	{
-		if (NULL == (dc_item = (ZBX_DC_ITEM *)zbx_hashset_search(&config->items, &itemids[i])) ||
-				NULL == (dc_host = (ZBX_DC_HOST *)zbx_hashset_search(&config->hosts, &dc_item->hostid)))
+		if (NULL == (dc_item = (ZBX_DC_ITEM *)zbx_hashset_search(&config->items, &itemids[i])))
 		{
 			errcodes[i] = FAIL;
 			continue;
 		}
 
+		if (NULL == dc_host || dc_host->hostid != dc_item->hostid)
+		{
+			if (NULL == (dc_host = (ZBX_DC_HOST *)zbx_hashset_search(&config->hosts, &dc_item->hostid)))
+			{
+				errcodes[i] = FAIL;
+				continue;
+			}
+		}
+
 		DCget_host(&items[i].host, dc_host, mode_host);
 		DCget_item(&items[i], dc_item, mode_item);
-		errcodes[i] = SUCCEED;
 	}
 
 	UNLOCK_CACHE;
@@ -11918,6 +11930,10 @@ void	zbx_dc_items_update_nextcheck(DC_ITEM *items, zbx_agent_value_t *values, in
 		if (FAIL == errcodes[i])
 			continue;
 
+		/* update nextcheck for items that are counted in queue for monitoring purposes */
+		if (FAIL == zbx_is_counted_in_item_queue(items[i].type, items[i].key_orig))
+			continue;
+
 		if (NULL == (dc_item = (ZBX_DC_ITEM *)zbx_hashset_search(&config->items, &items[i].itemid)))
 			continue;
 
@@ -11933,10 +11949,7 @@ void	zbx_dc_items_update_nextcheck(DC_ITEM *items, zbx_agent_value_t *values, in
 		if (ZBX_LOC_NOWHERE != dc_item->location)
 			continue;
 
-		/* update nextcheck for items that are counted in queue for monitoring purposes */
-		if (SUCCEED == zbx_is_counted_in_item_queue(dc_item->type, dc_item->key))
-			DCitem_nextcheck_update(dc_item, dc_host, items[i].state, ZBX_ITEM_COLLECTED, values[i].ts.sec,
-					NULL);
+		DCitem_nextcheck_update(dc_item, dc_host, items[i].state, ZBX_ITEM_COLLECTED, values[i].ts.sec, NULL);
 	}
 
 	UNLOCK_CACHE;
