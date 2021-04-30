@@ -6318,14 +6318,18 @@ static void	DCget_host(DC_HOST *dst_host, const ZBX_DC_HOST *src_host, unsigned 
 	dst_host->status = src_host->status;
 	strscpy(dst_host->host, src_host->host);
 
-	if (ZBX_ITEM_GET_SOME_WITH_HOSTNAME & mode)
+	if (ZBX_ITEM_GET_SYNC_WITH_HOSTNAME & mode)
 		zbx_strlcpy_utf8(dst_host->name, src_host->name, sizeof(dst_host->name));
 
-	if (ZBX_ITEM_GET_HOSTINFO & mode)
+	if (ZBX_ITEM_GET_MAINTENANCE & mode)
 	{
 		dst_host->maintenance_status = src_host->maintenance_status;
 		dst_host->maintenance_type = src_host->maintenance_type;
 		dst_host->maintenance_from = src_host->maintenance_from;
+	}
+
+	if (ZBX_ITEM_GET_HOSTINFO & mode)
+	{
 		dst_host->errors_from = src_host->errors_from;
 		dst_host->available = src_host->available;
 		dst_host->disable_until = src_host->disable_until;
@@ -6375,10 +6379,13 @@ static void	DCget_host(DC_HOST *dst_host, const ZBX_DC_HOST *src_host, unsigned 
 		}
 	}
 
-	if (NULL != (host_inventory = (ZBX_DC_HOST_INVENTORY *)zbx_hashset_search(&config->host_inventories, &src_host->hostid)))
-		dst_host->inventory_mode = (char)host_inventory->inventory_mode;
-	else
-		dst_host->inventory_mode = HOST_INVENTORY_DISABLED;
+	if (ZBX_ITEM_GET_INVENTORY & mode)
+	{
+		if (NULL != (host_inventory = (ZBX_DC_HOST_INVENTORY *)zbx_hashset_search(&config->host_inventories, &src_host->hostid)))
+			dst_host->inventory_mode = (char)host_inventory->inventory_mode;
+		else
+			dst_host->inventory_mode = HOST_INVENTORY_DISABLED;
+	}
 }
 
 /******************************************************************************
@@ -7200,7 +7207,7 @@ void	DCconfig_get_items_by_itemids(DC_ITEM *items, const zbx_uint64_t *itemids, 
 }
 
 void	DCconfig_get_items_by_itemids_partial(DC_ITEM *items, const zbx_uint64_t *itemids, int *errcodes, size_t num,
-		unsigned int mode_host)
+		unsigned int mode_item, unsigned int mode_host)
 {
 	size_t			i;
 	const ZBX_DC_ITEM	*dc_item;
@@ -7220,7 +7227,7 @@ void	DCconfig_get_items_by_itemids_partial(DC_ITEM *items, const zbx_uint64_t *i
 		}
 
 		DCget_host(&items[i].host, dc_host, mode_host);
-		DCget_item(&items[i], dc_item, ZBX_ITEM_GET_SOME);
+		DCget_item(&items[i], dc_item, mode_item);
 		errcodes[i] = SUCCEED;
 	}
 

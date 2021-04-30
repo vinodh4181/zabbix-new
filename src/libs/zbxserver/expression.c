@@ -5085,7 +5085,7 @@ static void	zbx_evaluate_item_functions(zbx_hashset_t *funcs, zbx_vector_ptr_t *
 		errcodes = (int *)zbx_malloc(errcodes, sizeof(int) * (size_t)itemids.values_num);
 
 		DCconfig_get_items_by_itemids_partial(items, itemids.values, errcodes, itemids.values_num,
-				ZBX_ITEM_GET_SOME);
+				ZBX_ITEM_GET_SYNC, ZBX_ITEM_GET_SYNC);
 	}
 
 	zbx_hashset_iter_reset(funcs, &iter);

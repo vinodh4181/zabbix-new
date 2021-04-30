@@ -663,10 +663,13 @@ zbx_uint64_t	DCget_nextid(const char *table_name, int num);
 #define ZBX_ITEM_GET_INTERFACE		0x40
 #define ZBX_ITEM_GET_HOSTNAME		0x80
 #define ZBX_ITEM_GET_HOSTINFO		0x100
+#define ZBX_ITEM_GET_MAINTENANCE	0x200
+#define ZBX_ITEM_GET_INVENTORY		0x400
 
 #define ZBX_ITEM_GET_ALL		(~(unsigned int)0)
-#define ZBX_ITEM_GET_SOME		0x00
-#define ZBX_ITEM_GET_SOME_WITH_HOSTNAME	(ZBX_ITEM_GET_HOSTNAME)
+
+#define ZBX_ITEM_GET_SYNC		ZBX_ITEM_GET_INVENTORY
+#define ZBX_ITEM_GET_SYNC_WITH_HOSTNAME	(ZBX_ITEM_GET_INVENTORY|ZBX_ITEM_GET_HOSTNAME)
 
 void	DCsync_configuration(unsigned char mode);
 int	init_configuration_cache(char **error);
@@ -681,7 +684,7 @@ void	DCconfig_get_hosts_by_itemids(DC_HOST *hosts, const zbx_uint64_t *itemids, 
 void	DCconfig_get_items_by_keys(DC_ITEM *items, zbx_host_key_t *keys, int *errcodes, size_t num);
 void	DCconfig_get_items_by_itemids(DC_ITEM *items, const zbx_uint64_t *itemids, int *errcodes, size_t num);
 void	DCconfig_get_items_by_itemids_partial(DC_ITEM *items, const zbx_uint64_t *itemids, int *errcodes, size_t num,
-		unsigned int mode_host);
+		unsigned int mode_item, unsigned int mode_host);
 void	DCconfig_get_preprocessable_items(zbx_hashset_t *items, int *timestamp);
 void	DCconfig_get_functions_by_functionids(DC_FUNCTION *functions,
 		zbx_uint64_t *functionids, int *errcodes, size_t num);

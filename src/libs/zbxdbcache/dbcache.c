@@ -2882,7 +2882,7 @@ static void	sync_server_history(int *values_num, int *triggers_num, int *more)
 	unsigned char			host_retrieve_mode;
 	extern char			*CONFIG_EXPORT_DIR;
 
-	host_retrieve_mode = NULL == CONFIG_EXPORT_DIR ? ZBX_ITEM_GET_SOME : ZBX_ITEM_GET_SOME_WITH_HOSTNAME;
+	host_retrieve_mode = NULL == CONFIG_EXPORT_DIR ? ZBX_ITEM_GET_SYNC : ZBX_ITEM_GET_SYNC_WITH_HOSTNAME;
 
 	if (NULL == history_float && NULL != history_float_cbs)
 	{
@@ -2979,7 +2979,7 @@ static void	sync_server_history(int *values_num, int *triggers_num, int *more)
 			zbx_vector_uint64_sort(&itemids, ZBX_DEFAULT_UINT64_COMPARE_FUNC);
 
 			DCconfig_get_items_by_itemids_partial(items, itemids.values, errcodes, history_num,
-					host_retrieve_mode);
+					ZBX_ITEM_GET_SYNC, host_retrieve_mode);
 
 			DCmass_prepare_history(history, &itemids, items, errcodes, history_num, &item_diff,
 					&inventory_values, compression_age, &proxy_subscribtions);
@@ -3087,7 +3087,6 @@ static void	sync_server_history(int *values_num, int *triggers_num, int *more)
 				if (ZBX_HC_SYNC_MIN_PCNT <= history_num * 100 / history_items.values_num)
 					*more = ZBX_SYNC_MORE;
 			}
-
 			UNLOCK_CACHE;
 
 			*values_num += history_num;
