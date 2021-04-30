@@ -6731,13 +6731,17 @@ static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned 
 	{
 		case ITEM_VALUE_TYPE_FLOAT:
 		case ITEM_VALUE_TYPE_UINT64:
-			numitem = (ZBX_DC_NUMITEM *)zbx_hashset_search(&config->numitems, &src_item->itemid);
+			if (0 != (ZBX_ITEM_GET_NUM & mode))
+			{
+				numitem = (ZBX_DC_NUMITEM *)zbx_hashset_search(&config->numitems, &src_item->itemid);
 
-			dst_item->trends = numitem->trends;
-			dst_item->trends_sec = numitem->trends_sec;
+				dst_item->trends = numitem->trends;
+				dst_item->trends_sec = numitem->trends_sec;
 
-			if (0 != (ZBX_ITEM_GET_UNITS & mode) || '\0' != *numitem->units)	/* allocate after lock */
-				dst_item->units = zbx_strdup(NULL, numitem->units);
+				/* allocate after lock */
+				if (0 != (ZBX_ITEM_GET_UNITS & mode) || '\0' != *numitem->units)
+					dst_item->units = zbx_strdup(NULL, numitem->units);
+			}
 			break;
 		case ITEM_VALUE_TYPE_LOG:
 			if (ZBX_ITEM_GET_LOGTIMEFMT & mode)
