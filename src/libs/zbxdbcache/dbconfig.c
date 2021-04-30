@@ -6308,7 +6308,7 @@ int	in_maintenance_without_data_collection(unsigned char maintenance_status, uns
 	return SUCCEED;
 }
 
-static void	DCget_host(DC_HOST *dst_host, const ZBX_DC_HOST *src_host, unsigned char mode)
+static void	DCget_host(DC_HOST *dst_host, const ZBX_DC_HOST *src_host, unsigned int mode)
 {
 	const ZBX_DC_IPMIHOST		*ipmihost;
 	const ZBX_DC_HOST_INVENTORY	*host_inventory;
@@ -6318,10 +6318,10 @@ static void	DCget_host(DC_HOST *dst_host, const ZBX_DC_HOST *src_host, unsigned 
 	dst_host->status = src_host->status;
 	strscpy(dst_host->host, src_host->host);
 
-	if (ZBX_ITEM_GET_SOME_WITH_HOSTNAME == mode || ZBX_ITEM_GET_ALL == mode)
+	if (ZBX_ITEM_GET_SOME_WITH_HOSTNAME & mode)
 		zbx_strlcpy_utf8(dst_host->name, src_host->name, sizeof(dst_host->name));
 
-	if (ZBX_ITEM_GET_ALL == mode)
+	if (ZBX_ITEM_GET_HOSTINFO & mode)
 	{
 		dst_host->maintenance_status = src_host->maintenance_status;
 		dst_host->maintenance_type = src_host->maintenance_type;
@@ -6676,7 +6676,7 @@ static void	DCget_interface(DC_INTERFACE *dst_interface, const ZBX_DC_INTERFACE 
 	dst_interface->port = 0;
 }
 
-static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned char mode)
+static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned int mode)
 {
 	const ZBX_DC_NUMITEM		*numitem;
 	const ZBX_DC_LOGITEM		*logitem;
@@ -6705,17 +6705,19 @@ static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned 
 	dst_item->history_sec = src_item->history_sec;
 	strscpy(dst_item->key_orig, src_item->key);
 
-	if (ZBX_ITEM_GET_ALL == mode)
+	if (ZBX_ITEM_GET_MISC & mode)
 	{
 		dst_item->itemid = src_item->itemid;			/* set after lock */
 		dst_item->flags = src_item->flags;
 		dst_item->nextcheck = src_item->nextcheck;
 		dst_item->lastclock = src_item->lastclock;
 		dst_item->key = NULL;					/* set during initialization */
-		dst_item->delay = zbx_strdup(NULL, src_item->delay);	/* not used, should be initialized */
 	}
 
-	if (ZBX_ITEM_GET_ALL == mode || '\0' != *src_item->error)		/* allocate after lock */
+	if (ZBX_ITEM_GET_DELAY & mode)
+		dst_item->delay = zbx_strdup(NULL, src_item->delay);	/* not used, should be initialized */
+
+	if ((ZBX_ITEM_GET_ERROR & mode) || '\0' != *src_item->error)		/* allocate after lock */
 		dst_item->error = zbx_strdup(NULL, src_item->error);
 
 	switch (src_item->value_type)
@@ -6727,11 +6729,11 @@ static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned 
 			dst_item->trends = numitem->trends;
 			dst_item->trends_sec = numitem->trends_sec;
 
-			if (ZBX_ITEM_GET_ALL == mode || '\0' != *numitem->units)	/* allocate after lock */
+			if (0 != (ZBX_ITEM_GET_UNITS & mode) || '\0' != *numitem->units)	/* allocate after lock */
 				dst_item->units = zbx_strdup(NULL, numitem->units);
 			break;
 		case ITEM_VALUE_TYPE_LOG:
-			if (ZBX_ITEM_GET_ALL == mode)
+			if (ZBX_ITEM_GET_LOGTIMEFMT & mode)
 			{
 				if (NULL != (logitem = (ZBX_DC_LOGITEM *)zbx_hashset_search(&config->logitems,
 						&src_item->itemid)))
@@ -6785,7 +6787,7 @@ static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned 
 			dst_item->snmpv3_contextname = NULL;
 			break;
 		case ITEM_TYPE_TRAPPER:
-			if (ZBX_ITEM_GET_ALL == mode)	/* not used by history syncer */
+			if (ZBX_ITEM_GET_POLLINFO & mode)	/* not used by history syncer */
 			{
 				if (NULL != (trapitem = (ZBX_DC_TRAPITEM *)zbx_hashset_search(&config->trapitems,
 						&src_item->itemid)))
@@ -6960,7 +6962,7 @@ static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned 
 			/* nothing to do */;
 	}
 
-	if (ZBX_ITEM_GET_ALL == mode)	/* not used by history syncer */
+	if (ZBX_ITEM_GET_INTERFACE & mode)	/* not used by history syncer */
 	{
 		dc_interface = (ZBX_DC_INTERFACE *)zbx_hashset_search(&config->interfaces, &src_item->interfaceid);
 
@@ -7198,7 +7200,7 @@ void	DCconfig_get_items_by_itemids(DC_ITEM *items, const zbx_uint64_t *itemids, 
 }
 
 void	DCconfig_get_items_by_itemids_partial(DC_ITEM *items, const zbx_uint64_t *itemids, int *errcodes, size_t num,
-		unsigned char mode_host)
+		unsigned int mode_host)
 {
 	size_t			i;
 	const ZBX_DC_ITEM	*dc_item;
