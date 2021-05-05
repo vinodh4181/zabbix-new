@@ -61,7 +61,6 @@ typedef enum
 zbx_rwlock_name_t;
 
 #ifdef HAVE_PTHREAD_PROCESS_SHARED
-extern void	*zbx_func_profile;
 #	define ZBX_MUTEX_NULL			NULL
 #	define ZBX_RWLOCK_NULL			NULL
 

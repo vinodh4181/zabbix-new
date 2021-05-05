@@ -6762,6 +6762,16 @@ static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned 
 			break;
 	}
 
+	if (ZBX_ITEM_GET_INTERFACE & mode)	/* not used by history syncer */
+	{
+		dc_interface = (ZBX_DC_INTERFACE *)zbx_hashset_search(&config->interfaces, &src_item->interfaceid);
+
+		DCget_interface(&dst_item->interface, dc_interface);
+	}
+
+	if (0 == (ZBX_ITEM_GET_POLLINFO & mode))	/* not used by history syncer */
+		return;
+
 	switch (src_item->type)
 	{
 		case ITEM_TYPE_SNMP:
@@ -6803,16 +6813,13 @@ static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned 
 			dst_item->snmpv3_contextname = NULL;
 			break;
 		case ITEM_TYPE_TRAPPER:
-			if (ZBX_ITEM_GET_POLLINFO & mode)	/* not used by history syncer */
+			if (NULL != (trapitem = (ZBX_DC_TRAPITEM *)zbx_hashset_search(&config->trapitems,
+					&src_item->itemid)))
 			{
-				if (NULL != (trapitem = (ZBX_DC_TRAPITEM *)zbx_hashset_search(&config->trapitems,
-						&src_item->itemid)))
-				{
-					strscpy(dst_item->trapper_hosts, trapitem->trapper_hosts);
-				}
-				else
-					*dst_item->trapper_hosts = '\0';
+				strscpy(dst_item->trapper_hosts, trapitem->trapper_hosts);
 			}
+			else
+				*dst_item->trapper_hosts = '\0';
 			break;
 		case ITEM_TYPE_IPMI:
 			if (NULL != (ipmiitem = (ZBX_DC_IPMIITEM *)zbx_hashset_search(&config->ipmiitems, &src_item->itemid)))
@@ -6976,13 +6983,6 @@ static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned 
 			break;
 		default:
 			/* nothing to do */;
-	}
-
-	if (ZBX_ITEM_GET_INTERFACE & mode)	/* not used by history syncer */
-	{
-		dc_interface = (ZBX_DC_INTERFACE *)zbx_hashset_search(&config->interfaces, &src_item->interfaceid);
-
-		DCget_interface(&dst_item->interface, dc_interface);
 	}
 }
 

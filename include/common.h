@@ -1106,6 +1106,8 @@ void	zbx_prof_end(void *func_profile);
 void	zbx_prof_end_processing(void *func_profile);
 void	zbx_reset_prof(void);
 
+extern void	*zbx_func_profile;
+
 #if defined(__GNUC__) || defined(__clang__)
 #	define __zbx_attr_format_printf(idx1, idx2) __attribute__((__format__(__printf__, (idx1), (idx2))))
 #else
