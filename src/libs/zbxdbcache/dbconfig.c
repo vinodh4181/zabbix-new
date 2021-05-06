@@ -6319,7 +6319,7 @@ static void	DCget_host(DC_HOST *dst_host, const ZBX_DC_HOST *src_host, unsigned 
 
 	strscpy(dst_host->host, src_host->host);
 
-	if (ZBX_ITEM_GET_SYNC_WITH_HOSTNAME & mode)
+	if (ZBX_ITEM_GET_HOSTNAME & mode)
 		zbx_strlcpy_utf8(dst_host->name, src_host->name, sizeof(dst_host->name));
 
 	if (ZBX_ITEM_GET_MAINTENANCE & mode)
@@ -6729,7 +6729,7 @@ static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned 
 	if (ZBX_ITEM_GET_DELAY & mode)
 		dst_item->delay = zbx_strdup(NULL, src_item->delay);	/* not used, should be initialized */
 
-	if ((ZBX_ITEM_GET_ERROR & mode) || '\0' != *src_item->error)		/* allocate after lock */
+	if ((ZBX_ITEM_GET_EMPTY_ERROR & mode) || '\0' != *src_item->error)		/* allocate after lock */
 		dst_item->error = zbx_strdup(NULL, src_item->error);
 
 	switch (src_item->value_type)
@@ -6744,7 +6744,7 @@ static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned 
 				dst_item->trends_sec = numitem->trends_sec;
 
 				/* allocate after lock */
-				if (0 != (ZBX_ITEM_GET_UNITS & mode) || '\0' != *numitem->units)
+				if (0 != (ZBX_ITEM_GET_EMPTY_UNITS & mode) || '\0' != *numitem->units)
 					dst_item->units = zbx_strdup(NULL, numitem->units);
 			}
 			break;
@@ -7216,7 +7216,7 @@ void	DCconfig_get_items_by_itemids(DC_ITEM *items, const zbx_uint64_t *itemids, 
 }
 
 void	DCconfig_get_items_by_itemids_partial(DC_ITEM *items, const zbx_uint64_t *itemids, int *errcodes, size_t num,
-		unsigned int mode_item, unsigned int mode_host)
+		unsigned int mode)
 {
 	size_t			i;
 	const ZBX_DC_ITEM	*dc_item;
@@ -7244,8 +7244,8 @@ void	DCconfig_get_items_by_itemids_partial(DC_ITEM *items, const zbx_uint64_t *i
 			}
 		}
 
-		DCget_host(&items[i].host, dc_host, mode_host);
-		DCget_item(&items[i], dc_item, mode_item);
+		DCget_host(&items[i].host, dc_host, mode);
+		DCget_item(&items[i], dc_item, mode);
 	}
 
 	UNLOCK_CACHE;

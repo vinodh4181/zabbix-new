@@ -656,9 +656,9 @@ zbx_uint64_t	DCget_nextid(const char *table_name, int num);
 
 #define ZBX_ITEM_GET_MISC		0x001
 #define ZBX_ITEM_GET_DELAY		0x002
-#define ZBX_ITEM_GET_ERROR		0x004
+#define ZBX_ITEM_GET_EMPTY_ERROR	0x004
 #define ZBX_ITEM_GET_NUM		0x008
-#define ZBX_ITEM_GET_UNITS		0x010
+#define ZBX_ITEM_GET_EMPTY_UNITS	0x010
 #define ZBX_ITEM_GET_LOGTIMEFMT		0x020
 #define ZBX_ITEM_GET_POLLINFO		0x040
 #define ZBX_ITEM_GET_INTERFACE		0x080
@@ -667,15 +667,12 @@ zbx_uint64_t	DCget_nextid(const char *table_name, int num);
 #define ZBX_ITEM_GET_MAINTENANCE	0x400
 #define ZBX_ITEM_GET_INVENTORY		0x800
 
-
-#define ZBX_ITEM_GET_ALL		(~(unsigned int)0)
+#define ZBX_ITEM_GET_ALL			(~(unsigned int)0)
 
 #define ZBX_ITEM_GET_SYNC			(ZBX_ITEM_GET_INVENTORY|ZBX_ITEM_GET_NUM)
-#define ZBX_ITEM_GET_SYNC_WITH_HOSTNAME		(ZBX_ITEM_GET_NUM|ZBX_ITEM_GET_INVENTORY|ZBX_ITEM_GET_HOSTNAME)
+#define ZBX_ITEM_GET_SYNC_EXPORT		(ZBX_ITEM_GET_NUM|ZBX_ITEM_GET_INVENTORY|ZBX_ITEM_GET_HOSTNAME)
 
-#define ZBX_ITEM_GET_PROCESS_HOST		ZBX_ITEM_GET_MAINTENANCE
-#define ZBX_ITEM_GET_PROCESS			ZBX_ITEM_GET_MISC
-
+#define ZBX_ITEM_GET_PROCESS			(ZBX_ITEM_GET_MAINTENANCE|ZBX_ITEM_GET_MISC|ZBX_ITEM_GET_LOGTIMEFMT)
 
 void	DCsync_configuration(unsigned char mode);
 int	init_configuration_cache(char **error);
@@ -690,7 +687,7 @@ void	DCconfig_get_hosts_by_itemids(DC_HOST *hosts, const zbx_uint64_t *itemids, 
 void	DCconfig_get_items_by_keys(DC_ITEM *items, zbx_host_key_t *keys, int *errcodes, size_t num);
 void	DCconfig_get_items_by_itemids(DC_ITEM *items, const zbx_uint64_t *itemids, int *errcodes, size_t num);
 void	DCconfig_get_items_by_itemids_partial(DC_ITEM *items, const zbx_uint64_t *itemids, int *errcodes, size_t num,
-		unsigned int mode_item, unsigned int mode_host);
+		unsigned int mode);
 void	DCconfig_get_preprocessable_items(zbx_hashset_t *items, int *timestamp);
 void	DCconfig_get_functions_by_functionids(DC_FUNCTION *functions,
 		zbx_uint64_t *functionids, int *errcodes, size_t num);
