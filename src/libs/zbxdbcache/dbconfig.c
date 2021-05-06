@@ -6813,11 +6813,8 @@ static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned 
 			dst_item->snmpv3_contextname = NULL;
 			break;
 		case ITEM_TYPE_TRAPPER:
-			if (NULL != (trapitem = (ZBX_DC_TRAPITEM *)zbx_hashset_search(&config->trapitems,
-					&src_item->itemid)))
-			{
+			if (NULL != (trapitem = (ZBX_DC_TRAPITEM *)zbx_hashset_search(&config->trapitems, &src_item->itemid)))
 				strscpy(dst_item->trapper_hosts, trapitem->trapper_hosts);
-			}
 			else
 				*dst_item->trapper_hosts = '\0';
 			break;
