@@ -78,18 +78,34 @@ void	zbx_print_prof(void)
 		static char		*sql = NULL;
 		static size_t		sql_alloc;
 		size_t			sql_offset = 0;
+		double			total_wait_lock = 0, total_busy_lock = 0;
 
 		for (i = 0; i < zbx_func_profiles.values_num; i++)
 		{
 			func_profile = zbx_func_profiles.values[i];
-			zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "%s() locked:%u busy:"ZBX_FS_DBL
-					" wait:"ZBX_FS_DBL "\n",
-					func_profile->func_name, func_profile->locked,
-					func_profile->sec_processing - func_profile->sec, func_profile->sec);
+
+			if (0 == func_profile->sec_processing)
+			{
+				zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "%s() busy:" ZBX_FS_DBL "\n",
+						func_profile->func_name, func_profile->sec);
+			}
+			else
+			{
+				zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "%s() locked:%u busy:" ZBX_FS_DBL
+						" wait:"ZBX_FS_DBL "\n",
+						func_profile->func_name, func_profile->locked,
+						func_profile->sec_processing - func_profile->sec, func_profile->sec);
+				total_wait_lock += func_profile->sec;
+				total_busy_lock += func_profile->sec_processing - func_profile->sec;
+			}
 		}
 
 		if (0 != sql_offset)
-			zabbix_log(LOG_LEVEL_INFORMATION, "Mutex contention: %s", sql);
+		{
+			zabbix_log(LOG_LEVEL_INFORMATION, "Profiling information: %s", sql);
+			zabbix_log(LOG_LEVEL_INFORMATION, "Time spent holding locks:" ZBX_FS_DBL
+					" Time spent waiting for locks:" ZBX_FS_DBL "\n", total_busy_lock, total_wait_lock);
+		}
 	}
 	else
 		zbx_reset_prof();
