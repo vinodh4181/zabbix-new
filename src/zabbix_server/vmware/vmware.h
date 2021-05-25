@@ -59,12 +59,15 @@ typedef struct
 	/* the counter id */
 	zbx_uint64_t			counterid;
 
+	/* instances name */
+	zbx_vector_str_t		instances;
+
 	/* the counter values for various instances */
 	/*    pair->name  - instance                */
 	/*    pair->value - value                   */
 	zbx_vector_str_uint64_pair_t	values;
 
-	/* the counter state, see ZBX_VMAWRE_COUNTER_* defines */
+	/* the counter state, see ZBX_VMWARE_COUNTER_* defines */
 	unsigned char			state;
 }
 zbx_vmware_perf_counter_t;
@@ -86,9 +89,6 @@ typedef struct
 
 	/* the performance counters to monitor */
 	zbx_vector_ptr_t	counters;
-
-	/* the performance counter query instance name */
-	char			*query_instance;
 
 	/* error information */
 	char			*error;

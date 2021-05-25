@@ -865,6 +865,8 @@ static void	vmware_vector_str_uint64_pair_shared_clean(zbx_vector_str_uint64_pai
  ******************************************************************************/
 static void	vmware_perf_counter_shared_free(zbx_vmware_perf_counter_t *counter)
 {
+	zbx_vector_str_clear_ext(&counter->instances, vmware_shared_strfree);
+	zbx_vector_str_destroy(&counter->instances);
 	vmware_vector_str_uint64_pair_shared_clean(&counter->values);
 	zbx_vector_str_uint64_pair_destroy(&counter->values);
 	__vm_mem_free_func(counter);
@@ -1167,7 +1169,6 @@ static void	vmware_shared_perf_entity_clean(zbx_vmware_perf_entity_t *entity)
 	zbx_vector_ptr_clear_ext(&entity->counters, (zbx_mem_free_func_t)vmware_perf_counter_shared_free);
 	zbx_vector_ptr_destroy(&entity->counters);
 
-	vmware_shared_strfree(entity->query_instance);
 	vmware_shared_strfree(entity->type);
 	vmware_shared_strfree(entity->id);
 	vmware_shared_strfree(entity->error);
@@ -4545,6 +4546,8 @@ static void	vmware_counters_add_new(zbx_vector_ptr_t *counters, zbx_uint64_t cou
 	counter->counterid = counterid;
 	counter->state = ZBX_VMWARE_COUNTER_NEW;
 
+	zbx_vector_str_create_ext(&counter->instances, __vm_mem_malloc_func, __vm_mem_realloc_func,
+			__vm_mem_free_func);
 	zbx_vector_str_uint64_pair_create_ext(&counter->values, __vm_mem_malloc_func, __vm_mem_realloc_func,
 			__vm_mem_free_func);
 
@@ -4617,6 +4620,127 @@ out:
 
 /******************************************************************************
  *                                                                            *
+ * Function: vmware_counter_instance_add                                      *
+ *                                                                            *
+ * Purpose: try to add perfCounter instance name to list of instances         *
+ *                                                                            *
+ * Parameters: counter  - [IN/OUT] the performance counter                    *
+ *             instance - [IN] the the perfCounter instance name              *
+ *                                                                            *
+ * Return value: SUCCEED - the operation has completed successfully           *
+ *               FAIL    - the operation has failed                           *
+ *                                                                            *
+ ******************************************************************************/
+static int	vmware_counter_instance_add(zbx_vmware_perf_counter_t * counter, const char *instance)
+{
+	if (FAIL != zbx_vector_str_bsearch(&counter->instances, instance, ZBX_DEFAULT_STR_COMPARE_FUNC))
+		return FAIL;
+
+	zbx_vector_str_append(&counter->instances, vmware_shared_strdup(instance));
+	zbx_vector_str_sort(&counter->instances, ZBX_DEFAULT_STR_COMPARE_FUNC);
+
+	return SUCCEED;
+}
+
+/******************************************************************************
+ *                                                                            *
+ * Function: vmware_discovered_counter_instances_get                          *
+ *                                                                            *
+ * Purpose: collecting all discovered perfCounter instance names for          *
+ *          ds, hv and vm entity                                              *
+ *                                                                            *
+ * Parameters: data         - [IN] the vmware discovered data                 *
+ *             type         - [IN] the performance entity type (HostSystem,   *
+ *                                 Datastore, VirtualMachine...)              *
+ *             uuid         - [IN] the performance entity uuid                *
+ *             counter      - [IN] the performance counter to be monitored    *
+ *                                 for this entity                            *
+ *             def_instance - [IN] default performance counter instance name  *
+ *             instances    - [OUT] the performance counter instance names    *
+ *                                                                            *
+ * Return value: SUCCEED - the operation has completed successfully           *
+ *               FAIL    - the operation has failed                           *
+ *                                                                            *
+ ******************************************************************************/
+static int	vmware_discovered_counter_instances_get(zbx_vmware_data_t *data, const char *type,
+		const char *uuid, const char *counter, const char *def_instance, zbx_vector_str_t *instances)
+{
+	char	pfc_type[20], *d;
+	int	i;
+
+	zabbix_log(LOG_LEVEL_DEBUG, "In %s() type:%s counter:%s", __func__, type, counter);
+
+	if (NULL == (d = strchr(counter, '/')))
+		return FAIL;
+
+	zbx_strlcpy(pfc_type, counter, (int)(d - counter));
+
+	if (0 == strcmp("Datastore", type))
+	{
+		zbx_vector_str_append(instances, vmware_shared_strdup(def_instance));	/* disk */
+	}
+	else if (0 == strcmp("HostSystem", type))
+	{
+		if (0 == strcmp("datastore", pfc_type))
+		{
+			zbx_vmware_hv_t	*hv, hv_local = {.uuid = (char *)uuid};
+
+			hv = (zbx_vmware_hv_t *)zbx_hashset_search(&data->hvs, &hv_local);
+
+			for (i = 0; i < hv->ds_names.values_num; i++)
+			{
+				int			j;
+				zbx_vmware_datastore_t	ds_cmp = {.name = hv->ds_names.values[i]};
+
+				if (FAIL == (j = zbx_vector_vmware_datastore_bsearch(&data->datastores, &ds_cmp,
+						vmware_ds_name_compare)))
+				{
+					return FAIL;
+				}
+
+				zbx_vector_str_append(instances,
+						vmware_shared_strdup(data->datastores.values[j]->uuid));
+			}
+
+		}
+		else	/* net */
+			zbx_vector_str_append(instances, vmware_shared_strdup(def_instance));
+	}
+	else if (0 == strcmp("VirtualMachine", type))
+	{
+		zbx_vmware_vm_t		vm_local = {.uuid = (char *)uuid}, *vm;
+		zbx_vmware_vm_index_t	vmi_local = {&vm_local, NULL}, *vmi;
+
+		if (0 == strcmp("virtualDisk", pfc_type) || 0 == strcmp("net", pfc_type))
+		{
+			zbx_vmware_dev_t	*dev;
+			int			dev_type;
+
+			if (NULL != (vmi = (zbx_vmware_vm_index_t *)zbx_hashset_search(&data->vms_index, &vmi_local)))
+				return FAIL;
+
+			vm = vmi->vm;
+			dev_type = 0 == strcmp("net", pfc_type) ? ZBX_VMWARE_DEV_TYPE_NIC : ZBX_VMWARE_DEV_TYPE_DISK;
+
+			for (i = 0; i < vm->devs.values_num; i++)
+			{
+				dev = (zbx_vmware_dev_t *)vm->devs.values[i];
+
+				if (dev_type == dev->type)
+					zbx_vector_str_append(instances, vmware_shared_strdup(dev->instance));
+			}
+		}
+		else	/* cpu */
+			zbx_vector_str_append(instances, vmware_shared_strdup(def_instance));
+	}
+
+	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() instances:%d", __func__, instances->values_num);
+
+	return 0 != instances->values_num ? SUCCEED : FAIL;
+}
+
+/******************************************************************************
+ *                                                                            *
  * Function: vmware_service_add_perf_entity                                   *
  *                                                                            *
  * Purpose: adds entity to vmware service performance entity list             *
@@ -4625,6 +4749,7 @@ out:
  *             type     - [IN] the performance entity type (HostSystem,       *
  *                             (Datastore, VirtualMachine...)                 *
  *             id       - [IN] the performance entity id                      *
+ *             uuid     - [IN] the performance entity uuid                    *
  *             counters - [IN] NULL terminated list of performance counters   *
  *                             to be monitored for this entity                *
  *             instance - [IN] the performance counter instance name          *
@@ -4635,11 +4760,12 @@ out:
  *                                                                            *
  ******************************************************************************/
 static void	vmware_service_add_perf_entity(zbx_vmware_service_t *service, const char *type, const char *id,
-		const char **counters, const char *instance, int now)
+		 const char *uuid, const char **counters, const char *instance, int now)
 {
 	zbx_vmware_perf_entity_t	entity, *pentity;
+	zbx_vector_str_t		instances;
 	zbx_uint64_t			counterid;
-	int				i;
+	int				i, index;
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() type:%s id:%s", __func__, type, id);
 
@@ -4663,10 +4789,45 @@ static void	vmware_service_add_perf_entity(zbx_vmware_service_t *service, const 
 
 		zbx_vector_ptr_sort(&pentity->counters, ZBX_DEFAULT_UINT64_PTR_COMPARE_FUNC);
 		pentity->refresh = ZBX_VMWARE_PERF_INTERVAL_UNKNOWN;
-		pentity->query_instance = vmware_shared_strdup(instance);
 		pentity->error = NULL;
 	}
 
+	zbx_vector_str_create(&instances);
+
+	for (i = 0; NULL != counters[i]; i++)
+	{
+		zbx_vmware_perf_counter_t	*perfcounter;
+
+		if (SUCCEED != zbx_vmware_service_get_counterid(service, counters[i], &counterid))
+		{
+			zabbix_log(LOG_LEVEL_DEBUG, "cannot find performance counter %s", counters[i]);
+			continue;
+		}
+
+		if (FAIL == (index = zbx_vector_ptr_bsearch(&pentity->counters, &counterid,
+				ZBX_DEFAULT_UINT64_PTR_COMPARE_FUNC)))
+		{
+			zabbix_log(LOG_LEVEL_DEBUG, "not initialized performance counter %s", counters[i]);
+			continue;
+		}
+
+		perfcounter = (zbx_vmware_perf_counter_t *)pentity->counters.values[index];
+
+		if (SUCCEED != vmware_discovered_counter_instances_get(service->data, type, uuid, counters[i],
+				instance, &instances))
+		{
+			zabbix_log(LOG_LEVEL_DEBUG, "not instances for performance counter %s", counters[i]);
+			continue;
+		}
+
+		zabbix_log(LOG_LEVEL_DEBUG, "entity:%s counter:%s instances:%d", id, counters[i], instances.values_num);
+		zbx_vector_str_clear_ext(&perfcounter->instances, vmware_shared_strfree);
+		zbx_vector_str_append_array(&perfcounter->instances, instances.values, instances.values_num);
+		zbx_vector_str_clear(&instances);
+	}
+
+	zbx_vector_str_clear_ext(&instances, vmware_shared_strfree);
+	zbx_vector_str_destroy(&instances);
 	pentity->last_seen = now;
 
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() perfcounters:%d", __func__, pentity->counters.values_num);
@@ -4690,7 +4851,6 @@ static void	vmware_service_update_perf_entities(zbx_vmware_service_t *service)
 	zbx_hashset_iter_t	iter;
 
 	const char			*hv_perfcounters[] = {
-						"net/packetsRx[summation]", "net/packetsTx[summation]",
 						"net/received[average]", "net/transmitted[average]",
 						"datastore/totalReadLatency[average]",
 						"datastore/totalWriteLatency[average]", NULL
@@ -4715,13 +4875,14 @@ static void	vmware_service_update_perf_entities(zbx_vmware_service_t *service)
 	zbx_hashset_iter_reset(&service->data->hvs, &iter);
 	while (NULL != (hv = (zbx_vmware_hv_t *)zbx_hashset_iter_next(&iter)))
 	{
-		vmware_service_add_perf_entity(service, "HostSystem", hv->id, hv_perfcounters, "*", service->lastcheck);
+		vmware_service_add_perf_entity(service, "HostSystem", hv->id, hv->uuid, hv_perfcounters, "",
+				service->lastcheck);
 
 		for (i = 0; i < hv->vms.values_num; i++)
 		{
 			vm = (zbx_vmware_vm_t *)hv->vms.values[i];
-			vmware_service_add_perf_entity(service, "VirtualMachine", vm->id, vm_perfcounters, "*",
-					service->lastcheck);
+			vmware_service_add_perf_entity(service, "VirtualMachine", vm->id, vm->uuid, vm_perfcounters,
+					"", service->lastcheck);
 			zabbix_log(LOG_LEVEL_TRACE, "%s() for type: VirtualMachine hv id: %s hv uuid: %s linked vm id:"
 					" %s vm uuid: %s", __func__, hv->id, hv->uuid, vm->id, vm->uuid);
 		}
@@ -4732,7 +4893,7 @@ static void	vmware_service_update_perf_entities(zbx_vmware_service_t *service)
 		for (i = 0; i < service->data->datastores.values_num; i++)
 		{
 			zbx_vmware_datastore_t	*ds = service->data->datastores.values[i];
-			vmware_service_add_perf_entity(service, "Datastore", ds->id, ds_perfcounters, "",
+			vmware_service_add_perf_entity(service, "Datastore", ds->id, ds->uuid, ds_perfcounters, "",
 					service->lastcheck);
 			zabbix_log(LOG_LEVEL_TRACE, "%s() for type: Datastore id: %s name: %s uuid: %s", __func__,
 					ds->id, ds->name, ds->uuid);
@@ -5332,13 +5493,17 @@ static void	vmware_service_retrieve_perf_counters(zbx_vmware_service_t *service,
 			for (j = start_counter; j < entity->counters.values_num && counters_num < counters_max; j++)
 			{
 				zbx_vmware_perf_counter_t	*counter;
+				int				k;
 
 				counter = (zbx_vmware_perf_counter_t *)entity->counters.values[j];
 
-				zbx_snprintf_alloc(&tmp, &tmp_alloc, &tmp_offset,
+				for (k = 0; k < counter->instances.values_num; k++)
+				{
+					zbx_snprintf_alloc(&tmp, &tmp_alloc, &tmp_offset,
 						"<ns0:metricId><ns0:counterId>" ZBX_FS_UI64
 						"</ns0:counterId><ns0:instance>%s</ns0:instance></ns0:metricId>",
-						counter->counterid, entity->query_instance);
+						counter->counterid, counter->instances.values[k]);
+				}
 
 				counter->state |= ZBX_VMWARE_COUNTER_UPDATING;
 
@@ -5738,7 +5903,8 @@ int	zbx_vmware_service_add_perf_counter(zbx_vmware_service_t *service, const cha
 		zbx_uint64_t counterid, const char *instance)
 {
 	zbx_vmware_perf_entity_t	*pentity, entity;
-	int				ret = FAIL;
+	zbx_vmware_perf_counter_t	*counter;
+	int				index, ret = FAIL;
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() type:%s id:%s counterid:" ZBX_FS_UI64, __func__, type, id,
 			counterid);
@@ -5747,7 +5913,6 @@ int	zbx_vmware_service_add_perf_counter(zbx_vmware_service_t *service, const cha
 	{
 		entity.refresh = ZBX_VMWARE_PERF_INTERVAL_UNKNOWN;
 		entity.last_seen = 0;
-		entity.query_instance = vmware_shared_strdup(instance);
 		entity.type = vmware_shared_strdup(type);
 		entity.id = vmware_shared_strdup(id);
 		entity.error = NULL;
@@ -5758,13 +5923,15 @@ int	zbx_vmware_service_add_perf_counter(zbx_vmware_service_t *service, const cha
 				sizeof(zbx_vmware_perf_entity_t));
 	}
 
-	if (FAIL == zbx_vector_ptr_search(&pentity->counters, &counterid, ZBX_DEFAULT_UINT64_PTR_COMPARE_FUNC))
+	if (FAIL == (index = zbx_vector_ptr_search(&pentity->counters, &counterid, ZBX_DEFAULT_UINT64_PTR_COMPARE_FUNC)))
 	{
 		vmware_counters_add_new(&pentity->counters, counterid);
 		zbx_vector_ptr_sort(&pentity->counters, ZBX_DEFAULT_UINT64_PTR_COMPARE_FUNC);
-
-		ret = SUCCEED;
+		index = zbx_vector_ptr_search(&pentity->counters, &counterid, ZBX_DEFAULT_UINT64_PTR_COMPARE_FUNC);
 	}
+
+	counter = (zbx_vmware_perf_counter_t *)pentity->counters.values[index];
+	ret = vmware_counter_instance_add(counter, instance);
 
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s():%s", __func__, zbx_result_string(ret));
 
