@@ -4637,7 +4637,7 @@ out:
  ******************************************************************************/
 static int	vmware_counter_userinstance_add(zbx_vmware_perf_counter_t * counter, const char *instance)
 {
-	if (SUCCEED == zbx_vector_str_bsearch(&counter->user_instances, instance, ZBX_DEFAULT_STR_COMPARE_FUNC))
+	if (FAIL != zbx_vector_str_bsearch(&counter->user_instances, instance, ZBX_DEFAULT_STR_COMPARE_FUNC))
 		return FAIL;
 
 	zbx_vector_str_append(&counter->user_instances, vmware_shared_strdup(instance));
@@ -4648,6 +4648,10 @@ static int	vmware_counter_userinstance_add(zbx_vmware_perf_counter_t * counter, 
 		zbx_vector_str_append(&counter->instances, vmware_shared_strdup(instance));
 		zbx_vector_str_sort(&counter->instances, ZBX_DEFAULT_STR_COMPARE_FUNC);
 	}
+
+	zabbix_log(LOG_LEVEL_DEBUG, "%s() counterid:" ZBX_FS_UI64 " instances:%d user_instances:%d instance:%s",
+			__func__, counter->counterid, counter->instances.values_num,
+			counter->user_instances.values_num, instance);
 
 	return SUCCEED;
 }
@@ -4680,10 +4684,11 @@ static void	vmware_counter_userinstance_merge(zbx_vmware_perf_counter_t * counte
 
 	zbx_vector_str_append_array(&counter->instances, tmp.values, tmp.values_num);
 	zbx_vector_str_sort(&counter->instances, ZBX_DEFAULT_STR_COMPARE_FUNC);
+	zabbix_log(LOG_LEVEL_DEBUG, "%s() counterid:" ZBX_FS_UI64 " instances:%d user_instances:%d added:%d", __func__,
+			counter->counterid, counter->instances.values_num, counter->user_instances.values_num,
+			tmp.values_num);
 	zbx_vector_str_clear(&tmp);
 	zbx_vector_str_destroy(&tmp);
-
-	return;
 }
 
 /******************************************************************************
@@ -4865,11 +4870,14 @@ static void	vmware_service_add_perf_entity(zbx_vmware_service_t *service, const 
 			continue;
 		}
 
-		zabbix_log(LOG_LEVEL_DEBUG, "entity:%s counter:%s instances:%d", id, counters[i], instances.values_num);
 		zbx_vector_str_clear_ext(&perfcounter->instances, vmware_shared_strfree);
 		zbx_vector_str_append_array(&perfcounter->instances, instances.values, instances.values_num);
 		zbx_vector_str_clear(&instances);
-		vmware_counter_userinstance_merge(perfcounter);
+		zabbix_log(LOG_LEVEL_DEBUG, "entity:%s counter:%s instances:%d user_instances:%d", id, counters[i],
+				perfcounter->instances.values_num, perfcounter->user_instances.values_num);
+
+		if (0 != perfcounter->user_instances.values_num)
+			vmware_counter_userinstance_merge(perfcounter);
 	}
 
 	zbx_vector_str_clear_ext(&instances, vmware_shared_strfree);
