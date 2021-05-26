@@ -59,8 +59,11 @@ typedef struct
 	/* the counter id */
 	zbx_uint64_t			counterid;
 
-	/* instances name */
+	/* instance names */
 	zbx_vector_str_t		instances;
+
+	/* user instance names */
+	zbx_vector_str_t		user_instances;
 
 	/* the counter values for various instances */
 	/*    pair->name  - instance                */
