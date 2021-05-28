@@ -4629,7 +4629,7 @@ out:
  * Purpose: try to add perfCounter instance name to list of instances         *
  *                                                                            *
  * Parameters: counter  - [IN/OUT] the performance counter                    *
- *             instance - [IN] the the perfCounter instance name              *
+ *             instance - [IN] the perfCounter instance name                  *
  *                                                                            *
  * Return value: SUCCEED - the operation has completed successfully           *
  *               FAIL    - the operation has failed                           *
@@ -4722,7 +4722,7 @@ static int	vmware_discovered_counter_instances_get(zbx_vmware_data_t *data, cons
 	if (NULL == (d = strchr(counter, '/')))
 		return FAIL;
 
-	zbx_strlcpy(pfc_group, counter, (int)(d - counter) + 1);
+	zbx_strlcpy(pfc_group, counter, (size_t)(d - counter) + 1);
 
 	if (0 == strcmp("Datastore", type))
 	{
@@ -5958,7 +5958,7 @@ int	zbx_vmware_service_add_perf_counter(zbx_vmware_service_t *service, const cha
 {
 	zbx_vmware_perf_entity_t	*pentity, entity;
 	zbx_vmware_perf_counter_t	*counter;
-	int				index, ret = FAIL;
+	int				index, ret;
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() type:%s id:%s counterid:" ZBX_FS_UI64, __func__, type, id,
 			counterid);
