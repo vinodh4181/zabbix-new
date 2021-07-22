@@ -2180,12 +2180,11 @@ static void	escalation_cancel(DB_ESCALATION *escalation, const DB_ACTION *action
 	/* the cancellation notification can be sent if no objects are deleted */
 	if (NULL != action && NULL != event && 0 != event->trigger.triggerid && 0 != escalation->esc_step)
 	{
-		if (NULL == event || EVENT_SOURCE_TRIGGERS != event->source || SUCCEED == esc_register(esc_registry,
+		if (EVENT_SOURCE_TRIGGERS != event->source || SUCCEED == esc_register(esc_registry,
 				escalation->actionid, event->trigger.triggerid, 0, ZBX_ESCALATION_REGISTRY_TTL))
 		{
 			add_sentusers_msg_esc_cancel(&user_msg, action->actionid, event, ZBX_NULL2EMPTY_STR(error));
 			flush_user_msg(&user_msg, escalation->esc_step, event, NULL, action->actionid, NULL);
-
 		}
 		else
 		{
@@ -2562,7 +2561,6 @@ static int	process_db_escalations(int now, int *nextcheck, zbx_vector_ptr_t *esc
 				escalation_execute(escalation, action, event);
 			else
 				escalation_recover(escalation, action, event, r_event, esc_registry);
-
 		}
 		else if (escalation->nextcheck <= now)
 		{
