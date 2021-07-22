@@ -28,7 +28,7 @@ class testScreenshots extends CWebTest {
 			[
 				[
 					'url' => 'zabbix.php?action=dashboard.view', // 0
-					'name' => 'Admin Monitoring Dashboard'
+					'name' => 'Monitoring Dashboard'
 //					'regions' => [
 //						'class:clock'
 //					]
@@ -36,104 +36,191 @@ class testScreenshots extends CWebTest {
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=problem.view', // 1
-					'name' => 'Admin Monitoring Problems'
+					'url' => 'zabbix.php?action=dashboard.view', // 1
+					'user' => 'guest',
+					'name' => 'Monitoring Dashboard'
+//					'regions' => [
+//						'class:clock'
+//					]
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=host.view', // 2
-					'name' => 'Admin Monitoring Hosts'
+					'url' => 'zabbix.php?action=problem.view', // 2
+					'name' => 'Monitoring Problems'
 				]
 			],
 			[
 				[
-					'url' => 'overview.php?type=0', // 3
-					'name' => 'Admin Monitoring Overview Trigger'
+					'url' => 'zabbix.php?action=problem.view', // 3
+					'user' => 'guest',
+					'name' => 'Monitoring Problems'
 				]
 			],
 			[
 				[
-					'url' => 'overview.php?type=1', // 4
-					'name' => 'Admin Monitoring Overview Data'
+					'url' => 'zabbix.php?action=host.view', // 4
+					'name' => 'Monitoring Hosts'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=latest.view', // 5
-					'name' => 'Admin Monitoring Latest Data'
+					'url' => 'zabbix.php?action=host.view', // 5
+					'user' => 'guest',
+					'name' => 'Monitoring Hosts'
 				]
 			],
 			[
 				[
-					'url' => 'sysmaps.php', // 6
-					'name' => 'Admin Monitoring Maps'
+					'url' => 'overview.php?type=0', // 6
+					'name' => 'Monitoring Overview Trigger'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=discovery.view', // 7
-					'name' => 'Admin Monitoring Discovery'
+					'url' => 'overview.php?type=0', // 7
+					'user' => 'guest',
+					'name' => 'Monitoring Overview Trigger'
 				]
 			],
 			[
 				[
-					'url' => 'srv_status.php', // 8
-					'name' => 'Admin Monitoring Services'
+					'url' => 'overview.php?type=1', // 8
+					'name' => 'Monitoring Overview Data'
 				]
 			],
 			[
 				[
-					'url' => 'hostinventoriesoverview.php', // 9
-					'name' => 'Admin Inventory Overview'
+					'url' => 'overview.php?type=1', // 9
+					'user' => 'guest',
+					'name' => 'Monitoring Overview Data'
 				]
 			],
 			[
 				[
-					'url' => 'hostinventories.php', // 10
-					'name' => 'Admin Inventory Hosts'
+					'url' => 'zabbix.php?action=latest.view', // 10
+					'name' => 'Monitoring Latest Data'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=report.status', // 11
-					'name' => 'Admin Reports System information'
+					'url' => 'zabbix.php?action=latest.view', // 11
+					'user' => 'guest',
+					'name' => 'Monitoring Latest Data'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=scheduledreport.list', // 12
-					'name' => 'Admin Reports Scheduled reports'
+					'url' => 'sysmaps.php', // 12
+					'name' => 'Monitoring Maps'
 				]
 			],
 			[
 				[
-					'url' => 'report2.php', // 13
-					'name' => 'Admin Reports Availability report'
+					'url' => 'sysmaps.php', // 13
+					'user' => 'guest',
+					'name' => 'Monitoring Maps'
 				]
 			],
 			[
 				[
-					'url' => 'toptriggers.php', // 14
-					'name' => 'Admin Reports Triggers top 100'
+					'url' => 'zabbix.php?action=discovery.view', // 14
+					'name' => 'Monitoring Discovery'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=auditlog.list', // 15
-					'name' => 'Admin Reports Audit'
+					'url' => 'srv_status.php', // 15
+					'name' => 'Monitoring Services'
 				]
 			],
 			[
 				[
-					'url' => 'auditacts.php', // 16
-					'name' => 'Admin Reports Action log'
+					'url' => 'srv_status.php', // 16
+					'user' => 'guest',
+					'name' => 'Monitoring Services'
 				]
 			],
 			[
 				[
-					'url' => 'report4.php', // 17
-					'name' => 'Admin Reports Notifications',
+					'url' => 'hostinventoriesoverview.php', // 17
+					'name' => 'Inventory Overview'
+				]
+			],
+			[
+				[
+					'url' => 'hostinventoriesoverview.php', // 18
+					'user' => 'guest',
+					'name' => 'Inventory Overview'
+				]
+			],
+			[
+				[
+					'url' => 'hostinventories.php', // 19
+					'name' => 'Inventory Hosts'
+				]
+			],
+			[
+				[
+					'url' => 'hostinventories.php', // 20
+					'user' => 'guest',
+					'name' => 'Inventory Hosts'
+				]
+			],
+			[
+				[
+					'url' => 'zabbix.php?action=report.status', // 21
+					'name' => 'Reports System information'
+				]
+			],
+			[
+				[
+					'url' => 'zabbix.php?action=scheduledreport.list', // 22
+					'name' => 'Reports Scheduled reports'
+				]
+			],
+			[
+				[
+					'url' => 'report2.php', // 23
+					'name' => 'Reports Availability report'
+				]
+			],
+			[
+				[
+					'url' => 'report2.php', // 24
+					'user' => 'guest',
+					'name' => 'Reports Availability report'
+				]
+			],
+			[
+				[
+					'url' => 'toptriggers.php', // 25
+					'name' => 'Reports Triggers top 100'
+				]
+			],
+			[
+				[
+					'url' => 'toptriggers.php', // 26
+					'user' => 'guest',
+					'name' => 'Reports Triggers top 100'
+				]
+			],
+			[
+				[
+					'url' => 'zabbix.php?action=auditlog.list', // 27
+					'name' => 'Reports Audit'
+				]
+			],
+			[
+				[
+					'url' => 'auditacts.php', // 28
+					'name' => 'Reports Action log'
+				]
+			],
+			[
+				[
+					'url' => 'report4.php', // 29
+					'name' => 'Reports Notifications',
 					'regions' => [
 						'xpath://tbody'
 					]
@@ -141,264 +228,206 @@ class testScreenshots extends CWebTest {
 			],
 			[
 				[
-					'url' => 'hostgroups.php', // 18
-					'name' => 'Admin Configuration Host groups'
+					'url' => 'hostgroups.php', // 30
+					'name' => 'Configuration Host groups'
 				]
 			],
 			[
 				[
-					'url' => 'templates.php', // 19
-					'name' => 'Admin Configuration Templates'
+					'url' => 'templates.php', // 31
+					'name' => 'Configuration Templates'
 				]
 			],
 			[
 				[
-					'url' => 'hosts.php', // 20
-					'name' => 'Admin Configuration Hosts'
+					'url' => 'hosts.php', // 32
+					'name' => 'Configuration Hosts'
 				]
 			],
 			[
 				[
-					'url' => 'maintenance.php', // 21
-					'name' => 'Admin Configuration Maintenance'
+					'url' => 'maintenance.php', // 33
+					'name' => 'Configuration Maintenance'
 				]
 			],
 			[
 				[
-					'url' => 'actionconf.php?eventsource=0', // 22
-					'name' => 'Admin Configuration Actions Trigger actions'
+					'url' => 'actionconf.php?eventsource=0', // 34
+					'name' => 'Configuration Actions Trigger actions'
 				]
 			],
 			[
 				[
-					'url' => 'actionconf.php?eventsource=1', // 23
-					'name' => 'Admin Configuration Actions Discovery actions'
+					'url' => 'actionconf.php?eventsource=1', // 35
+					'name' => 'Configuration Actions Discovery actions'
 				]
 			],
 			[
 				[
-					'url' => 'actionconf.php?eventsource=2', // 24
-					'name' => 'Admin Configuration Actions Autoregistration actions'
+					'url' => 'actionconf.php?eventsource=2', // 36
+					'name' => 'Configuration Actions Autoregistration actions'
 				]
 			],
 			[
 				[
-					'url' => 'actionconf.php?eventsource=3', // 25
-					'name' => 'Admin Configuration Actions Internal actions'
+					'url' => 'actionconf.php?eventsource=3', // 37
+					'name' => 'Configuration Actions Internal actions'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=correlation.list', // 26
-					'name' => 'Admin Configuration Event correlation'
+					'url' => 'zabbix.php?action=correlation.list', // 38
+					'name' => 'Configuration Event correlation'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=discovery.list', // 27
-					'name' => 'Admin Configuration Discovery'
+					'url' => 'zabbix.php?action=discovery.list', // 39
+					'name' => 'Configuration Discovery'
 				]
 			],
 			[
 				[
-					'url' => 'services.php', // 28
-					'name' => 'Admin Configuration Services'
+					'url' => 'services.php', // 40
+					'name' => 'Configuration Services'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=gui.edit', // 29
-					'name' => 'Admin Administration General GUI'
+					'url' => 'zabbix.php?action=gui.edit', // 41
+					'name' => 'Administration General GUI'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=autoreg.edit', // 30
-					'name' => 'Admin Administration General Autoregistration'
+					'url' => 'zabbix.php?action=autoreg.edit', // 42
+					'name' => 'Administration General Autoregistration'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=housekeeping.edit', // 31
-					'name' => 'Admin Administration General Housekeeping'
+					'url' => 'zabbix.php?action=housekeeping.edit', // 43
+					'name' => 'Administration General Housekeeping'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=image.list', // 32
-					'name' => 'Admin Administration General Images'
+					'url' => 'zabbix.php?action=image.list', // 44
+					'name' => 'Administration General Images'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=iconmap.list', // 33
-					'name' => 'Admin Administration General Icon mapping'
+					'url' => 'zabbix.php?action=iconmap.list', // 45
+					'name' => 'Administration General Icon mapping'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=regex.list', // 34
-					'name' => 'Admin Administration General Regular expressions'
+					'url' => 'zabbix.php?action=regex.list', // 46
+					'name' => 'Administration General Regular expressions'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=macros.edit', // 35
-					'name' => 'Admin Administration General Macros'
+					'url' => 'zabbix.php?action=macros.edit', // 47
+					'name' => 'Administration General Macros'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=trigdisplay.edit', // 36
-					'name' => 'Admin Administration General Trigger displaying options'
+					'url' => 'zabbix.php?action=trigdisplay.edit', // 48
+					'name' => 'Administration General Trigger displaying options'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=module.list', // 37
-					'name' => 'Admin Administration General Modules'
+					'url' => 'zabbix.php?action=module.list', // 49
+					'name' => 'Administration General Modules'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=token.list', // 38
-					'name' => 'Admin Administration General API tokens'
+					'url' => 'zabbix.php?action=token.list', // 50
+					'name' => 'Administration General API tokens'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=miscconfig.edit', // 39
-					'name' => 'Admin Administration General Other'
+					'url' => 'zabbix.php?action=miscconfig.edit', // 51
+					'name' => 'Administration General Other'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=proxy.list', // 40
-					'name' => 'Admin Administration Proxies'
+					'url' => 'zabbix.php?action=proxy.list', // 52
+					'name' => 'Administration Proxies'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=authentication.edit', // 41
-					'name' => 'Admin Administration Authentication'
+					'url' => 'zabbix.php?action=authentication.edit', // 53
+					'name' => 'Administration Authentication'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=usergroup.list', // 42
-					'name' => 'Admin Administration User groups'
+					'url' => 'zabbix.php?action=usergroup.list', // 54
+					'name' => 'Administration User groups'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=userrole.list', // 43
-					'name' => 'Admin Administration User roles'
+					'url' => 'zabbix.php?action=userrole.list', // 55
+					'name' => 'Administration User roles'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=user.list', // 44
-					'name' => 'Admin Administration Users'
+					'url' => 'zabbix.php?action=user.list', // 56
+					'name' => 'Administration Users'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=mediatype.list', // 45
-					'name' => 'Admin Administration Media types'
+					'url' => 'zabbix.php?action=mediatype.list', // 57
+					'name' => 'Administration Media types'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=script.list', // 46
-					'name' => 'Admin Administration Scripts'
+					'url' => 'zabbix.php?action=script.list', // 58
+					'name' => 'Administration Scripts'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=queue.overview', // 47
-					'name' => 'Admin Administration Queue Queue overview'
+					'url' => 'zabbix.php?action=queue.overview', // 59
+					'name' => 'Administration Queue Queue overview'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=queue.overview.proxy', // 48
-					'name' => 'Admin Administration Queue Queue overview by proxy'
+					'url' => 'zabbix.php?action=queue.overview.proxy', // 60
+					'name' => 'Administration Queue Queue overview by proxy'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=queue.details', // 49
-					'name' => 'Admin Administration Queue Queue details'
+					'url' => 'zabbix.php?action=queue.details', // 61
+					'name' => 'Administration Queue Queue details'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=userprofile.edit', // 50
+					'url' => 'zabbix.php?action=userprofile.edit', // 62
 					'name' => 'User Settings Profile'
 				]
 			],
 			[
 				[
-					'url' => 'zabbix.php?action=user.token.list', // 51
+					'url' => 'zabbix.php?action=user.token.list', // 63
 					'name' => 'User Settings API tokens'
-				]
-			],
-		];
-	}
-
-	/**
-	 * Test for covering with screenshots.
-	 *
-	 * @dataProvider getPageData
-	 */
-	public function testScreenshots_ComparePageWithScreenshot($data) {
-		$this->page->login()->open($data['url'])->waitUntilReady();
-		$this->page->removeFocus();
-		sleep(1);
-
-		$regions = [];
-		if (CTestArrayHelper::get($data, 'regions')) {
-			foreach ($data['regions'] as $selector) {
-				if (is_array($selector)) {
-					$regions[] = $selector;
-				}
-				else {
-					$regions[] = $this->query($selector)->one();
-				}
-			}
-		}
-
-		try {
-			$this->assertScreenshotExcept(null, $regions, $data['name']);
-		} catch (Exception $ex) {
-			$this->fail($ex->getMessage());
-		}
-	}
-
-	public function getNotAuthPageData() {
-		return [
-			[
-				[
-					'url' => 'index.php',
-					'name' => 'Auth page for Guest',
-					'regions' => [
-//						'css:a[href$="com/"]',
-						[
-							'x' => 650,
-							'y' => 850,
-							'width' => 75,
-							'height' => 25
-						]
-					]
-				]
-			],
-			[
-				[
-					'url' => 'zabbix.php?action=dashboard.view',
-					'name' => 'Dashboard view',
-//					'regions' => [
-//						'class:clock'
-//					]
 				]
 			]
 		];
@@ -407,12 +436,14 @@ class testScreenshots extends CWebTest {
 	/**
 	 * Test for covering with screenshots.
 	 *
-	 * @dataProvider getNotAuthPageData
+	 * @dataProvider getPageData
 	 * @onBeforeOnce removeGuestFromDisabledGroup
 	 * @onAfterOnce addGuestToDisabledGroup
 	 */
-	public function testScreenshots_CompareNotAuthPageWithScreenshot($data) {
-		$this->page->userLogin('guest', '');
+	public function testScreenshots_ComparePageWithScreenshot($data) {
+		$this->page->userLogin(CTestArrayHelper::get($data, 'user', 'Admin'),
+				((CTestArrayHelper::get($data, 'user', 'Admin') === 'guest') ? '' : 'zabbix')
+		);
 		$this->page->open($data['url'])->waitUntilReady();
 		$this->page->removeFocus();
 		sleep(1);
@@ -420,18 +451,12 @@ class testScreenshots extends CWebTest {
 		$regions = [];
 		if (CTestArrayHelper::get($data, 'regions')) {
 			foreach ($data['regions'] as $selector) {
-				if (is_array($selector)) {
-					$regions[] = $selector;
-				}
-				else {
-					$regions[] = $this->query($selector)->one();
-				}
+				$regions[] = (is_array($selector)) ? $selector : $this->query($selector)->one();
 			}
-
 		}
 
 		try {
-			$this->assertScreenshotExcept(null, $regions, $data['name']);
+			$this->assertScreenshotExcept(null, $regions, $data['name'].' '.(CTestArrayHelper::get($data, 'user', 'Admin')));
 		} catch (Exception $ex) {
 			$this->fail($ex->getMessage());
 		}
