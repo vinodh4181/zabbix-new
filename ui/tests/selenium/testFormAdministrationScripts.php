@@ -924,7 +924,7 @@ class testFormAdministrationScripts extends CWebTest {
 	}
 
 	/**
-	 * Function for checking script form update cancelling.
+	 * Function for checking script form update canceling.
 	 */
 	public function testFormAdministrationScripts_CancelUpdate() {
 		$sql = 'SELECT * FROM scripts ORDER BY scriptid';

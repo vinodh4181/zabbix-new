@@ -78,7 +78,7 @@ class testFormAdministrationGeneral extends CWebTest {
 		$this->resetConfiguration($form, $this->default, 'Reset defaults', $other);
 		$default_config = CDBHelper::getRow('SELECT * FROM config');
 
-		// Reset form after customly filled data and check that values are reset to default or reset is cancelled.
+		// Reset form after customly filled data and check that values are reset to default or reset is canceled.
 		foreach (['Cancel', 'Reset defaults'] as $action) {
 			// Fill form with custom data.
 			$form->fill($this->custom);

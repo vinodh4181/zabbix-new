@@ -329,7 +329,7 @@
 	 * @param {Overlay} overlay
 	 */
 	function submitDCheck(overlay) {
-		var $form = overlay.$dialogue.find('form');
+		var $form = overlay.$dialog.find('form');
 
 		$form.trimValues([
 			'#ports', '#key_', '#snmp_community', '#snmp_oid', '#snmpv3_contextname', '#snmpv3_securityname',

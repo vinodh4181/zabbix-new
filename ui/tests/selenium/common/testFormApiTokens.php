@@ -274,7 +274,7 @@ class testFormApiTokens extends CWebTest {
 	}
 
 	/**
-	 * Function that check that no database changes are occurred if token create or update action is cancelled.
+	 * Function that check that no database changes are occurred if token create or update action is canceled.
 	 *
 	 * @param string $url		URL that leads to the form to be updated.
 	 * @param string $username	user name in User field of the form if form opened from Administration section.

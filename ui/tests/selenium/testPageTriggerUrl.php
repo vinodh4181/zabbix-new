@@ -71,7 +71,7 @@ class testPageTriggerUrl extends CWebTest {
 		$widget = $dashboard->getWidget('Problems');
 		$table = $widget->getContent()->asTable();
 
-		// Find trigger and open trigger overlay dialogue.
+		// Find trigger and open trigger overlay dialog.
 		$table->query('link', $data['trigger'])->one()->click();
 		$this->checkTriggerUrl(false, $data);
 	}
@@ -230,7 +230,7 @@ class testPageTriggerUrl extends CWebTest {
 			$popup->fill('Trigger URL');
 		}
 		else {
-			// Follow trigger link in overlay dialogue.
+			// Follow trigger link in overlay dialog.
 			$hintbox = $this->query('xpath://div[@class="overlay-dialogue"]')->waitUntilVisible()->one();
 			$hintbox->query('link', $data['links']['Trigger URL'])->one()->click();
 		}

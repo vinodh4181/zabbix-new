@@ -30,7 +30,7 @@ class testPageHostInterfaces extends CWebTest {
 	const RED = 'rgba(214, 78, 78, 1)';
 	const GREEN = 'rgba(52, 175, 103, 1)';
 	const ORANGE = 'rgba(241, 165, 11, 1)';
-	const GREY = 'rgba(235, 235, 235, 1)';
+	const GRAY = 'rgba(235, 235, 235, 1)';
 
 
 	public static function prepareInterfacesData() {
@@ -281,13 +281,13 @@ class testPageHostInterfaces extends CWebTest {
 					'host' => 'Template inheritance test host',
 					'interfaces' => [
 						'ZBX' => [
-							'color' => self::GREY,
+							'color' => self::GRAY,
 							'rows' => [
 								[
 									'Interface' => '127.0.0.1:10051',
 									'Status' => [
 										'text' => 'Unknown',
-										'color' => self::GREY
+										'color' => self::GRAY
 									],
 									'Error' => ''
 								],
@@ -295,46 +295,46 @@ class testPageHostInterfaces extends CWebTest {
 									'Interface' => '127.0.0.2:10052',
 									'Status' => [
 										'text' => 'Unknown',
-										'color' => self::GREY
+										'color' => self::GRAY
 									],
 									'Error' => ''
 								]
 							]
 						],
 						'SNMP' => [
-							'color' => self::GREY,
+							'color' => self::GRAY,
 							'rows' => [
 								[
 									'Interface' => "127.0.0.3:10053\nSNMPv2, Community: {\$SNMP_COMMUNITY}",
 									'Status' => [
 										'text' => 'Unknown',
-										'color' => self::GREY
+										'color' => self::GRAY
 									],
 									'Error' => ''
 								]
 							]
 						],
 						'IPMI' => [
-							'color' => self::GREY,
+							'color' => self::GRAY,
 							'rows' => [
 								[
 									'Interface' => '127.0.0.4:10054',
 									'Status' => [
 										'text' => 'Unknown',
-										'color' => self::GREY
+										'color' => self::GRAY
 									],
 									'Error' => ''
 								]
 							]
 						],
 						'JMX' => [
-							'color' => self::GREY,
+							'color' => self::GRAY,
 							'rows' => [
 								[
 									'Interface' => '127.0.0.5:10055',
 									'Status' => [
 										'text' => 'Unknown',
-										'color' => self::GREY
+										'color' => self::GRAY
 									],
 									'Error' => ''
 								]

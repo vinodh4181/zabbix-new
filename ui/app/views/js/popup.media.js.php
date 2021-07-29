@@ -56,7 +56,7 @@ jQuery(document).ready(function($) {
  * @param {Overlay} overlay
  */
 function validateMedia(overlay) {
-	var $form = overlay.$dialogue.find('form');
+	var $form = overlay.$dialog.find('form');
 
 	$form.trimValues(['#period', '#sendto', 'input[name^="sendto_emails"]']);
 
@@ -65,7 +65,7 @@ function validateMedia(overlay) {
 		url: $form.attr('action'),
 		data: $form.serialize(),
 		success: function(ret) {
-			overlay.$dialogue.find('.msg-bad, .msg-good').remove();
+			overlay.$dialog.find('.msg-bad, .msg-good').remove();
 
 			if (typeof ret.errors !== 'undefined') {
 				jQuery(ret.errors).insertBefore($form);

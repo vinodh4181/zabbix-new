@@ -4584,10 +4584,10 @@ a.orange:hover, a.orange:focus {
 a.yellow:hover, a.yellow:focus {
   color: #0275b8; }
 
-.grey, a.grey {
+.gray, a.gray {
   color: #768d99; }
 
-a.grey:hover, a.grey:focus {
+a.gray:hover, a.gray:focus {
   color: #0275b8; }
 
 .blue, a.blue {
@@ -4612,7 +4612,7 @@ a.link-action {
     color: #e99003; }
   a.link-action.green {
     color: #429e47; }
-  a.link-action.grey {
+  a.link-action.gray {
     color: #768d99; }
   a.link-action:hover {
     color: #0275b8;

@@ -412,7 +412,7 @@
 			submit: (overlay) => {
 				clearMessages();
 
-				const form = overlay.$dialogue.$body[0].querySelector('form');
+				const form = overlay.$dialog.$body[0].querySelector('form');
 
 				const curl = new Curl('zabbix.php', false);
 

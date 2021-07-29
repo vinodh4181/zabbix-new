@@ -305,7 +305,7 @@ $('#tabs').on('tabsactivate', (event, ui) => {
 
 	let overlay = overlays_stack.end();
 
-	$(overlay.$dialogue||document).on('remove', () => {
+	$(overlay.$dialog||document).on('remove', () => {
 		$(document).off('add.popup', processAddfromPopup);
 	});
 	$(document).on('add.popup', processAddfromPopup);
@@ -449,7 +449,7 @@ function submitPopup(overlay) {
 	}
 
 	// Remove error message.
-	overlay.$dialogue.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
+	overlay.$dialog.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
 
 	const url = new Curl('zabbix.php', false);
 	url.setArgument('action', action);

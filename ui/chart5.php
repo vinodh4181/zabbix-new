@@ -74,7 +74,7 @@ $graphtheme = getUserGraphTheme();
 $black = get_color($im, '000000');
 $green = get_color($im, '34AF67');
 $red = get_color($im, 'D64E4E');
-$grey = get_color($im, '969696', 50);
+$gray = get_color($im, '969696', 50);
 $backgroundcolor = get_color($im, $graphtheme['backgroundcolor']);
 $gridcolor = get_color($im, $graphtheme['gridcolor']);
 $textcolor = get_color($im, $graphtheme['textcolor']);
@@ -202,7 +202,7 @@ if ($debug_mode) {
 	$str = sprintf('%0.2f', microtime(true) - $start_time);
 	$str = _s('Generated in %1$s sec', $str);
 	$str_size = imageTextSize(6, 0, $str);
-	imageText($im, 6, 0, imagesx($im) - $str_size['width'] - 5, imagesy($im) - 5, $grey, $str);
+	imageText($im, 6, 0, imagesx($im) - $str_size['width'] - 5, imagesy($im) - 5, $gray, $str);
 }
 
 imageOut($im);

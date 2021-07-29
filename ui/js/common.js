@@ -324,12 +324,12 @@ function getPosition(obj) {
 }
 
 /**
- * Opens popup content in overlay dialogue.
+ * Opens popup content in overlay dialog.
  *
  * @param {string} action          Popup controller related action.
  * @param {array|object}  options  (optional) Array with key/value pairs that will be used as query for popup request.
- * @param {string} dialogueid      (optional) id of overlay dialogue.
- * @param {object} trigger_elmnt   (optional) UI element which was clicked to open overlay dialogue.
+ * @param {string} dialogueid      (optional) id of overlay dialog.
+ * @param {object} trigger_elmnt   (optional) UI element which was clicked to open overlay dialog.
  *
  * @returns {Overlay}
  */
@@ -431,7 +431,7 @@ function PopUp(action, options, dialogueid, trigger_elmnt) {
  *
  * @param {array}  options
  * @param {array}  options['eventids']  Eventids to update.
- * @param {object} trigger_elmnt        (optional) UI element which was clicked to open overlay dialogue.
+ * @param {object} trigger_elmnt        (optional) UI element which was clicked to open overlay dialog.
  *
  * @returns {Overlay}
  */
@@ -450,8 +450,8 @@ function acknowledgePopUp(options, trigger_elmnt) {
 		history.replaceState({}, '', url.getUrl());
 	});
 
-	var close = function(e, dialogue) {
-		if (dialogue.dialogueid === overlay.dialogueid) {
+	var close = function(e, dialog) {
+		if (dialog.dialogueid === overlay.dialogueid) {
 			history.replaceState({}, '', backurl);
 			$.unsubscribe('overlay.close', close);
 		}
@@ -539,7 +539,7 @@ function closeDialogHandler(event) {
 /**
  * Removed overlay from overlays stack and sets focus to source element.
  *
- * @param {string} dialogueid		Id of dialogue, that is being closed.
+ * @param {string} dialogueid		Id of dialog, that is being closed.
  * @param {boolean} return_focus	If not FALSE, the element stored in overlay.element will be focused.
  *
  * @return {object|undefined|null}  Overlay object, if found.
@@ -566,9 +566,9 @@ function removeFromOverlaysStack(dialogueid, return_focus) {
 }
 
 /**
- * Reload content of Modal Overlay dialogue without closing it.
+ * Reload content of Modal Overlay dialog without closing it.
  *
- * @param {object} form		Filter form in which element has been changed. Assumed that form is inside Overlay Dialogue.
+ * @param {object} form		Filter form in which element has been changed. Assumed that form is inside Overlay Dialog.
  * @param {string} action	(optional) action value that is used in CRouter. Default value is 'popup.generic'.
  */
 function reloadPopup(form, action) {
@@ -664,7 +664,7 @@ function addSelectedValues(object, parentid) {
 	var data = {object: object, values: [], parentId: parentid},
 		overlay = overlays_stack.end();
 
-	overlay.$dialogue.find('input[type="checkbox"]').filter(':checked').each((i, c) => {
+	overlay.$dialog.find('input[type="checkbox"]').filter(':checked').each((i, c) => {
 		if (c.name.indexOf('all_') == -1) {
 			data['values'].push(overlay.data[c.value] || c.value);
 		}
@@ -714,7 +714,7 @@ function add_media(formname, media, mediatypeid, sendto, period, active, severit
  * @param {Overlay} overlay
  */
 function validate_trigger_expression(overlay) {
-	var $form = overlay.$dialogue.find('form'),
+	var $form = overlay.$dialog.find('form'),
 		url = new Curl($form.attr('action'));
 
 	url.setArgument('add', 1);
@@ -727,7 +727,7 @@ function validate_trigger_expression(overlay) {
 			overlay.unsetLoading();
 		},
 		success: function(ret) {
-			overlay.$dialogue.find('.msg-bad, .msg-good').remove();
+			overlay.$dialog.find('.msg-bad, .msg-good').remove();
 
 			if (typeof ret.errors !== 'undefined') {
 				jQuery(ret.errors).insertBefore($form);

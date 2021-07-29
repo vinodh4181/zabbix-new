@@ -104,7 +104,7 @@ class COverlayDialogElement extends CElement {
 	}
 
 	/**
-	 * Wait until overlay dialogue and overlay dialogue background is not visible one page.
+	 * Wait until overlay dialog and overlay dialog background is not visible one page.
 	 */
 	public static function ensureNotPresent() {
 		(new CElementQuery('xpath', '//*['.CXPathHelper::fromClass('overlay-dialogue-body').' or '.

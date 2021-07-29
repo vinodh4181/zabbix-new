@@ -37,8 +37,8 @@ class CControllerWidgetFavGraphsView extends CControllerWidget {
 		$graphs = [];
 		$ids = ['graphid' => [], 'itemid' => []];
 
-		foreach (CFavorite::get('web.favorite.graphids') as $favourite) {
-			$ids[$favourite['source']][$favourite['value']] = true;
+		foreach (CFavorite::get('web.favorite.graphids') as $favorite) {
+			$ids[$favorite['source']][$favorite['value']] = true;
 		}
 
 		if ($ids['graphid']) {

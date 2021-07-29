@@ -395,7 +395,7 @@ class CTemplateScreenConverter extends CConverter {
 		}
 
 		if ($screen_item['resourcetype'] == self::SCREEN_RESOURCE_TYPE_PLAIN_TEXT) {
-			// Constants are synchronised with the same algorithm in DB upgrade patch converter.
+			// Constants are synchronized with the same algorithm in DB upgrade patch converter.
 			$show_lines = min($screen_item['elements'], 25);
 			$rows = 2 + $show_lines / 2.5;
 		}

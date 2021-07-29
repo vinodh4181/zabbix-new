@@ -63,11 +63,11 @@ function submitConditionPopup(response, overlay) {
  * @param {Overlay} overlay
  */
 function validateConditionPopup(overlay) {
-	if (window.operation_popup && window.operation_popup.overlay.$dialogue.is(':visible')) {
+	if (window.operation_popup && window.operation_popup.overlay.$dialog.is(':visible')) {
 		return window.operation_popup.view.operation_condition.onConditionPopupSubmit(overlay);
 	}
 
-	var $form = overlay.$dialogue.find('form'),
+	var $form = overlay.$dialog.find('form'),
 		url = new Curl($form.attr('action'));
 
 	url.setArgument('validate', 1);
@@ -85,7 +85,7 @@ function validateConditionPopup(overlay) {
 			overlay.unsetLoading();
 		})
 		.done(function(response) {
-			overlay.$dialogue.find('.msg-bad').remove();
+			overlay.$dialog.find('.msg-bad').remove();
 
 			if (typeof response.errors !== 'undefined') {
 				jQuery(response.errors).insertBefore($form);

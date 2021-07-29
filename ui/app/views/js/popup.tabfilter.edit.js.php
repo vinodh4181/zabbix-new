@@ -31,7 +31,7 @@ $('.overlay-dialogue-body #filter_custom_time').on('change', function() {
 });
 
 function tabFilterDelete(overlay) {
-	var $form = overlay.$dialogue.find('form'),
+	var $form = overlay.$dialog.find('form'),
 		url = new Curl($form.attr('action')),
 		form_data = $form.serializeJSON();
 
@@ -44,7 +44,7 @@ function tabFilterDelete(overlay) {
 		.done((response) => {
 			const properties = {detail: {idx2: form_data['idx2']}, bubbles: true};
 
-			overlay.$dialogue.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
+			overlay.$dialog.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
 
 			if ('errors' in response) {
 				$(response.errors).insertBefore($form);
@@ -60,7 +60,7 @@ function tabFilterDelete(overlay) {
 }
 
 function tabFilterUpdate(overlay) {
-	var $form = overlay.$dialogue.find('form'),
+	var $form = overlay.$dialog.find('form'),
 		url = new Curl($form.attr('action')),
 		form_data = $form.serializeJSON();
 
@@ -71,7 +71,7 @@ function tabFilterUpdate(overlay) {
 		.done((response) => {
 			const properties = {detail: response, bubbles: true};
 
-			overlay.$dialogue.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
+			overlay.$dialog.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
 
 			if ('errors' in response) {
 				$(response.errors).insertBefore($form);

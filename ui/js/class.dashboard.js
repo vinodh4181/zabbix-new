@@ -941,7 +941,7 @@ class CDashboard extends CBaseComponent {
 
 	applyProperties() {
 		const overlay = overlays_stack.getById('dashboard_properties');
-		const form = overlay.$dialogue.$body[0].querySelector('form');
+		const form = overlay.$dialog.$body[0].querySelector('form');
 		const properties = getFormFields(form);
 
 		overlay.setLoading();
@@ -1009,7 +1009,7 @@ class CDashboard extends CBaseComponent {
 
 	applyDashboardPageProperties() {
 		const overlay = overlays_stack.getById('dashboard_page_properties');
-		const form = overlay.$dialogue.$body[0].querySelector('form');
+		const form = overlay.$dialog.$body[0].querySelector('form');
 		const properties = getFormFields(form);
 
 		overlay.setLoading();
@@ -1096,12 +1096,12 @@ class CDashboard extends CBaseComponent {
 		}, 'widget_properties', document.activeElement);
 
 		overlay.xhr.then(() => {
-			const form = overlay.$dialogue.$body[0].querySelector('form');
+			const form = overlay.$dialog.$body[0].querySelector('form');
 			const original_properties = overlay.data.original_properties;
 			const dialogue_stick_to_top = this._widget_defaults[original_properties.type].dialogue_stick_to_top;
 
-			if (dialogue_stick_to_top !== overlay.$dialogue[0].classList.contains('sticked-to-top')) {
-				overlay.$dialogue[0].classList.toggle('sticked-to-top', dialogue_stick_to_top);
+			if (dialogue_stick_to_top !== overlay.$dialog[0].classList.contains('sticked-to-top')) {
+				overlay.$dialog[0].classList.toggle('sticked-to-top', dialogue_stick_to_top);
 				overlay.centerDialog();
 			}
 
@@ -1165,7 +1165,7 @@ class CDashboard extends CBaseComponent {
 
 	reloadWidgetProperties() {
 		const overlay = overlays_stack.getById('widget_properties');
-		const form = overlay.$dialogue.$body[0].querySelector('form');
+		const form = overlay.$dialog.$body[0].querySelector('form');
 		const fields = getFormFields(form);
 
 		const properties = {
@@ -1193,7 +1193,7 @@ class CDashboard extends CBaseComponent {
 
 	applyWidgetProperties() {
 		const overlay = overlays_stack.getById('widget_properties');
-		const form = overlay.$dialogue.$body[0].querySelector('form');
+		const form = overlay.$dialog.$body[0].querySelector('form');
 		const fields = getFormFields(form);
 
 		const templateid = this._data.templateid ?? undefined;

@@ -25,7 +25,7 @@
 ?>
 
 function submitScheduledReportSubscription(overlay) {
-	const $form = overlay.$dialogue.find('form');
+	const $form = overlay.$dialog.find('form');
 	const url = new Curl($form.attr('action'));
 	const recipient = $('#recipientid').multiSelect('getData');
 
@@ -39,7 +39,7 @@ function submitScheduledReportSubscription(overlay) {
 	})
 		.then(response => response.json())
 		.then(response => {
-			overlay.$dialogue.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
+			overlay.$dialog.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
 
 			if (response.errors) {
 				document

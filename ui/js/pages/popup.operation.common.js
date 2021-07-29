@@ -98,7 +98,7 @@ function submitOperationPopup(response) {
  * @param {Overlay} overlay
  */
 function validateOperationPopup(overlay) {
-	var $form = overlay.$dialogue.find('form'),
+	var $form = overlay.$dialog.find('form'),
 		url = new Curl($form.attr('action'));
 
 	url.setArgument('validate', 1);
@@ -113,7 +113,7 @@ function validateOperationPopup(overlay) {
 
 	overlay.xhr
 		.done(function(response) {
-			overlay.$dialogue.find('.msg-bad').remove();
+			overlay.$dialog.find('.msg-bad').remove();
 
 			if (typeof response.errors !== 'undefined') {
 				jQuery(response.errors).insertBefore($form);

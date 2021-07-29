@@ -60,7 +60,7 @@ function getDefaultMessageTemplate(message_type) {
  * @param {Overlay} overlay
  */
 function submitMessageTemplate(overlay) {
-	var $form = overlay.$dialogue.find('form');
+	var $form = overlay.$dialog.find('form');
 	overlay.setLoading();
 
 	overlay.xhr = sendAjaxData('zabbix.php', {
@@ -68,7 +68,7 @@ function submitMessageTemplate(overlay) {
 		dataType: 'json',
 		method: 'POST',
 		success: function(response) {
-			overlay.$dialogue.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
+			overlay.$dialog.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
 
 			if ('errors' in response) {
 				jQuery(response.errors).insertBefore($form);

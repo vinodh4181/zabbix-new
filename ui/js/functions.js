@@ -463,9 +463,9 @@ function overlayPreloaderDestroy(id) {
 }
 
 /**
- * Function to close overlay dialogue and moves focus to IU element that was clicked to open it.
+ * Function to close overlay dialog and moves focus to IU element that was clicked to open it.
  *
- * @param string   dialogueid	Dialogue identifier to identify dialogue.
+ * @param string   dialogueid	Dialog identifier to identify dialog.
  */
 function overlayDialogueDestroy(dialogueid) {
 	if (typeof dialogueid !== 'undefined') {
@@ -507,11 +507,11 @@ function overlayDialogueDestroy(dialogueid) {
  * @param {bool}   params.buttons[]['cancel']   (optional)  It means what this button has cancel action.
  * @param {bool}   params.buttons[]['focused']  (optional)  Focus this button.
  * @param {bool}   params.buttons[]['enabled']  (optional)  Should the button be enabled? Default: true.
- * @param {bool}   params.buttons[]['keepOpen'] (optional)  Prevent dialogue closing, if button action returned false.
- * @param string   params.dialogueid            (optional)  Unique dialogue identifier to reuse existing overlay dialog
+ * @param {bool}   params.buttons[]['keepOpen'] (optional)  Prevent dialog closing, if button action returned false.
+ * @param string   params.dialogueid            (optional)  Unique dialog identifier to reuse existing overlay dialog
  *                                                          or create a new one if value is not set.
  * @param string   params.script_inline         (optional)  Custom javascript code to execute when initializing dialog.
- * @param {object} trigger_elmnt                (optional)  UI element which triggered opening of overlay dialogue.
+ * @param {object} trigger_elmnt                (optional)  UI element which triggered opening of overlay dialog.
  *
  * @return {Overlay}
  */
@@ -540,7 +540,7 @@ function overlayDialogue(params, trigger_elmnt) {
  *
  * @param string scriptid			Script ID.
  * @param string confirmation		Confirmation text.
- * @param {object} trigger_elmnt	UI element that was clicked to open overlay dialogue.
+ * @param {object} trigger_elmnt	UI element that was clicked to open overlay dialog.
  * @param string hostid				Host ID.
  * @param string eventid			Event ID.
  */

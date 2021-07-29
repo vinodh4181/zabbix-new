@@ -786,14 +786,14 @@
 		overlay.xhr = this.validateNewCondition(condition_form);
 		overlay.xhr
 			.fail(({statusText}) => {
-				overlay.$dialogue.$body.find('output.msg-bad').remove();
-				overlay.$dialogue.$body.prepend(makeMessageBox('bad', statusText));
+				overlay.$dialog.$body.find('output.msg-bad').remove();
+				overlay.$dialog.$body.prepend(makeMessageBox('bad', statusText));
 				overlay.unsetLoading();
 			})
 			.then((res) => {
 				if (res.errors) {
-					overlay.$dialogue.$body.find('output.msg-bad').remove();
-					overlay.$dialogue.$body.prepend(res.errors);
+					overlay.$dialog.$body.find('output.msg-bad').remove();
+					overlay.$dialog.$body.prepend(res.errors);
 
 					return overlay.unsetLoading();
 				}
@@ -1010,7 +1010,7 @@
 	 * @return {FormData}
 	 */
 	OperationPopup.prototype.getFormData = function() {
-		const form_data = new FormData(this.overlay.$dialogue.$body.find('form').get(0));
+		const form_data = new FormData(this.overlay.$dialog.$body.find('form').get(0));
 
 		if (this.operation_num !== null) {
 			form_data.append('operation[id]', this.operation_num);
@@ -1043,14 +1043,14 @@
 		this.overlay.xhr = this.validate(form_data);
 		this.overlay.xhr
 			.fail(({statusText}) => {
-				this.overlay.$dialogue.$body.find('output.msg-bad').remove();
-				this.overlay.$dialogue.$body.prepend(makeMessageBox('bad', statusText));
+				this.overlay.$dialog.$body.find('output.msg-bad').remove();
+				this.overlay.$dialog.$body.prepend(makeMessageBox('bad', statusText));
 				this.overlay.unsetLoading();
 			})
 			.done((res) => {
 				if (res.errors) {
-					this.overlay.$dialogue.$body.find('output.msg-bad').remove();
-					this.overlay.$dialogue.$body.prepend(res.errors);
+					this.overlay.$dialog.$body.find('output.msg-bad').remove();
+					this.overlay.$dialog.$body.prepend(res.errors);
 
 					return this.overlay.unsetLoading();
 				}

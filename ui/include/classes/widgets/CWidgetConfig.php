@@ -333,7 +333,7 @@ class CWidgetConfig {
 	}
 
 	/**
-	 * Check if widget dialogue should be sticked to top instead of being centered vertically.
+	 * Check if widget dialog should be sticked to top instead of being centered vertically.
 	 *
 	 * @param string $type  Widget type - 'WIDGET_*' constant.
 	 *

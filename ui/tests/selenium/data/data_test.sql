@@ -2469,10 +2469,10 @@ INSERT INTO widget_field (widget_fieldid, widgetid, type, name, value_int) VALUE
 INSERT INTO widget_field (widget_fieldid, widgetid, type, name, value_int) VALUES (90264, 1053, 0, 'source_type', 1);
 INSERT INTO widget_field (widget_fieldid, widgetid, type, name, value_int, value_itemid) VALUES (90265, 1053, 4, 'itemid', 0, 99088);
 
-INSERT INTO widget (widgetid, dashboard_pageid, type, name, x, y, width, height) VALUES (1054, 130, 'favgraphs', 'Test copy Favourite graphs', 7, 2, 2, 2);
+INSERT INTO widget (widgetid, dashboard_pageid, type, name, x, y, width, height) VALUES (1054, 130, 'favgraphs', 'Test copy Favorite graphs', 7, 2, 2, 2);
 INSERT INTO widget_field (widget_fieldid, widgetid, type, name, value_int) VALUES (90413, 1054, 0, 'rf_rate', 30);
 
-INSERT INTO widget (widgetid, dashboard_pageid, type, name, x, y, width, height) VALUES (1055, 130, 'favmaps', 'Test copy Favourite maps', 9, 2, 4, 2);
+INSERT INTO widget (widgetid, dashboard_pageid, type, name, x, y, width, height) VALUES (1055, 130, 'favmaps', 'Test copy Favorite maps', 9, 2, 4, 2);
 INSERT INTO widget_field (widget_fieldid, widgetid, type, name, value_int) VALUES (90266, 1055, 0, 'rf_rate', 600);
 
 INSERT INTO widget (widgetid, dashboard_pageid, type, name, x, y, width, height) VALUES (1056, 130, 'discovery', 'Test copy Discovery status', 9, 4, 4, 2);

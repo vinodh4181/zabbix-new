@@ -186,7 +186,7 @@ class CArrayHelper {
 	protected static function compare($a, $b) {
 		foreach (self::$fields as $field) {
 			// if field is not set or is null, treat it as smallest string
-			// strnatcasecmp() has unexpected behaviour with null values
+			// strnatcasecmp() has unexpected behavior with null values
 			if (!isset($a[$field['field']]) && !isset($b[$field['field']])) {
 				$cmp = 0;
 			}

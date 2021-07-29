@@ -44,7 +44,7 @@
 		}
 
 		/**
-		 * Simulate input behaviour by replacing newlines with space character.
+		 * Simulate input behavior by replacing newlines with space character.
 		 * NB! WebKit based browsers add a newline character to textarea when translating content to the next line.
 		 */
 		var old_value = $textarea.val(),

@@ -102,7 +102,7 @@ function getMenuPopupHistory(options) {
  * @param {bool}   options['allowed_ui_problems']     Whether user has access to problems page.
  * @param {bool}   options['allowed_ui_hosts']        Whether user has access to monitoring hosts pages.
  * @param {bool}   options['allowed_ui_conf_hosts']   Whether user has access to configuration hosts page.
- * @param {object} trigger_elmnt                      UI element which triggered opening of overlay dialogue.
+ * @param {object} trigger_elmnt                      UI element which triggered opening of overlay dialog.
  *
  * @return array
  */
@@ -463,7 +463,7 @@ function getMenuPopupMapElementImage(options) {
  * @param {bool}   options['can_edit_dashboards']
  * @param {bool}   options['can_view_reports']
  * @param {bool}   options['can_create_reports']
- * @param {object} trigger_elmnt                   UI element which triggered opening of overlay dialogue.
+ * @param {object} trigger_elmnt                   UI element which triggered opening of overlay dialog.
  *
  * @return array
  */
@@ -570,7 +570,7 @@ function getMenuPopupDashboard(options, trigger_elmnt) {
  * @param {object} options['configuration']           Link to trigger configuration page (optional).
  * @param {bool}   options['showEvents']              Show Problems item enabled. Default: false.
  * @param {string} options['url']                     Trigger URL link (optional).
- * @param {object} trigger_elmnt                      UI element which triggered opening of overlay dialogue.
+ * @param {object} trigger_elmnt                      UI element which triggered opening of overlay dialog.
  *
  * @return array
  */
@@ -683,7 +683,7 @@ function getMenuPopupTrigger(options, trigger_elmnt) {
  * @param string options['triggers'][n]['triggerid']
  * @param string options['triggers'][n]['name']
  * @param string options['context']                   Additional parameter in URL to identify main section.
- * @param {object} trigger_elmnt                      UI element that was clicked to open overlay dialogue.
+ * @param {object} trigger_elmnt                      UI element that was clicked to open overlay dialog.
  *
  * @return array
  */
@@ -798,7 +798,7 @@ function getMenuPopupItemPrototype(options) {
  * Get dropdown section data.
  *
  * @param {array}  options
- * @param {object} trigger_elem  UI element that was clicked to open overlay dialogue.
+ * @param {object} trigger_elem  UI element that was clicked to open overlay dialog.
  *
  * @returns array
  */
@@ -939,7 +939,7 @@ function getMenuPopupTriggerMacro(options) {
  * Build script menu tree.
  *
  * @param array scripts           Script names amd nenu paths.
- * @param {object} trigger_elmnt  UI element which triggered opening of overlay dialogue.
+ * @param {object} trigger_elmnt  UI element which triggered opening of overlay dialog.
  * @param array hostid            Host ID.
  * @param array eventid           Event ID.
  *

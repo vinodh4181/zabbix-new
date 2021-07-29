@@ -37,8 +37,8 @@ class CControllerWidgetFavMapsView extends CControllerWidget {
 		$maps = [];
 		$mapids = [];
 
-		foreach (CFavorite::get('web.favorite.sysmapids') as $favourite) {
-			$mapids[$favourite['value']] = true;
+		foreach (CFavorite::get('web.favorite.sysmapids') as $favorite) {
+			$mapids[$favorite['value']] = true;
 		}
 
 		if ($mapids) {

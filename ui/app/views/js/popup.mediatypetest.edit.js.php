@@ -30,7 +30,7 @@
  * @param {Overlay} overlay
  */
 function mediatypeTestSend(overlay) {
-	var $form = overlay.$dialogue.find('form'),
+	var $form = overlay.$dialog.find('form'),
 		$form_fields = $form.find('#sendto, #subject, #message'),
 		data = $form.serialize(),
 		url = new Curl($form.attr('action'));
@@ -44,7 +44,7 @@ function mediatypeTestSend(overlay) {
 		url: url.getUrl(),
 		data: data,
 		success: function(ret) {
-			overlay.$dialogue.find('.msg-bad, .msg-good').remove();
+			overlay.$dialog.find('.msg-bad, .msg-good').remove();
 
 			if (typeof ret.messages !== 'undefined') {
 				jQuery(ret.messages).insertBefore($form);

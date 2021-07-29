@@ -25,7 +25,7 @@
 ?>
 
 function submitScheduledReport(overlay) {
-	const $form = overlay.$dialogue.find('form');
+	const $form = overlay.$dialog.find('form');
 	const url = new Curl($form.attr('action'));
 
 	$form.trimValues(['#name', '#subject', '#message', '#description']);
@@ -36,7 +36,7 @@ function submitScheduledReport(overlay) {
 	})
 		.then(response => response.json())
 		.then(response => {
-			overlay.$dialogue.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
+			overlay.$dialog.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
 
 			if ('errors' in response) {
 				overlay.unsetLoading();

@@ -653,9 +653,9 @@ class CEvent extends CApiService {
 			$task_close = [];
 
 			foreach ($acknowledgeids as $k => $id) {
-				$acknowledgement = $acknowledges[$k];
+				$acknowledgment = $acknowledges[$k];
 
-				if (($acknowledgement['action'] & ZBX_PROBLEM_UPDATE_CLOSE) == ZBX_PROBLEM_UPDATE_CLOSE){
+				if (($acknowledgment['action'] & ZBX_PROBLEM_UPDATE_CLOSE) == ZBX_PROBLEM_UPDATE_CLOSE){
 					$tasks[$k] = [
 						'type' => ZBX_TM_TASK_CLOSE_PROBLEM,
 						'status' => ZBX_TM_STATUS_NEW,
@@ -674,12 +674,12 @@ class CEvent extends CApiService {
 				DB::insertBatch('task_close_problem', $task_close, false);
 			}
 
-			// Create tasks to perform server-side acknowledgement operations.
+			// Create tasks to perform server-side acknowledgment operations.
 			$tasks = [];
 			$tasks_ack = [];
 
 			foreach ($acknowledgeids as $k => $id) {
-				$acknowledgement = $acknowledges[$k];
+				$acknowledgment = $acknowledges[$k];
 
 				// Acknowledge task should be created for each acknowledge operation, regardless of it's action.
 				$tasks[$k] = [

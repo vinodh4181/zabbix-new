@@ -29,7 +29,7 @@ Bug Fixes:
 Improvements:
 - Use strict comparison operator to compare digest values. (Jaime Pérez)
 - Remove call to file_get_contents that doesn't even work. (Jaime Pérez)
-- Document potentially dangerous return value behaviour. (Thijs Kinkhorst)
+- Document potentially dangerous return value behavior. (Thijs Kinkhorst)
 
 31, Aug 2017, 3.0.1
 Bug Fixes:

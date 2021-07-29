@@ -197,7 +197,7 @@ final class Ctype
     }
 
     /**
-     * Converts integers to their char versions according to normal ctype behaviour, if needed.
+     * Converts integers to their char versions according to normal ctype behavior, if needed.
      *
      * If an integer between -128 and 255 inclusive is provided,
      * it is interpreted as the ASCII value of a single character

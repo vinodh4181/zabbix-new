@@ -357,7 +357,7 @@ class testFormUserPermissions extends CWebTest {
 					}
 				}
 				else {
-					// Request displayed in grey color because it is in Deny list. But API Enabled and displayed in green.
+					// Request displayed in gray color because it is in Deny list. But API Enabled and displayed in green.
 					if ($api_status_field === 'Enabled') {
 						$this->assertEquals($status, $this->query($selector.'"host.create"]')->one()->getAttribute('class'));
 						$this->assertEquals('status-green', $this->query($selector.CXPathHelper::escapeQuotes($api_status_field).']')

@@ -28,7 +28,7 @@
  * @param {Overlay} overlay
  */
 function submitAcknowledge(overlay) {
-	var $form = overlay.$dialogue.find('form'),
+	var $form = overlay.$dialog.find('form'),
 		url = new Curl('zabbix.php', false),
 		form_data;
 
@@ -47,7 +47,7 @@ function submitAcknowledge(overlay) {
 			overlay.unsetLoading();
 		}
 	}).done(function(response) {
-		overlay.$dialogue.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
+		overlay.$dialog.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
 
 		if ('errors' in response) {
 			jQuery(response.errors).insertBefore($form);

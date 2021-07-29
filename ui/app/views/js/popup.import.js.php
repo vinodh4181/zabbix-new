@@ -38,7 +38,7 @@ function submitPopup(overlay) {
 }
 
 function isDeleteMissingChecked(import_overlay) {
-	return import_overlay.$dialogue.get(0).querySelectorAll('.deleteMissing:checked').length > 0;
+	return import_overlay.$dialog.get(0).querySelectorAll('.deleteMissing:checked').length > 0;
 }
 
 function confirmSubmit(import_overlay, compare_overlay) {
@@ -71,7 +71,7 @@ function confirmSubmit(import_overlay, compare_overlay) {
 
 function openImportComparePopup(overlay) {
 	// Remove error message.
-	overlay.$dialogue.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
+	overlay.$dialog.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
 
 	const form = document.getElementById('import-form');
 
@@ -108,7 +108,7 @@ function openImportComparePopup(overlay) {
 
 function submitImportPopup(overlay) {
 	// Remove error message.
-	overlay.$dialogue.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
+	overlay.$dialog.find('.<?= ZBX_STYLE_MSG_BAD ?>').remove();
 
 	const form = document.getElementById('import-form');
 

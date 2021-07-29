@@ -75,7 +75,7 @@ $(() => {
 });
 
 function submitValueMap(overlay) {
-	var $form = overlay.$dialogue.find('form'),
+	var $form = overlay.$dialog.find('form'),
 		url = new Curl($form.attr('action'));
 
 	$form.trimValues(['input[type="text"]']);
@@ -86,7 +86,7 @@ function submitValueMap(overlay) {
 	})
 		.then(response => response.json())
 		.then(response => {
-			overlay.$dialogue.find('.msg-bad, .msg-good').remove();
+			overlay.$dialog.find('.msg-bad, .msg-good').remove();
 
 			if (response.errors) {
 				document

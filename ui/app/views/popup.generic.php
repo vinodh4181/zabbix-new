@@ -70,7 +70,7 @@ if (array_key_exists('groups', $data['filter'])) {
 	$output['script_inline'] .=
 		$hostgroup_ms->getPostJS().
 		'var overlay = overlays_stack.end();'.
-		'jQuery(".multiselect", overlay.$dialogue).each(function(i, ms) {'.
+		'jQuery(".multiselect", overlay.$dialog).each(function(i, ms) {'.
 			'jQuery(ms).on("change", {overlay: overlay}, function(e) {'.
 				'var groups = jQuery(this).multiSelect("getData").map(i => i.id),'.
 					'options = groups.length ? {groupid: groups[0]} : {filter_groupid_rst: 1, groupid: []};'.
@@ -94,7 +94,7 @@ if (array_key_exists('hosts', $data['filter'])) {
 	$output['script_inline'] .=
 		$host_ms->getPostJS().
 		'var overlay = overlays_stack.end();'.
-		'jQuery(".multiselect", overlay.$dialogue).each(function(i, ms) {'.
+		'jQuery(".multiselect", overlay.$dialog).each(function(i, ms) {'.
 			'jQuery(ms).on("change", {overlay: overlay}, function(e) {'.
 				'var hosts = jQuery(this).multiSelect("getData").map(i => i.id),'.
 					'options = hosts.length ? {hostid: hosts[0]} : {filter_hostid_rst: 1, hostid: []};'.

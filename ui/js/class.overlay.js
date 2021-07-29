@@ -24,7 +24,7 @@
  * @param {string} type
  * @param {string} (optional) dialogueid
  *
- * @prop {jQuery} $dialogue
+ * @prop {jQuery} $dialog
  * @prop {jQuery} $backdrop
  * @prop {string} type
  * @prop {string} headerid
@@ -38,7 +38,7 @@ function Overlay(type, dialogueid) {
 		'data-dialogueid': this.dialogueid
 	});
 
-	this.$dialogue = jQuery('<div>', {
+	this.$dialog = jQuery('<div>', {
 		'class': 'overlay-dialogue modal',
 		'data-dialogueid': this.dialogueid,
 		'role': 'dialog',
@@ -55,18 +55,18 @@ function Overlay(type, dialogueid) {
 			e.preventDefault();
 		}.bind(this));
 
-	this.$dialogue.append($close_btn);
+	this.$dialog.append($close_btn);
 
-	this.$dialogue.$header = jQuery('<h4>', {id: this.headerid});
-	this.$dialogue.$controls = jQuery('<div>', {class: 'overlay-dialogue-controls'});
-	this.$dialogue.$body = jQuery('<div>', {class: 'overlay-dialogue-body'});
-	this.$dialogue.$debug = jQuery('<pre>', {class: 'debug-output'});
-	this.$dialogue.$footer = jQuery('<div>', {class: 'overlay-dialogue-footer'});
-	this.$dialogue.$script = jQuery('<script>');
+	this.$dialog.$header = jQuery('<h4>', {id: this.headerid});
+	this.$dialog.$controls = jQuery('<div>', {class: 'overlay-dialog-controls'});
+	this.$dialog.$body = jQuery('<div>', {class: 'overlay-dialog-body'});
+	this.$dialog.$debug = jQuery('<pre>', {class: 'debug-output'});
+	this.$dialog.$footer = jQuery('<div>', {class: 'overlay-dialog-footer'});
+	this.$dialog.$script = jQuery('<script>');
 
-	this.$dialogue.append(jQuery('<div>', {class: 'dashboard-widget-head'}).append(this.$dialogue.$header));
-	this.$dialogue.append(this.$dialogue.$body);
-	this.$dialogue.append(this.$dialogue.$footer);
+	this.$dialog.append(jQuery('<div>', {class: 'dashboard-widget-head'}).append(this.$dialog.$header));
+	this.$dialog.append(this.$dialog.$body);
+	this.$dialog.append(this.$dialog.$footer);
 
 	this.center_dialog_function = this.centerDialog.bind(this);
 
@@ -74,7 +74,7 @@ function Overlay(type, dialogueid) {
 	this.body_mutation_observer = new body_mutation_observer(this.center_dialog_function);
 
 	jQuery(window).resize(function() {
-		this.$dialogue.is(':visible') && this.centerDialog();
+		this.$dialog.is(':visible') && this.centerDialog();
 	}.bind(this));
 
 	this.setProperties({
@@ -86,8 +86,8 @@ function Overlay(type, dialogueid) {
  * Centers the $dialog.
  */
 Overlay.prototype.centerDialog = function() {
-	var body_scroll_height = this.$dialogue.$body[0].scrollHeight,
-		body_height = this.$dialogue.$body.innerHeight();
+	var body_scroll_height = this.$dialog.$body[0].scrollHeight,
+		body_height = this.$dialog.$body.innerHeight();
 
 	if (body_height != Math.floor(body_height)) {
 		// The body height is often about a half pixel less than the height.
@@ -95,32 +95,32 @@ Overlay.prototype.centerDialog = function() {
 	}
 
 	// A fix for IE and Edge to stop popup width flickering when having vertical scrollbar.
-	this.$dialogue.$body.css('overflow-y', body_scroll_height > body_height ? 'scroll' : 'hidden');
+	this.$dialog.$body.css('overflow-y', body_scroll_height > body_height ? 'scroll' : 'hidden');
 
 	// Allow full width to determine actual width taken by the contents.
-	this.$dialogue.css({
+	this.$dialog.css({
 		'left': 0,
 		'top': 0
 	});
 
-	this.$dialogue.css({
-		'left': Math.max(0, parseInt((jQuery(window).width() - this.$dialogue.outerWidth(true)) / 2)) + 'px',
-		'top': this.$dialogue.hasClass('sticked-to-top')
+	this.$dialog.css({
+		'left': Math.max(0, parseInt((jQuery(window).width() - this.$dialog.outerWidth(true)) / 2)) + 'px',
+		'top': this.$dialog.hasClass('sticked-to-top')
 			? ''
-			: Math.max(0, parseInt((jQuery(window).height() - this.$dialogue.outerHeight(true)) / 2)) + 'px'
+			: Math.max(0, parseInt((jQuery(window).height() - this.$dialog.outerHeight(true)) / 2)) + 'px'
 	});
 
 	var size = {
-			width: this.$dialogue.$body[0].scrollWidth,
-			height: this.$dialogue.$body[0].scrollHeight
+			width: this.$dialog.$body[0].scrollWidth,
+			height: this.$dialog.$body[0].scrollHeight
 		},
-		size_saved = this.$dialogue.data('size') || size;
+		size_saved = this.$dialog.data('size') || size;
 
 	if (JSON.stringify(size) !== JSON.stringify(size_saved)) {
-		this.$dialogue.trigger('overlay-dialogue-resize', [size, size_saved]);
+		this.$dialog.trigger('overlay-dialog-resize', [size, size_saved]);
 	}
 
-	this.$dialogue.data('size', size);
+	this.$dialog.data('size', size);
 };
 
 /**
@@ -132,22 +132,22 @@ Overlay.prototype.recoverFocus = function() {
 		return;
 	}
 
-	if (jQuery('[autofocus=autofocus]', this.$dialogue).length) {
-		jQuery('[autofocus=autofocus]', this.$dialogue).first().focus();
+	if (jQuery('[autofocus=autofocus]', this.$dialog).length) {
+		jQuery('[autofocus=autofocus]', this.$dialog).first().focus();
 	}
-	else if (jQuery('.overlay-dialogue-body form :focusable', this.$dialogue).length) {
-		jQuery('.overlay-dialogue-body form :focusable', this.$dialogue).first().focus();
+	else if (jQuery('.overlay-dialog-body form :focusable', this.$dialog).length) {
+		jQuery('.overlay-dialog-body form :focusable', this.$dialog).first().focus();
 	}
 	else {
-		jQuery(':focusable:first', this.$dialogue).focus();
+		jQuery(':focusable:first', this.$dialog).focus();
 	}
 };
 
 /**
- * Binds keyboard events to contain focus within dialogue window.
+ * Binds keyboard events to contain focus within dialog window.
  */
 Overlay.prototype.containFocus = function() {
-	var focusable = jQuery(':focusable', this.$dialogue);
+	var focusable = jQuery(':focusable', this.$dialog);
 
 	if (focusable.length > 1) {
 		var first_focusable = focusable.filter(':first'),
@@ -185,19 +185,19 @@ Overlay.prototype.containFocus = function() {
 };
 
 /**
- * Sets dialogue in loading sate.
+ * Sets dialog in loading sate.
  */
 Overlay.prototype.setLoading = function() {
-	this.$dialogue.$body.addClass('is-loading');
-	this.$dialogue.$controls.find('z-select, button').prop('disabled', true);
+	this.$dialog.$body.addClass('is-loading');
+	this.$dialog.$controls.find('z-select, button').prop('disabled', true);
 	this.$btn_submit && this.$btn_submit.prop('disabled', true);
 };
 
 /**
- * Sets dialogue in idle sate.
+ * Sets dialog in idle sate.
  */
 Overlay.prototype.unsetLoading = function() {
-	this.$dialogue.$body.removeClass('is-loading');
+	this.$dialog.$body.removeClass('is-loading');
 	this.$btn_submit && this.$btn_submit.removeClass('is-loading').prop('disabled', false);
 };
 
@@ -243,7 +243,7 @@ Overlay.prototype.unmount = function() {
 	jQuery.unsubscribe('debug.click', this.center_dialog_function);
 
 	this.$backdrop.remove();
-	this.$dialogue.remove();
+	this.$dialog.remove();
 
 	this.body_mutation_observer.disconnect();
 
@@ -267,9 +267,9 @@ Overlay.prototype.mount = function() {
 	}
 
 	this.$backdrop.appendTo($wrapper);
-	this.$dialogue.appendTo($wrapper);
+	this.$dialog.appendTo($wrapper);
 
-	this.body_mutation_observer.observe(this.$dialogue[0], {childList: true, subtree: true});
+	this.body_mutation_observer.observe(this.$dialog[0], {childList: true, subtree: true});
 	this.centerDialog();
 
 	jQuery.subscribe('debug.click', this.center_dialog_function);
@@ -360,30 +360,30 @@ Overlay.prototype.makeButtons = function(arr) {
 Overlay.prototype.unsetProperty = function(key) {
 	switch (key) {
 		case 'title':
-			this.$dialogue.$header.text('');
+			this.$dialog.$header.text('');
 			break;
 
 		case 'buttons':
-			this.$dialogue.$footer.find('button').remove();
+			this.$dialog.$footer.find('button').remove();
 			break;
 
 		case 'content':
-			this.$dialogue.$body.html('');
-			if (this.$dialogue.$debug.html().length) {
-				this.$dialogue.$body.append(this.$dialogue.$debug);
+			this.$dialog.$body.html('');
+			if (this.$dialog.$debug.html().length) {
+				this.$dialog.$body.append(this.$dialog.$debug);
 			}
 			break;
 
 		case 'controls':
-			this.$dialogue.$controls.remove();
+			this.$dialog.$controls.remove();
 			break;
 
 		case 'debug':
-			this.$dialogue.$debug.remove();
+			this.$dialog.$debug.remove();
 			break;
 
 		case 'script_inline':
-			this.$dialogue.$script.remove();
+			this.$dialog.$script.remove();
 			break;
 	}
 };
@@ -402,46 +402,46 @@ Overlay.prototype.setProperties = function(obj) {
 
 		switch (key) {
 			case 'class':
-				this.$dialogue.addClass(obj[key]);
+				this.$dialog.addClass(obj[key]);
 				break;
 
 			case 'title':
-				this.$dialogue.$header.text(obj[key]);
+				this.$dialog.$header.text(obj[key]);
 				break;
 
 			case 'buttons':
 				this.unsetProperty(key);
-				this.$dialogue.$footer.append(this.makeButtons(obj[key]));
+				this.$dialog.$footer.append(this.makeButtons(obj[key]));
 				break;
 
 			case 'footer':
 				this.unsetProperty(key);
-				this.$dialogue.$footer.append(obj[key]);
+				this.$dialog.$footer.append(obj[key]);
 				break;
 
 			case 'content':
-				this.$dialogue.$body.html(obj[key]);
-				if (this.$dialogue.$debug.html().length) {
-					this.$dialogue.$body.append(this.$dialogue.$debug);
+				this.$dialog.$body.html(obj[key]);
+				if (this.$dialog.$debug.html().length) {
+					this.$dialog.$body.append(this.$dialog.$debug);
 				}
 				break;
 
 			case 'controls':
-				this.$dialogue.$controls.html(obj[key]);
-				this.$dialogue.$body.before(this.$dialogue.$controls);
+				this.$dialog.$controls.html(obj[key]);
+				this.$dialog.$body.before(this.$dialog.$controls);
 				break;
 
 			case 'debug':
-				this.$dialogue.$debug.html(jQuery(obj[key]).html());
-				this.$dialogue.$body.append(this.$dialogue.$debug);
+				this.$dialog.$debug.html(jQuery(obj[key]).html());
+				this.$dialog.$body.append(this.$dialog.$debug);
 				break;
 
 			case 'script_inline':
 				this.unsetProperty(key);
 				// See: jQuery.html() rnoInnerhtml = /<script|<style|<link/i
 				// If content matches this regex it will be parsed in jQuery.buildFragment as HTML, but here we have JS.
-				this.$dialogue.$script.get(0).innerHTML = obj[key];
-				this.$dialogue.$footer.prepend(this.$dialogue.$script);
+				this.$dialog.$script.get(0).innerHTML = obj[key];
+				this.$dialog.$footer.prepend(this.$dialog.$script);
 				break;
 
 			case 'element':
@@ -455,7 +455,7 @@ Overlay.prototype.setProperties = function(obj) {
 	}
 
 	// Hijack form.
-	this.$btn_submit && this.$dialogue.$body.find('form').on('submit', function(e) {
+	this.$btn_submit && this.$dialog.$body.find('form').on('submit', function(e) {
 		e.preventDefault();
 		this.$btn_submit.trigger('click');
 	}.bind(this));

@@ -495,7 +495,7 @@ class testPageAdministrationGeneralModules extends CWebTest {
 		$sql = 'SELECT * FROM module ORDER BY moduleid';
 		$initial_hash = CDBHelper::getHash($sql);
 
-		// Open the module update of which is going to be cancelled.
+		// Open the module update of which is going to be canceled.
 		$this->page->login()->open('zabbix.php?action=module.list');
 		$this->query('link:1st Module name')->waitUntilVisible()->one()->click();
 		$this->page->waitUntilReady();

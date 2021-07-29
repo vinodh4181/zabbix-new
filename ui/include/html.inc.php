@@ -1035,7 +1035,7 @@ function makeErrorIcon($error) {
 }
 
 /**
- * Renders an unknown icon like grey [i] with error message
+ * Renders an unknown icon like gray [i] with error message
  *
  * @param string $error
  *

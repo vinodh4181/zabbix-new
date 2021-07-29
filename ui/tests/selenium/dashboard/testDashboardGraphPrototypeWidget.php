@@ -197,21 +197,21 @@ class testDashboardGraphPrototypeWidget extends CWebTest {
 	}
 
 	/**
-	 * Test for checking Graph prototype creation cancelling.
+	 * Test for checking Graph prototype creation canceling.
 	 */
 	public function testDashboardGraphPrototypeWidget_CancelCreate() {
 		$this->checkDataUnchanged('Cancel', false, true);
 	}
 
 	/**
-	 * Test for checking Graph prototype cancelling form changes.
+	 * Test for checking Graph prototype canceling form changes.
 	 */
 	public function testDashboardGraphPrototypeWidget_CancelChanges() {
 		$this->checkDataUnchanged('Cancel', true, true);
 	}
 
 	/**
-	 * Test for checking Graph prototype widget cancelling without making any changes.
+	 * Test for checking Graph prototype widget canceling without making any changes.
 	 */
 	public function testDashboardGraphPrototypeWidget_CancelNoChanges() {
 		$this->checkDataUnchanged('Cancel', true);

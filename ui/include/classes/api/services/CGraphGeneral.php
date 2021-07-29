@@ -807,7 +807,7 @@ abstract class CGraphGeneral extends CApiService {
 			$dbGraphs = API::Graph()->get([
 				'hostids' => $hostAndTemplateIds,
 				'output' => ['graphid'],
-				'filter' => ['name' => $graph['name'], 'flags' => null], // 'flags' => null overrides default behaviour
+				'filter' => ['name' => $graph['name'], 'flags' => null], // 'flags' => null overrides default behavior
 				'nopermissions' => true
 			]);
 

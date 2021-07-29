@@ -157,7 +157,7 @@
  * @param {Overlay} overlay
  */
 function validateTriggerWizard(overlay) {
-	var $form = overlay.$dialogue.find('form'),
+	var $form = overlay.$dialog.find('form'),
 		url = new Curl($form.attr('action'));
 
 	$form.trimValues(['#description', '#logexpr']);
@@ -172,7 +172,7 @@ function validateTriggerWizard(overlay) {
 			overlay.unsetLoading();
 		},
 		success: function(ret) {
-			overlay.$dialogue.find('.<?= ZBX_STYLE_MSG_BAD ?>, .<?= ZBX_STYLE_MSG_GOOD ?>').remove();
+			overlay.$dialog.find('.<?= ZBX_STYLE_MSG_BAD ?>, .<?= ZBX_STYLE_MSG_GOOD ?>').remove();
 
 			if (typeof ret.errors !== 'undefined') {
 				jQuery(ret.errors).insertBefore($form);

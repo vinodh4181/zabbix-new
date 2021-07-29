@@ -1334,7 +1334,7 @@ function getMapLinkTriggerInfo($sysmap, $options) {
 }
 
 /**
- * Get map selement label color based on problem and acknowledgement state
+ * Get map selement label color based on problem and acknowledgment state
  * as well as taking custom event status color settings into account.
  *
  * @throws APIException if the given table does not exist

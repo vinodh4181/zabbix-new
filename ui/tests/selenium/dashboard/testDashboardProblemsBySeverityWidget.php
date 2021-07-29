@@ -488,7 +488,7 @@ class testDashboardProblemsBySeverityWidget extends CWebTest {
 		$old_widget_count = $dashboard->getWidgets()->count();
 
 		// Add a widget.
-		$dialogue = $dashboard->edit()->addWidget();
+		$dialog = $dashboard->edit()->addWidget();
 		$form = $dialogue->asForm();
 		$header = CTestArrayHelper::get($data['fields'], 'Name', 'Problems by severity');
 		$this->fillFormAndSaveDashboard($dashboard, $form, $data, $header);

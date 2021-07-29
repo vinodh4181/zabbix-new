@@ -432,7 +432,7 @@ class testFormValueMappings extends CWebTest {
 	}
 
 	/**
-	 * Function that checks that no changes in the database are made in case if value mapping update is cancelled.
+	 * Function that checks that no changes in the database are made in case if value mapping update is canceled.
 	 *
 	 * @param string $source		Entity (host or template) for which the scenario is executed.
 	 */

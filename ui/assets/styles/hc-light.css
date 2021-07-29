@@ -4548,10 +4548,10 @@ a.orange:hover, a.orange:focus {
 a.yellow:hover, a.yellow:focus {
   color: #000000; }
 
-.grey, a.grey {
+.gray, a.gray {
   color: #333333; }
 
-a.grey:hover, a.grey:focus {
+a.gray:hover, a.gray:focus {
   color: #000000; }
 
 .blue, a.blue {
@@ -4576,7 +4576,7 @@ a.link-action {
     color: #af6b00; }
   a.link-action.green {
     color: #009900; }
-  a.link-action.grey {
+  a.link-action.gray {
     color: #333333; }
   a.link-action:hover {
     color: #000000;
@@ -6626,7 +6626,7 @@ z-select button.focusable:focus,
 .multiselect-suggest li.suggest-hover, .multiselect-matches li.suggest-hover {
   color: #ffffff;
   background-color: #000000; }
-  .multiselect-suggest li.suggest-hover .grey, .multiselect-matches li.suggest-hover .grey {
+  .multiselect-suggest li.suggest-hover .gray, .multiselect-matches li.suggest-hover .gray {
     color: #dcdcdc; }
   .multiselect-suggest li.suggest-hover .suggest-found, .multiselect-matches li.suggest-hover .suggest-found {
     color: #ffd98c; }

@@ -328,7 +328,7 @@ class CControllerPopupAcknowledgeCreate extends CController {
 	 * @param array $eventids
 	 * @param array $eventids['closable']            Event ids that user is allowed to close manually.
 	 * @param array $eventids['editable']            Event ids that user is allowed to make changes.
-	 * @param array $eventids['acknowledgeable']     Event ids that user is allowed to make acknowledgement.
+	 * @param array $eventids['acknowledgeable']     Event ids that user is allowed to make acknowledgment.
 	 * @param array $eventids['unacknowledgeable']   Event ids that user is allowed to make unacknowledgement.
 	 * @param array $eventids['readable']            Event ids that user is allowed to read.
 	 *

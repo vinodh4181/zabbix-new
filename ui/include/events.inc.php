@@ -141,7 +141,7 @@ function get_events_unacknowledged($db_element, $value_trigger = null, $value_ev
  * @param string $event['correlationid']             OK Event correlation ID.
  * @param string $event['userid']                    User ID who generated the OK event.
  * @param string $event['name']                      Event name.
- * @param string $event['acknowledged']              State of acknowledgement.
+ * @param string $event['acknowledged']              State of acknowledgment.
  * @param array  $event['acknowledges']              List of problem updates.
  * @param string $event['acknowledges'][]['action']  Action performed in update.
  * @param CCOl   $event['opdata']                    Operational data with expanded macros.

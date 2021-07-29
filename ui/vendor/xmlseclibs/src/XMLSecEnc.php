@@ -242,7 +242,7 @@ class XMLSecEnc
     /**
      * Decrypt this encrypted node.
      *
-     * The behaviour of this function depends on the value of $replace.
+     * The behavior of this function depends on the value of $replace.
      * If $replace is false, we will return the decrypted data as a string.
      * If $replace is true, we will insert the decrypted element(s) into the
      * document, and return the decrypted element(s).

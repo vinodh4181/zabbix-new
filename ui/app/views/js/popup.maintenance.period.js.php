@@ -58,7 +58,7 @@ jQuery('#timeperiod_type').change(function() {
  * @param {Overlay} overlay
  */
 function submitMaintenancePeriod(overlay) {
-	var $container = overlay.$dialogue.find('form'),
+	var $container = overlay.$dialog.find('form'),
 		elements = {};
 
 	$container.trimValues(['#start_date']);
@@ -73,7 +73,7 @@ function submitMaintenancePeriod(overlay) {
 		type: 'post',
 		success: function(response) {
 			if ('errors' in response) {
-				overlay.$dialogue.find('.msg-bad').remove();
+				overlay.$dialog.find('.msg-bad').remove();
 
 				jQuery(response.errors).insertBefore($container);
 				overlay.unsetLoading();
