@@ -312,6 +312,7 @@ class testEscalations extends CIntegrationTest {
 				]
 			]
 		]);
+		var_dump($response);
 		$this->assertArrayHasKey('maintenanceids', $response['result']);
 		$this->assertEquals(1, count($response['result']['maintenanceids']));
 		$maintenance_id = $response['result']['maintenanceids'][0];
@@ -324,6 +325,7 @@ class testEscalations extends CIntegrationTest {
 		$response = $this->call('alert.get', [
 			'actionids' => [self::$trigger_actionid]
 		]);
+		var_dump($response);
 		$this->assertArrayHasKey(0, $response['result']);
 		$this->assertEquals(0, $response['result'][0]['p_eventid']);
 
@@ -333,6 +335,7 @@ class testEscalations extends CIntegrationTest {
 		$response = $this->call('alert.get', [
 			'actionids' => [self::$trigger_actionid]
 		]);
+		var_dump($response);
 		$this->assertArrayHasKey(1, $response['result']);
 		$this->assertNotEquals(0, $response['result'][1]['p_eventid']);
 	}
@@ -351,6 +354,7 @@ class testEscalations extends CIntegrationTest {
 			'actionid' => self::$trigger_actionid,
 			'pause_suppressed' => 1
 		]);
+		var_dump($response);
 		// Create maintenance period
 		self::$maint_start_tm = time() + 10;
 		$maint_end_tm = self::$maint_start_tm + 60 * 2;
@@ -375,6 +379,7 @@ class testEscalations extends CIntegrationTest {
 				]
 			]
 		]);
+		var_dump($response);
 		$this->assertArrayHasKey('maintenanceids', $response['result']);
 		$this->assertEquals(1, count($response['result']['maintenanceids']));
 		$maintenance_id = $response['result']['maintenanceids'][0];
@@ -387,6 +392,7 @@ class testEscalations extends CIntegrationTest {
 		$response = $this->call('alert.get', [
 			'actionids' => [self::$trigger_actionid]
 		]);
+		var_dump($response);
 		$this->assertArrayHasKey(0, $response['result']);
 		$this->assertEquals(0, $response['result'][0]['p_eventid']);
 
@@ -398,6 +404,7 @@ class testEscalations extends CIntegrationTest {
 		$response = $this->call('alert.get', [
 			'actionids' => [self::$trigger_actionid]
 		]);
+		var_dump($response);
 		$this->assertArrayHasKey(1, $response['result']);
 		$this->assertNotEquals(0, $response['result'][1]['p_eventid']);
 	}
@@ -416,6 +423,7 @@ class testEscalations extends CIntegrationTest {
 			'actionid' => self::$trigger_actionid,
 			'pause_suppressed' => 1
 		]);
+		var_dump($response);
 		// Create maintenance period
 		self::$maint_start_tm = time();
 		$maint_end_tm = self::$maint_start_tm + 60 * 2;
@@ -440,6 +448,7 @@ class testEscalations extends CIntegrationTest {
 				]
 			]
 		]);
+		var_dump($response);
 		$this->assertArrayHasKey('maintenanceids', $response['result']);
 		$this->assertEquals(1, count($response['result']['maintenanceids']));
 		$maintenance_id = $response['result']['maintenanceids'][0];
@@ -453,11 +462,13 @@ class testEscalations extends CIntegrationTest {
 		$response = $this->call('alert.get', [
 			'actionids' => [self::$trigger_actionid]
 		]);
+		var_dump($response);
 		$this->assertEmpty($response['result']);
 
 		$response = $this->call('maintenance.delete', [
 			$maintenance_id
 		]);
+		var_dump($response);
 		$this->assertArrayHasKey('maintenanceids', $response['result']);
 		$this->assertEquals($maintenance_id, $response['result']['maintenanceids'][0]);
 		$this->reloadConfigurationCache();
@@ -470,6 +481,7 @@ class testEscalations extends CIntegrationTest {
 		$response = $this->call('alert.get', [
 			'actionids' => [self::$trigger_actionid]
 		]);
+		var_dump($response);
 		$this->assertArrayHasKey(0, $response['result']);
 		$this->assertEquals(0, $response['result'][0]['p_eventid']);
 
@@ -478,6 +490,7 @@ class testEscalations extends CIntegrationTest {
 		$response = $this->call('alert.get', [
 			'actionids' => [self::$trigger_actionid]
 		]);
+		var_dump($response);
 		$this->assertArrayHasKey(1, $response['result']);
 		$this->assertNotEquals(0, $response['result'][1]['p_eventid']);
 	}
@@ -521,6 +534,7 @@ class testEscalations extends CIntegrationTest {
 				]
 			]
 		]);
+		var_dump($response);
 
 		$this->assertArrayHasKey('actionids', $response['result']);
 		$this->assertArrayHasKey(0, $response['result']['actionids']);
@@ -533,6 +547,7 @@ class testEscalations extends CIntegrationTest {
 				]
 			]
 		]);
+		var_dump($response);
 		$this->assertArrayHasKey('userids', $response['result']);
 		$this->assertArrayHasKey(0, $response['result']['userids']);
 
@@ -542,6 +557,7 @@ class testEscalations extends CIntegrationTest {
 			'triggerid' => self::$triggerid,
 			'status' => 1
 		]);
+		var_dump($response);
 		$this->assertArrayHasKey('triggerids', $response['result']);
 		$this->assertEquals(1, count($response['result']['triggerids']));
 
@@ -552,6 +568,7 @@ class testEscalations extends CIntegrationTest {
 		$response = $this->call('alert.get', [
 			'actionids' => [self::$trigger_actionid]
 		]);
+		var_dump($response);
 		$esc_msg = 'NOTE: Escalation cancelled';
 		$this->assertArrayHasKey(1, $response['result']);
 		$this->assertEquals(0, strncmp($esc_msg, $response['result'][1]['message'], strlen($esc_msg)));
@@ -600,6 +617,7 @@ class testEscalations extends CIntegrationTest {
 				]
 			]
 		]);
+		var_dump($response);
 
 		$this->assertArrayHasKey('actionids', $response['result']);
 		$this->assertArrayHasKey(0, $response['result']['actionids']);
@@ -614,6 +632,7 @@ class testEscalations extends CIntegrationTest {
 			'actionsids' => [self::$trigger_actionid]
 			]
 		);
+		var_dump($response);
 		$this->assertCount(2, $response['result']);
 		$this->assertEquals(1, $response['result'][0]['esc_step']);
 		$this->assertEquals(2, $response['result'][1]['esc_step']);
