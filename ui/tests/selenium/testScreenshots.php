@@ -620,7 +620,7 @@ class testScreenshots extends CWebTest {
 					'url' => 'hosts.php', // ??
 					'name' => 'Configuration Hosts - Host Groups select',
 					'click_query' => [
-						'xpath:(//*[@class="multiselect-control"]//button[not(@disabled)])[1]'
+						'xpath:(//* [@class="multiselect-control"]// button[not(@disabled)])[1]'
 					]
 				]
 			],
@@ -629,7 +629,7 @@ class testScreenshots extends CWebTest {
 					'url' => 'hosts.php', // ??
 					'name' => 'Configuration Hosts - Templates select',
 					'click_query' => [
-						'xpath:(//*[@class="multiselect-control"]//button[not(@disabled)])[2]'
+						'xpath:(//* [@class="multiselect-control"]// button[not(@disabled)])[2]'
 					]
 				]
 			]
@@ -662,11 +662,7 @@ class testScreenshots extends CWebTest {
 			}
 		}
 		
-//		try {
 			$this->assertScreenshotExcept(null, $regions, $data['name'].' '.$user);
-//		} catch (\Exception $ex) {
-//			$this->fail($ex->getMessage());
-//		}
 	}
 	
 	/**
