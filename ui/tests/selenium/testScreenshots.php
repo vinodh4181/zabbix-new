@@ -459,7 +459,7 @@ class testScreenshots extends CWebTest {
 					]
 				]
 			],
-			[ 
+			[
 				[
 					'url' => 'zabbix.php?action=dashboard.view', // 67
 					'name' => 'Monitoring Dashboard - Edit widget - Host availability',
@@ -482,7 +482,7 @@ class testScreenshots extends CWebTest {
 					]
 				]
 			],
-			[ 
+			[
 				[
 					'url' => 'zabbix.php?action=dashboard.view', // 69
 					'name' => 'Monitoring Dashboard - Edit widget - Clock',
@@ -505,7 +505,7 @@ class testScreenshots extends CWebTest {
 					]
 				]
 			],
-			[ 
+			[
 				[
 					'url' => 'zabbix.php?action=dashboard.view', // 71
 					'name' => 'Monitoring Dashboard - Edit widget - Problems by severity',
@@ -536,7 +536,7 @@ class testScreenshots extends CWebTest {
 					]
 				]
 			],
-			[ 
+			[
 				[
 					'url' => 'zabbix.php?action=dashboard.view', // 73
 					'name' => 'Monitoring Dashboard - Edit widget - Problems',
@@ -562,7 +562,7 @@ class testScreenshots extends CWebTest {
 					]
 				]
 			],
-			[ 
+			[
 				[
 					'url' => 'zabbix.php?action=dashboard.view', // 75
 					'name' => 'Monitoring Dashboard - Edit widget - Favourite maps',
@@ -588,7 +588,7 @@ class testScreenshots extends CWebTest {
 					]
 				]
 			],
-			[ 
+			[
 				[
 					'url' => 'zabbix.php?action=dashboard.view', // 77
 					'name' => 'Monitoring Dashboard - Edit widget - Favourite graphs',
@@ -614,13 +614,13 @@ class testScreenshots extends CWebTest {
 					]
 				]
 			],
-			
+
 			[
 				[
 					'url' => 'hosts.php', // ??
 					'name' => 'Configuration Hosts - Host Groups select',
 					'click_query' => [
-						'xpath:(//* [@class="multiselect-control"]// button[not(@disabled)])[1]'
+						"xpath:(//*[@class=\"multiselect-control\"]//button[not(@disabled)])[1]"
 					]
 				]
 			],
@@ -629,7 +629,7 @@ class testScreenshots extends CWebTest {
 					'url' => 'hosts.php', // ??
 					'name' => 'Configuration Hosts - Templates select',
 					'click_query' => [
-						'xpath:(//* [@class="multiselect-control"]// button[not(@disabled)])[2]'
+						"xpath:(//*[@class=\"multiselect-control\"]//button[not(@disabled)])[2]"
 					]
 				]
 			]
@@ -655,16 +655,16 @@ class testScreenshots extends CWebTest {
 				$regions[] = (is_array($selector)) ? $selector : $this->query($selector)->waitUntilPresent()->one();
 			}
 		}
-		
+
 		if (array_key_exists('click_query', $data)) {
 			foreach ($data['click_query'] as $query) {
 				$this->query($query)->one()->waitUntilClickable()->click();
 			}
 		}
-		
+
 			$this->assertScreenshotExcept(null, $regions, $data['name'].' '.$user);
 	}
-	
+
 	/**
 	 * Guest user needs to be out of "Disabled" group to have access to frontend.
 	 */
