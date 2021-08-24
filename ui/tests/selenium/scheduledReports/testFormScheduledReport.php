@@ -44,13 +44,6 @@ class testFormScheduledReport extends CWebTest {
 	}
 
 	public static function getHash() {
-//		return CDBHelper::getHash('SELECT * FROM report r '.
-//				'LEFT JOIN report_param rp ON r.reportid=rp.reportid '.
-//				'LEFT JOIN report_user ru ON r.reportid=ru.reportid '.
-//				'LEFT JOIN report_usrgrp rg ON r.reportid=rg.reportid '.
-//				'ORDER BY r.reportid, rp.name, rp.reportparamid, rp.value, ru.reportuserid, rg.reportusrgrpid, rg.usrgrpid ASC'
-//		);
-
 		return CDBHelper::getHash('SELECT * FROM report r ORDER by r.reportid').
 				CDBHelper::getHash('SELECT * FROM report_param rp ORDER by rp.reportparamid').
 				CDBHelper::getHash('SELECT * FROM report_user ru ORDER by ru.reportuserid').
@@ -771,35 +764,10 @@ class testFormScheduledReport extends CWebTest {
 	public function testFormScheduledReport_SimpleUpdate() {
 		$old_hash = $this->getHash();
 		$name = CDBHelper::getRandom('SELECT name FROM report', 1);
-
-		// TODO: delete this debug information when test failing is fixed.
-		var_dump($name);
-
-		echo (json_encode(CDBHelper::getAll('SELECT * FROM report r ORDER by r.reportid'), JSON_PRETTY_PRINT));
-		echo (json_encode(CDBHelper::getAll('SELECT * FROM report_param rp ORDER by rp.reportparamid'), JSON_PRETTY_PRINT));
-		echo (json_encode(CDBHelper::getAll('SELECT * FROM report_user ru ORDER by ru.reportuserid'), JSON_PRETTY_PRINT));
-		echo (json_encode(CDBHelper::getAll('SELECT * FROM report_usrgrp rg ORDER by rg.reportusrgrpid'), JSON_PRETTY_PRINT));
-		echo ('----------------------------------------------------------------------------------------');
-
-//		// TODO: delete this debug information when test failing is fixed.
-//		echo (json_encode(CDBHelper::getAll('SELECT * FROM report r '.
-//				'LEFT JOIN report_param rp ON r.reportid=rp.reportid '.
-//				'LEFT JOIN report_user ru ON r.reportid=ru.reportid '.
-//				'LEFT JOIN report_usrgrp rg ON r.reportid=rg.reportid '.
-//				'ORDER BY r.reportid, rp.name, rp.reportparamid, rp.value, ru.reportuserid, rg.reportusrgrpid, rg.usrgrpid ASC'
-//		), JSON_PRETTY_PRINT));
-
 		$this->page->login()->open('zabbix.php?action=scheduledreport.list');
 		$this->query('link', $name)->waitUntilClickable()->one()->click();
 		$this->query('button:Update')->waitUntilClickable()->one()->click();
 		$this->assertMessage(TEST_GOOD, 'Scheduled report updated');
-
-		// TODO: delete this debug information when test failing is fixed.
-		echo (json_encode(CDBHelper::getAll('SELECT * FROM report r ORDER by r.reportid'), JSON_PRETTY_PRINT));
-		echo (json_encode(CDBHelper::getAll('SELECT * FROM report_param rp ORDER by rp.reportparamid'), JSON_PRETTY_PRINT));
-		echo (json_encode(CDBHelper::getAll('SELECT * FROM report_user ru ORDER by ru.reportuserid'), JSON_PRETTY_PRINT));
-		echo (json_encode(CDBHelper::getAll('SELECT * FROM report_usrgrp rg ORDER by rg.reportusrgrpid'), JSON_PRETTY_PRINT));
-
 		$this->assertEquals($old_hash, $this->getHash());
 	}
 
