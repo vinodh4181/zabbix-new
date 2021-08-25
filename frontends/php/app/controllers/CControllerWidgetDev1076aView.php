@@ -50,7 +50,10 @@ class CControllerWidgetDev1076aView extends CControllerWidget {
 			$options['groupids'] = $fields['groupids'];
 		}
 
-		$hosts = API::Host()->get($options);
+		// Prevent selection of all hosts when no filters are selected.
+		$hosts = ($fields['hostids'] || $fields['groupids'])
+			? API::Host()->get($options)
+			: [];
 
 		foreach ($hosts as $host) {
 			$elements[] = [
