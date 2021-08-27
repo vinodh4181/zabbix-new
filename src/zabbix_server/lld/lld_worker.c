@@ -99,18 +99,11 @@ static void	lld_process_task(zbx_ipc_message_t *message)
 			{
 				zabbix_log(LOG_LEVEL_WARNING, "discovery rule \"%s:%s\" became supported",
 						item.host.host, item.key_orig);
-
-				zbx_add_event(EVENT_SOURCE_INTERNAL, EVENT_OBJECT_LLDRULE, itemid, &ts,
-						ITEM_STATE_NORMAL, NULL, NULL, NULL, 0, 0, NULL, 0, NULL, 0, NULL);
 			}
 			else
 			{
 				zabbix_log(LOG_LEVEL_WARNING, "discovery rule \"%s:%s\" became not supported: %s",
 						item.host.host, item.key_orig, error);
-
-				zbx_add_event(EVENT_SOURCE_INTERNAL, EVENT_OBJECT_LLDRULE, itemid, &ts,
-						ITEM_STATE_NOTSUPPORTED, NULL, NULL, NULL, 0, 0, NULL, 0, NULL, 0,
-						error);
 			}
 
 			zbx_process_events(NULL, NULL);

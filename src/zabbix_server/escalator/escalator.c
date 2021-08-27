@@ -1428,7 +1428,7 @@ static void	escalation_execute_operations(DB_ESCALATION *escalation, const DB_EV
 
 	flush_user_msg(&user_msg, escalation->esc_step, event, NULL, action->actionid);
 
-	if (EVENT_SOURCE_TRIGGERS == action->eventsource || EVENT_SOURCE_INTERNAL == action->eventsource)
+	if (EVENT_SOURCE_TRIGGERS == action->eventsource)
 	{
 		char	*sql;
 
@@ -2214,8 +2214,14 @@ static int	process_db_escalations(int now, int *nextcheck, zbx_vector_ptr_t *esc
 
 		event = (DB_EVENT *)events.values[index];
 
-		if ((EVENT_SOURCE_TRIGGERS == event->source || EVENT_SOURCE_INTERNAL == event->source) &&
-				EVENT_OBJECT_TRIGGER == event->object && 0 == event->trigger.triggerid)
+		if (EVENT_SOURCE_INTERNAL == event->source)
+		{
+			zbx_vector_uint64_append(&escalationids, escalation->escalationid);
+			goto cancel_warning;
+		}
+
+		if (EVENT_SOURCE_TRIGGERS == event->source && EVENT_OBJECT_TRIGGER == event->object &&
+				0 == event->trigger.triggerid)
 		{
 			error = zbx_dsprintf(error, "trigger id:" ZBX_FS_UI64 " deleted.", event->objectid);
 			goto cancel_warning;
