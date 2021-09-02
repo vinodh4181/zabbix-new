@@ -216,15 +216,13 @@
 		});
 
 		$('#testExpression, #tab_test').click(function() {
-			$test_btn.addClass('is-loading');
-			$test_btn.prop('disabled', true);
+			$test_btn.prop('disabled', true).blur().addClass('is-loading');
 			$test_string.prop('disabled', true);
 
 			zabbixRegExp
 				.testExpressions($test_string.val())
 				.always(function() {
-					$test_btn.removeClass('is-loading');
-					$test_btn.prop('disabled', false);
+					$test_btn.prop('disabled', false).removeClass('is-loading');
 					$test_string.prop('disabled', false);
 				});
 		});
