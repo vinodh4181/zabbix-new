@@ -190,7 +190,7 @@ Overlay.prototype.containFocus = function() {
 Overlay.prototype.setLoading = function() {
 	this.$dialogue.$body.addClass('is-loading');
 	this.$dialogue.$controls.find('z-select, button').prop('disabled', true);
-	this.$btn_submit && this.$btn_submit.prop('disabled', true).blur();
+	this.$btn_submit && this.$btn_submit.blur().addClass('is-loading');
 };
 
 /**
@@ -288,7 +288,7 @@ Overlay.prototype.makeButton = function(obj) {
 
 	$button.on('click', function(e) {
 		if (obj.isSubmit && this.$btn_submit) {
-			this.$btn_submit.prop('disabled', true).blur().addClass('is-loading');
+			this.$btn_submit.blur().addClass('is-loading');
 		}
 
 		if (obj.action && obj.action(this) !== false) {
