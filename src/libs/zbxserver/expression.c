@@ -18,7 +18,7 @@
 **/
 
 #include "zbxserver.h"
-#include "evalfunc.h"
+#include "value_format.h"
 #include "log.h"
 #include "zbxregexp.h"
 #include "zbxvariant.h"

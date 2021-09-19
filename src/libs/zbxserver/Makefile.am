@@ -3,15 +3,15 @@
 noinst_LIBRARIES = libzbxserver.a libzbxserver_server.a libzbxserver_proxy.a
 
 libzbxserver_a_SOURCES = \
-	evalfunc.c \
-	evalfunc.h \
+	value_format.c \
+	value_format.h \
 	expression.c \
 	expression.h \
 	macrofunc.c \
 	macrofunc.h \
 	zabbix_stats.c \
 	zabbix_stats.h \
-	evalfunc2.c \
+	evalfunc.c \
 	get_host_from_event.c \
 	get_host_from_event.h \
 	zabbix_users.c \
