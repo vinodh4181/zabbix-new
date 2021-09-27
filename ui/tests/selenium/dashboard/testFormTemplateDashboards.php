@@ -624,6 +624,17 @@ class testFormTemplateDashboards extends CWebTest {
 					'duplicate widget' => true
 				]
 			],
+			// Change time type to Host time and specify item
+			[
+				[
+					'fields' => [
+						'Type' => 'Clock',
+						'Name' => 'Clock widget with Host time',
+						'Time type' => 'Host time',
+						'Item' => 'Item ZBX6663 Second'
+					]
+				]
+			],
 			// Clock widget with no name
 			[
 				[
@@ -640,17 +651,6 @@ class testFormTemplateDashboards extends CWebTest {
 						'Type' => 'Clock',
 						'Name' => 'Clock widget server time',
 						'Time type' => 'Server time'
-					]
-				]
-			],
-			// Change time type to Host time and specify item
-			[
-				[
-					'fields' => [
-						'Type' => 'Clock',
-						'Name' => 'Clock widget with Host time',
-						'Time type' => 'Host time',
-						'Item' => 'Item ZBX6663 Second'
 					]
 				]
 			],
