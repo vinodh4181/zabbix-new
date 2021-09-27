@@ -643,6 +643,17 @@ class testFormTemplateDashboards extends CWebTest {
 					]
 				]
 			],
+			// Change time type to Host time and specify item
+			[
+				[
+					'fields' => [
+						'Type' => 'Clock',
+						'Name' => 'Clock widget with Host time',
+						'Time type' => 'Host time',
+						'Item' => 'Item ZBX6663 Second'
+					]
+				]
+			],
 			// Change time type to Host time and leave item empty
 			[
 				[
@@ -653,17 +664,6 @@ class testFormTemplateDashboards extends CWebTest {
 						'Time type' => 'Host time'
 					],
 					'error_message' => 'Invalid parameter "Item": cannot be empty.'
-				]
-			],
-			// Change time type to Host time and specify item
-			[
-				[
-					'fields' => [
-						'Type' => 'Clock',
-						'Name' => 'Clock widget with Host time',
-						'Time type' => 'Host time',
-						'Item' => 'Item ZBX6663 Second'
-					]
 				]
 			],
 			// Widget with trailing and leading spaces in name
@@ -1197,10 +1197,7 @@ class testFormTemplateDashboards extends CWebTest {
 			$this->page->waitUntilReady();
 
 			if ($check !== 'dashboard action') {
-				// $reopened_form = CDashboardElement::find()->asDashboard()->one()->getWidget($name)->edit();
-				$widget = CDashboardElement::find()->asDashboard()->one()->getWidget($name);
-				sleep(1);
-				$reopened_form = $widget->edit();
+				$reopened_form = CDashboardElement::find()->asDashboard()->one()->getWidget($name)->edit();
 			}
 			else {
 				$this->query('id:dashboard-config')->one()->click();
