@@ -624,17 +624,6 @@ class testFormTemplateDashboards extends CWebTest {
 					'duplicate widget' => true
 				]
 			],
-			// Change time type to Host time and specify item
-			[
-				[
-					'fields' => [
-						'Type' => 'Clock',
-						'Name' => 'Clock widget with Host time',
-						'Time type' => 'Host time',
-						'Item' => 'Item ZBX6663 Second'
-					]
-				]
-			],
 			// Clock widget with no name
 			[
 				[
@@ -664,6 +653,17 @@ class testFormTemplateDashboards extends CWebTest {
 						'Time type' => 'Host time'
 					],
 					'error_message' => 'Invalid parameter "Item": cannot be empty.'
+				]
+			],
+			// Change time type to Host time and specify item
+			[
+				[
+					'fields' => [
+						'Type' => 'Clock',
+						'Name' => 'Clock widget with Host time',
+						'Time type' => 'Host time',
+						'Item' => 'Item ZBX6663 Second'
+					]
 				]
 			],
 			// Widget with trailing and leading spaces in name
@@ -1135,7 +1135,7 @@ class testFormTemplateDashboards extends CWebTest {
 		if ($overlay->isValid()) {
 			$overlay->close();
 		}
-		$this->query('link:Cancel')->one()->forceClick();
+		$this->query('link:Cancel')->one()->click(true);
 
 		if ($this->page->isAlertPresent()) {
 			$this->page->acceptAlert();
