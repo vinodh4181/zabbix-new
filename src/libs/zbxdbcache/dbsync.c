@@ -509,7 +509,7 @@ int	zbx_dbsync_compare_config(zbx_dbsync_t *sync)
 {
 	DB_RESULT	result;
 
-#define SELECTED_CONFIG_FIELD_COUNT	32	/* number of columns in the following DBselect() */
+#define SELECTED_CONFIG_FIELD_COUNT	33	/* number of columns in the following DBselect() */
 
 	if (NULL == (result = DBselect("select discovery_groupid,snmptrap_logging,"
 				"severity_name_0,severity_name_1,severity_name_2,"
@@ -519,7 +519,8 @@ int	zbx_dbsync_compare_config(zbx_dbsync_t *sync)
 				"hk_services,hk_audit_mode,hk_audit,hk_sessions_mode,hk_sessions,"
 				"hk_history_mode,hk_history_global,hk_history,hk_trends_mode,"
 				"hk_trends_global,hk_trends,default_inventory_mode,db_extension,autoreg_tls_accept,"
-				"compression_status,compress_older,instanceid,default_timezone"
+				"compression_status,compress_older,instanceid,default_timezone,hk_events_service,"
+				"auditlog_enabled"
 			" from config"
 			" order by configid")))	/* if you change number of columns in DBselect(), */
 						/* adjust SELECTED_CONFIG_FIELD_COUNT */
@@ -2350,15 +2351,17 @@ int	zbx_dbsync_compare_triggers(zbx_dbsync_t *sync)
 	char			**row;
 
 	if (NULL == (result = DBselect(
-			"select distinct t.triggerid,t.description,t.expression,t.error,t.priority,t.type,t.value,"
+			"select t.triggerid,t.description,t.expression,t.error,t.priority,t.type,t.value,"
 				"t.state,t.lastchange,t.status,t.recovery_mode,t.recovery_expression,"
 				"t.correlation_mode,t.correlation_tag,t.opdata,t.event_name,null,null,null"
-			" from hosts h,items i,functions f,triggers t"
-			" where h.hostid=i.hostid"
-				" and i.itemid=f.itemid"
-				" and f.triggerid=t.triggerid"
-				" and h.status in (%d,%d)"
-				" and t.flags<>%d",
+			" from triggers t"
+			" where t.triggerid in (select distinct tg.triggerid"
+				" from hosts h,items i,functions f,triggers tg"
+				" where h.hostid=i.hostid"
+					" and i.itemid=f.itemid"
+					" and f.triggerid=tg.triggerid"
+					" and h.status in (%d,%d)"
+					" and tg.flags<>%d)",
 			HOST_STATUS_MONITORED, HOST_STATUS_NOT_MONITORED,
 			ZBX_FLAG_DISCOVERY_PROTOTYPE)))
 	{
@@ -2801,8 +2804,9 @@ int	zbx_dbsync_compare_actions(zbx_dbsync_t *sync)
 	if (NULL == (result = DBselect(
 			"select actionid,eventsource,evaltype,formula"
 			" from actions"
-			" where status=%d",
-			ACTION_STATUS_ACTIVE)))
+			" where eventsource<>%d"
+				" and status=%d",
+			EVENT_SOURCE_SERVICE, ACTION_STATUS_ACTIVE)))
 	{
 		return FAIL;
 	}
@@ -3248,6 +3252,7 @@ int	zbx_dbsync_compare_item_tags(zbx_dbsync_t *sync)
 		if (ZBX_DBSYNC_ROW_NONE != tag)
 			dbsync_add_row(sync, rowid, tag, dbrow);
 	}
+	DBfree_result(result);
 
 	zbx_hashset_iter_reset(&dbsync_env.cache->item_tags, &iter);
 	while (NULL != (item_tag = (zbx_dc_item_tag_t *)zbx_hashset_iter_next(&iter)))
@@ -3257,7 +3262,6 @@ int	zbx_dbsync_compare_item_tags(zbx_dbsync_t *sync)
 	}
 
 	zbx_hashset_destroy(&ids);
-	DBfree_result(result);
 
 	return SUCCEED;
 }

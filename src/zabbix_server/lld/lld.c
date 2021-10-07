@@ -26,6 +26,8 @@
 #include "zbxregexp.h"
 #include "proxy.h"
 
+#include "../../libs/zbxaudit/audit.h"
+
 #define OVERRIDE_STOP_TRUE	1
 
 /* lld rule filter condition (item_condition table record) */
@@ -170,7 +172,7 @@ static int	lld_filter_condition_add(zbx_vector_ptr_t *conditions, const char *id
 	}
 	else
 	{
-		substitute_simple_macros(NULL, NULL, NULL, NULL, NULL, NULL, item, NULL, NULL, NULL,
+		substitute_simple_macros(NULL, NULL, NULL, NULL, NULL, NULL, item, NULL, NULL, NULL, NULL, NULL,
 				&condition->regexp, MACRO_TYPE_LLD_FILTER, NULL, 0);
 	}
 
@@ -1127,6 +1129,7 @@ int	lld_process_discovery_rule(zbx_uint64_t lld_ruleid, const char *value, char 
 	lld_filter_t		filter;
 	time_t			now;
 	DC_ITEM			item;
+	zbx_config_t		cfg;
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() itemid:" ZBX_FS_UI64, __func__, lld_ruleid);
 
@@ -1160,7 +1163,7 @@ int	lld_process_discovery_rule(zbx_uint64_t lld_ruleid, const char *value, char 
 		filter.evaltype = atoi(row[2]);
 		filter.expression = zbx_strdup(NULL, row[3]);
 		lifetime_str = zbx_strdup(NULL, row[4]);
-		substitute_simple_macros(NULL, NULL, NULL, NULL, &hostid, NULL, NULL, NULL, NULL, NULL,
+		substitute_simple_macros(NULL, NULL, NULL, NULL, &hostid, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 				&lifetime_str, MACRO_TYPE_COMMON, NULL, 0);
 
 		if (SUCCEED != is_time_suffix(lifetime_str, &lifetime, ZBX_LENGTH_UNLIMITED))
@@ -1206,6 +1209,9 @@ int	lld_process_discovery_rule(zbx_uint64_t lld_ruleid, const char *value, char 
 
 	now = time(NULL);
 
+	zbx_config_get(&cfg, ZBX_CONFIG_FLAGS_AUDITLOG_ENABLED);
+	zbx_audit_init(cfg.auditlog_enabled);
+
 	if (SUCCEED != lld_update_items(hostid, lld_ruleid, &lld_rows, &lld_macro_paths, error, lifetime, now))
 	{
 		zabbix_log(LOG_LEVEL_DEBUG, "cannot update/add items because parent host was removed while"
@@ -1235,6 +1241,7 @@ int	lld_process_discovery_rule(zbx_uint64_t lld_ruleid, const char *value, char 
 	if (NULL != info)
 		*error = zbx_strdcat(*error, info);
 out:
+	zbx_audit_flush();
 	DCconfig_clean_items(&item, &errcode, 1);
 	zbx_free(info);
 	zbx_free(discovery_key);

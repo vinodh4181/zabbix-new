@@ -22,9 +22,12 @@ require_once dirname(__FILE__).'/../include/CLegacyWebTest.php';
 require_once dirname(__FILE__).'/traits/FilterTrait.php';
 require_once dirname(__FILE__).'/traits/TableTrait.php';
 
+/**
+ * @dataSource TagFilter
+ */
 class testPageTemplates extends CLegacyWebTest {
 
-	public $templateName = 'Linux by Zabbix agent';
+	public $templateName = 'Huawei OceanStor 5300 V5 SNMP';
 
 	use FilterTrait;
 	use TableTrait;
@@ -40,7 +43,7 @@ class testPageTemplates extends CLegacyWebTest {
 		$this->zbxTestCheckTitle('Configuration of templates');
 		$this->zbxTestCheckHeader('Templates');
 		$filter = $this->query('name:zbx_filter')->asForm()->one();
-		$filter->getField('Host groups')->select('Templates');
+		$filter->getField('Host groups')->select('Templates/SAN');
 		$filter->submit();
 		$this->zbxTestTextPresent($this->templateName);
 
@@ -64,6 +67,11 @@ class testPageTemplates extends CLegacyWebTest {
 	 * @dataProvider allTemplates
 	 */
 	public function testPageTemplates_SimpleUpdate($template) {
+		// TODO: Remove the below if condition along with its content when ZBX-20020 is merged
+		if ($template['name'] === 'Cisco UCS Manager SNMP') {
+			return;
+		}
+
 		$host = $template['host'];
 		$name = $template['name'];
 
@@ -110,11 +118,11 @@ class testPageTemplates extends CLegacyWebTest {
 	public function testPageTemplates_FilterTemplateByName() {
 		$this->zbxTestLogin('templates.php');
 		$filter = $this->query('name:zbx_filter')->asForm()->one();
-		$filter->getField('Host groups')->select('Templates');
+		$filter->getField('Host groups')->select('Templates/SAN');
 		$filter->getField('Name')->fill($this->templateName);
 		$filter->submit();
 		$this->zbxTestAssertElementPresentXpath("//tbody//a[text()='$this->templateName']");
-		$this->zbxTestAssertElementPresentXpath("//div[@class='table-stats'][text()='Displaying 2 of 2 found']");
+		$this->zbxTestAssertElementPresentXpath("//div[@class='table-stats'][text()='Displaying 1 of 1 found']");
 	}
 
 	public function testPageTemplates_FilterByLinkedTemplate() {
@@ -164,7 +172,7 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'test', 'operator' => 'Contains', 'value' => 'test_tag']
 					],
 					'expected_templates' => [
-						'Form test template'
+						'Template for tags filtering'
 					]
 				]
 			],
@@ -176,9 +184,9 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'test', 'operator' => 'Contains', 'value' => 'test_tag']
 					],
 					'expected_templates' => [
-						'A template with tags for cloning',
-						'A template with tags for updating',
-						'Form test template'
+						'Template for tags filtering',
+						'Template for tags filtering - clone',
+						'Template for tags filtering - update'
 					]
 				]
 			],
@@ -190,9 +198,9 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'tag', 'operator' => 'Contains', 'value' => 'TEMPLATE']
 					],
 					'expected_templates' => [
-						'A template with tags for cloning',
-						'A template with tags for updating',
-						'Form test template'
+						'Template for tags filtering',
+						'Template for tags filtering - clone',
+						'Template for tags filtering - update'
 					]
 				]
 			],
@@ -203,7 +211,7 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'tag', 'operator' => 'Equals', 'value' => 'TEMPLATE']
 					],
 					'expected_templates' => [
-						'Form test template'
+						'Template for tags filtering'
 					]
 				]
 			],
@@ -214,9 +222,9 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'action', 'operator' => 'Contains']
 					],
 					'expected_templates' => [
-						'A template with tags for cloning',
-						'A template with tags for updating',
-						'Form test template'
+						'Template for tags filtering',
+						'Template for tags filtering - clone',
+						'Template for tags filtering - update'
 					]
 				]
 			],
@@ -236,7 +244,7 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'test', 'operator' => 'Exists']
 					],
 					'expected_templates' => [
-						'Form test template'
+						'Template for tags filtering'
 					]
 				]
 			],
@@ -248,9 +256,9 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'test', 'operator' => 'Exists']
 					],
 					'expected_templates' => [
-						'A template with tags for cloning',
-						'A template with tags for updating',
-						'Form test template'
+						'Template for tags filtering',
+						'Template for tags filtering - clone',
+						'Template for tags filtering - update'
 					]
 				]
 			],
@@ -262,9 +270,9 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'tag', 'operator' => 'Does not exist']
 					],
 					'absent_templates' => [
-						'A template with tags for cloning',
-						'A template with tags for updating',
-						'Form test template'
+						'Template for tags filtering',
+						'Template for tags filtering - clone',
+						'Template for tags filtering - update'
 					]
 				]
 			],
@@ -276,7 +284,7 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'tag', 'operator' => 'Does not exist']
 					],
 					'absent_templates' => [
-						'Form test template'
+						'Template for tags filtering'
 					]
 				]
 			],
@@ -287,7 +295,7 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'test', 'operator' => 'Does not equal', 'value' => 'test_tag']
 					],
 					'absent_templates' => [
-						'Form test template'
+						'Template for tags filtering'
 					]
 				]
 			],
@@ -298,7 +306,7 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'test', 'operator' => 'Does not equal', 'value' => 'test_tag']
 					],
 					'absent_templates' => [
-						'Form test template'
+						'Template for tags filtering'
 					]
 				]
 			],
@@ -310,7 +318,7 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'tag', 'operator' => 'Does not equal', 'value' => 'TEMPLATE']
 					],
 					'absent_templates' => [
-						'Form test template'
+						'Template for tags filtering'
 					]
 				]
 			],
@@ -322,8 +330,8 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'action', 'operator' => 'Does not equal', 'value' => 'update']
 					],
 					'absent_templates' => [
-						'Form test template',
-						'A template with tags for updating'
+						'Template for tags filtering',
+						'Template for tags filtering - update'
 					]
 				]
 			],
@@ -334,7 +342,7 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'test', 'operator' => 'Does not contain', 'value' => 'test_']
 					],
 					'absent_templates' => [
-						'Form test template'
+						'Template for tags filtering'
 					]
 				]
 			],
@@ -345,7 +353,7 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'test', 'operator' => 'Does not contain', 'value' => 'test_']
 					],
 					'absent_templates' => [
-						'Form test template'
+						'Template for tags filtering'
 					]
 				]
 			],
@@ -357,8 +365,8 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'action', 'operator' => 'Does not contain', 'value' => 'clo']
 					],
 					'absent_templates' => [
-						'Form test template',
-						'A template with tags for cloning'
+						'Template for tags filtering',
+						'Template for tags filtering - clone'
 					]
 				]
 			],
@@ -370,7 +378,7 @@ class testPageTemplates extends CLegacyWebTest {
 						['name' => 'action', 'operator' => 'Does not contain', 'value' => 'upd']
 					],
 					'absent_templates' => [
-						'A template with tags for updating'
+						'Template for tags filtering - update'
 					]
 				]
 			]

@@ -27,15 +27,15 @@
 #include "zbxalgo.h"
 #include "cfg.h"
 
-#if defined(HAVE_MYSQL) || defined(HAVE_POSTGRESQL)
-#define ZBX_SUPPORTED_DB_CHARACTER_SET	"utf8"
-#endif
-#if defined(HAVE_ORACLE)
-#define ZBX_ORACLE_UTF8_CHARSET "AL32UTF8"
-#define ZBX_ORACLE_CESU8_CHARSET "UTF8"
-#endif
-#if defined(HAVE_MYSQL)
-#define ZBX_SUPPORTED_DB_COLLATION	"utf8_bin"
+#if defined(HAVE_POSTGRESQL)
+#	define ZBX_SUPPORTED_DB_CHARACTER_SET	"utf8"
+#elif defined(HAVE_ORACLE)
+#	define ZBX_ORACLE_UTF8_CHARSET "AL32UTF8"
+#	define ZBX_ORACLE_CESU8_CHARSET "UTF8"
+#elif defined(HAVE_MYSQL)
+#	define ZBX_DB_STRLIST_DELIM		','
+#	define ZBX_SUPPORTED_DB_CHARACTER_SET	"utf8,utf8mb3"
+#	define ZBX_SUPPORTED_DB_COLLATION	"utf8_bin,utf8mb3_bin"
 #endif
 
 typedef struct
@@ -601,6 +601,8 @@ static size_t	get_string_field_size(unsigned char type)
 		case ZBX_TYPE_TEXT:
 		case ZBX_TYPE_SHORTTEXT:
 			return 65535u;
+		case ZBX_TYPE_CUID:
+			return CUID_LEN - 1;
 		default:
 			THIS_SHOULD_NEVER_HAPPEN;
 			exit(EXIT_FAILURE);
@@ -617,6 +619,8 @@ static size_t	get_string_field_size(unsigned char type)
 		case ZBX_TYPE_CHAR:
 		case ZBX_TYPE_SHORTTEXT:
 			return 4000u;
+		case ZBX_TYPE_CUID:
+			return CUID_LEN - 1;
 		default:
 			THIS_SHOULD_NEVER_HAPPEN;
 			exit(EXIT_FAILURE);
@@ -655,6 +659,8 @@ static char	*DBdyn_escape_field_len(const ZBX_FIELD *field, const char *src, zbx
 
 	if (ZBX_TYPE_LONGTEXT == field->type && 0 == field->length)
 		length = ZBX_SIZE_T_MAX;
+	else if (ZBX_TYPE_CUID == field->type)
+		length = CUID_LEN;
 	else
 		length = field->length;
 
@@ -743,7 +749,12 @@ static zbx_uint64_t	DBget_nextid(const char *tablename, int num)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() tablename:'%s'", __func__, tablename);
 
-	table = DBget_table(tablename);
+	if (NULL == (table = DBget_table(tablename)))
+	{
+		zabbix_log(LOG_LEVEL_CRIT, "Error getting table: %s", tablename);
+		THIS_SHOULD_NEVER_HAPPEN;
+		exit(EXIT_FAILURE);
+	}
 
 	while (FAIL == found)
 	{
@@ -852,20 +863,16 @@ zbx_uint64_t	DBget_maxid_num(const char *tablename, int num)
 
 /******************************************************************************
  *                                                                            *
- * Function: DBextract_version                                                *
+ * Function: DBextract_version_info                                           *
  *                                                                            *
  * Purpose: connects to DB and tries to detect DB version                     *
  *                                                                            *
  ******************************************************************************/
-zbx_uint32_t	DBextract_version(struct zbx_json *json)
+void	DBextract_version_info(struct zbx_db_version_info_t *version_info)
 {
-	zbx_uint32_t	ret;
-
 	DBconnect(ZBX_DB_CONNECT_NORMAL);
-	ret = zbx_dbms_version_extract(json);
+	zbx_dbms_version_info_extract(version_info);
 	DBclose();
-
-	return ret;
 }
 
 /******************************************************************************
@@ -881,12 +888,8 @@ void	DBflush_version_requirements(const char *version)
 {
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
-
 	if (ZBX_DB_OK > DBexecute("update config set dbversion_status='%s'", version))
 		zabbix_log(LOG_LEVEL_CRIT, "Failed to set dbversion_status");
-
-	DBclose();
 
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);
 }
@@ -1765,7 +1768,7 @@ static int	compare_autoreg_host_by_hostid(const void *d1, const void *d2)
 void	DBregister_host_flush(zbx_vector_ptr_t *autoreg_hosts, zbx_uint64_t proxy_hostid)
 {
 	zbx_autoreg_host_t	*autoreg_host;
-	zbx_uint64_t		autoreg_hostid;
+	zbx_uint64_t		autoreg_hostid = 0;
 	zbx_db_insert_t		db_insert;
 	int			i, create = 0, update = 0;
 	char			*sql = NULL, *ip_esc, *dns_esc, *host_metadata_esc;
@@ -2332,27 +2335,37 @@ void	DBselect_uint64(const char *sql, zbx_vector_uint64_t *ids)
 	zbx_vector_uint64_sort(ids, ZBX_DEFAULT_UINT64_COMPARE_FUNC);
 }
 
-int	DBexecute_multiple_query(const char *query, const char *field_name, zbx_vector_uint64_t *ids)
+int	DBprepare_multiple_query(const char *query, const char *field_name, zbx_vector_uint64_t *ids, char **sql,
+		size_t	*sql_alloc, size_t *sql_offset)
 {
 #define ZBX_MAX_IDS	950
+	int	i, ret = SUCCEED;
+
+	for (i = 0; i < ids->values_num; i += ZBX_MAX_IDS)
+	{
+		zbx_strcpy_alloc(sql, sql_alloc, sql_offset, query);
+		DBadd_condition_alloc(sql, sql_alloc, sql_offset, field_name, &ids->values[i],
+				MIN(ZBX_MAX_IDS, ids->values_num - i));
+		zbx_strcpy_alloc(sql, sql_alloc, sql_offset, ";\n");
+
+		if (SUCCEED != (ret = DBexecute_overflowed_sql(sql, sql_alloc, sql_offset)))
+			break;
+	}
+
+	return ret;
+}
+
+int	DBexecute_multiple_query(const char *query, const char *field_name, zbx_vector_uint64_t *ids)
+{
 	char	*sql = NULL;
 	size_t	sql_alloc = ZBX_KIBIBYTE, sql_offset = 0;
-	int	i, ret = SUCCEED;
+	int	ret = SUCCEED;
 
 	sql = (char *)zbx_malloc(sql, sql_alloc);
 
 	DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	for (i = 0; i < ids->values_num; i += ZBX_MAX_IDS)
-	{
-		zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, query);
-		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, field_name,
-				&ids->values[i], MIN(ZBX_MAX_IDS, ids->values_num - i));
-		zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, ";\n");
-
-		if (SUCCEED != (ret = DBexecute_overflowed_sql(&sql, &sql_alloc, &sql_offset)))
-			break;
-	}
+	ret = DBprepare_multiple_query(query, field_name, ids, &sql, &sql_alloc, &sql_offset);
 
 	if (SUCCEED == ret && sql_offset > 16)	/* in ORACLE always present begin..end; */
 	{
@@ -2370,7 +2383,7 @@ int	DBexecute_multiple_query(const char *query, const char *field_name, zbx_vect
 #if defined(HAVE_MYSQL) || defined(HAVE_POSTGRESQL)
 static void	zbx_warn_char_set(const char *db_name, const char *char_set)
 {
-	zabbix_log(LOG_LEVEL_WARNING, "Zabbix supports only \"" ZBX_SUPPORTED_DB_CHARACTER_SET "\" character set."
+	zabbix_log(LOG_LEVEL_WARNING, "Zabbix supports only \"" ZBX_SUPPORTED_DB_CHARACTER_SET "\" character set(s)."
 			" Database \"%s\" has default character set \"%s\"", db_name, char_set);
 }
 #endif
@@ -2382,10 +2395,29 @@ static void	zbx_warn_no_charset_info(const char *db_name)
 }
 #endif
 
+#if defined(HAVE_MYSQL)
+static char	*db_strlist_quote(const char *strlist, char delimiter)
+{
+	const char	*delim;
+	char		*str = NULL;
+	size_t		str_alloc = 0, str_offset = 0;
+
+	while (NULL != (delim = strchr(strlist, delimiter)))
+	{
+		zbx_snprintf_alloc(&str, &str_alloc, &str_offset, "'%.*s',", (int)(delim - strlist), strlist);
+		strlist = delim + 1;
+	}
+
+	zbx_snprintf_alloc(&str, &str_alloc, &str_offset, "'%s'", strlist);
+
+	return str;
+}
+#endif
+
 void	DBcheck_character_set(void)
 {
 #if defined(HAVE_MYSQL)
-	char		*database_name_esc;
+	char		*database_name_esc, *charset_list, *collation_list;
 	DB_RESULT	result;
 	DB_ROW		row;
 
@@ -2406,12 +2438,12 @@ void	DBcheck_character_set(void)
 		char	*char_set = row[0];
 		char	*collation = row[1];
 
-		if (0 != strcasecmp(char_set, ZBX_SUPPORTED_DB_CHARACTER_SET))
+		if (SUCCEED != str_in_list(ZBX_SUPPORTED_DB_CHARACTER_SET, char_set, ZBX_DB_STRLIST_DELIM))
 			zbx_warn_char_set(CONFIG_DBNAME, char_set);
 
-		if (0 != zbx_strncasecmp(collation, ZBX_SUPPORTED_DB_COLLATION, sizeof(ZBX_SUPPORTED_DB_COLLATION)))
+		if (SUCCEED != str_in_list(ZBX_SUPPORTED_DB_COLLATION, collation, ZBX_DB_STRLIST_DELIM))
 		{
-			zabbix_log(LOG_LEVEL_WARNING, "Zabbix supports only \"%s\" collation."
+			zabbix_log(LOG_LEVEL_WARNING, "Zabbix supports only \"%s\" collation(s)."
 					" Database \"%s\" has default collation \"%s\"", ZBX_SUPPORTED_DB_COLLATION,
 					CONFIG_DBNAME, collation);
 		}
@@ -2419,13 +2451,19 @@ void	DBcheck_character_set(void)
 
 	DBfree_result(result);
 
+	charset_list = db_strlist_quote(ZBX_SUPPORTED_DB_CHARACTER_SET, ZBX_DB_STRLIST_DELIM);
+	collation_list = db_strlist_quote(ZBX_SUPPORTED_DB_COLLATION, ZBX_DB_STRLIST_DELIM);
+
 	result = DBselect(
 			"select count(*)"
 			" from information_schema.`COLUMNS`"
 			" where table_schema='%s'"
 				" and data_type in ('text','varchar','longtext')"
-				" and (character_set_name<>'%s' or collation_name<>'%s')",
-			database_name_esc, ZBX_SUPPORTED_DB_CHARACTER_SET, ZBX_SUPPORTED_DB_COLLATION);
+				" and (character_set_name not in (%s) or collation_name not in (%s))",
+			database_name_esc, charset_list, collation_list);
+
+	zbx_free(collation_list);
+	zbx_free(charset_list);
 
 	if (NULL == result || NULL == (row = DBfetch(result)))
 	{
@@ -2435,8 +2473,9 @@ void	DBcheck_character_set(void)
 	{
 		zabbix_log(LOG_LEVEL_WARNING, "character set name or collation name that is not supported by Zabbix"
 				" found in %s column(s) of database \"%s\"", row[0], CONFIG_DBNAME);
-		zabbix_log(LOG_LEVEL_WARNING, "only character set \"%s\" and collation \"%s\" should be used in "
-				"database", ZBX_SUPPORTED_DB_CHARACTER_SET, ZBX_SUPPORTED_DB_COLLATION);
+		zabbix_log(LOG_LEVEL_WARNING, "only character set(s) \"%s\" and corresponding collation(s) \"%s\""
+				" should be used in database", ZBX_SUPPORTED_DB_CHARACTER_SET,
+				ZBX_SUPPORTED_DB_COLLATION);
 	}
 
 	DBfree_result(result);
@@ -2624,6 +2663,7 @@ static char	*zbx_db_format_values(ZBX_FIELD **fields, const zbx_db_value_t *valu
 			case ZBX_TYPE_TEXT:
 			case ZBX_TYPE_SHORTTEXT:
 			case ZBX_TYPE_LONGTEXT:
+			case ZBX_TYPE_CUID:
 				zbx_snprintf_alloc(&str, &str_alloc, &str_offset, "'%s'", value->str);
 				break;
 			case ZBX_TYPE_FLOAT:
@@ -2673,6 +2713,7 @@ void	zbx_db_insert_clean(zbx_db_insert_t *self)
 				case ZBX_TYPE_TEXT:
 				case ZBX_TYPE_SHORTTEXT:
 				case ZBX_TYPE_LONGTEXT:
+				case ZBX_TYPE_CUID:
 					zbx_free(row[j].str);
 			}
 		}
@@ -2822,6 +2863,7 @@ void	zbx_db_insert_add_values_dyn(zbx_db_insert_t *self, const zbx_db_value_t **
 			case ZBX_TYPE_CHAR:
 			case ZBX_TYPE_TEXT:
 			case ZBX_TYPE_SHORTTEXT:
+			case ZBX_TYPE_CUID:
 #ifdef HAVE_ORACLE
 				row[i].str = DBdyn_escape_field_len(field, value->str, ESCAPE_SEQUENCE_OFF);
 #else
@@ -2876,6 +2918,7 @@ void	zbx_db_insert_add_values(zbx_db_insert_t *self, ...)
 			case ZBX_TYPE_TEXT:
 			case ZBX_TYPE_SHORTTEXT:
 			case ZBX_TYPE_LONGTEXT:
+			case ZBX_TYPE_CUID:
 				value->str = va_arg(args, char *);
 				break;
 			case ZBX_TYPE_INT:
@@ -2972,7 +3015,6 @@ int	zbx_db_insert_execute(zbx_db_insert_t *self)
 		zbx_chrcpy_alloc(&sql_command, &sql_command_alloc, &sql_command_offset, delim[0 == i]);
 		zbx_strcpy_alloc(&sql_command, &sql_command_alloc, &sql_command_offset, field->name);
 	}
-
 #ifdef HAVE_MYSQL
 	/* MySQL workaround - explicitly add missing text fields with '' default value */
 	for (field = (const ZBX_FIELD *)self->table->fields; NULL != field->name; field++)
@@ -2983,6 +3025,7 @@ int	zbx_db_insert_execute(zbx_db_insert_t *self)
 			case ZBX_TYPE_TEXT:
 			case ZBX_TYPE_SHORTTEXT:
 			case ZBX_TYPE_LONGTEXT:
+			case ZBX_TYPE_CUID:
 				if (FAIL != zbx_vector_ptr_search(&self->fields, (void *)field,
 						ZBX_DEFAULT_PTR_COMPARE_FUNC))
 				{
@@ -2991,7 +3034,6 @@ int	zbx_db_insert_execute(zbx_db_insert_t *self)
 
 				zbx_chrcpy_alloc(&sql_command, &sql_command_alloc, &sql_command_offset, ',');
 				zbx_strcpy_alloc(&sql_command, &sql_command_alloc, &sql_command_offset, field->name);
-
 				zbx_strcpy_alloc(&sql_values, &sql_values_alloc, &sql_values_offset, ",''");
 				break;
 		}
@@ -3088,6 +3130,7 @@ retry_oracle:
 				case ZBX_TYPE_TEXT:
 				case ZBX_TYPE_SHORTTEXT:
 				case ZBX_TYPE_LONGTEXT:
+				case ZBX_TYPE_CUID:
 					zbx_chrcpy_alloc(&sql, &sql_alloc, &sql_offset, '\'');
 					zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, value->str);
 					zbx_chrcpy_alloc(&sql, &sql_alloc, &sql_offset, '\'');
@@ -3522,7 +3565,7 @@ int	DBget_user_by_active_session(const char *sessionid, zbx_user_t *user)
 	sessionid_esc = DBdyn_escape_string(sessionid);
 
 	if (NULL == (result = DBselect(
-			"select u.userid,u.roleid,r.type"
+			"select u.userid,u.roleid,u.username,r.type"
 				" from sessions s,users u,role r"
 			" where s.userid=u.userid"
 				" and s.sessionid='%s'"
@@ -3538,7 +3581,8 @@ int	DBget_user_by_active_session(const char *sessionid, zbx_user_t *user)
 
 	ZBX_STR2UINT64(user->userid, row[0]);
 	ZBX_STR2UINT64(user->roleid, row[1]);
-	user->type = atoi(row[2]);
+	user->username = zbx_strdup(NULL, row[2]);
+	user->type = atoi(row[3]);
 
 	ret = SUCCEED;
 out:
@@ -3567,20 +3611,30 @@ out:
 int	DBget_user_by_auth_token(const char *formatted_auth_token_hash, zbx_user_t *user)
 {
 	int		ret = FAIL;
-	DB_RESULT	result;
+	DB_RESULT	result = NULL;
 	DB_ROW		row;
+	time_t		t;
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() auth token:%s", __func__, formatted_auth_token_hash);
 
+	t = time(NULL);
+
+	if ((time_t) - 1 == t)
+	{
+		zabbix_log(LOG_LEVEL_ERR, "%s(): failed to get time: %s", __func__, zbx_strerror(errno));
+		goto out;
+	}
+
 	if (NULL == (result = DBselect(
-			"select u.userid,u.roleid,r.type"
+			"select u.userid,u.roleid,u.username,r.type"
 				" from token t,users u,role r"
 			" where t.userid=u.userid"
 				" and t.token='%s'"
 				" and u.roleid=r.roleid"
 				" and t.status=%d"
 				" and (t.expires_at=%d or t.expires_at > %lu)",
-			formatted_auth_token_hash, ZBX_AUTH_TOKEN_ENABLED, ZBX_AUTH_TOKEN_NEVER_EXPIRES, time(NULL))))
+			formatted_auth_token_hash, ZBX_AUTH_TOKEN_ENABLED, ZBX_AUTH_TOKEN_NEVER_EXPIRES,
+			(unsigned long)t)))
 	{
 		goto out;
 	}
@@ -3590,7 +3644,8 @@ int	DBget_user_by_auth_token(const char *formatted_auth_token_hash, zbx_user_t *
 
 	ZBX_STR2UINT64(user->userid, row[0]);
 	ZBX_STR2UINT64(user->roleid, row[1]);
-	user->type = atoi(row[2]);
+	user->username = zbx_strdup(NULL, row[2]);
+	user->type = atoi(row[3]);
 	ret = SUCCEED;
 out:
 	DBfree_result(result);
@@ -3598,6 +3653,16 @@ out:
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s():%s", __func__, zbx_result_string(ret));
 
 	return ret;
+}
+
+void	zbx_user_init(zbx_user_t *user)
+{
+	user->username = NULL;
+}
+
+void	zbx_user_free(zbx_user_t *user)
+{
+	zbx_free(user->username);
 }
 
 /******************************************************************************

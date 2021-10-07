@@ -269,7 +269,7 @@ class CHttpTest extends CApiService {
 
 		$httptests = Manager::HttpTest()->persist($httptests);
 
-		$this->addAuditBulk(AUDIT_ACTION_ADD, AUDIT_RESOURCE_SCENARIO, $httptests);
+		$this->addAuditBulk(CAudit::ACTION_ADD, CAudit::RESOURCE_SCENARIO, $httptests);
 
 		return ['httptestids' => zbx_objectValues($httptests, 'httptestid')];
 	}
@@ -407,7 +407,7 @@ class CHttpTest extends CApiService {
 		}
 		unset($db_httptest);
 
-		$this->addAuditBulk(AUDIT_ACTION_UPDATE, AUDIT_RESOURCE_SCENARIO, $httptests, $db_httptests);
+		$this->addAuditBulk(CAudit::ACTION_UPDATE, CAudit::RESOURCE_SCENARIO, $httptests, $db_httptests);
 
 		return ['httptestids' => zbx_objectValues($httptests, 'httptestid')];
 	}
@@ -550,8 +550,13 @@ class CHttpTest extends CApiService {
 		unset($httptest);
 
 		$api_input_rules = ['type' => API_OBJECTS, 'uniq' => [['hostid', 'name']], 'fields' => [
-			'steps' =>	['type' => API_OBJECTS, 'uniq' => [['name']]]
+			'hostid' =>	['type' => API_ID],
+			'name' =>	['type' => API_STRING_UTF8],
+			'steps' =>	['type' => API_OBJECTS, 'uniq' => [['name']], 'fields' => [
+				'name' =>	['type' => API_STRING_UTF8]
+			]]
 		]];
+
 		if (!CApiInputValidator::validateUniqueness($api_input_rules, $httptests, '/', $error)) {
 			self::exception(ZBX_API_ERROR_PARAMETERS, $error);
 		}
@@ -649,7 +654,7 @@ class CHttpTest extends CApiService {
 
 		DB::delete('httptest', ['httptestid' => $del_httptestids]);
 
-		$this->addAuditBulk(AUDIT_ACTION_DELETE, AUDIT_RESOURCE_SCENARIO, $db_httptests);
+		$this->addAuditBulk(CAudit::ACTION_DELETE, CAudit::RESOURCE_SCENARIO, $db_httptests);
 
 		return ['httptestids' => $httptestids];
 	}

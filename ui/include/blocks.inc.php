@@ -187,6 +187,7 @@ function getSystemStatusData(array $filter) {
 				'output' => ['itemid', 'hostid', 'name', 'key_', 'value_type', 'units'],
 				'selectValueMap' => ['mappings'],
 				'triggerids' => array_keys($data['triggers']),
+				'webitems' => true,
 				'preservekeys' => true
 			]);
 
@@ -294,11 +295,6 @@ function getSystemStatusData(array $filter) {
 			'users' => API::User()->get([
 				'output' => ['username', 'name', 'surname'],
 				'userids' => array_keys($actions['userids']),
-				'preservekeys' => true
-			]),
-			'mediatypes' => API::MediaType()->get([
-				'output' => ['name', 'maxattempts'],
-				'mediatypeids' => array_keys($actions['mediatypeids']),
 				'preservekeys' => true
 			])
 		];
@@ -471,7 +467,7 @@ function getSeverityTableCell($severity, array $data, array $stat, $is_total = f
 		return '';
 	}
 
-	$severity_name = $is_total ? ' '.getSeverityName($severity) : '';
+	$severity_name = $is_total ? ' '.CSeverityHelper::getName($severity) : '';
 	$ext_ack = array_key_exists('ext_ack', $data['filter']) ? $data['filter']['ext_ack'] : EXTACK_OPTION_ALL;
 
 	$allTriggersNum = $stat['count'];
@@ -492,19 +488,19 @@ function getSeverityTableCell($severity, array $data, array $stat, $is_total = f
 
 	switch ($ext_ack) {
 		case EXTACK_OPTION_ALL:
-			return getSeverityCell($severity, [
+			return CSeverityHelper::makeSeverityCell($severity, [
 				(new CSpan($allTriggersNum))->addClass(ZBX_STYLE_TOTALS_LIST_COUNT),
 				$severity_name
 			], false, $is_total);
 
 		case EXTACK_OPTION_UNACK:
-			return getSeverityCell($severity, [
+			return CSeverityHelper::makeSeverityCell($severity, [
 				(new CSpan($unackTriggersNum))->addClass(ZBX_STYLE_TOTALS_LIST_COUNT),
 				$severity_name
 			], false, $is_total);
 
 		case EXTACK_OPTION_BOTH:
-			return getSeverityCell($severity, [
+			return CSeverityHelper::makeSeverityCell($severity, [
 				(new CSpan([$unackTriggersNum, ' '._('of').' ', $allTriggersNum]))
 					->addClass(ZBX_STYLE_TOTALS_LIST_COUNT),
 				$severity_name
@@ -627,16 +623,32 @@ function make_status_of_zbx() {
 				if ($dbversion->flag != DB_VERSION_SUPPORTED) {
 					switch ($dbversion->flag) {
 						case DB_VERSION_LOWER_THAN_MINIMUM:
-							$error = _s('Minimum required database version is %1$s.', $dbversion->min_version);
+							$error = _s('Minimum required %1$s database version is %2$s.', $dbversion->database,
+								$dbversion->min_version
+							);
 							break;
 
 						case DB_VERSION_HIGHER_THAN_MAXIMUM:
-							$error = _s('Maximum required database version is %1$s.', $dbversion->max_version);
+							$error = _s('Maximum required %1$s database version is %2$s.', $dbversion->database,
+								$dbversion->max_version
+							);
 							break;
 
 						case DB_VERSION_FAILED_TO_RETRIEVE:
 							$error = _('Unable to retrieve database version.');
 							$dbversion->current_version = '';
+							break;
+
+						case DB_VERSION_NOT_SUPPORTED_ERROR:
+							$error = _s('Error! Unable to start Zabbix server due to unsupported %1$s database server version. Must be at least (%2$s)',
+								$dbversion->database, $dbversion->min_supported_version
+							);
+							break;
+
+						case DB_VERSION_NOT_SUPPORTED_WARNING:
+							$error = _s('Warning! Unsupported %1$s database server version. Should be at least (%2$s)',
+								$dbversion->database, $dbversion->min_supported_version
+							);
 							break;
 					}
 
@@ -851,7 +863,7 @@ function makeProblemsPopup(array $problems, array $triggers, array $actions, arr
 		$table->addRow(array_merge($row, [
 			makeInformationList($info_icons),
 			$triggers_hosts[$trigger['triggerid']],
-			getSeverityCell($problem['severity'],
+			CSeverityHelper::makeSeverityCell((int) $problem['severity'],
 				(($show_opdata == OPERATIONAL_DATA_SHOW_WITH_PROBLEM && $opdata)
 					? [$problem['name'], ' (', $opdata, ')']
 					: $problem['name']
@@ -860,9 +872,7 @@ function makeProblemsPopup(array $problems, array $triggers, array $actions, arr
 			($show_opdata == OPERATIONAL_DATA_SHOW_SEPARATELY) ? $opdata : null,
 			zbx_date2age($problem['clock']),
 			$problem_update_link,
-			makeEventActionsIcons($problem['eventid'], $actions['all_actions'], $actions['mediatypes'],
-				$actions['users']
-			),
+			makeEventActionsIcons($problem['eventid'], $actions['all_actions'], $actions['users']),
 			$tags[$problem['eventid']]
 		]));
 	}

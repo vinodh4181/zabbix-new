@@ -128,6 +128,20 @@ abstract class CItemGeneral extends CApiService {
 	 * @param bool  $update
 	 */
 	protected function checkInput(array &$items, $update = false) {
+		$api_input_rules = ['type' => API_OBJECT, 'fields' => [
+			'type' => ['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => implode(',', static::SUPPORTED_ITEM_TYPES)]
+		]];
+		if ($update) {
+			unset($api_input_rules['fields']['type']['flags']);
+		}
+
+		foreach ($items as $num => $item) {
+			$data = array_intersect_key($item, $api_input_rules['fields']);
+			if (!CApiInputValidator::validate($api_input_rules, $data, '/'.($num + 1), $error)) {
+				self::exception(ZBX_API_ERROR_PARAMETERS, $error);
+			}
+		}
+
 		if ($update) {
 			$itemDbFields = ['itemid' => null];
 
@@ -2236,14 +2250,14 @@ abstract class CItemGeneral extends CApiService {
 
 			if ($dep_item['hostid'] != $master_item['hostid']) {
 				self::exception(ZBX_API_ERROR_PARAMETERS, _s('Incorrect value for field "%1$s": %2$s.',
-					'master_itemid', _('hostid of dependent item and master item should match')
+					'master_itemid', _('"hostid" of dependent item and master item should match')
 				));
 			}
 
 			if ($this instanceof CItemPrototype && $master_item['flags'] == ZBX_FLAG_DISCOVERY_PROTOTYPE
 					&& $dep_item['ruleid'] != $master_item['ruleid']) {
 				self::exception(ZBX_API_ERROR_PARAMETERS, _s('Incorrect value for field "%1$s": %2$s.',
-					'master_itemid', _('ruleid of dependent item and master item should match')
+					'master_itemid', _('"ruleid" of dependent item and master item should match')
 				));
 			}
 

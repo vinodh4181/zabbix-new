@@ -27,13 +27,14 @@ class CControllerDashboardView extends CController {
 
 	protected function checkInput() {
 		$fields = [
-			'dashboardid' => 'db dashboard.dashboardid',
-			'source_dashboardid' => 'db dashboard.dashboardid',
-			'hostid' => 'db hosts.hostid',
-			'new' => 'in 1',
-			'cancel' => 'in 1',
-			'from' => 'range_time',
-			'to' => 'range_time'
+			'dashboardid' =>		'db dashboard.dashboardid',
+			'source_dashboardid' =>	'db dashboard.dashboardid',
+			'hostid' =>				'db hosts.hostid',
+			'new' =>				'in 1',
+			'cancel' =>				'in 1',
+			'from' =>				'range_time',
+			'to' =>					'range_time',
+			'slideshow' =>			'in 1'
 		];
 
 		$ret = $this->validateInput($fields) && $this->validateTimeSelectorPeriod();
@@ -84,6 +85,10 @@ class CControllerDashboardView extends CController {
 			));
 
 			return;
+		}
+
+		if ($this->hasInput('slideshow')) {
+			$dashboard['auto_start'] = '1';
 		}
 
 		$dashboard['can_edit_dashboards'] = $this->checkAccess(CRoleHelper::ACTIONS_EDIT_DASHBOARDS);

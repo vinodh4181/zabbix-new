@@ -673,14 +673,6 @@ class CScreenProblem extends CScreenBase {
 			])
 			: [];
 
-		$data['mediatypes'] = $actions['mediatypeids']
-			? API::Mediatype()->get([
-				'output' => ['name', 'maxattempts'],
-				'mediatypeids' => array_keys($actions['mediatypeids']),
-				'preservekeys' => true
-			])
-			: [];
-
 		return $data;
 	}
 
@@ -1014,15 +1006,16 @@ class CScreenProblem extends CScreenBase {
 					$info_icons[] = makeSuppressedProblemIcon($problem['suppression_data']);
 				}
 
-				$cell_info = ($this->data['filter']['compact_view'] && $this->data['filter']['show_suppressed']
-						&& count($info_icons) > 1)
-					? (new CSpan(
-							(new CButton(null))
-								->addClass(ZBX_STYLE_ICON_WZRD_ACTION)
-								->addStyle('margin-left: -3px;')
-								->setHint((new CDiv($info_icons))->addClass(ZBX_STYLE_REL_CONTAINER))
-							))->addClass(ZBX_STYLE_REL_CONTAINER)
-					: makeInformationList($info_icons);
+				if ($this->data['filter']['compact_view'] && $this->data['filter']['show_suppressed']
+						&& count($info_icons) > 1) {
+					$cell_info = (new CButton(null))
+						->addClass(ZBX_STYLE_ICON_WZRD_ACTION)
+						->addStyle('margin-left: -3px;')
+						->setHint(makeInformationList($info_icons));
+				}
+				else {
+					$cell_info = makeInformationList($info_icons);
+				}
 
 				$description = array_key_exists($trigger['triggerid'], $dependencies)
 					? makeTriggerDependencies($dependencies[$trigger['triggerid']])
@@ -1114,7 +1107,7 @@ class CScreenProblem extends CScreenBase {
 				// Add table row.
 				$table->addRow(array_merge($row, [
 					new CCheckBox('eventids['.$problem['eventid'].']', $problem['eventid']),
-					getSeverityCell($problem['severity'], null, $value == TRIGGER_VALUE_FALSE),
+					CSeverityHelper::makeSeverityCell((int) $problem['severity'], null, $value == TRIGGER_VALUE_FALSE),
 					$show_recovery_data ? $cell_r_clock : null,
 					$show_recovery_data ? $cell_status : null,
 					$cell_info,
@@ -1129,10 +1122,10 @@ class CScreenProblem extends CScreenBase {
 						? zbx_date2age($problem['clock'], $problem['r_clock'])
 						: zbx_date2age($problem['clock']),
 					$problem_update_link,
-					makeEventActionsIcons($problem['eventid'], $data['actions'], $data['mediatypes'], $data['users']),
+					makeEventActionsIcons($problem['eventid'], $data['actions'], $data['users']),
 					$this->data['filter']['show_tags'] ? $tags[$problem['eventid']] : null
 				]), ($this->data['filter']['highlight_row'] && $value == TRIGGER_VALUE_TRUE)
-					? getSeverityFlhStyle($problem['severity'])
+					? self::getSeverityFlhStyle($problem['severity'])
 					: null
 				);
 			}
@@ -1233,7 +1226,7 @@ class CScreenProblem extends CScreenBase {
 
 			$row = [];
 
-			$row[] = getSeverityName($problem['severity']);
+			$row[] = CSeverityHelper::getName((int) $problem['severity']);
 			$row[] = zbx_date2str(DATE_TIME_FORMAT_SECONDS, $problem['clock']);
 			$row[] = ($problem['r_eventid'] != 0) ? zbx_date2str(DATE_TIME_FORMAT_SECONDS, $problem['r_clock']) : '';
 			$row[] = $value_str;
@@ -1346,5 +1339,31 @@ class CScreenProblem extends CScreenBase {
 		}
 
 		return implode(', ', $latest_values);
+	}
+
+	/**
+	 * Get trigger severity full line height css style name.
+	 *
+	 * @param int $severity  Trigger severity.
+	 *
+	 * @return string|null
+	 */
+	private static function getSeverityFlhStyle($severity) {
+		switch ($severity) {
+			case TRIGGER_SEVERITY_DISASTER:
+				return ZBX_STYLE_FLH_DISASTER_BG;
+			case TRIGGER_SEVERITY_HIGH:
+				return ZBX_STYLE_FLH_HIGH_BG;
+			case TRIGGER_SEVERITY_AVERAGE:
+				return ZBX_STYLE_FLH_AVERAGE_BG;
+			case TRIGGER_SEVERITY_WARNING:
+				return ZBX_STYLE_FLH_WARNING_BG;
+			case TRIGGER_SEVERITY_INFORMATION:
+				return ZBX_STYLE_FLH_INFO_BG;
+			case TRIGGER_SEVERITY_NOT_CLASSIFIED:
+				return ZBX_STYLE_FLH_NA_BG;
+			default:
+				return null;
+		}
 	}
 }

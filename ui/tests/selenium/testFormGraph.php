@@ -197,6 +197,7 @@ class testFormGraph extends CLegacyWebTest {
 		if (isset($data['template'])) {
 			$this->zbxTestLogin('templates.php');
 			$this->query('button:Reset')->one()->click();
+			$this->page->open('templates.php?page=2');
 			$this->zbxTestClickLinkTextWait($data['template']);
 			$hostid = 30000;
 		}
@@ -531,14 +532,14 @@ class testFormGraph extends CLegacyWebTest {
 
 			switch ($graphtype) {
 				case 'Normal':
-					$this->zbxTestTextPresent(['Items', 'Name', 'Function', 'Draw style', 'Y axis side', 'Colour', 'Action']);
+					$this->zbxTestTextPresent(['Items', 'Name', 'Function', 'Draw style', 'Y axis side', 'Color', 'Action']);
 					break;
 				case 'Stacked':
-					$this->zbxTestTextPresent(['Items', 'Name', 'Function', 'Y axis side', 'Colour', 'Action']);
+					$this->zbxTestTextPresent(['Items', 'Name', 'Function', 'Y axis side', 'Color', 'Action']);
 					break;
 				case 'Pie':
 				case 'Exploded':
-					$this->zbxTestTextPresent(['Items', 'Name', 'Type', 'Function', 'Colour', 'Action']);
+					$this->zbxTestTextPresent(['Items', 'Name', 'Type', 'Function', 'Color', 'Action']);
 					break;
 			}
 		}

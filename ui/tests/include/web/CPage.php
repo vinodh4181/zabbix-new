@@ -187,14 +187,19 @@ class CPage {
 	/**
 	 * Login as specified user.
 	 *
-	 * @param string  $sessionid   session id
-	 * @param integer $user_id     user id
+	 * @param string  $sessionid
+	 * @param integer $userid
 	 *
 	 * @return $this
 	 */
-	public function login($sessionid = '09e7d4286dfdca4ba7be15e0f3b2b55a', $user_id = 1) {
-		if (!CDBHelper::getRow('select null from sessions where status=0 AND sessionid='.zbx_dbstr($sessionid))) {
-			DBexecute('insert into sessions (sessionid, userid) values ('.zbx_dbstr($sessionid).', '.$user_id.')');
+	public function login($sessionid = '09e7d4286dfdca4ba7be15e0f3b2b55a', $userid = 1) {
+		$session = CDBHelper::getRow('SELECT status FROM sessions WHERE sessionid='.zbx_dbstr($sessionid));
+
+		if (!$session) {
+			DBexecute('INSERT INTO sessions (sessionid,userid) VALUES ('.zbx_dbstr($sessionid).','.$userid.')');
+		}
+		elseif ($session['status'] != 0) {	/* ZBX_SESSION_ACTIVE */
+			DBexecute('UPDATE sessions SET status=0 WHERE sessionid='.zbx_dbstr($sessionid));
 		}
 
 		if (self::$cookie !== null) {
@@ -204,7 +209,7 @@ class CPage {
 		if (self::$cookie === null || $sessionid !== $cookie['sessionid']) {
 			$data = ['sessionid' => $sessionid];
 
-			$config = CDBHelper::getRow('select session_key from config where configid=1');
+			$config = CDBHelper::getRow('SELECT session_key FROM config WHERE configid=1');
 			$data['sign'] = openssl_encrypt(json_encode($data), 'aes-256-ecb', $config['session_key']);
 
 			$path = parse_url(PHPUNIT_URL, PHP_URL_PATH);
@@ -228,6 +233,9 @@ class CPage {
 	 */
 	public function logout() {
 		try {
+			// Before logout open page without any scripts, otherwise session might be restored and logout won't work.
+			$this->open('setup.php');
+
 			$session = (self::$cookie === null)
 					? CTestArrayHelper::get($this->driver->manage()->getCookieNamed('zbx_session'), 'value')
 					: self::$cookie['value'];
@@ -579,6 +587,14 @@ class CPage {
 		$this->query('id:password')->one()->fill($password);
 		$this->query('id:enter')->one()->click();
 		$this->waitUntilReady();
+
+		// Make sure that logged in page is opened.
+		try {
+			$this->query('xpath://aside[@class="sidebar"]//a[text()="User settings"]')->exists();
+		}
+		catch (\Exception $ex) {
+			throw new \Exception('"User settings" menu is not found on page. Probably user is not logged in.');
+		}
 	}
 
 	/**

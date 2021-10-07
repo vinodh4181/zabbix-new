@@ -20,183 +20,6 @@
 
 
 /**
- * Get trigger severity full line height css style name.
- *
- * @param int $severity  Trigger severity.
- *
- * @return string|null
- */
-function getSeverityFlhStyle($severity) {
-	switch ($severity) {
-		case TRIGGER_SEVERITY_DISASTER:
-			return ZBX_STYLE_FLH_DISASTER_BG;
-		case TRIGGER_SEVERITY_HIGH:
-			return ZBX_STYLE_FLH_HIGH_BG;
-		case TRIGGER_SEVERITY_AVERAGE:
-			return ZBX_STYLE_FLH_AVERAGE_BG;
-		case TRIGGER_SEVERITY_WARNING:
-			return ZBX_STYLE_FLH_WARNING_BG;
-		case TRIGGER_SEVERITY_INFORMATION:
-			return ZBX_STYLE_FLH_INFO_BG;
-		case TRIGGER_SEVERITY_NOT_CLASSIFIED:
-			return ZBX_STYLE_FLH_NA_BG;
-		default:
-			return null;
-	}
-}
-
-/**
- * Get trigger severity status css style name.
- *
- * @param int $severity  Trigger severity.
- *
- * @return string|null
- */
-function getSeverityStatusStyle($severity) {
-	switch ($severity) {
-		case TRIGGER_SEVERITY_DISASTER:
-			return ZBX_STYLE_STATUS_DISASTER_BG;
-		case TRIGGER_SEVERITY_HIGH:
-			return ZBX_STYLE_STATUS_HIGH_BG;
-		case TRIGGER_SEVERITY_AVERAGE:
-			return ZBX_STYLE_STATUS_AVERAGE_BG;
-		case TRIGGER_SEVERITY_WARNING:
-			return ZBX_STYLE_STATUS_WARNING_BG;
-		case TRIGGER_SEVERITY_INFORMATION:
-			return ZBX_STYLE_STATUS_INFO_BG;
-		case TRIGGER_SEVERITY_NOT_CLASSIFIED:
-			return ZBX_STYLE_STATUS_NA_BG;
-		default:
-			return null;
-	}
-}
-
-function getSeverityStyle($severity, $type = true) {
-	if (!$type) {
-		return ZBX_STYLE_NORMAL_BG;
-	}
-
-	switch ($severity) {
-		case TRIGGER_SEVERITY_DISASTER:
-			return ZBX_STYLE_DISASTER_BG;
-		case TRIGGER_SEVERITY_HIGH:
-			return ZBX_STYLE_HIGH_BG;
-		case TRIGGER_SEVERITY_AVERAGE:
-			return ZBX_STYLE_AVERAGE_BG;
-		case TRIGGER_SEVERITY_WARNING:
-			return ZBX_STYLE_WARNING_BG;
-		case TRIGGER_SEVERITY_INFORMATION:
-			return ZBX_STYLE_INFO_BG;
-		case TRIGGER_SEVERITY_NOT_CLASSIFIED:
-			return ZBX_STYLE_NA_BG;
-		default:
-			return null;
-	}
-}
-
-/**
- * Get trigger severity name by given state and configuration.
- *
- * @param int   $severity  Trigger severity.
- *
- * @return string
- */
-function getSeverityName($severity) {
-	switch ($severity) {
-		case TRIGGER_SEVERITY_NOT_CLASSIFIED:
-			return _(CSettingsHelper::get(CSettingsHelper::SEVERITY_NAME_0));
-		case TRIGGER_SEVERITY_INFORMATION:
-			return _(CSettingsHelper::get(CSettingsHelper::SEVERITY_NAME_1));
-		case TRIGGER_SEVERITY_WARNING:
-			return _(CSettingsHelper::get(CSettingsHelper::SEVERITY_NAME_2));
-		case TRIGGER_SEVERITY_AVERAGE:
-			return _(CSettingsHelper::get(CSettingsHelper::SEVERITY_NAME_3));
-		case TRIGGER_SEVERITY_HIGH:
-			return _(CSettingsHelper::get(CSettingsHelper::SEVERITY_NAME_4));
-		case TRIGGER_SEVERITY_DISASTER:
-			return _(CSettingsHelper::get(CSettingsHelper::SEVERITY_NAME_5));
-		default:
-			return _('Unknown');
-	}
-}
-
-function getSeverityColor($severity, $value = TRIGGER_VALUE_TRUE) {
-	if ($value == TRIGGER_VALUE_FALSE) {
-		return 'AAFFAA';
-	}
-
-	switch ($severity) {
-		case TRIGGER_SEVERITY_DISASTER:
-			$color = CSettingsHelper::get(CSettingsHelper::SEVERITY_COLOR_5);
-			break;
-		case TRIGGER_SEVERITY_HIGH:
-			$color = CSettingsHelper::get(CSettingsHelper::SEVERITY_COLOR_4);
-			break;
-		case TRIGGER_SEVERITY_AVERAGE:
-			$color = CSettingsHelper::get(CSettingsHelper::SEVERITY_COLOR_3);
-			break;
-		case TRIGGER_SEVERITY_WARNING:
-			$color = CSettingsHelper::get(CSettingsHelper::SEVERITY_COLOR_2);
-			break;
-		case TRIGGER_SEVERITY_INFORMATION:
-			$color = CSettingsHelper::get(CSettingsHelper::SEVERITY_COLOR_1);
-			break;
-		case TRIGGER_SEVERITY_NOT_CLASSIFIED:
-			$color = CSettingsHelper::get(CSettingsHelper::SEVERITY_COLOR_0);
-			break;
-		default:
-			$color = CSettingsHelper::get(CSettingsHelper::SEVERITY_COLOR_0);
-	}
-
-	return $color;
-}
-
-/**
- * Generate array with severities options.
- *
- * @param int $min  Minimal severity.
- * @param int $max  Maximum severity.
- *
- * @return array
- */
-function getSeverities($min = TRIGGER_SEVERITY_NOT_CLASSIFIED, $max = TRIGGER_SEVERITY_COUNT - 1) {
-	$severities = [];
-
-	foreach (range($min, $max) as $severity) {
-		$severities[] = [
-			'name' => getSeverityName($severity),
-			'value' => $severity,
-			'style' => getSeverityStyle($severity)
-		];
-	}
-
-	return $severities;
-}
-
-/**
- * Returns HTML representation of trigger severity cell containing severity name and color.
- *
- * @param int         $severity       Trigger, Event or Problem severity.
- * @param string|null $text           Trigger severity name.
- * @param bool        $force_normal   True to return 'normal' class, false to return corresponding severity class.
- * @param bool        $return_as_div  True to return severity cell as DIV element.
- *
- * @return CDiv|CCol
- */
-function getSeverityCell($severity, $text = null, $force_normal = false, $return_as_div = false) {
-	if ($text === null) {
-		$text = CHtml::encode(getSeverityName($severity));
-	}
-
-	if ($force_normal) {
-		return new CCol($text);
-	}
-
-	$return = $return_as_div ? new CDiv($text) : new CCol($text);
-	return $return->addClass(getSeverityStyle($severity));
-}
-
-/**
  * Add color style and blinking to an object like CSpan or CDiv depending on trigger status.
  * Settings and colors are kept in 'config' database table.
  *
@@ -265,7 +88,7 @@ function get_trigger_by_triggerid($triggerid) {
 	if (!empty($db_trigger)) {
 		return $db_trigger;
 	}
-	error(_s('No trigger with triggerid "%1$s".', $triggerid));
+	error(_s('No trigger with trigger ID "%1$s".', $triggerid));
 
 	return false;
 }
@@ -589,7 +412,7 @@ function copyTriggersToHosts($src_triggerids, $dst_hostids, $src_hostid = null) 
  * @return string
  */
 function triggerExpressionReplaceHost(string $expression, string $src_host, string $dst_host): string {
-	$expression_parser = new CExpressionParser(['lldmacros' => true]);
+	$expression_parser = new CExpressionParser(['usermacros' => true, 'lldmacros' => true]);
 
 	if ($expression_parser->parse($expression) == CParser::PARSE_SUCCESS) {
 		$hist_functions = $expression_parser->getResult()->getTokensOfTypes(
@@ -649,7 +472,7 @@ function getTriggersOverviewTableData(array $db_hosts, array $db_triggers): arra
 
 	$limit = (int) CSettingsHelper::get(CSettingsHelper::MAX_OVERVIEW_TABLE_SIZE);
 	$exceeded_trigs = (count($triggers_by_name) > $limit);
-	$triggers_by_name = array_slice($triggers_by_name, 0, $limit);
+	$triggers_by_name = array_slice($triggers_by_name, 0, $limit, true);
 	foreach ($triggers_by_name as $name => $triggers) {
 		$triggers_by_name[$name] = array_slice($triggers, 0, $limit, true);
 	}
@@ -904,7 +727,7 @@ function getTriggerOverviewCell(array $trigger, array $dependencies): CCol {
 		: [];
 
 	$column = (new CCol([$desc, $ack]))
-		->addClass(getSeverityStyle($trigger['priority'], $trigger['value'] == TRIGGER_VALUE_TRUE))
+		->addClass(CSeverityHelper::getStyle((int) $trigger['priority'], $trigger['value'] == TRIGGER_VALUE_TRUE))
 		->addClass(ZBX_STYLE_CURSOR_POINTER);
 
 	$eventid = 0;
@@ -1142,7 +965,7 @@ function make_trigger_details($trigger, $eventid) {
 		])
 		->addRow([
 			_('Severity'),
-			getSeverityCell($trigger['priority'])
+			CSeverityHelper::makeSeverityCell((int) $trigger['priority'])
 		]);
 
 	$trigger = CMacrosResolverHelper::resolveTriggerExpressions(zbx_toHash($trigger, 'triggerid'), [
@@ -1195,7 +1018,7 @@ function analyzeExpression(string $expression, int $type, string &$error = null)
 		return ['', null];
 	}
 
-	$expression_parser = new CExpressionParser(['lldmacros' => true]);
+	$expression_parser = new CExpressionParser(['usermacros' => true, 'lldmacros' => true]);
 
 	if ($expression_parser->parse($expression) != CParser::PARSE_SUCCESS) {
 		$error = $expression_parser->getError();
@@ -1330,7 +1153,7 @@ function expressionHighLevelErrors($expression) {
 
 	if (!isset($errors[$expression])) {
 		$errors[$expression] = [];
-		$expression_parser = new CExpressionParser(['lldmacros' => true]);
+		$expression_parser = new CExpressionParser(['usermacros' => true, 'lldmacros' => true]);
 		if ($expression_parser->parse($expression) == CParser::PARSE_SUCCESS) {
 			$tokens = $expression_parser->getResult()->getTokensOfTypes([
 				CExpressionParserResult::TOKEN_TYPE_MATH_FUNCTION,
@@ -1353,7 +1176,7 @@ function expressionHighLevelErrors($expression) {
 		return $ret;
 	}
 
-	$expression_parser = new CExpressionParser(['lldmacros' => true]);
+	$expression_parser = new CExpressionParser(['usermacros' => true, 'lldmacros' => true]);
 	if ($expression_parser->parse($expression) == CParser::PARSE_SUCCESS) {
 		$tokens = $expression_parser->getResult()->getTokensOfTypes([
 			CExpressionParserResult::TOKEN_TYPE_MATH_FUNCTION,
@@ -1563,7 +1386,7 @@ function remakeExpression($expression, $expression_id, $action, $new_expression,
 		return false;
 	}
 
-	$expression_parser = new CExpressionParser(['lldmacros' => true]);
+	$expression_parser = new CExpressionParser(['usermacros' => true, 'lldmacros' => true]);
 	if ($action !== 'R' && $expression_parser->parse($new_expression) != CParser::PARSE_SUCCESS) {
 		$error = $expression_parser->getError();
 		return false;
@@ -1923,7 +1746,7 @@ function get_item_function_info(string $expr) {
 		'truncate' => ['any' => $rule_float]
 	];
 
-	$expression_parser = new CExpressionParser(['lldmacros' => true]);
+	$expression_parser = new CExpressionParser(['usermacros' => true, 'lldmacros' => true]);
 	$expression_parser->parse($expr);
 	$token = $expression_parser->getResult()->getTokens()[0];
 

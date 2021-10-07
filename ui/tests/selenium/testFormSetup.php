@@ -51,7 +51,7 @@ class testFormSetup extends CWebTest {
 		$this->checkSections('Welcome');
 		$form = $this->query('xpath://form')->asForm()->one();
 		$language_field = $form->getField('Default language');
-		$this->assertEquals('English (en_GB)', $language_field->getValue());
+		$this->assertEquals('English (en_US)', $language_field->getValue());
 		$hint_text = 'You are not able to choose some of the languages, because locales for them are not installed '.
 				'on the web server.';
 		$this->assertEquals($hint_text, $this->query('class:hint-box')->one()->getText());
@@ -195,7 +195,7 @@ class testFormSetup extends CWebTest {
 				$this->assertFalse($form->getField($field_name)->isVisible());
 			}
 
-			// Check layout when "Store credetials in" is set to "HashiCorp Vault".
+			// Check layout when "Store credentials in" is set to "HashiCorp Vault".
 			$credentials_field->select('HashiCorp Vault');
 			$form->invalidate();
 			foreach (['User', 'Password'] as $field_name) {

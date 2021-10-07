@@ -53,6 +53,7 @@ OBJS = \
 	..\..\..\src\libs\zbxconf\cfg.o \
 	..\..\..\src\libs\zbxcrypto\base64.o \
 	..\..\..\src\libs\zbxcrypto\md5.o \
+	..\..\..\src\libs\zbxcrypto\sha256crypt.o \
 	..\..\..\src\libs\zbxjson\json.o \
 	..\..\..\src\libs\zbxjson\json_parser.o \
 	..\..\..\src\libs\zbxjson\jsonpath.o \
@@ -65,12 +66,12 @@ OBJS = \
 	..\..\..\src\libs\zbxhttp\punycode.o \
 	..\..\..\src\libs\zbxhttp\urlencode.o \
 	..\..\..\src\libs\zbxsysinfo\agent\agent.o \
+	..\..\..\src\libs\zbxsysinfo\agent\modbus.o \
 	..\..\..\src\libs\zbxsysinfo\common\common.o \
 	..\..\..\src\libs\zbxsysinfo\common\cpu.o \
 	..\..\..\src\libs\zbxsysinfo\common\dir.o \
 	..\..\..\src\libs\zbxsysinfo\common\file.o \
 	..\..\..\src\libs\zbxsysinfo\common\http.o \
-	..\..\..\src\libs\zbxsysinfo\common\modbus.o \
 	..\..\..\src\libs\zbxsysinfo\common\net.o \
 	..\..\..\src\libs\zbxsysinfo\common\dns.o \
 	..\..\..\src\libs\zbxsysinfo\common\system.o \

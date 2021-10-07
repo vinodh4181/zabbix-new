@@ -38,7 +38,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Type' => 'Webhook',
 						'Script' => ' '
 					],
-					'error_message' => 'Invalid parameter "/2/script": cannot be empty.'
+					'error_message' => 'Invalid parameter "/1/script": cannot be empty.'
 				]
 			],
 			// Attepmt to add a webhook media type with a name that is already taken.
@@ -77,7 +77,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 							'Value' => '{BLANK.NAME}'
 						]
 					],
-					'error_message' => 'Invalid parameter "/2/parameters/6/name": cannot be empty.'
+					'error_message' => 'Invalid parameter "/1/parameters/6/name": cannot be empty.'
 				]
 			],
 			// Attempt to add a webhook without specifying the script field.
@@ -87,7 +87,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Name' => 'Webhook with empty script field',
 						'Type' => 'Webhook'
 					],
-					'error_message' => 'Invalid parameter "/2/script": cannot be empty.'
+					'error_message' => 'Invalid parameter "/1/script": cannot be empty.'
 				]
 			],
 			// Attempt to add a webhook with timeout equal to zero.
@@ -99,7 +99,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Script' => 'Zero timeout',
 						'Timeout' => '0'
 					],
-					'error_message' => 'Invalid parameter "/2/timeout": value must be one of 1-60.'
+					'error_message' => 'Invalid parameter "/1/timeout": value must be one of 1-60.'
 				]
 			],
 			// Attempt to add a webhook with too large timeout.
@@ -111,7 +111,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Script' => 'Large timeout',
 						'Timeout' => '61s'
 					],
-					'error_message' => 'Invalid parameter "/2/timeout": value must be one of 1-60.'
+					'error_message' => 'Invalid parameter "/1/timeout": value must be one of 1-60.'
 				]
 			],
 			// Attempt to add a webhook with too large timeout #2.
@@ -123,7 +123,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Script' => 'Large timeout',
 						'Timeout' => '2m'
 					],
-					'error_message' => 'Invalid parameter "/2/timeout": value must be one of 1-60.'
+					'error_message' => 'Invalid parameter "/1/timeout": value must be one of 1-60.'
 				]
 			],
 			// Attempt to add a webhook with a string in the timeout field.
@@ -135,7 +135,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Script' => 'String in timeout',
 						'Timeout' => '30seconds'
 					],
-					'error_message' => 'Invalid parameter "/2/timeout": a time unit is expected.'
+					'error_message' => 'Invalid parameter "/1/timeout": a time unit is expected.'
 				]
 			],
 			// Attempt to add a webhook with empty menu entry name.
@@ -148,7 +148,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Include event menu entry' => true,
 						'Menu entry URL' => 'https://zabbix.com/{EVENT.TAGS."Returned value"}'
 					],
-					'error_message' => 'Incorrect value for field "event_menu_name": cannot be empty.'
+					'error_message' => 'Invalid parameter "/1/event_menu_name": cannot be empty.'
 				]
 			],
 			// Attempt to add a webhook with empty menu entry URL.
@@ -161,7 +161,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Include event menu entry' => true,
 						'Menu entry name' => '{EVENT.TAGS."Returned tag"}'
 					],
-					'error_message' => 'Incorrect value for field "event_menu_url": cannot be empty.'
+					'error_message' => 'Invalid parameter "/1/event_menu_url": cannot be empty.'
 				]
 			],
 			// Attempt to add a webhook with empty Attempts field.
@@ -175,7 +175,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 					'options' => [
 						'Attempts' => ''
 					],
-					'error_message' => 'Incorrect value for field "maxattempts": must be between "1" and "10".'
+					'error_message' => 'Invalid parameter "/1/maxattempts": value must be one of 1-100.'
 				]
 			],
 			// Attempt to add a webhook with 0 in Attempts field.
@@ -189,7 +189,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 					'options' => [
 						'Attempts' => '0'
 					],
-					'error_message' => 'Incorrect value for field "maxattempts": must be between "1" and "10".'
+					'error_message' => 'Invalid parameter "/1/maxattempts": value must be one of 1-100.'
 				]
 			],
 			// Attempt to add a webhook with too much Attempts.
@@ -201,9 +201,9 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Script' => 'Too much Attempts'
 					],
 					'options' => [
-						'Attempts' => '11'
+						'Attempts' => '101'
 					],
-					'error_message' => 'Incorrect value for field "maxattempts": must be between "1" and "10".'
+					'error_message' => 'Invalid parameter "/1/maxattempts": value must be one of 1-100.'
 				]
 			],
 			// Attempt to add a webhook with empty Attempt interval field.
@@ -218,7 +218,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Attempts' => '5',
 						'Attempt interval' => ''
 					],
-					'error_message' => 'Incorrect value for field "attempt_interval": cannot be empty.'
+					'error_message' => 'Invalid parameter "/1/attempt_interval": cannot be empty.'
 				]
 			],
 			// Attempt to add a webhook with Attempt interval out of range.
@@ -231,9 +231,9 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 					],
 					'options' => [
 						'Attempts' => '5',
-						'Attempt interval' => '61'
+						'Attempt interval' => '3601'
 					],
-					'error_message' => 'Incorrect value for field "attempt_interval": must be between "0" and "60".'
+					'error_message' => 'Invalid parameter "/1/attempt_interval": value must be one of 0-3600.'
 				]
 			],
 			// Attempt to add a webhook with custom concurrent sessions number out of range.
@@ -251,24 +251,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 					'concurrent_sessions' => [
 						'Custom' => '101'
 					],
-					'error_message' => 'Incorrect value for field "maxsessions": must be between "0" and "100".'
-				]
-			],
-			// Attempt to set concurrent sessions field to custom and set the value out of range.
-			[
-				[
-					'fields' => [
-						'Name' => 'Custom concurrent sessions out of range',
-						'Type' => 'Webhook',
-						'Script' => 'Custom concurrent sessions out of range'
-					],
-					'options' => [
-						'Attempts' => '5'
-					],
-					'concurrent_sessions' => [
-						'Custom' => '101'
-					],
-					'error_message' => 'Incorrect value for field "maxsessions": must be between "0" and "100".'
+					'error_message' => 'Invalid parameter "/1/maxsessions": value must be one of 0-100.'
 				]
 			],
 			// Adding a parameter with a blank name to the media type.
@@ -347,7 +330,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Include event menu entry' => true,
 						'Menu entry URL' => '{EVENT.TAGS.Address}'
 					],
-					'error_message' => 'Incorrect value for field "event_menu_name": cannot be empty.'
+					'error_message' => 'Invalid parameter "/1/event_menu_name": cannot be empty.'
 				]
 			],
 			// Add a menu entry name without a menu entry URL.
@@ -360,7 +343,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Include event menu entry' => true,
 						'Menu entry name' => '{EVENT.TAGS."Returned tag"}'
 					],
-					'error_message' => 'Incorrect value for field "event_menu_url": cannot be empty.'
+					'error_message' => 'Invalid parameter "/1/event_menu_url": cannot be empty.'
 				]
 			],
 			// Remove the value of the attempts field.
@@ -374,7 +357,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 					'options' => [
 						'Attempts' => ''
 					],
-					'error_message' => 'Incorrect value for field "maxattempts": must be between "1" and "10".'
+					'error_message' => 'Invalid parameter "/1/maxattempts": value must be one of 1-100.'
 				]
 			],
 			// Set the value of Attempts field to 0.
@@ -388,7 +371,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 					'options' => [
 						'Attempts' => '0'
 					],
-					'error_message' => 'Incorrect value for field "maxattempts": must be between "1" and "10".'
+					'error_message' => 'Invalid parameter "/1/maxattempts": value must be one of 1-100.'
 				]
 			],
 			// Set the value of Attempts field too high.
@@ -400,9 +383,9 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Script' => 'Too much Attempts'
 					],
 					'options' => [
-						'Attempts' => '100'
+						'Attempts' => '101'
 					],
-					'error_message' => 'Incorrect value for field "maxattempts": must be between "1" and "10".'
+					'error_message' => 'Invalid parameter "/1/maxattempts": value must be one of 1-100.'
 				]
 			],
 			// Set the value of Attempts field to some string.
@@ -416,7 +399,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 					'options' => [
 						'Attempts' => 'five'
 					],
-					'error_message' => 'Incorrect value for field "maxattempts": must be between "1" and "10".'
+					'error_message' => 'Invalid parameter "/1/maxattempts": value must be one of 1-100.'
 				]
 			],
 			// Remove the value of the attempt interval field.
@@ -431,7 +414,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Attempts' => '1',
 						'Attempt interval' => ''
 					],
-					'error_message' => 'Incorrect value for field "attempt_interval": cannot be empty.'
+					'error_message' => 'Invalid parameter "/1/attempt_interval": cannot be empty.'
 				]
 			],
 			// Set a value of the attempt interval that is out of range.
@@ -444,9 +427,9 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 					],
 					'options' => [
 						'Attempts' => '5',
-						'Attempt interval' => '61'
+						'Attempt interval' => '3601'
 					],
-					'error_message' => 'Incorrect value for field "attempt_interval": must be between "0" and "60".'
+					'error_message' => 'Invalid parameter "/1/attempt_interval": value must be one of 0-3600.'
 				]
 			],
 			// Set a string value in the attempt interval field.
@@ -461,7 +444,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Attempts' => '5',
 						'Attempt interval' => '10seconds'
 					],
-					'error_message' => 'Incorrect value for field "attempt_interval": must be between "0" and "60".'
+					'error_message' => 'Invalid parameter "/1/attempt_interval": a time unit is expected.'
 				]
 			],
 			// Removing the name of a webhook media type.
@@ -550,11 +533,30 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Script' => 'Webhook with specified "Menu entry name" and "Menu entry URL" fields'
 					],
 					'options' => [
-						'Attempts' => '10',
-						'Attempt interval' => '1m'
+						'Attempts' => '100',
+						'Attempt interval' => '1h'
 					],
 					'concurrent_sessions' => [
-						'Custom' => '5'
+						'Custom' => '100'
+					]
+				]
+			],
+			[
+				[
+					'fields' => [
+						'Name' => 'Webhook with 60m Attempt interval',
+						'Type' => 'Webhook',
+						'Include event menu entry' => true,
+						'Menu entry name' => '{EVENT.TAGS.Name}',
+						'Menu entry URL' => '{EVENT.TAGS.Url}',
+						'Script' => 'Webhook with specified "Menu entry name" and "Menu entry URL" fields'
+					],
+					'options' => [
+						'Attempts' => '1',
+						'Attempt interval' => '60m'
+					],
+					'concurrent_sessions' => [
+						'Custom' => '100'
 					]
 				]
 			],
@@ -574,8 +576,8 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 						'Enabled' => false
 					],
 					'options' => [
-						'Attempts' => '5',
-						'Attempt interval' => '20s'
+						'Attempts' => '50',
+						'Attempt interval' => '3600s'
 					],
 					'concurrent_sessions' => 'Unlimited',
 					'parameters' => [

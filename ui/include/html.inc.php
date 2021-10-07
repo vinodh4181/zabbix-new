@@ -144,13 +144,13 @@ function get_icon($type, $params = []) {
 			if (CFavorite::exists($params['fav'], $params['elid'], $params['elname'])) {
 				$icon = (new CRedirectButton(SPACE, null))
 					->addClass(ZBX_STYLE_BTN_REMOVE_FAV)
-					->setTitle(_('Remove from favourites'))
+					->setTitle(_('Remove from favorites'))
 					->onClick('rm4favorites("'.$params['elname'].'", "'.$params['elid'].'");');
 			}
 			else {
 				$icon = (new CRedirectButton(SPACE, null))
 					->addClass(ZBX_STYLE_BTN_ADD_FAV)
-					->setTitle(_('Add to favourites'))
+					->setTitle(_('Add to favorites'))
 					->onClick('add2favorites("'.$params['elname'].'", "'.$params['elid'].'");');
 			}
 			$icon->setId('addrm_fav');
@@ -838,6 +838,10 @@ function getAdministrationGeneralSubmenu() {
 		->setArgument('action', 'housekeeping.edit')
 		->getUrl();
 
+	$audit_settings_url = (new CUrl('zabbix.php'))
+		->setArgument('action', 'audit.settings.edit')
+		->getUrl();
+
 	$image_url = (new CUrl('zabbix.php'))
 		->setArgument('action', 'image.list')
 		->getUrl();
@@ -875,17 +879,18 @@ function getAdministrationGeneralSubmenu() {
 	return [
 		'main_section' => [
 			'items' => array_filter([
-				$gui_url          => _('GUI'),
-				$autoreg_url      => _('Autoregistration'),
-				$housekeeping_url => _('Housekeeping'),
-				$image_url        => _('Images'),
-				$iconmap_url      => _('Icon mapping'),
-				$regex_url        => _('Regular expressions'),
-				$macros_url       => _('Macros'),
-				$trigdisplay_url  => _('Trigger displaying options'),
-				$modules_url      => _('Modules'),
-				$tokens_url       => $can_access_tokens ? _('API tokens') : null,
-				$miscconfig_url   => _('Other')
+				$gui_url            => _('GUI'),
+				$autoreg_url        => _('Autoregistration'),
+				$housekeeping_url   => _('Housekeeping'),
+				$audit_settings_url => _('Audit log'),
+				$image_url          => _('Images'),
+				$iconmap_url        => _('Icon mapping'),
+				$regex_url          => _('Regular expressions'),
+				$macros_url         => _('Macros'),
+				$trigdisplay_url    => _('Trigger displaying options'),
+				$modules_url        => _('Modules'),
+				$tokens_url         => $can_access_tokens ? _('API tokens') : null,
+				$miscconfig_url     => _('Other')
 			])
 		]
 	];
@@ -972,14 +977,21 @@ function makeSuppressedProblemIcon(array $icon_data) {
  * Renders an action icon.
  *
  * @param array  $icon_data
- * @param string $icon_data[icon]  Icon style.
- * @param array  $icon_data[hint]  Hintbox content (optional).
- * @param int    $icon_data[num]   Number displayed over the icon (optional).
+ * @param string $icon_data[icon]    Icon style.
+ * @param array  $icon_data[hint]    Hintbox content (optional).
+ * @param bool   $icon_data[button]  Use button element (optional).
+ * @param int    $icon_data[num]     Number displayed over the icon (optional).
  *
- * @return CSpan
+ * @return CTag  Returns CSpan or CButton depending on boolean $icon_data['button'] parameter
  */
-function makeActionIcon(array $icon_data) {
-	$icon = (new CSpan())->addClass($icon_data['icon']);
+function makeActionIcon(array $icon_data): CTag {
+
+	if (array_key_exists('button', $icon_data) && $icon_data['button']) {
+		$icon = (new CButton(null))->addClass($icon_data['icon']);
+	}
+	else {
+		$icon = (new CSpan())->addClass($icon_data['icon']);
+	}
 
 	if (array_key_exists('num', $icon_data)) {
 		if ($icon_data['num'] > 99) {
@@ -1035,6 +1047,20 @@ function makeErrorIcon($error) {
 }
 
 /**
+ * Renders an icon with question mark and text in hint.
+ *
+ * @param string|array|CTag $help_text
+ *
+ * @return CSpan
+ */
+function makeHelpIcon($help_text): CSpan {
+	return (new CSpan())
+		->addClass(ZBX_STYLE_ICON_HELP_HINT)
+		->addClass(ZBX_STYLE_CURSOR_POINTER)
+		->setHint($help_text, ZBX_STYLE_HINTBOX_WRAP);
+}
+
+/**
  * Renders an unknown icon like grey [i] with error message
  *
  * @param string $error
@@ -1078,6 +1104,12 @@ function getTriggerSeverityCss() {
 		ZBX_STYLE_HIGH_BG => CSettingsHelper::getGlobal(CSettingsHelper::SEVERITY_COLOR_4),
 		ZBX_STYLE_DISASTER_BG => CSettingsHelper::getGlobal(CSettingsHelper::SEVERITY_COLOR_5)
 	];
+
+	$css .= ':root {'."\n";
+	foreach ($severities as $class => $color) {
+		$css .= '--severity-color-'.$class.': #'.$color.';'."\n";
+	}
+	$css .= '}'."\n";
 
 	foreach ($severities as $class => $color) {
 		$css .= '.'.$class.', .'.$class.' input[type="radio"]:checked + label, .'.$class.':before, .flh-'.$class.

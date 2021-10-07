@@ -49,8 +49,10 @@
 #define ZBX_REPORT_STATE_ERROR		2
 #define ZBX_REPORT_STATE_SUCCESS_INFO	3
 
-extern unsigned char	process_type, program_type;
-extern int		server_num, process_num, CONFIG_REPORTWRITER_FORKS;
+extern ZBX_THREAD_LOCAL unsigned char	process_type;
+extern unsigned char			program_type;
+extern ZBX_THREAD_LOCAL int		server_num, process_num;
+extern int				CONFIG_REPORTWRITER_FORKS;
 
 /* report manager data */
 typedef struct
@@ -1957,7 +1959,7 @@ static int	rm_report_create_jobs(zbx_rm_t *manager, zbx_rm_report_t *report, int
 
 		if (0 == strcmp(pair.first, ZBX_REPORT_PARAM_BODY) || 0 == strcmp(pair.first, ZBX_REPORT_PARAM_SUBJECT))
 		{
-			substitute_simple_macros(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+			substitute_simple_macros(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 					(char **)&pair.second, MACRO_TYPE_REPORT, NULL, 0);
 		}
 

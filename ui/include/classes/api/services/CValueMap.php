@@ -155,7 +155,7 @@ class CValueMap extends CApiService {
 
 		DB::insertBatch('valuemap_mapping', $mappings);
 
-		$this->addAuditBulk(AUDIT_ACTION_ADD, AUDIT_RESOURCE_VALUE_MAP, $valuemaps);
+		$this->addAuditBulk(CAudit::ACTION_ADD, CAudit::RESOURCE_VALUE_MAP, $valuemaps);
 
 		return ['valuemapids' => $valuemapids];
 	}
@@ -270,7 +270,7 @@ class CValueMap extends CApiService {
 			}
 		}
 
-		$this->addAuditBulk(AUDIT_ACTION_UPDATE, AUDIT_RESOURCE_VALUE_MAP, $valuemaps, $db_valuemaps);
+		$this->addAuditBulk(CAudit::ACTION_UPDATE, CAudit::RESOURCE_VALUE_MAP, $valuemaps, $db_valuemaps);
 
 		return ['valuemapids' => array_column($valuemaps, 'valuemapid')];
 	}
@@ -308,7 +308,7 @@ class CValueMap extends CApiService {
 
 		$this->deleteByIds($valuemapids);
 
-		$this->addAuditBulk(AUDIT_ACTION_DELETE, AUDIT_RESOURCE_VALUE_MAP, $db_valuemaps);
+		$this->addAuditBulk(CAudit::ACTION_DELETE, CAudit::RESOURCE_VALUE_MAP, $db_valuemaps);
 
 		return ['valuemapids' => $valuemapids];
 	}
@@ -518,7 +518,11 @@ class CValueMap extends CApiService {
 
 		$valuemaps = $this->extendObjectsByKey($valuemaps, $db_valuemaps, 'valuemapid', ['hostid']);
 
-		$api_input_rules = ['type' => API_OBJECTS, 'uniq' => [['hostid', 'name']]];
+		$api_input_rules = ['type' => API_OBJECTS, 'uniq' => [['hostid', 'name']], 'fields' => [
+			'hostid' =>	['type' => API_ID],
+			'name' =>	['type' => API_STRING_UTF8]
+		]];
+
 		if (!CApiInputValidator::validateUniqueness($api_input_rules, $valuemaps, '/', $error)) {
 			self::exception(ZBX_API_ERROR_PARAMETERS, $error);
 		}

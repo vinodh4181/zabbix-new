@@ -30,7 +30,6 @@
 #include "system.h"
 #include "zabbix_stats.h"
 #include "zbxexec.h"
-#include "modbtype.h"
 
 #if !defined(_WINDOWS)
 #	define VFS_TEST_FILE "/etc/passwd"
@@ -73,6 +72,9 @@ ZBX_METRIC	parameters_common[] =
 	{"vfs.file.regmatch",	CF_HAVEPARAMS,	VFS_FILE_REGMATCH,	VFS_TEST_FILE "," VFS_TEST_REGEXP},
 	{"vfs.file.md5sum",	CF_HAVEPARAMS,	VFS_FILE_MD5SUM,	VFS_TEST_FILE},
 	{"vfs.file.cksum",	CF_HAVEPARAMS,	VFS_FILE_CKSUM,		VFS_TEST_FILE},
+	{"vfs.file.owner",	CF_HAVEPARAMS,	VFS_FILE_OWNER,		VFS_TEST_FILE ",user,name"},
+	{"vfs.file.permissions",CF_HAVEPARAMS,	VFS_FILE_PERMISSIONS,	VFS_TEST_FILE},
+	{"vfs.file.get",	CF_HAVEPARAMS,	VFS_FILE_GET,		VFS_TEST_FILE},
 
 	{"vfs.dir.size",	CF_HAVEPARAMS,	VFS_DIR_SIZE,		VFS_TEST_DIR},
 	{"vfs.dir.count",	CF_HAVEPARAMS,	VFS_DIR_COUNT,		VFS_TEST_DIR},
@@ -92,8 +94,6 @@ ZBX_METRIC	parameters_common[] =
 	{"eventlog",		CF_HAVEPARAMS,	ONLY_ACTIVE,		"system"},
 
 	{"zabbix.stats",	CF_HAVEPARAMS,	ZABBIX_STATS,		"127.0.0.1,10051"},
-
-	{"modbus.get",		CF_HAVEPARAMS,	MODBUS_GET,		"tcp://127.0.0.1"},
 
 	{NULL}
 };

@@ -23,12 +23,12 @@
  * @var CView $this
  */
 
-$filterForm = new CFilter(new CUrl('toptriggers.php'));
+$filterForm = (new CFilter())->setResetUrl(new CUrl('toptriggers.php'));
 
 $severities = [];
 foreach (range(TRIGGER_SEVERITY_NOT_CLASSIFIED, TRIGGER_SEVERITY_COUNT - 1) as $severity) {
 	$severities[] = [
-		'name' => getSeverityName($severity),
+		'name' => CSeverityHelper::getName($severity),
 		'value' => $severity
 	];
 }
@@ -43,7 +43,7 @@ $filter_column = (new CFormList())
 				'parameters' => [
 					'srctbl' => 'host_groups',
 					'srcfld1' => 'groupid',
-					'dstfrm' => $filterForm->getName(),
+					'dstfrm' => 'zbx_filter',
 					'dstfld1' => 'groupids_',
 					'real_hosts' => true,
 					'enrich_parent_groups' => true
@@ -63,7 +63,7 @@ $filter_column = (new CFormList())
 				'parameters' => [
 					'srctbl' => 'hosts',
 					'srcfld1' => 'hostid',
-					'dstfrm' => $filterForm->getName(),
+					'dstfrm' => 'zbx_filter',
 					'dstfld1' => 'hostids_'
 				]
 			]
@@ -96,7 +96,7 @@ foreach ($data['triggers'] as $trigger) {
 	$table->addRow([
 		$hostName,
 		$triggerDescription,
-		getSeverityCell($trigger['priority']),
+		CSeverityHelper::makeSeverityCell((int) $trigger['priority']),
 		$trigger['cnt_event']
 	]);
 }

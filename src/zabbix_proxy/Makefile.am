@@ -38,6 +38,7 @@ zabbix_proxy_LDADD = \
 	$(top_builddir)/src/zabbix_server/odbc/libzbxodbc.a \
 	datasender/libzbxdatasender.a \
 	$(top_builddir)/src/zabbix_server/preprocessor/libpreprocessor.a \
+	$(top_builddir)/src/libs/zbxxml/libzbxxml.a \
 	$(top_builddir)/src/libs/zbxembed/libzbxembed.a \
 	taskmanager/libzbxtaskmanager.a \
 	$(top_builddir)/src/zabbix_server/selfmon/libzbxselfmon.a \
@@ -61,6 +62,7 @@ zabbix_proxy_LDADD = \
 	$(top_builddir)/src/libs/zbxnix/libzbxnix.a \
 	$(top_builddir)/src/libs/zbxipcservice/libzbxipcservice.a \
 	$(top_builddir)/src/libs/zbxsys/libzbxsys.a \
+	$(top_builddir)/src/libs/zbxaudit/libzbxaudit.a \
 	$(top_builddir)/src/libs/zbxconf/libzbxconf.a \
 	$(top_builddir)/src/libs/zbxcommon/libzbxcommon.a \
 	$(top_builddir)/src/libs/zbxcrypto/libzbxcrypto.a \

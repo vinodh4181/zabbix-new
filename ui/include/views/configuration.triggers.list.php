@@ -135,7 +135,8 @@ $filter_column2->addRow(_('With dependencies'),
 		->setModern(true)
 );
 
-$filter = (new CFilter((new CUrl('triggers.php'))->setArgument('context', $data['context'])))
+$filter = (new CFilter())
+	->setResetUrl((new CUrl('triggers.php'))->setArgument('context', $data['context']))
 	->setProfile($data['profileIdx'])
 	->setActiveTab($data['active_tab'])
 	->addvar('context', $data['context'])
@@ -319,7 +320,7 @@ foreach ($data['triggers'] as $tnum => $trigger) {
 
 	$triggers_table->addRow([
 		new CCheckBox('g_triggerid['.$triggerid.']', $triggerid),
-		getSeverityCell($trigger['priority']),
+		CSeverityHelper::makeSeverityCell((int) $trigger['priority']),
 		$data['show_value_column'] ? $trigger_value : null,
 		$hosts,
 		$description,

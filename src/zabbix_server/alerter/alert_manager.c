@@ -59,8 +59,9 @@
 
 #define ZBX_MEDIA_CONTENT_TYPE_DEFAULT	255
 
-extern unsigned char	process_type, program_type;
-extern int		server_num, process_num;
+extern ZBX_THREAD_LOCAL unsigned char	process_type;
+extern unsigned char			program_type;
+extern ZBX_THREAD_LOCAL int		server_num, process_num;
 
 extern int	CONFIG_ALERTER_FORKS;
 extern char	*CONFIG_ALERT_SCRIPTS_PATH;
@@ -502,7 +503,7 @@ static void	am_update_mediatype(zbx_am_t *manager, zbx_uint64_t mediatypeid, uns
  * Parameters: manager   - [IN] the alert manager                             *
  *             mediatype - [IN] the media type                                *
  *                                                                            *
- * Comments: The media tyep is inserted into queue only if it was not already *
+ * Comments: The media type is inserted into queue only if it was not already *
  *           queued and if the number of media type alerts being processed    *
  *           not reached the limit.                                           *
  *           If media type is already queued only its location in the queue   *
@@ -1465,7 +1466,7 @@ static int	am_prepare_mediatype_exec_command(zbx_am_mediatype_t *mediatype, zbx_
 			zbx_strncpy_alloc(&param, &param_alloc, &param_offset, pstart, pend - pstart);
 
 			substitute_simple_macros_unmasked(NULL, NULL, NULL, NULL, NULL, NULL, NULL, &db_alert, NULL,
-					NULL, &param, MACRO_TYPE_ALERT, NULL, 0);
+					NULL, NULL, NULL, &param, MACRO_TYPE_ALERT, NULL, 0);
 
 			param_esc = zbx_dyn_escape_shell_single_quote(param);
 			zbx_snprintf_alloc(cmd, &cmd_alloc, &cmd_offset, " '%s'", param_esc);

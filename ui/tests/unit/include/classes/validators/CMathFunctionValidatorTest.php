@@ -21,7 +21,7 @@
 
 use PHPUnit\Framework\TestCase;
 
-class CMastFunctionValidatorTest extends TestCase {
+class CMathFunctionValidatorTest extends TestCase {
 
 	/**
 	 * An array of math functions, options and the expected results.
@@ -129,6 +129,10 @@ class CMastFunctionValidatorTest extends TestCase {
 			['cot()', ['rc' => false, 'error' => 'invalid number of parameters in function "cot"']],
 			['cot(1)', ['rc' => true, 'error' => null]],
 			['cot(1, 1)', ['rc' => false, 'error' => 'invalid number of parameters in function "cot"']],
+
+			['count()', ['rc' => false, 'error' => 'invalid number of parameters in function "count"']],
+			['count(1)', ['rc' => true, 'error' => null]],
+			['count(1, 1)', ['rc' => false, 'error' => 'invalid number of parameters in function "count"']],
 
 			['date()', ['rc' => true, 'error' => null]],
 			['date(1)', ['rc' => false, 'error' => 'invalid number of parameters in function "date"']],
@@ -302,9 +306,9 @@ class CMastFunctionValidatorTest extends TestCase {
 	 * @dataProvider dataProvider
 	 */
 	public function testMathFunctionValidator(string $source, array $expected) {
-		$expression_parser = new CExpressionParser(['lldmacros' => true]);
+		$expression_parser = new CExpressionParser();
 		$math_function_validator = new CMathFunctionValidator([
-			'parameters' => (new CMathFunctionData())->getParameters()
+			'parameters' => (new CMathFunctionData(['calculated' => true]))->getParameters()
 		]);
 		$expression_parser->parse($source);
 		$tokens = $expression_parser->getResult()->getTokens();

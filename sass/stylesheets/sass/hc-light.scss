@@ -102,7 +102,7 @@ $menu-main-icons: (
 
 $menu-user-expanded-icons: (
 	support: -247px -84px,
-	share: -168px -84px,
+	integrations: -168px -84px,
 	help: -168px -48px,
 	guest: -247px -192px,
 	profile: -168px -120px,
@@ -471,10 +471,6 @@ $icon-widget-btn: (
 }
 
 .menu-popup {
-	.menu-popup-item-disabled {
-		color: $form-disabled-font-color;
-	}
-
 	.menu-popup-item {
 		&:hover,
 		&:focus,
@@ -499,19 +495,24 @@ $icon-widget-btn: (
 				background: url($sprite-path) no-repeat -164px -835px;
 			}
 		}
+
+		&.disabled {
+			background-color: transparent;
+			color: $form-disabled-font-color;
+		}
 	}
 }
 
-.add-child-btn {
-	background: url($sprite-path) no-repeat -206px -551px !important;
+.btn-add {
+	background: url($sprite-path) no-repeat -204px -550px !important;
 }
 
-.edit-item-btn {
-	background: url($sprite-path) no-repeat -206px -478px !important;
+.btn-edit {
+	background: url($sprite-path) no-repeat -204px -477px !important;
 }
 
-.import-items-btn {
-	background: url($sprite-path) no-repeat -206px -515px !important;
+.btn-import {
+	background: url($sprite-path) no-repeat -204px -514px !important;
 }
 
 .drag-icon {
@@ -533,6 +534,7 @@ button {
 }
 
 .radio-list-control {
+	.normal-bg,
 	.average-bg,
 	.disaster-bg,
 	.high-bg,

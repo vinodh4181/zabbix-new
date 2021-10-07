@@ -185,7 +185,7 @@ Overlay.prototype.containFocus = function() {
 };
 
 /**
- * Sets dialogue in loading sate.
+ * Sets dialogue in loading state.
  */
 Overlay.prototype.setLoading = function() {
 	this.$dialogue.$body.addClass('is-loading');
@@ -194,7 +194,7 @@ Overlay.prototype.setLoading = function() {
 };
 
 /**
- * Sets dialogue in idle sate.
+ * Sets dialogue in idle state.
  */
 Overlay.prototype.unsetLoading = function() {
 	this.$dialogue.$body.removeClass('is-loading');
@@ -269,7 +269,14 @@ Overlay.prototype.mount = function() {
 	this.$backdrop.appendTo($wrapper);
 	this.$dialogue.appendTo($wrapper);
 
-	this.body_mutation_observer.observe(this.$dialogue[0], {childList: true, subtree: true});
+	for (const dialog_part of ['$header', '$controls', '$body', '$footer']) {
+		this.body_mutation_observer.observe(this.$dialogue[dialog_part][0], {
+			childList: true,
+			subtree: true,
+			attributeFilter: ['style']
+		});
+	}
+
 	this.centerDialog();
 
 	jQuery.subscribe('debug.click', this.center_dialog_function);

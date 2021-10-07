@@ -96,13 +96,6 @@ function testUserSound(idx) {
 	}
 }
 
-function removeObjectById(id) {
-	var obj = document.getElementById(id);
-	if (obj != null && typeof(obj) == 'object') {
-		obj.parentNode.removeChild(obj);
-	}
-}
-
 /**
  * Converts all HTML symbols into HTML entities.
  */
@@ -486,7 +479,8 @@ function overlayDialogueDestroy(dialogueid) {
 		jQuery('[data-dialogueid='+dialogueid+']').remove();
 
 		removeFromOverlaysStack(dialogueid);
-		jQuery.publish('overlay.close', {dialogueid: dialogueid});
+
+		overlay.$dialogue[0].dispatchEvent(new CustomEvent('overlay.close', {detail: {dialogueid}}));
 	}
 }
 
@@ -713,8 +707,8 @@ function parseUrlString(url) {
  * @param {string}       type            Message type. ('good'|'bad'|'warning')
  * @param {string|array} messages        Array with details messages or message string with normal font.
  * @param {string}       title           Larger font title.
- * @param {bool}         show_close_box  Show close button.
- * @param {bool}         show_details    Show details on opening.
+ * @param {boolean}      show_close_box  Show close button.
+ * @param {boolean}      show_details    Show details on opening.
  *
  * @return {jQuery}
  */
@@ -736,7 +730,8 @@ function makeMessageBox(type, messages, title, show_close_box, show_details) {
 		show_details = false;
 	}
 
-	var	$list = jQuery('<ul>'),
+	var	$list = jQuery('<ul>')
+			.addClass('list-dashed'),
 		$msg_details = jQuery('<div>')
 			.addClass('msg-details')
 			.append($list),

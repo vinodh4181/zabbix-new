@@ -92,6 +92,21 @@ class testDiscoveryRule extends CAPITest {
 					'delay' => '0'
 				],
 				'expected_error' => 'Item will not be refreshed. Specified update interval requires having at least one either flexible or scheduling interval.'
+			],
+			'Test  LLD rule with unsupported item type' => [
+				'discoveryrule' => [
+					'name' => 'API LLD rule with unsupported item type',
+					'key_' => 'api_lld_rule_with_unsupported_item_type',
+					'hostid' => '50009',
+					'type' => '100',
+					'interfaceid' => '50022',
+					'delay' => '30s'
+				],
+				'expected_error' => 'Invalid parameter "/1/type": value must be one of '.implode(', ', [
+					ITEM_TYPE_ZABBIX, ITEM_TYPE_TRAPPER, ITEM_TYPE_SIMPLE, ITEM_TYPE_INTERNAL, ITEM_TYPE_ZABBIX_ACTIVE,
+					ITEM_TYPE_EXTERNAL, ITEM_TYPE_DB_MONITOR, ITEM_TYPE_IPMI, ITEM_TYPE_SSH, ITEM_TYPE_TELNET,
+					ITEM_TYPE_JMX, ITEM_TYPE_DEPENDENT, ITEM_TYPE_HTTPAGENT, ITEM_TYPE_SNMP, ITEM_TYPE_SCRIPT
+				]).'.'
 			]
 		];
 
@@ -99,18 +114,94 @@ class testDiscoveryRule extends CAPITest {
 	}
 
 	public static function discoveryrule_create_data_valid() {
-		return [
-			'Test valid LLD rule with default properties' => [
-				'discoveryrule' => [
-					'name' => 'API LLD rule default',
-					'key_' => 'apilldruledefault',
+		$valid_item_types = [
+			ITEM_TYPE_ZABBIX => '50022',
+			ITEM_TYPE_TRAPPER => null,
+			ITEM_TYPE_SIMPLE => '50022',
+			ITEM_TYPE_INTERNAL => null,
+			ITEM_TYPE_ZABBIX_ACTIVE => null,
+			ITEM_TYPE_EXTERNAL => '50022',
+			ITEM_TYPE_DB_MONITOR => null,
+			ITEM_TYPE_IPMI => '50031',
+			ITEM_TYPE_SSH => '50022',
+			ITEM_TYPE_TELNET => '50022',
+			ITEM_TYPE_JMX => '50030',
+			ITEM_TYPE_DEPENDENT => null,
+			ITEM_TYPE_HTTPAGENT => '50022',
+			ITEM_TYPE_SNMP => '50029'
+		];
+
+		$item_type_tests = [];
+		foreach ($valid_item_types as $type => $interfaceid) {
+			switch ($type) {
+				case ITEM_TYPE_IPMI:
+					$params = [
+						'ipmi_sensor' => '1.2.3'
+					];
+					break;
+
+				case ITEM_TYPE_TRAPPER:
+					$params = [
+						'delay' => '0'
+					];
+					break;
+
+				case ITEM_TYPE_TELNET:
+				case ITEM_TYPE_SSH:
+					$params = [
+						'username' => 'username',
+						'authtype' => ITEM_AUTHTYPE_PASSWORD
+					];
+					break;
+
+				case ITEM_TYPE_DEPENDENT:
+					$params = [
+						'master_itemid' => '150151',
+						'delay' => '0'
+					];
+					break;
+
+				case ITEM_TYPE_JMX:
+					$params = [
+						'username' => 'username',
+						'password' => 'password'
+					];
+					break;
+
+				case ITEM_TYPE_HTTPAGENT:
+					$params = [
+						'url' => 'http://0.0.0.0'
+					];
+					break;
+
+				case ITEM_TYPE_SNMP:
+					$params = [
+						'snmp_oid' => '1.2.3'
+					];
+					break;
+
+				default:
+					$params = [];
+					break;
+			}
+
+			if ($interfaceid) {
+				$params['interfaceid'] = $interfaceid;
+			}
+
+			$item_type_tests['Test valid LLD rule with item type '.$type] = [
+				'discoveryrule' => $params + [
+					'name' => 'API LLD rule of type '.$type,
+					'key_' => 'api_lld_rule_of_type_'.$type,
 					'hostid' => '50009',
-					'type' => ITEM_TYPE_ZABBIX,
-					'interfaceid' => '50022',
+					'type' => (string) $type,
 					'delay' => '30s'
 				],
 				'expected_error' => null
-			],
+			];
+		}
+
+		return [
 			'Test 0 update interval for mqtt.get key of Active agent type' => [
 				'discoveryrule' => [
 					'name' => 'API LLD rule mqtt',
@@ -130,7 +221,7 @@ class testDiscoveryRule extends CAPITest {
 				],
 				'expected_error' => null
 			]
-		];
+		] + $item_type_tests;
 
 		// TODO: add other properties, multiple rules, duplicates etc.
 	}
@@ -2303,7 +2394,7 @@ class testDiscoveryRule extends CAPITest {
 					'itemids' => [$itemid],
 					'selectLLDMacroPaths' => ['lld_macro', 'path']
 				],
-				'get_result' => [
+				'expected_result' => [
 					'itemid' => $itemid,
 					'lld_macro_paths' => [
 						[
@@ -2336,7 +2427,7 @@ class testDiscoveryRule extends CAPITest {
 					'itemids' => [$itemid],
 					'selectLLDMacroPaths' => ['lld_macro_pathid', 'lld_macro', 'path']
 				],
-				'get_result' => [
+				'expected_result' => [
 					'itemid' => $itemid,
 					'lld_macro_paths' => [
 						[
@@ -2374,7 +2465,7 @@ class testDiscoveryRule extends CAPITest {
 					'itemids' => [$itemid],
 					'selectLLDMacroPaths' => 'extend'
 				],
-				'get_result' => [
+				'expected_result' => [
 					'itemid' => $itemid,
 					'lld_macro_paths' => [
 						[
@@ -2412,27 +2503,27 @@ class testDiscoveryRule extends CAPITest {
 	/**
 	 * @dataProvider discoveryrule_lld_macro_paths_get_data_valid
 	 */
-	public function testDiscoveryRuleLLDMacroPaths_Get($discoveryrule, $get_result, $expected_error) {
+	public function testDiscoveryRuleLLDMacroPaths_Get($discoveryrule, $expected_result, $expected_error) {
 		$result = $this->call('discoveryrule.get', $discoveryrule);
 
 		if ($expected_error === null) {
 			foreach ($result['result'] as $entry) {
-				$this->assertSame($entry['itemid'], $get_result['itemid']);
+				$this->assertSame($expected_result['itemid'], $entry['itemid']);
 
 				// Check related objects.
 				if (array_key_exists('selectLLDMacroPaths', $discoveryrule)) {
-					$this->assertArrayHasKey('lld_macro_paths', $get_result);
-					CTestArrayHelper::usort($get_result['lld_macro_paths'], ['lld_macro']);
+					$this->assertArrayHasKey('lld_macro_paths', $entry);
+					CTestArrayHelper::usort($entry['lld_macro_paths'], ['lld_macro']);
 
-					$this->assertSame($entry['lld_macro_paths'], $get_result['lld_macro_paths']);
+					$this->assertSame($expected_result['lld_macro_paths'], $entry['lld_macro_paths']);
 				}
 				else {
-					$this->assertArrayNotHasKey('lld_macro_paths', $get_result);
+					$this->assertArrayNotHasKey('lld_macro_paths', $entry);
 				}
 			}
 		}
 		else {
-			$this->assertSame($result['result'], $get_result);
+			$this->assertSame($result['result'], $expected_result);
 		}
 	}
 
@@ -2969,8 +3060,8 @@ class testDiscoveryRule extends CAPITest {
 			],
 			'Test overrides and override operations are deleted.' => [
 				['133763'],
-				['1001', '1002'],
-				['1001', '1002', '1003', '1004', '1005', '1006'],
+				['10001', '10002'],
+				['10001', '10002', '10003', '10004', '10005', '10006'],
 				null
 			]
 		];

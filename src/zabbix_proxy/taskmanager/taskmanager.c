@@ -35,8 +35,9 @@
 #define ZBX_TM_PROCESS_PERIOD		5
 #define ZBX_TM_CLEANUP_PERIOD		SEC_PER_HOUR
 
-extern unsigned char	process_type, program_type;
-extern int		server_num, process_num;
+extern ZBX_THREAD_LOCAL unsigned char	process_type;
+extern unsigned char			program_type;
+extern ZBX_THREAD_LOCAL int		server_num, process_num;
 
 #ifdef HAVE_NETSNMP
 static volatile sig_atomic_t	snmp_cache_reload_requested;
@@ -420,10 +421,6 @@ ZBX_THREAD_ENTRY(taskmanager_thread, args)
 			server_num, get_process_type_string(process_type), process_num);
 
 	update_selfmon_counter(ZBX_PROCESS_STATE_BUSY);
-
-#ifdef HAVE_NETSNMP
-	zbx_init_snmp();
-#endif
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
 	zbx_tls_init_child();

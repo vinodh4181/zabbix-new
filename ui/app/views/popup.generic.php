@@ -87,7 +87,7 @@ if (array_key_exists('hosts', $data['filter'])) {
 
 	$host_ms = (new CMultiSelect($multiselect_options))->setWidth(ZBX_TEXTAREA_FILTER_STANDARD_WIDTH);
 	if ($multiselect_options['disabled']) {
-		$host_ms->setTitle(_('You can not switch hosts for current selection.'));
+		$host_ms->setTitle(_('You cannot switch hosts for current selection.'));
 	}
 	$controls[] = (new CFormList())->addRow(new CLabel(_('Host'), 'popup_host_ms'), [$empty_btn, $host_ms]);
 
@@ -316,7 +316,7 @@ switch ($data['popup_type']) {
 			$table->addRow([
 				$check_box,
 				$description,
-				getSeverityCell($trigger['priority']),
+				CSeverityHelper::makeSeverityCell((int) $trigger['priority']),
 				(new CSpan(triggerIndicator($trigger['status'], $trigger['state'])))
 					->addClass(triggerIndicatorStyle($trigger['status'], $trigger['state']))
 			]);

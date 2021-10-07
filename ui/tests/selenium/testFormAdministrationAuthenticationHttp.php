@@ -21,8 +21,8 @@
 require_once dirname(__FILE__).'/../include/CLegacyWebTest.php';
 
 /**
- * @on-before removeGuestFromDisabledGroup
- * @on-after addGuestToDisabledGroup
+ * @onBefore removeGuestFromDisabledGroup
+ * @onAfter addGuestToDisabledGroup
  */
 class testFormAdministrationAuthenticationHttp extends CLegacyWebTest {
 
@@ -413,7 +413,7 @@ class testFormAdministrationAuthenticationHttp extends CLegacyWebTest {
 					'http_authentication' => [
 						'Enable HTTP authentication' => true,
 						'Default login form' => 'Zabbix login form',
-						'Case sensitive login' => true
+						'Case-sensitive login' => true
 					],
 					'pages' => [
 						[
@@ -438,7 +438,7 @@ class testFormAdministrationAuthenticationHttp extends CLegacyWebTest {
 					'http_authentication' => [
 						'Enable HTTP authentication' => true,
 						'Default login form' => 'Zabbix login form',
-						'Case sensitive login' => false
+						'Case-sensitive login' => false
 					],
 					'pages' => [
 						[
@@ -499,7 +499,7 @@ class testFormAdministrationAuthenticationHttp extends CLegacyWebTest {
 	/**
 	 * @dataProvider getHttpData
 	 * @backup config
-	 * @on-after removeConfigurationFiles
+	 * @onAfter removeConfigurationFiles
 	 *
 	 * Internal authentication with HTTP settings.
 	 */
@@ -605,7 +605,7 @@ class testFormAdministrationAuthenticationHttp extends CLegacyWebTest {
 		$form->fill($http_options);
 
 		// Check disabled or enabled fields.
-		$fields = ['Default login form', 'Remove domain name', 'Case sensitive login'];
+		$fields = ['Default login form', 'Remove domain name', 'Case-sensitive login'];
 		foreach ($fields as $field) {
 			$this->assertTrue($form->getField($field)->isEnabled($http_options['Enable HTTP authentication']));
 		}

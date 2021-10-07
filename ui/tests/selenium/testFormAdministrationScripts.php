@@ -63,31 +63,30 @@ class testFormAdministrationScripts extends CWebTest {
 				]
 			],
 			// Remove trailing spaces.
-			// Uncomment this after ZBX-18271 is fixed.
-//			[
-//				[
-//					'trim' => true,
-//					'fields' =>  [
-//						'Name' => 'Test trailing spaces',
-//						'Type' => 'Webhook',
-//						'Script' => 'Webhook Script'
-//					],
-//					'Parameters' => [
-//						[
-//							'action' => USER_ACTION_UPDATE,
-//							'index' => 1,
-//							'Name' => 'name',
-//							'Value' => '   trimmed    value    '
-//						],
-//						[
-//							'action' => USER_ACTION_UPDATE,
-//							'index' => 0,
-//							'Name' => '   trimmed     name    ',
-//							'Value' => 'value'
-//						]
-//					]
-//				]
-//			],
+			[
+				[
+					'trim' => true,
+					'fields' =>  [
+						'Name' => 'Test trailing spaces',
+						'Type' => 'Webhook',
+						'Script' => 'Webhook Script'
+					],
+					'Parameters' => [
+						[
+							'action' => USER_ACTION_UPDATE,
+							'index' => 1,
+							'Name' => 'name',
+							'Value' => '   trimmed    value    '
+						],
+						[
+							'action' => USER_ACTION_UPDATE,
+							'index' => 0,
+							'Name' => '   trimmed     name    ',
+							'Value' => 'value'
+						]
+					]
+				]
+			],
 			[
 				[
 					'fields' =>  [
@@ -182,46 +181,45 @@ class testFormAdministrationScripts extends CWebTest {
 					]
 				]
 			],
-			// Uncomment this after ZBX-18271 is fixed.
-//			[
-//				[
-//					'fields' =>  [
-//						'Name' => 'Test parameters',
-//						'Type' => 'Webhook',
-//						'Script' => 'Webhook Script',
-//						'Timeout' => '1s',
-//					],
-//					'Parameters' => [
-//						[
-//							'action' => USER_ACTION_UPDATE,
-//							'index' => 0,
-//							'Name' => '!@#$%^&*()_+<>,.\/',
-//							'Value' => '!@#$%^&*()_+<>,.\/'
-//						],
-//						[
-//							'action' => USER_ACTION_UPDATE,
-//							'index' => 1,
-//							'Name' => str_repeat('n', 255),
-//							'Value' => str_repeat('v', 2048)
-//						],
-//						[
-//							'Name' => '{$MACRO:A}',
-//							'Value' => '{$MACRO:A}'
-//						],
-//						[
-//							'Name' => '{$USERMACRO}',
-//							'Value' => ''
-//						],
-//						[
-//							'Name' => '{HOST.HOST}'
-//						],
-//						[
-//							'Name' => 'Имя',
-//							'Value' => 'Значение'
-//						]
-//					]
-//				]
-//			],
+			[
+				[
+					'fields' =>  [
+						'Name' => 'Test parameters',
+						'Type' => 'Webhook',
+						'Script' => 'Webhook Script',
+						'Timeout' => '1s'
+					],
+					'Parameters' => [
+						[
+							'action' => USER_ACTION_UPDATE,
+							'index' => 0,
+							'Name' => '!@#$%^&*()_+<>,.\/',
+							'Value' => '!@#$%^&*()_+<>,.\/'
+						],
+						[
+							'action' => USER_ACTION_UPDATE,
+							'index' => 1,
+							'Name' => str_repeat('n', 255),
+							'Value' => str_repeat('v', 2048)
+						],
+						[
+							'Name' => '{$MACRO:A}',
+							'Value' => '{$MACRO:A}'
+						],
+						[
+							'Name' => '{$USERMACRO}',
+							'Value' => ''
+						],
+						[
+							'Name' => '{HOST.HOST}'
+						],
+						[
+							'Name' => 'Имя',
+							'Value' => 'Значение'
+						]
+					]
+				]
+			],
 			[
 				[
 					'fields' =>  [
@@ -800,7 +798,7 @@ class testFormAdministrationScripts extends CWebTest {
 
 	/**
 	 * @dataProvider getScriptsData
-	 * @backup-once scripts
+	 * @backupOnce scripts
 	 */
 	public function testFormAdministrationScripts_Create($data) {
 		$this->checkScripts($data, false, 'zabbix.php?action=script.edit');
@@ -1001,7 +999,7 @@ class testFormAdministrationScripts extends CWebTest {
 	/**
 	 * Function for checking script cloning with only changed name.
 	 *
-	 * @on-before prepareScriptData
+	 * @onBefore prepareScriptData
 	 */
 	public function testFormAdministrationScripts_Clone() {
 		// Added existing webhook to the list.

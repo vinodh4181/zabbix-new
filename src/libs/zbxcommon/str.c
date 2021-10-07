@@ -314,6 +314,12 @@ void	zbx_strncpy_alloc(char **str, size_t *alloc_len, size_t *offset, const char
 	}
 	else if (*offset + n >= *alloc_len)
 	{
+		if (0 == *alloc_len)
+		{
+			THIS_SHOULD_NEVER_HAPPEN;
+			exit(EXIT_FAILURE);
+		}
+
 		while (*offset + n >= *alloc_len)
 			*alloc_len *= 2;
 		*str = (char *)zbx_realloc(*str, *alloc_len);
@@ -1413,6 +1419,10 @@ const char	*get_process_type_string(unsigned char proc_type)
 			return "report manager";
 		case ZBX_PROCESS_TYPE_REPORTWRITER:
 			return "report writer";
+		case ZBX_PROCESS_TYPE_SERVICEMAN:
+			return "service manager";
+		case ZBX_PROCESS_TYPE_PROBLEMHOUSEKEEPER:
+			return "problem housekeeper";
 	}
 
 	THIS_SHOULD_NEVER_HAPPEN;
@@ -1705,7 +1715,7 @@ const char	*zbx_item_state_string(unsigned char state)
 
 const char	*zbx_event_value_string(unsigned char source, unsigned char object, unsigned char value)
 {
-	if (EVENT_SOURCE_TRIGGERS == source)
+	if (EVENT_SOURCE_TRIGGERS == source || EVENT_SOURCE_SERVICE == source)
 	{
 		switch (value)
 		{
@@ -3048,17 +3058,17 @@ char	*zbx_user_macro_unquote_context_dyn(const char *context, int len)
  * Parameters:                                                                *
  *     context     - [IN] the macro context                                   *
  *     force_quote - [IN] if non zero then context quoting is enforced        *
+ *     error       - [OUT] the error message                                  *
  *                                                                            *
  * Return value:                                                              *
- *     A string containing quoted macro context. This string must be freed by *
- *     the caller.                                                            *
+ *     A string containing quoted macro context on success, NULL on error.    *
  *                                                                            *
  ******************************************************************************/
-char	*zbx_user_macro_quote_context_dyn(const char *context, int force_quote)
+char	*zbx_user_macro_quote_context_dyn(const char *context, int force_quote, char **error)
 {
 	int		len, quotes = 0;
 	char		*buffer, *ptr_buffer;
-	const char	*ptr_context = context;
+	const char	*ptr_context = context, *start = context;
 
 	if ('"' == *ptr_context || ' ' == *ptr_context)
 		force_quote = 1;
@@ -3086,6 +3096,13 @@ char	*zbx_user_macro_quote_context_dyn(const char *context, int force_quote)
 			*ptr_buffer++ = '\\';
 
 		*ptr_buffer++ = *context++;
+	}
+
+	if ('\\' == *(ptr_buffer - 1))
+	{
+		*error = zbx_dsprintf(*error, "quoted context \"%s\" cannot end with '\\' character", start);
+		zbx_free(buffer);
+		return NULL;
 	}
 
 	*ptr_buffer++ = '"';
@@ -3703,9 +3720,11 @@ static int	token_parse_lld_macro(const char *expression, const char *macro, zbx_
  *                                                                            *
  * Purpose: parses expression macro token                                     *
  *                                                                            *
- * Parameters: expression - [IN] the expression                               *
- *             macro      - [IN] the beginning of the token                   *
- *             token      - [OUT] the token data                              *
+ * Parameters: expression        - [IN] the expression                        *
+ *             macro             - [IN] the beginning of the token            *
+ *             simple_macro_find - [IN] pass simple macro flag to             *
+ *                                      zbx_token_find()                      *
+ *             token             - [OUT] the token data                       *
  *                                                                            *
  * Return value: SUCCEED - the expression macro was parsed successfully       *
  *               FAIL    - macro does not point at valid expression macro     *
@@ -3718,12 +3737,17 @@ static int	token_parse_lld_macro(const char *expression, const char *macro, zbx_
  *           contain user macro contexts and item keys with string arguments. *
  *                                                                            *
  ******************************************************************************/
-static int	token_parse_expression_macro(const char *expression, const char *macro, zbx_token_t *token)
+static int	token_parse_expression_macro(const char *expression, const char *macro, int simple_macro_find,
+		zbx_token_t *token)
 {
 	const char			*ptr;
 	size_t				offset;
 	zbx_token_expression_macro_t	*data;
 	int				quoted = 0;
+	zbx_token_search_t		token_search = ZBX_TOKEN_SEARCH_BASIC;
+
+	if (0 != simple_macro_find)
+		token_search |= ZBX_TOKEN_SEARCH_SIMPLE_MACRO;
 
 	for (ptr = macro + 2; '\0' != *ptr ; ptr++)
 	{
@@ -3750,7 +3774,7 @@ static int	token_parse_expression_macro(const char *expression, const char *macr
 			if ('?' == ptr[1])
 				continue;
 
-			if (SUCCEED == zbx_token_find(ptr, 0, &tmp, ZBX_TOKEN_SEARCH_BASIC))
+			if (SUCCEED == zbx_token_find(ptr, 0, &tmp, token_search))
 			{
 				switch (tmp.type)
 				{
@@ -4240,9 +4264,11 @@ static int	token_parse_simple_macro(const char *expression, const char *macro, z
  *                                                                            *
  * Purpose: parses token with nested macros                                   *
  *                                                                            *
- * Parameters: expression - [IN] the expression                               *
- *             macro      - [IN] the beginning of the token                   *
- *             token      - [OUT] the token data                              *
+ * Parameters: expression        - [IN] the expression                        *
+ *             macro             - [IN] the beginning of the token            *
+ *             simple_macro_find - [IN] pass simple macro flag to             *
+ *                                      zbx_token_find()                      *
+ *             token             - [OUT] the token data                       *
  *                                                                            *
  * Return value: SUCCEED - the token was parsed successfully                  *
  *               FAIL    - macro does not point at valid function or simple   *
@@ -4260,7 +4286,8 @@ static int	token_parse_simple_macro(const char *expression, const char *macro, z
  *           filled with macro specific data.                                 *
  *                                                                            *
  ******************************************************************************/
-static int	token_parse_nested_macro(const char *expression, const char *macro, zbx_token_t *token)
+static int	token_parse_nested_macro(const char *expression, const char *macro, int simple_macro_find,
+		zbx_token_t *token)
 {
 	const char	*ptr;
 
@@ -4282,9 +4309,15 @@ static int	token_parse_nested_macro(const char *expression, const char *macro, z
 	}
 	else if ('?' == macro[2])
 	{
-		zbx_token_t	expr_token;
+		zbx_token_t		expr_token;
+		zbx_token_search_t	token_search;
 
-		if (SUCCEED != zbx_token_find(macro, 1, &expr_token, ZBX_TOKEN_SEARCH_EXPRESSION_MACRO) ||
+		token_search = ZBX_TOKEN_SEARCH_EXPRESSION_MACRO;
+
+		if (0 != simple_macro_find)
+			token_search |= ZBX_TOKEN_SEARCH_SIMPLE_MACRO;
+
+		if (SUCCEED != zbx_token_find(macro, 1, &expr_token, token_search) ||
 				ZBX_TOKEN_EXPRESSION_MACRO != expr_token.type ||
 				1 != expr_token.loc.l)
 		{
@@ -4316,7 +4349,7 @@ static int	token_parse_nested_macro(const char *expression, const char *macro, z
 		return token_parse_func_macro(expression, macro, ptr + 2, token, '#' == macro[2] ?
 				ZBX_TOKEN_LLD_FUNC_MACRO : ZBX_TOKEN_FUNC_MACRO);
 	}
-	else if ('#' != macro[2] && ':' == ptr[1])
+	else if (0 != simple_macro_find && '#' != macro[2] && ':' == ptr[1])
 		return token_parse_simple_macro_key(expression, macro, ptr + 2, token);
 
 	return FAIL;
@@ -4421,10 +4454,13 @@ int	zbx_token_find(const char *expression, int pos, zbx_token_t *token, zbx_toke
 				break;
 			case '?':
 				if (0 != (token_search & ZBX_TOKEN_SEARCH_EXPRESSION_MACRO))
-					ret = token_parse_expression_macro(expression, ptr, token);
+					ret = token_parse_expression_macro(expression, ptr,
+							0 != (token_search & ZBX_TOKEN_SEARCH_SIMPLE_MACRO) ? 1 : 0,
+							token);
 				break;
 			case '{':
-				ret = token_parse_nested_macro(expression, ptr, token);
+				ret = token_parse_nested_macro(expression, ptr,
+						0 != (token_search & ZBX_TOKEN_SEARCH_SIMPLE_MACRO) ? 1 : 0, token);
 				break;
 			case '0':
 			case '1':
@@ -4440,8 +4476,11 @@ int	zbx_token_find(const char *expression, int pos, zbx_token_t *token, zbx_toke
 					break;
 				ZBX_FALLTHROUGH;
 			default:
-				if (SUCCEED != (ret = token_parse_macro(expression, ptr, token)))
+				if (SUCCEED != (ret = token_parse_macro(expression, ptr, token)) &&
+						0 != (token_search & ZBX_TOKEN_SEARCH_SIMPLE_MACRO))
+				{
 					ret = token_parse_simple_macro(expression, ptr, token);
+				}
 		}
 
 		ptr++;
@@ -4505,9 +4544,10 @@ int	zbx_token_parse_lld_macro(const char *expression, const char *macro, zbx_tok
  * Purpose: public wrapper for token_parse_nested_macro() function            *
  *                                                                            *
  ******************************************************************************/
-int	zbx_token_parse_nested_macro(const char *expression, const char *macro, zbx_token_t *token)
+int	zbx_token_parse_nested_macro(const char *expression, const char *macro, int simple_macro_find,
+		zbx_token_t *token)
 {
-	return token_parse_nested_macro(expression, macro, token);
+	return token_parse_nested_macro(expression, macro, simple_macro_find, token);
 }
 
 /******************************************************************************
@@ -4551,7 +4591,7 @@ static size_t	zbx_no_function(const char *expr)
 			ptr += len + 1;	/* skip to the position after user macro */
 		}
 		else if ('{' == *ptr && '{' == *(ptr + 1) && '#' == *(ptr + 2) &&
-				SUCCEED == token_parse_nested_macro(ptr, ptr, &token))
+				SUCCEED == token_parse_nested_macro(ptr, ptr, 0, &token))
 		{
 			ptr += token.loc.r - token.loc.l + 1;
 		}
@@ -5288,7 +5328,7 @@ int	replace_key_params_dyn(char **data, int key_type, replace_key_param_f cb, vo
 				i += len + 1;	/* skip to the position after user macro */
 			}
 			else if ('{' == (*data)[i] && '{' == (*data)[i + 1] && '#' == (*data)[i + 2] &&
-					SUCCEED == token_parse_nested_macro(&(*data)[i], &(*data)[i], &token))
+					SUCCEED == token_parse_nested_macro(&(*data)[i], &(*data)[i], 0, &token))
 			{
 				i += token.loc.r - token.loc.l + 1;
 			}
@@ -6116,4 +6156,148 @@ char	*zbx_substr(const char *src, size_t left, size_t right)
 	str[right - left + 1] = '\0';
 
 	return str;
+}
+
+/******************************************************************************
+ *                                                                            *
+ * Function: utf8_chr_next                                                    *
+ *                                                                            *
+ * Purpose: return pointer to the next utf-8 character                        *
+ *                                                                            *
+ * Parameters: str  - [IN] the input string                                   *
+ *                                                                            *
+ * Return value: A pointer to the next utf-8 character.                       *
+ *                                                                            *
+ ******************************************************************************/
+static const char	*utf8_chr_next(const char *str)
+{
+	++str;
+
+	while (0x80 == (0xc0 & (unsigned char)*str))
+		str++;
+
+	return str;
+}
+
+/******************************************************************************
+ *                                                                            *
+ * Function: utf8_chr_prev                                                    *
+ *                                                                            *
+ * Purpose: return pointer to the previous utf-8 character                    *
+ *                                                                            *
+ * Parameters: str   - [IN] the input string                                  *
+ *             start - [IN] the start of the initial string                   *
+ *                                                                            *
+ * Return value: A pointer to the previous utf-8 character.                   *
+ *                                                                            *
+ ******************************************************************************/
+static char	*utf8_chr_prev(char *str, const char *start)
+{
+	do
+	{
+		if (--str < start)
+			return NULL;
+	}
+	while (0x80 == (0xc0 & (unsigned char)*str));
+
+	return str;
+}
+
+/******************************************************************************
+ *                                                                            *
+ * Function: strchr_utf8                                                      *
+ *                                                                            *
+ * Purpose: checks if string contains utf-8 character                         *
+ *                                                                            *
+ * Parameters: seq  - [IN] the input string                                   *
+ *             c    - [IN] the utf-8 character to look for                    *
+ *                                                                            *
+ * Return value: SUCCEED - the string contains the specified character        *
+ *               FAIL    - otherwise                                          *
+ *                                                                            *
+ ******************************************************************************/
+static int	strchr_utf8(const char *seq, const char *c)
+{
+	size_t	len, c_len;
+
+	if (0 == (c_len = zbx_utf8_char_len(c)))
+		return FAIL;
+
+	if (1 == c_len)
+		return (NULL == strchr(seq, *c) ? FAIL : SUCCEED);
+
+	/* check for broken utf-8 sequence in character */
+	if (c + c_len != utf8_chr_next(c))
+		return FAIL;
+
+	while ('\0' != *seq)
+	{
+		len = (size_t)(utf8_chr_next(seq) - seq);
+
+		if (len == c_len && 0 == memcmp(seq, c, len))
+			return SUCCEED;
+
+		seq += len;
+	}
+
+	return FAIL;
+}
+
+/******************************************************************************
+ *                                                                            *
+ * Function: zbx_ltrim_utf8                                                   *
+ *                                                                            *
+ * Purpose: trim the specified utf-8 characters from the left side of input   *
+ *          string                                                            *
+ *                                                                            *
+ * Parameters: str      - [IN] the input string                               *
+ *             charlist - [IN] the characters to trim                         *
+ *                                                                            *
+ ******************************************************************************/
+void	zbx_ltrim_utf8(char *str, const char *charlist)
+{
+	const char	*next;
+
+	for (next = str; '\0' != *next; next = utf8_chr_next(next))
+	{
+		if (SUCCEED != strchr_utf8(charlist, next))
+			break;
+	}
+
+	if (next != str)
+	{
+		size_t	len;
+
+		if (0 != (len = strlen(next)))
+			memmove(str, next, len);
+
+		str[len] = '\0';
+	}
+}
+
+/******************************************************************************
+ *                                                                            *
+ * Function: zbx_rtrim_utf8                                                   *
+ *                                                                            *
+ * Purpose: trim the specified utf-8 characters from the right side of input  *
+ *          string                                                            *
+ *                                                                            *
+ * Parameters: str      - [IN] the input string                               *
+ *             charlist - [IN] the characters to trim                         *
+ *                                                                            *
+ ******************************************************************************/
+void	zbx_rtrim_utf8(char *str, const char *charlist)
+{
+	char	*prev, *last;
+
+	for (last = str + strlen(str), prev = last; NULL != prev; prev = utf8_chr_prev(prev, str))
+	{
+		if (SUCCEED != strchr_utf8(charlist, prev))
+			break;
+
+		if ((last = prev) <= str)
+			break;
+	}
+
+	*last = '\0';
 }

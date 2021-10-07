@@ -111,7 +111,7 @@ class CControllerPopupTriggerWizard extends CController {
 			$exprs[] = array_shift($input) + array_shift($input);
 		}
 
-		$constructor = new CTextTriggerConstructor(new CExpressionParser(['lldmacros' => true]));
+		$constructor = new CTextTriggerConstructor(new CExpressionParser(['usermacros' => true, 'lldmacros' => true]));
 
 		if ($this->hasInput('triggerid')) {
 			$page_options['triggerid'] = $this->getInput('triggerid');
@@ -193,7 +193,6 @@ class CControllerPopupTriggerWizard extends CController {
 					// Save if no errors found.
 					if (array_key_exists('triggerid', $page_options)) {
 						$result = API::Trigger()->update($trigger);
-						$audit_action = AUDIT_ACTION_UPDATE;
 
 						if (!$result['triggerids']) {
 							error(_('Cannot update trigger'));
@@ -210,20 +209,9 @@ class CControllerPopupTriggerWizard extends CController {
 							$triggerid = $db_triggers[0]['triggerid'];
 						}
 
-						$audit_action = AUDIT_ACTION_ADD;
 						if (!$result['triggerids']) {
 							error(_('Cannot add trigger'));
 						}
-					}
-
-					if ($result['triggerids']) {
-						DBstart();
-
-						add_audit($audit_action, AUDIT_RESOURCE_TRIGGER,
-							_('Trigger').' ['.$triggerid.'] ['.$trigger['description'].']'
-						);
-
-						DBend(true);
 					}
 				}
 				else {

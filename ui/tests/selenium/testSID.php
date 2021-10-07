@@ -24,7 +24,7 @@ require_once dirname(__FILE__).'/../include/helpers/CDataHelper.php';
 
 /**
  * @backup token
- * @on-before prepareTokenData
+ * @onBefore prepareTokenData
  */
 class testSID extends CWebTest {
 
@@ -387,8 +387,10 @@ class testSID extends CWebTest {
 
 			// Authentication update.
 			[['link' => 'zabbix.php?form_refresh=3&action=authentication.update&db_authentication_type=0&'.
-					'authentication_type=0&http_auth_enabled=1&http_login_form=0&http_strip_domains=&'.
-					'http_case_sensitive=1&ldap_configured=0&change_bind_password=1&saml_auth_enabled=0&update=Update']],
+					'authentication_type=0&passwd_min_length=8&passwd_check_rules%5B%5D=1&passwd_check_rules%5B%5D=2&'.
+					'passwd_check_rules%5B%5D=4&passwd_check_rules%5B%5D=8&http_auth_enabled=1&http_login_form=0&'.
+					'http_strip_domains=&http_case_sensitive=1&ldap_configured=0&change_bind_password=1&'.
+					'saml_auth_enabled=0&update=Update']],
 
 			// Media type create.
 			[['link' => 'zabbix.php?form_refresh=1&form=1&mediatypeid=0&status=1&name=1111&type=0&'.
@@ -631,7 +633,38 @@ class testSID extends CWebTest {
 					'refresh=30s&rows_per_page=50&url=&roleid=1&user_type=User&action=user.update']],
 
 			// User unblock.
-			[['link' => 'zabbix.php?form_refresh=1&userids%5B6%5D=6&action=user.unblock']]
+			[['link' => 'zabbix.php?form_refresh=1&userids%5B6%5D=6&action=user.unblock']],
+
+			// Scheduled report creation.
+			[['link' => 'zabbix.php?form_refresh=1&userid=1&name=testsid&dashboardid=1&period=0&cycle=0&hours=00&'.
+				'minutes=00&weekdays%5B1%5D=1&weekdays%5B8%5D=8&weekdays%5B32%5D=32&weekdays%5B2%5D=2&'.
+				'weekdays%5B16%5D=16&weekdays%5B64%5D=64&weekdays%5B4%5D=4&active_since=&active_till='.
+				'&subject=&message=&subscriptions%5B0%5D%5Brecipientid%5D=1&subscriptions%5B0%5D%5Brecipient_type%5D=0&'.
+				'subscriptions%5B0%5D%5Brecipient_name%5D=Admin+%28Zabbix+Administrator%29&'.
+				'subscriptions%5B0%5D%5Brecipient_inaccessible%5D=0&subscriptions%5B0%5D%5Bcreatorid%5D=1&'.
+				'subscriptions%5B0%5D%5Bcreator_type%5D=0&subscriptions%5B0%5D%5Bcreator_name%5D=Admin+%28Zabbix+Administrator%29&'.
+				'subscriptions%5B0%5D%5Bcreator_inaccessible%5D=0&subscriptions%5B0%5D%5Bexclude%5D=0&description=&'.
+				'status=0&action=scheduledreport.create']],
+
+			// Scheduled report delete.
+			[['link' => 'zabbix.php?action=scheduledreport.delete&reportids[]=1']],
+
+			// Scheduled report update.
+			[['link' => 'zabbix.php?form_refresh=1&reportid=8&old_dashboardid=2&userid=1&'.
+				'name=Report+for+filter+-+enabled+sid&dashboardid=2&period=3&cycle=2&hours=00&'.
+				'minutes=00&weekdays%5B1%5D=1&weekdays%5B8%5D=8&weekdays%5B32%5D=32&weekdays%5B2%5D=2&'.
+				'weekdays%5B16%5D=16&weekdays%5B64%5D=64&weekdays%5B4%5D=4&active_since=&active_till=&'.
+				'subject=&message=&subscriptions%5B0%5D%5Brecipientid%5D=1&subscriptions%5B0%5D%5Brecipient_type%5D=0&'.
+				'subscriptions%5B0%5D%5Brecipient_name%5D=Admin+%28Zabbix+Administrator%29&'.
+				'subscriptions%5B0%5D%5Brecipient_inaccessible%5D=0&subscriptions%5B0%5D%5Bcreatorid%5D=0&'.
+				'subscriptions%5B0%5D%5Bcreator_type%5D=1&subscriptions%5B0%5D%5Bcreator_name%5D=Recipient&'.
+				'subscriptions%5B0%5D%5Bcreator_inaccessible%5D=0&subscriptions%5B0%5D%5Bexclude%5D=0&description=&'.
+				'status=0&action=scheduledreport.update']],
+
+			// Scheduled report test.
+			[['link' => 'zabbix.php?action=popup.scheduledreport.test&period=2&now=1627543595&dashboardid=1'.
+				'&name=Report+for+testFormScheduledReport&subject=Report+subject+for+testFormScheduledReport&'.
+				'message=Report+message+text']]
 		];
 	}
 
@@ -1135,6 +1168,23 @@ class testSID extends CWebTest {
 					'db' => 'SELECT * FROM token',
 					'incorrect_request' => true,
 					'link' => 'zabbix.php?action=user.token.edit&tokenid='
+				]
+			],
+
+			// Scheduled report creation.
+			[
+				[
+					'db' => 'SELECT * FROM report',
+					'incorrect_request' => true,
+					'link' => 'zabbix.php?action=scheduledreport.edit'
+				]
+			],
+			// Scheduled report update.
+			[
+				[
+					'db' => 'SELECT * FROM report',
+					'incorrect_request' => true,
+					'link' => 'zabbix.php?action=scheduledreport.edit&reportid=3'
 				]
 			]
 		];

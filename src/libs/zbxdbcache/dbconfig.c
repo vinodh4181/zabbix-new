@@ -332,9 +332,18 @@ static zbx_uint64_t	get_item_nextcheck_seed(zbx_uint64_t itemid, zbx_uint64_t in
 #define ZBX_ITEM_TYPE_CHANGED		0x08
 #define ZBX_ITEM_DELAY_CHANGED		0x10
 
-static int	DCget_disable_until(const ZBX_DC_INTERFACE *interface)
+static int	DCget_disable_until(const ZBX_DC_ITEM *item, const ZBX_DC_INTERFACE *interface)
 {
-	return (NULL == interface) ? 0 : interface->disable_until;
+	switch (item->type)
+	{
+		case ITEM_TYPE_ZABBIX:
+		case ITEM_TYPE_SNMP:
+		case ITEM_TYPE_IPMI:
+		case ITEM_TYPE_JMX:
+			return (NULL == interface) ? 0 : interface->disable_until;
+		default:
+			return 0;
+	}
 }
 
 static int	DCitem_nextcheck_update(ZBX_DC_ITEM *item, const ZBX_DC_INTERFACE *interface, int flags, int now,
@@ -366,8 +375,8 @@ static int	DCitem_nextcheck_update(ZBX_DC_ITEM *item, const ZBX_DC_INTERFACE *in
 		return FAIL;
 	}
 
-	if (0 != (flags & ZBX_HOST_UNREACHABLE) && NULL != interface &&  0 != (disable_until =
-			DCget_disable_until(interface)))
+	if (0 != (flags & ZBX_HOST_UNREACHABLE) && NULL != interface && 0 != (disable_until =
+			DCget_disable_until(item, interface)))
 	{
 		item->nextcheck = calculate_item_nextcheck_unreachable(simple_interval,
 				custom_intervals, disable_until);
@@ -925,6 +934,7 @@ static int	DCsync_config(zbx_dbsync_t *sync, int *flags)
 {
 	const ZBX_TABLE	*config_table;
 
+	/* sync with zbx_dbsync_compare_config() */
 	const char	*selected_fields[] = {"discovery_groupid", "snmptrap_logging",
 					"severity_name_0", "severity_name_1", "severity_name_2", "severity_name_3",
 					"severity_name_4", "severity_name_5", "hk_events_mode", "hk_events_trigger",
@@ -934,7 +944,8 @@ static int	DCsync_config(zbx_dbsync_t *sync, int *flags)
 					"hk_history", "hk_trends_mode", "hk_trends_global", "hk_trends",
 					"default_inventory_mode", "db_extension", "autoreg_tls_accept",
 					"compression_status", "compress_older", "instanceid",
-					"default_timezone"};	/* sync with zbx_dbsync_compare_config() */
+					"default_timezone", "hk_events_service", "auditlog_enabled"};
+
 	const char	*row[ARRSIZE(selected_fields)];
 	size_t		i;
 	int		j, found = 1, ret;
@@ -1006,7 +1017,8 @@ static int	DCsync_config(zbx_dbsync_t *sync, int *flags)
 			(SUCCEED != set_hk_opt(&config->config->hk.events_trigger, 1, SEC_PER_DAY, row[9]) ||
 			SUCCEED != set_hk_opt(&config->config->hk.events_internal, 1, SEC_PER_DAY, row[10]) ||
 			SUCCEED != set_hk_opt(&config->config->hk.events_discovery, 1, SEC_PER_DAY, row[11]) ||
-			SUCCEED != set_hk_opt(&config->config->hk.events_autoreg, 1, SEC_PER_DAY, row[12])))
+			SUCCEED != set_hk_opt(&config->config->hk.events_autoreg, 1, SEC_PER_DAY, row[12]) ||
+			SUCCEED != set_hk_opt(&config->config->hk.events_service, 1, SEC_PER_DAY, row[32])))
 	{
 		zabbix_log(LOG_LEVEL_WARNING, "trigger, internal, network discovery and auto-registration data"
 				" housekeeping will be disabled due to invalid settings");
@@ -1075,6 +1087,8 @@ static int	DCsync_config(zbx_dbsync_t *sync, int *flags)
 	}
 #endif
 	DCstrpool_replace(found, &config->config->default_timezone, row[31]);
+
+	config->config->auditlog_enabled = atoi(row[33]);
 
 	if (SUCCEED == ret && SUCCEED == zbx_dbsync_next(sync, &rowid, &db_row, &tag))	/* table must have */
 		zabbix_log(LOG_LEVEL_ERR, "table 'config' has multiple records");	/* only one record */
@@ -2247,8 +2261,8 @@ static void	substitute_host_interface_macros(ZBX_DC_INTERFACE *interface)
 		if (0 != (macros & 0x01))
 		{
 			addr = zbx_strdup(NULL, interface->ip);
-			substitute_simple_macros(NULL, NULL, NULL, NULL, NULL, &host, NULL, NULL, NULL, NULL,
-					&addr, MACRO_TYPE_INTERFACE_ADDR, NULL, 0);
+			substitute_simple_macros(NULL, NULL, NULL, NULL, NULL, &host, NULL, NULL, NULL, NULL, NULL,
+					NULL, &addr, MACRO_TYPE_INTERFACE_ADDR, NULL, 0);
 			if (SUCCEED == is_ip(addr) || SUCCEED == zbx_validate_hostname(addr))
 				DCstrpool_replace(1, &interface->ip, addr);
 			zbx_free(addr);
@@ -2257,7 +2271,7 @@ static void	substitute_host_interface_macros(ZBX_DC_INTERFACE *interface)
 		if (0 != (macros & 0x02))
 		{
 			addr = zbx_strdup(NULL, interface->dns);
-			substitute_simple_macros(NULL, NULL, NULL, NULL, NULL, &host, NULL, NULL, NULL, NULL,
+			substitute_simple_macros(NULL, NULL, NULL, NULL, NULL, &host, NULL, NULL, NULL, NULL, NULL, NULL,
 					&addr, MACRO_TYPE_INTERFACE_ADDR, NULL, 0);
 			if (SUCCEED == is_ip(addr) || SUCCEED == zbx_validate_hostname(addr))
 				DCstrpool_replace(1, &interface->dns, addr);
@@ -3579,7 +3593,7 @@ static void	DCsync_template_items(zbx_dbsync_t *sync)
 	zbx_uint64_t		rowid, itemid;
 	unsigned char		tag;
 	int			ret, found;
-	ZBX_DC_TEMPLATE_ITEM 	*item;
+	ZBX_DC_TEMPLATE_ITEM	*item;
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
@@ -3615,7 +3629,7 @@ static void	DCsync_prototype_items(zbx_dbsync_t *sync)
 	zbx_uint64_t		rowid, itemid;
 	unsigned char		tag;
 	int			ret, found;
-	ZBX_DC_PROTOTYPE_ITEM 	*item;
+	ZBX_DC_PROTOTYPE_ITEM	*item;
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
@@ -5166,7 +5180,8 @@ static void	DCsync_trigger_tags(zbx_dbsync_t *sync)
 
 		ZBX_STR2UINT64(triggertagid, row[0]);
 
-		trigger_tag = (zbx_dc_trigger_tag_t *)DCfind_id(&config->trigger_tags, triggertagid, sizeof(zbx_dc_trigger_tag_t), &found);
+		trigger_tag = (zbx_dc_trigger_tag_t *)DCfind_id(&config->trigger_tags, triggertagid,
+				sizeof(zbx_dc_trigger_tag_t), &found);
 		DCstrpool_replace(found, &trigger_tag->tag, row[2]);
 		DCstrpool_replace(found, &trigger_tag->value, row[3]);
 
@@ -6195,18 +6210,18 @@ void	DCsync_configuration(unsigned char mode, const struct zbx_json_parse *jp_kv
 	DCsync_itemscript_param(&itemscrp_sync);
 	itemscrp_sec2 = zbx_time() - sec;
 
-	/* relies on items, must be after DCsync_items() */
-	sec = zbx_time();
-	if (FAIL == zbx_dbsync_compare_item_tags(&item_tag_sync))
-		goto out;
-	item_tag_sec = zbx_time() - sec;
-
 	config->item_sync_ts = time(NULL);
 	FINISH_SYNC;
 
 	dc_flush_history();	/* misconfigured items generate pseudo-historic values to become notsupported */
 
 	/* sync function data to support function lookups when resolving macros during configuration sync */
+
+	/* relies on items, must be after DCsync_items() */
+	sec = zbx_time();
+	if (FAIL == zbx_dbsync_compare_item_tags(&item_tag_sync))
+		goto out;
+	item_tag_sec = zbx_time() - sec;
 
 	sec = zbx_time();
 	if (FAIL == zbx_dbsync_compare_functions(&func_sync))
@@ -8050,13 +8065,6 @@ static void	DCget_trigger(DC_TRIGGER *dst_trigger, const ZBX_DC_TRIGGER *src_tri
 	}
 }
 
-void	zbx_free_tag(zbx_tag_t *tag)
-{
-	zbx_free(tag->tag);
-	zbx_free(tag->value);
-	zbx_free(tag);
-}
-
 void	zbx_free_item_tag(zbx_item_tag_t *item_tag)
 {
 	zbx_free(item_tag->tag.tag);
@@ -8418,6 +8426,20 @@ void	DCconfig_get_hosts_by_itemids(DC_HOST *hosts, const zbx_uint64_t *itemids, 
 	}
 
 	UNLOCK_CACHE;
+}
+
+int	DCconfig_trigger_exists(zbx_uint64_t triggerid)
+{
+	int	ret = SUCCEED;
+
+	RDLOCK_CACHE;
+
+	if (NULL == zbx_hashset_search(&config->triggers, &triggerid))
+		ret = FAIL;
+
+	UNLOCK_CACHE;
+
+	return ret;
 }
 
 void	DCconfig_get_triggers_by_triggerids(DC_TRIGGER *triggers, const zbx_uint64_t *triggerids, int *errcode,
@@ -9083,7 +9105,7 @@ void	zbx_dc_reschedule_trigger_timers(zbx_vector_ptr_t *timers, int now)
 	int	i;
 
 	/* calculate new execution/evaluation time for the evaluated triggers */
-	/* (timers with reseted execution time)                               */
+	/* (timers with reset execution time)                                 */
 	for (i = 0; i < timers->values_num; i++)
 	{
 		zbx_trigger_timer_t	*timer = (zbx_trigger_timer_t *)timers->values[i];
@@ -9536,7 +9558,7 @@ int	DCconfig_get_poller_items(unsigned char poller_type, DC_ITEM **items)
 		/* don't apply unreachable item/host throttling for prioritized items */
 		if (ZBX_QUEUE_PRIORITY_HIGH != dc_item->queue_priority)
 		{
-			if (0 == (disable_until = DCget_disable_until(dc_interface)))
+			if (0 == (disable_until = DCget_disable_until(dc_item, dc_interface)))
 			{
 				/* move reachable items on reachable hosts to normal pollers */
 				if (ZBX_POLLER_TYPE_UNREACHABLE == poller_type &&
@@ -9664,7 +9686,7 @@ int	DCconfig_get_ipmi_poller_items(int now, DC_ITEM *items, int items_num, int *
 		/* don't apply unreachable item/host throttling for prioritized items */
 		if (ZBX_QUEUE_PRIORITY_HIGH != dc_item->queue_priority)
 		{
-			if (0 != (disable_until = DCget_disable_until(dc_interface)))
+			if (0 != (disable_until = DCget_disable_until(dc_item, dc_interface)))
 			{
 				if (disable_until > now)
 				{
@@ -10095,7 +10117,7 @@ void	zbx_interface_availability_free(zbx_interface_availability_t *availability)
 	zbx_free(availability);
 }
 
-ZBX_PTR_VECTOR_IMPL(availability_ptr, zbx_interface_availability_t *);
+ZBX_PTR_VECTOR_IMPL(availability_ptr, zbx_interface_availability_t *)
 /******************************************************************************
  *                                                                            *
  * Function: zbx_agent_availability_init                                      *
@@ -12180,9 +12202,32 @@ void	zbx_config_get(zbx_config_t *cfg, zbx_uint64_t flags)
 	if (0 != (flags & ZBX_CONFIG_FLAGS_DEFAULT_TIMEZONE))
 		cfg->default_timezone = zbx_strdup(NULL, config->config->default_timezone);
 
+	if (0 != (flags & ZBX_CONFIG_FLAGS_AUDITLOG_ENABLED))
+		cfg->auditlog_enabled = config->config->auditlog_enabled;
+
 	UNLOCK_CACHE;
 
 	cfg->flags = flags;
+}
+
+/******************************************************************************
+ *                                                                            *
+ * Function: zbx_config_get_hk_mode                                           *
+ *                                                                            *
+ * Purpose: get housekeeping mode for history and trends tables               *
+ *                                                                            *
+ * Parameters: history_mode - [OUT] history housekeeping mode, can be either  *
+ *                                  disabled, enabled or partitioning         *
+ *             trends_mode  - [OUT] trends housekeeping mode, can be either   *
+ *                                  disabled, enabled or partitioning         *
+ *                                                                            *
+ ******************************************************************************/
+void	zbx_config_get_hk_mode(unsigned char *history_mode, unsigned char *trends_mode)
+{
+	RDLOCK_CACHE;
+	*history_mode = config->config->hk.history_mode;
+	*trends_mode = config->config->hk.trends_mode;
+	UNLOCK_CACHE;
 }
 
 /******************************************************************************
@@ -14080,17 +14125,6 @@ char	*dc_expand_user_macros_in_func_params(const char *params, zbx_uint64_t host
 	return buf;
 }
 
-char	*zbx_dc_expand_user_macros_in_func_params(const char *params, zbx_uint64_t hostid)
-{
-	char	*resolved_params;
-
-	RDLOCK_CACHE;
-	resolved_params = dc_expand_user_macros_in_func_params(params, hostid);
-	UNLOCK_CACHE;
-
-	return resolved_params;
-}
-
 /*********************************************************************************
  *                                                                               *
  * Function: zbx_get_host_interfaces_availability                                *
@@ -14170,6 +14204,17 @@ void	zbx_dc_eval_expand_user_macros(zbx_eval_context_t *ctx)
 
 	zbx_vector_uint64_destroy(&functionids);
 	zbx_vector_uint64_destroy(&hostids);
+}
+
+int	zbx_dc_maintenance_has_tags(void)
+{
+	int	ret;
+
+	RDLOCK_CACHE;
+	ret = config->maintenance_tags.num_data != 0 ? SUCCEED : FAIL;
+	UNLOCK_CACHE;
+
+	return ret;
 }
 
 #ifdef HAVE_TESTS

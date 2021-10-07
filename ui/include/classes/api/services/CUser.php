@@ -31,7 +31,8 @@ class CUser extends CApiService {
 		'delete' => ['min_user_type' => USER_TYPE_SUPER_ADMIN],
 		'checkauthentication' => [],
 		'login' => [],
-		'logout' => ['min_user_type' => USER_TYPE_ZABBIX_USER]
+		'logout' => ['min_user_type' => USER_TYPE_ZABBIX_USER],
+		'unblock' => ['min_user_type' => USER_TYPE_SUPER_ADMIN]
 	];
 
 	protected $tableName = 'users';
@@ -267,10 +268,10 @@ class CUser extends CApiService {
 		}
 		unset($user);
 
-		$this->updateUsersGroups($users, __FUNCTION__);
-		$this->updateMedias($users, __FUNCTION__);
+		self::updateUsersGroups($users, __FUNCTION__);
+		self::updateMedias($users, __FUNCTION__);
 
-		$this->addAuditBulk(AUDIT_ACTION_ADD, AUDIT_RESOURCE_USER, $users);
+		self::addAuditLog(CAudit::ACTION_ADD, CAudit::RESOURCE_USER, $users);
 
 		return ['userids' => $userids];
 	}
@@ -281,10 +282,6 @@ class CUser extends CApiService {
 	 * @throws APIException if the input is invalid.
 	 */
 	private function validateCreate(array &$users) {
-		if (self::$userData['type'] != USER_TYPE_SUPER_ADMIN) {
-			self::exception(ZBX_API_ERROR_PARAMETERS, _('You do not have permissions to create users.'));
-		}
-
 		$locales = LANG_DEFAULT.','.implode(',', array_keys(getLocales()));
 		$timezones = TIMEZONE_DEFAULT.','.implode(',', array_keys((new CDateTimeZoneHelper())->getAllDateTimeZones()));
 		$themes = THEME_DEFAULT.','.implode(',', array_keys(APP::getThemes()));
@@ -342,7 +339,7 @@ class CUser extends CApiService {
 			self::exception(ZBX_API_ERROR_PARAMETERS, $error);
 		}
 
-		foreach ($users as &$user) {
+		foreach ($users as $i => &$user) {
 			if (array_key_exists('alias', $user)) {
 				unset($user['alias']);
 			}
@@ -357,6 +354,10 @@ class CUser extends CApiService {
 			}
 
 			$user = $this->checkLoginOptions($user);
+
+			if (array_key_exists('passwd', $user)) {
+				$this->checkPassword($user, '/'.($i + 1).'/passwd');
+			}
 
 			/*
 			 * If user is created without a password (e.g. for GROUP_GUI_ACCESS_LDAP), store an empty string
@@ -420,12 +421,12 @@ class CUser extends CApiService {
 			DB::update('users', $upd_users);
 		}
 
-		$this->updateUsersGroups($users, __FUNCTION__);
-		$this->updateMedias($users, __FUNCTION__);
+		self::updateUsersGroups($users, 'update', $db_users);
+		self::updateMedias($users, 'update', $db_users);
 
-		$this->addAuditBulk(AUDIT_ACTION_UPDATE, AUDIT_RESOURCE_USER, $users, $db_users);
+		self::addAuditLog(CAudit::ACTION_UPDATE, CAudit::RESOURCE_USER, $users, $db_users);
 
-		return ['userids' => zbx_objectValues($users, 'userid')];
+		return ['userids' => array_column($users, 'userid')];
 	}
 
 	/**
@@ -495,7 +496,7 @@ class CUser extends CApiService {
 
 		$db_users = $this->get([
 			'output' => [],
-			'userids' => zbx_objectValues($users, 'userid'),
+			'userids' => array_column($users, 'userid'),
 			'editable' => true,
 			'preservekeys' => true
 		]);
@@ -522,7 +523,7 @@ class CUser extends CApiService {
 		$usernames = [];
 		$check_roleids = [];
 
-		foreach ($users as &$user) {
+		foreach ($users as $i => &$user) {
 			if (array_key_exists('alias', $user)) {
 				unset($user['alias']);
 			}
@@ -555,6 +556,9 @@ class CUser extends CApiService {
 			$user = $this->checkLoginOptions($user);
 
 			if (array_key_exists('passwd', $user)) {
+				$user_data = $user + array_intersect_key($db_user, array_flip(['username', 'name', 'surname']));
+				$this->checkPassword($user_data, '/'.($i + 1).'/passwd');
+
 				if ($db_user['username'] == ZBX_GUEST_USER) {
 					self::exception(ZBX_API_ERROR_PARAMETERS, _('Not allowed to set password for user "guest".'));
 				}
@@ -606,6 +610,8 @@ class CUser extends CApiService {
 			}
 		}
 
+		self::addAffectedObjects($users, $db_users);
+
 		if ($usernames) {
 			$this->checkDuplicates($usernames);
 		}
@@ -617,6 +623,56 @@ class CUser extends CApiService {
 		$db_mediatypes = $this->checkMediaTypes($users);
 		$this->validateMediaRecipients($users, $db_mediatypes);
 		$this->checkHimself($users);
+	}
+
+	/**
+	 * Add the existing medias and user groups to $db_users whether these are affected by the update.
+	 *
+	 * @static
+	 *
+	 * @param array $users
+	 * @param array $db_users
+	 */
+	private static function addAffectedObjects(array $users, array &$db_users): void {
+		$userids = ['usrgrps' => [], 'medias' => []];
+
+		foreach ($users as $user) {
+			if (array_key_exists('usrgrps', $user)) {
+				$userids['usrgrps'][] = $user['userid'];
+				$db_users[$user['userid']]['usrgrps'] = [];
+			}
+
+			if (array_key_exists('medias', $user)) {
+				$userids['medias'][] = $user['userid'];
+				$db_users[$user['userid']]['medias'] = [];
+			}
+		}
+
+		if ($userids['usrgrps']) {
+			$options = [
+				'output' => ['id', 'usrgrpid', 'userid'],
+				'filter' => ['userid' => $userids['usrgrps']]
+			];
+			$db_usrgrps = DBselect(DB::makeSql('users_groups', $options));
+
+			while ($db_usrgrp = DBfetch($db_usrgrps)) {
+				$db_users[$db_usrgrp['userid']]['usrgrps'][$db_usrgrp['id']] =
+					array_diff_key($db_usrgrp, array_flip(['userid']));
+			}
+		}
+
+		if ($userids['medias']) {
+			$options = [
+				'output' => ['mediaid', 'userid', 'mediatypeid', 'sendto', 'active', 'severity', 'period'],
+				'filter' => ['userid' => $userids['medias']]
+			];
+			$db_medias = DBselect(DB::makeSql('media', $options));
+
+			while ($db_media = DBfetch($db_medias)) {
+				$db_users[$db_media['userid']]['medias'][$db_media['mediaid']] =
+					array_diff_key($db_media, array_flip(['userid']));
+			}
+		}
 	}
 
 	/**
@@ -955,67 +1011,72 @@ class CUser extends CApiService {
 	}
 
 	/**
-	 * Update table "users_groups".
+	 * Update table "users_groups" and populate users.usrgrps by "id" property.
 	 *
-	 * @param array  $users
-	 * @param string $method
+	 * @static
+	 *
+	 * @param array      $users
+	 * @param string     $method
+	 * @param null|array $db_users
 	 */
-	private function updateUsersGroups(array $users, $method) {
-		$users_groups = [];
-
-		foreach ($users as $user) {
-			if (array_key_exists('usrgrps', $user)) {
-				$users_groups[$user['userid']] = [];
-
-				foreach ($user['usrgrps'] as $usrgrp) {
-					$users_groups[$user['userid']][$usrgrp['usrgrpid']] = true;
-				}
-			}
-		}
-
-		if (!$users_groups) {
-			return;
-		}
-
-		$db_users_groups = ($method === 'update')
-			? DB::select('users_groups', [
-				'output' => ['id', 'usrgrpid', 'userid'],
-				'filter' => ['userid' => array_keys($users_groups)]
-			])
-			: [];
-
+	private static function updateUsersGroups(array &$users, string $method, array $db_users = null): void {
 		$ins_users_groups = [];
 		$del_ids = [];
 
-		foreach ($db_users_groups as $db_user_group) {
-			if (array_key_exists($db_user_group['usrgrpid'], $users_groups[$db_user_group['userid']])) {
-				unset($users_groups[$db_user_group['userid']][$db_user_group['usrgrpid']]);
+		foreach ($users as &$user) {
+			if (!array_key_exists('usrgrps', $user)) {
+				continue;
 			}
-			else {
-				$del_ids[] = $db_user_group['id'];
-			}
-		}
 
-		foreach ($users_groups as $userid => $usrgrpids) {
-			foreach (array_keys($usrgrpids) as $usrgrpid) {
-				$ins_users_groups[] = [
-					'userid' => $userid,
-					'usrgrpid' => $usrgrpid
-				];
-			}
-		}
+			$db_usrgrps = ($method === 'update')
+				? array_column($db_users[$user['userid']]['usrgrps'], null, 'usrgrpid')
+				: [];
 
-		if ($ins_users_groups) {
-			DB::insertBatch('users_groups', $ins_users_groups);
+			foreach ($user['usrgrps'] as &$usrgrp) {
+				if (array_key_exists($usrgrp['usrgrpid'], $db_usrgrps)) {
+					$usrgrp['id'] = $db_usrgrps[$usrgrp['usrgrpid']]['id'];
+					unset($db_usrgrps[$usrgrp['usrgrpid']]);
+				}
+				else {
+					$ins_users_groups[] = [
+						'userid' => $user['userid'],
+						'usrgrpid' => $usrgrp['usrgrpid']
+					];
+				}
+			}
+			unset($usrgrp);
+
+			$del_ids = array_merge($del_ids, array_column($db_usrgrps, 'id'));
 		}
+		unset($user);
 
 		if ($del_ids) {
 			DB::delete('users_groups', ['id' => $del_ids]);
 		}
+
+		if ($ins_users_groups) {
+			$ids = DB::insertBatch('users_groups', $ins_users_groups);
+		}
+
+		foreach ($users as &$user) {
+			if (!array_key_exists('usrgrps', $user)) {
+				continue;
+			}
+
+			foreach ($user['usrgrps'] as &$usrgrp) {
+				if (!array_key_exists('id', $usrgrp)) {
+					$usrgrp['id'] = array_shift($ids);
+				}
+			}
+			unset($usrgrp);
+		}
+		unset($user);
 	}
 
 	/**
 	 * Auxiliary function for updateMedias().
+	 *
+	 * @static
 	 *
 	 * @param array  $medias
 	 * @param string $mediatypeid
@@ -1023,7 +1084,7 @@ class CUser extends CApiService {
 	 *
 	 * @return int
 	 */
-	private function getSimilarMedia(array $medias, $mediatypeid, $sendto) {
+	private static function getSimilarMedia(array $medias, $mediatypeid, $sendto) {
 		foreach ($medias as $index => $media) {
 			if (bccomp($media['mediatypeid'], $mediatypeid) == 0 && $media['sendto'] === $sendto) {
 				return $index;
@@ -1034,91 +1095,82 @@ class CUser extends CApiService {
 	}
 
 	/**
-	 * Update table "media".
+	 * Update table "media" and populate users.medias by "mediaid" property. Also this function converts "sendto" to the
+	 * string.
 	 *
-	 * @param array  $users
-	 * @param string $method
+	 * @static
+	 *
+	 * @param array      $users
+	 * @param string     $method
+	 * @param null|array $db_users
 	 */
-	private function updateMedias(array $users, $method) {
-		$users_medias = [];
-
-		foreach ($users as $user) {
-			if (array_key_exists('medias', $user)) {
-				$users_medias[$user['userid']] = [];
-
-				foreach ($user['medias'] as $media) {
-					$media['sendto'] = implode("\n", $media['sendto']);
-					$users_medias[$user['userid']][] = $media;
-				}
-			}
-		}
-
-		if (!$users_medias) {
-			return;
-		}
-
-		$db_medias = ($method === 'update')
-			? DB::select('media', [
-				'output' => ['mediaid', 'userid', 'mediatypeid', 'sendto', 'active', 'severity', 'period'],
-				'filter' => ['userid' => array_keys($users_medias)]
-			])
-			: [];
-
+	private static function updateMedias(array &$users, string $method, array $db_users = null): void {
 		$ins_medias = [];
 		$upd_medias = [];
 		$del_mediaids = [];
 
-		foreach ($db_medias as $db_media) {
-			$index = $this->getSimilarMedia($users_medias[$db_media['userid']], $db_media['mediatypeid'],
-				$db_media['sendto']
-			);
-
-			if ($index != -1) {
-				$media = $users_medias[$db_media['userid']][$index];
-
-				$upd_media = [];
-
-				if (array_key_exists('active', $media) && $media['active'] != $db_media['active']) {
-					$upd_media['active'] = $media['active'];
-				}
-				if (array_key_exists('severity', $media) && $media['severity'] != $db_media['severity']) {
-					$upd_media['severity'] = $media['severity'];
-				}
-				if (array_key_exists('period', $media) && $media['period'] !== $db_media['period']) {
-					$upd_media['period'] = $media['period'];
-				}
-
-				if ($upd_media) {
-					$upd_medias[] = [
-						'values' => $upd_media,
-						'where' => ['mediaid' => $db_media['mediaid']]
-					];
-				}
-
-				unset($users_medias[$db_media['userid']][$index]);
+		foreach ($users as &$user) {
+			if (!array_key_exists('medias', $user)) {
+				continue;
 			}
-			else {
-				$del_mediaids[] = $db_media['mediaid'];
+
+			$db_medias = ($method === 'update') ? $db_users[$user['userid']]['medias'] : [];
+
+			foreach ($user['medias'] as &$media) {
+				$media['sendto'] = implode("\n", $media['sendto']);
+
+				$index = self::getSimilarMedia($db_medias, $media['mediatypeid'], $media['sendto']);
+
+				if ($index != -1) {
+					$db_media = $db_medias[$index];
+
+					$upd_media = DB::getUpdatedValues('media', $media, $db_media);
+
+					if ($upd_media) {
+						$upd_medias[] = [
+							'values' => $upd_media,
+							'where' => ['mediaid' => $db_media['mediaid']]
+						];
+					}
+
+					$media['mediaid'] = $db_media['mediaid'];
+					unset($db_medias[$index]);
+				}
+				else {
+					$ins_medias[] = ['userid' => $user['userid']] + $media;
+				}
 			}
+			unset($media);
+
+			$del_mediaids = array_merge($del_mediaids, array_column($db_medias, 'mediaid'));
 		}
+		unset($user);
 
-		foreach ($users_medias as $userid => $medias) {
-			foreach ($medias as $media) {
-				$ins_medias[] = ['userid' => $userid] + $media;
-			}
-		}
-
-		if ($ins_medias) {
-			DB::insert('media', $ins_medias);
+		if ($del_mediaids) {
+			DB::delete('media', ['mediaid' => $del_mediaids]);
 		}
 
 		if ($upd_medias) {
 			DB::update('media', $upd_medias);
 		}
 
-		if ($del_mediaids) {
-			DB::delete('media', ['mediaid' => $del_mediaids]);
+		if ($ins_medias) {
+			$mediaids = DB::insert('media', $ins_medias);
 		}
+
+		foreach ($users as &$user) {
+			if (!array_key_exists('medias', $user)) {
+				continue;
+			}
+
+			foreach ($user['medias'] as &$media) {
+				if (!array_key_exists('mediaid', $media)) {
+					$media['mediaid'] = array_shift($mediaids);
+				}
+			}
+			unset($media);
+		}
+		unset($user);
 	}
 
 	/**
@@ -1136,9 +1188,17 @@ class CUser extends CApiService {
 			'values' => ['creator_userid' => null],
 			'where' => ['creator_userid' => $userids]
 		]);
+
+		$tokenids = DB::select('token', [
+			'output' => [],
+			'filter' => ['userid' => $userids],
+			'preservekeys' => true
+		]);
+		CToken::deleteForce(array_keys($tokenids), false);
+
 		DB::delete('users', ['userid' => $userids]);
 
-		$this->addAuditBulk(AUDIT_ACTION_DELETE, AUDIT_RESOURCE_USER, $db_users);
+		self::addAuditLog(CAudit::ACTION_DELETE, CAudit::RESOURCE_USER, $db_users);
 
 		return ['userids' => $userids];
 	}
@@ -1380,7 +1440,7 @@ class CUser extends CApiService {
 		]);
 
 		if (!$db_sessions) {
-			self::exception(ZBX_API_ERROR_PARAMETERS, _('Cannot logout.'));
+			self::exception(ZBX_API_ERROR_PARAMETERS, _('Cannot log out.'));
 		}
 
 		DB::delete('sessions', [
@@ -1392,7 +1452,7 @@ class CUser extends CApiService {
 			'where' => ['sessionid' => $sessionid]
 		]);
 
-		$this->addAuditDetails(AUDIT_ACTION_LOGOUT, AUDIT_RESOURCE_USER);
+		self::addAuditLog(CAudit::ACTION_LOGOUT, CAudit::RESOURCE_USER);
 
 		self::$userData = null;
 
@@ -1435,16 +1495,31 @@ class CUser extends CApiService {
 			GROUP_GUI_ACCESS_DISABLED => CAuthenticationHelper::get(CAuthenticationHelper::AUTHENTICATION_TYPE)
 		];
 
-		$db_user = $this->findByUsername($user['username'],
+		$user_data = $this->findAccessibleUser($user['username'],
 			(CAuthenticationHelper::get(CAuthenticationHelper::LDAP_CASE_SENSITIVE) == ZBX_AUTH_CASE_SENSITIVE),
 			CAuthenticationHelper::get(CAuthenticationHelper::AUTHENTICATION_TYPE), true
 		);
+
+		if (array_key_exists('error', $user_data)) {
+			self::addAuditLogByUser(array_key_exists('db_user', $user_data) ? $user_data['db_user']['userid'] : null,
+				CWebUser::getIp(), $user['username'], CAudit::ACTION_LOGIN_FAILED, CAudit::RESOURCE_USER
+			);
+
+			self::exception(ZBX_API_ERROR_PARAMETERS, $user_data['error']);
+		}
+
+		$db_user = $this->addExtraFields($user_data['db_user'], $user_data['permissions']);
+		$this->setTimezone($db_user['timezone']);
 
 		if ($db_user['attempt_failed'] >= CSettingsHelper::get(CSettingsHelper::LOGIN_ATTEMPTS)) {
 			$sec_left = timeUnitToSeconds(CSettingsHelper::get(CSettingsHelper::LOGIN_BLOCK))
 				- (time() - $db_user['attempt_clock']);
 
 			if ($sec_left > 0) {
+				self::addAuditLogByUser($db_user['userid'], $db_user['userip'], $db_user['username'],
+					CAudit::ACTION_LOGIN_FAILED, CAudit::RESOURCE_USER
+				);
+
 				self::exception(ZBX_API_ERROR_PERMISSIONS,
 					_('Incorrect user name or password or account is temporarily blocked.')
 				);
@@ -1472,27 +1547,32 @@ class CUser extends CApiService {
 		}
 		catch (APIException $e) {
 			if ($e->getCode() == ZBX_API_ERROR_PERMISSIONS) {
-				++$db_user['attempt_failed'];
-			}
+				$attempt_failed = $db_user['attempt_failed'] + 1;
 
-			DB::update('users', [
-				'values' => [
-					'attempt_failed' => $db_user['attempt_failed'],
-					'attempt_clock' => time(),
-					'attempt_ip' => substr($db_user['userip'], 0, 39)
-				],
-				'where' => ['userid' => $db_user['userid']]
-			]);
+				DB::update('users', [
+					'values' => [
+						'attempt_failed' => $attempt_failed,
+						'attempt_clock' => time(),
+						'attempt_ip' => substr($db_user['userip'], 0, 39)
+					],
+					'where' => ['userid' => $db_user['userid']]
+				]);
 
-			$this->addAuditDetails(AUDIT_ACTION_LOGIN, AUDIT_RESOURCE_USER, _('Login failed.'), $db_user['userid'],
-				$db_user['userip']
-			);
+				$users = [['userid' => $db_user['userid'], 'attempt_failed' => $attempt_failed]];
+				$db_users = [$db_user['userid'] => $db_user];
 
-			if ($e->getCode() == ZBX_API_ERROR_PERMISSIONS
-					&& $db_user['attempt_failed'] >= CSettingsHelper::get(CSettingsHelper::LOGIN_ATTEMPTS)) {
-				self::exception(ZBX_API_ERROR_PERMISSIONS,
-					_('Incorrect user name or password or account is temporarily blocked.')
+				self::addAuditLogByUser($db_user['userid'], $db_user['userip'], $db_user['username'],
+					CAudit::ACTION_UPDATE, CAudit::RESOURCE_USER, $users, $db_users
 				);
+				self::addAuditLogByUser($db_user['userid'], $db_user['userip'], $db_user['username'],
+					CAudit::ACTION_LOGIN_FAILED, CAudit::RESOURCE_USER
+				);
+
+				if ($attempt_failed >= CSettingsHelper::get(CSettingsHelper::LOGIN_ATTEMPTS)) {
+					self::exception(ZBX_API_ERROR_PERMISSIONS,
+						_('Incorrect user name or password or account is temporarily blocked.')
+					);
+				}
 			}
 
 			self::exception(ZBX_API_ERROR_PERMISSIONS, $e->getMessage());
@@ -1501,9 +1581,8 @@ class CUser extends CApiService {
 		// Start session.
 		unset($db_user['passwd']);
 		$db_user = self::createSession($db_user);
-		self::$userData = $db_user;
 
-		$this->addAuditDetails(AUDIT_ACTION_LOGIN, AUDIT_RESOURCE_USER);
+		self::addAuditLog(CAudit::ACTION_LOGIN_SUCCESS, CAudit::RESOURCE_USER);
 
 		return array_key_exists('userData', $user) && $user['userData'] ? $db_user : $db_user['sessionid'];
 	}
@@ -1520,7 +1599,8 @@ class CUser extends CApiService {
 		if (strlen($db_user['passwd']) > ZBX_MD5_SIZE) {
 			return password_verify($password, $db_user['passwd']);
 		}
-		elseif (hash_equals($db_user['passwd'], md5($password))) {
+
+		if (hash_equals($db_user['passwd'], md5($password))) {
 			DB::update('users', [
 				'values' => ['passwd' => password_hash($password, PASSWORD_BCRYPT, ['cost' => ZBX_BCRYPT_COST])],
 				'where' => ['userid' => $db_user['userid']]
@@ -1552,13 +1632,23 @@ class CUser extends CApiService {
 			);
 		}
 
-		$db_user = $this->findByUsername($username, $case_sensitive, $default_auth, false);
+		$user_data = $this->findAccessibleUser($username, $case_sensitive, $default_auth, false);
+
+		if (array_key_exists('error', $user_data)) {
+			self::addAuditLogByUser(array_key_exists('db_user', $user_data) ? $user_data['db_user']['userid'] : null,
+				CWebUser::getIp(), $username, CAudit::ACTION_LOGIN_FAILED, CAudit::RESOURCE_USER
+			);
+
+			self::exception(ZBX_API_ERROR_PARAMETERS, $user_data['error']);
+		}
+
+		$db_user = $this->addExtraFields($user_data['db_user'], $user_data['permissions']);
+		$this->setTimezone($db_user['timezone']);
 
 		unset($db_user['passwd']);
 		$db_user = self::createSession($db_user);
-		self::$userData = $db_user;
 
-		$this->addAuditDetails(AUDIT_ACTION_LOGIN, AUDIT_RESOURCE_USER);
+		self::addAuditLog(CAudit::ACTION_LOGIN_SUCCESS, CAudit::RESOURCE_USER);
 
 		return $db_user;
 	}
@@ -1615,30 +1705,18 @@ class CUser extends CApiService {
 		}
 
 		$db_user = $db_users[0];
-		$db_user['type'] = $this->getUserType($db_user['roleid']);
-
-		$usrgrps = $this->getUserGroupsData($db_user['userid']);
-
 		$db_user['sessionid'] = $sessionid;
-		$db_user['debug_mode'] = $usrgrps['debug_mode'];
-		$db_user['userip'] = $usrgrps['userip'];
-		$db_user['gui_access'] = $usrgrps['gui_access'];
 
-		if ($db_user['lang'] === LANG_DEFAULT) {
-			$db_user['lang'] = CSettingsHelper::get(CSettingsHelper::DEFAULT_LANG);
-		}
-		if ($db_user['timezone'] === TIMEZONE_DEFAULT) {
-			$db_user['timezone'] = CSettingsHelper::get(CSettingsHelper::DEFAULT_TIMEZONE);
-		}
-		if ($db_user['timezone'] !== ZBX_DEFAULT_TIMEZONE) {
-			date_default_timezone_set($db_user['timezone']);
-		}
+		$permissions = $this->getUserGroupsPermissions($db_user['userid']);
+
+		$db_user = $this->addExtraFields($db_user, $permissions);
+		$this->setTimezone($db_user['timezone']);
 
 		$autologout = timeUnitToSeconds($db_user['autologout']);
 
 		// Check system permissions.
 		if (($autologout != 0 && $db_session['lastaccess'] + $autologout <= $time)
-				|| $usrgrps['users_status'] == GROUP_STATUS_DISABLED) {
+				|| $permissions['users_status'] == GROUP_STATUS_DISABLED) {
 			DB::delete('sessions', [
 				'status' => ZBX_SESSION_PASSIVE,
 				'userid' => $db_user['userid']
@@ -1663,10 +1741,69 @@ class CUser extends CApiService {
 		return $db_user;
 	}
 
-	private function getUserGroupsData($userid) {
-		$usrgrps = [
+	/**
+	 * Unblock user account.
+	 *
+	 * @param array $userids
+	 *
+	 * @throws APIException
+	 *
+	 * @return array
+	 */
+	public function unblock(array $userids): array {
+		$api_input_rules = ['type' => API_IDS, 'flags' => API_NOT_EMPTY, 'uniq' => true];
+		if (!CApiInputValidator::validate($api_input_rules, $userids, '/', $error)) {
+			self::exception(ZBX_API_ERROR_PARAMETERS, $error);
+		}
+
+		$db_users = $this->get([
+			'output' => ['userid', 'username', 'attempt_failed'],
+			'userids' => $userids,
+			'editable' => true,
+			'preservekeys' => true
+		]);
+
+		if (count($db_users) != count($userids)) {
+			self::exception(ZBX_API_ERROR_PERMISSIONS, _('No permissions to referred object or it does not exist!'));
+		}
+
+		$users = [];
+		$upd_users = [];
+
+		foreach ($userids as $userid) {
+			$upd_user = DB::getUpdatedValues('users', ['userid' => $userid, 'attempt_failed' => 0], $db_users[$userid]);
+
+			if ($upd_user) {
+				$upd_users[] = [
+					'values' => $upd_user,
+					'where' => ['userid' => $userid]
+				];
+
+				$users[] = $upd_user + ['userid' => $userid];
+			}
+			else {
+				unset($db_users[$userid]);
+			}
+		}
+
+		if ($upd_users) {
+			DB::update('users', $upd_users);
+			self::addAuditLog(CAudit::ACTION_UPDATE, CAudit::RESOURCE_USER, $users, $db_users);
+		}
+
+		return ['userids' => $userids];
+	}
+
+	/**
+	 * Returns user groups permissions of specific user.
+	 *
+	 * @param string $userid
+	 *
+	 * @return array
+	 */
+	private function getUserGroupsPermissions(string $userid): array {
+		$permissions = [
 			'debug_mode' => GROUP_DEBUG_MODE_DISABLED,
-			'userip' => CWebUser::getIp(),
 			'users_status' => GROUP_STATUS_ENABLED,
 			'gui_access' => GROUP_GUI_ACCESS_SYSTEM
 		];
@@ -1680,17 +1817,17 @@ class CUser extends CApiService {
 
 		while ($db_usrgrp = DBfetch($db_usrgrps)) {
 			if ($db_usrgrp['debug_mode'] == GROUP_DEBUG_MODE_ENABLED) {
-				$usrgrps['debug_mode'] = GROUP_DEBUG_MODE_ENABLED;
+				$permissions['debug_mode'] = GROUP_DEBUG_MODE_ENABLED;
 			}
 			if ($db_usrgrp['users_status'] == GROUP_STATUS_DISABLED) {
-				$usrgrps['users_status'] = GROUP_STATUS_DISABLED;
+				$permissions['users_status'] = GROUP_STATUS_DISABLED;
 			}
-			if ($db_usrgrp['gui_access'] > $usrgrps['gui_access']) {
-				$usrgrps['gui_access'] = $db_usrgrp['gui_access'];
+			if ($db_usrgrp['gui_access'] > $permissions['gui_access']) {
+				$permissions['gui_access'] = $db_usrgrp['gui_access'];
 			}
 		}
 
-		return $usrgrps;
+		return $permissions;
 	}
 
 	/**
@@ -1820,18 +1957,27 @@ class CUser extends CApiService {
 			'status' => ZBX_SESSION_ACTIVE
 		]], false);
 
+		self::$userData = $db_user;
+
 		if ($db_user['attempt_failed'] != 0) {
+			$upd_user = ['attempt_failed' => 0];
+
 			DB::update('users', [
-				'values' => ['attempt_failed' => 0],
+				'values' => $upd_user,
 				'where' => ['userid' => $db_user['userid']]
 			]);
+
+			$users = [$upd_user + ['userid' => $db_user['userid']]];
+			$db_users = [$db_user['userid'] => $db_user];
+
+			self::addAuditLog(CAudit::ACTION_UPDATE, CAudit::RESOURCE_USER, $users, $db_users);
 		}
 
 		return $db_user;
 	}
 
 	/**
-	 * Find user by username. Return user data from database.
+	 * Find accessible user by username.
 	 *
 	 * @param string $username             User username to search for.
 	 * @param bool   $case_sensitive    Perform case sensitive search.
@@ -1840,9 +1986,13 @@ class CUser extends CApiService {
 	 *                                  user username string is case insensitive string even for groups with frontend
 	 *                                  access GROUP_GUI_ACCESS_INTERNAL.
 	 *
-	 * @return array
+	 * @return array The array with the following keys:
+	 *                       - 'error' - (optional) the error message;
+	 *                       - 'db_user' - (optional) contains user data from database;
+	 *                       - 'permissions' - (optional) contains user permissions data.
 	 */
-	private function findByUsername($username, $case_sensitive, $default_auth, $do_group_check) {
+	private function findAccessibleUser(string $username, bool $case_sensitive, int $default_auth,
+			bool $do_group_check): array {
 		$db_users = [];
 		$group_to_auth_map = [
 			GROUP_GUI_ACCESS_SYSTEM => $default_auth,
@@ -1870,7 +2020,7 @@ class CUser extends CApiService {
 			if ($do_group_check) {
 				// Users with ZBX_AUTH_INTERNAL access attribute 'username' is always case sensitive.
 				foreach($db_users_rows as $db_user_row) {
-					$permissions = $this->getUserGroupsData($db_user_row['userid']);
+					$permissions = $this->getUserGroupsPermissions($db_user_row['userid']);
 
 					if ($group_to_auth_map[$permissions['gui_access']] != ZBX_AUTH_INTERNAL
 							|| $db_user_row['username'] === $username) {
@@ -1884,39 +2034,88 @@ class CUser extends CApiService {
 		}
 
 		if (!$db_users) {
-			self::exception(ZBX_API_ERROR_PARAMETERS,
-				_('Incorrect user name or password or account is temporarily blocked.')
-			);
+			return ['error' => _('Incorrect user name or password or account is temporarily blocked.')];
 		}
-		elseif (count($db_users) > 1) {
-			self::exception(ZBX_API_ERROR_PARAMETERS,
-				_s('Authentication failed: %1$s.', _('supplied credentials are not unique'))
-			);
+
+		if (count($db_users) > 1) {
+			return ['error' => _s('Authentication failed: %1$s.', _('supplied credentials are not unique'))];
 		}
 
 		$db_user = reset($db_users);
-		$db_user['type'] = $this->getUserType($db_user['roleid']);
+		$permissions = $this->getUserGroupsPermissions($db_user['userid']);
 
-		$usrgrps = $this->getUserGroupsData($db_user['userid']);
-
-		if ($usrgrps['users_status'] == GROUP_STATUS_DISABLED) {
-			self::exception(ZBX_API_ERROR_PARAMETERS, _('No permissions for system access.'));
+		if ($permissions['users_status'] == GROUP_STATUS_DISABLED) {
+			return ['error' => _('No permissions for system access.'), 'db_user' => $db_user];
 		}
 
-		$db_user['debug_mode'] = $usrgrps['debug_mode'];
-		$db_user['userip'] = $usrgrps['userip'];
-		$db_user['gui_access'] = $usrgrps['gui_access'];
+		return ['db_user' => $db_user, 'permissions' => $permissions];
+	}
+
+	/**
+	 * Adds extra fields to database user data.
+	 *
+	 * @param array  $db_user
+	 * @param array  $permissions
+	 * @param string $permissions['debug_mode']
+	 * @param string $permissions['gui_access']
+	 */
+	private function addExtraFields(array $db_user, array $permissions): array {
+		$db_user['type'] = $this->getUserType($db_user['roleid']);
+		$db_user['userip'] = CWebUser::getIp();
+
+		$db_user['debug_mode'] = $permissions['debug_mode'];
+		$db_user['gui_access'] = $permissions['gui_access'];
 
 		if ($db_user['lang'] === LANG_DEFAULT) {
 			$db_user['lang'] = CSettingsHelper::getGlobal(CSettingsHelper::DEFAULT_LANG);
 		}
+
 		if ($db_user['timezone'] === TIMEZONE_DEFAULT) {
 			$db_user['timezone'] = CSettingsHelper::getGlobal(CSettingsHelper::DEFAULT_TIMEZONE);
 		}
-		if ($db_user['timezone'] !== ZBX_DEFAULT_TIMEZONE) {
-			date_default_timezone_set($db_user['timezone']);
-		}
 
 		return $db_user;
+	}
+
+	/**
+	 * Sets the default user timezone used by all date/time functions.
+	 *
+	 * @param string $timezone
+	 */
+	private function setTimezone(string $timezone): void {
+		if ($timezone !== ZBX_DEFAULT_TIMEZONE) {
+			date_default_timezone_set($timezone);
+		}
+	}
+
+	/**
+	 * Function to validate if password meets password policy requirements.
+	 *
+	 * @param array  $user
+	 * @param string $user['username']  (optional)
+	 * @param string $user['name']      (optional)
+	 * @param string $user['surname']   (optional)
+	 * @param string $user['passwd']
+	 * @param string $path              Password field path to display error message.
+	 *
+	 * @throws APIException if the input is invalid.
+	 *
+	 * @return bool
+	 */
+	private function checkPassword(array $user, string $path): bool {
+		$context_data = array_filter(array_intersect_key($user, array_flip(['username', 'name', 'surname'])));
+		$passwd_validator = new CPasswordComplexityValidator([
+			'passwd_min_length' => CAuthenticationHelper::get(CAuthenticationHelper::PASSWD_MIN_LENGTH),
+			'passwd_check_rules' => CAuthenticationHelper::get(CAuthenticationHelper::PASSWD_CHECK_RULES)
+		]);
+		$passwd_validator->setContextData($context_data);
+
+		if ($passwd_validator->validate($user['passwd']) === false) {
+			self::exception(ZBX_API_ERROR_PARAMETERS,
+				_s('Incorrect value for field "%1$s": %2$s.', $path, $passwd_validator->getError())
+			);
+		}
+
+		return true;
 	}
 }

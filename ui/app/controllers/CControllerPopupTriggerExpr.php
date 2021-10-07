@@ -28,6 +28,7 @@ class CControllerPopupTriggerExpr extends CController {
 	private $param1Str = [];
 	private $param2SecCount = [];
 	private $param2SecMode = [];
+	private $param2SecCountMode = [];
 	private $param3SecVal = [];
 	private $param_find = [];
 	private $param3SecPercent = [];
@@ -132,6 +133,25 @@ class CControllerPopupTriggerExpr extends CController {
 				'C' => _('Last of').' (T)',
 				'T' => T_ZBX_INT,
 				'A' => true
+			],
+			'mode' => [
+				'C' => 'Mode',
+				'T' => T_ZBX_STR,
+				'A' => false
+			]
+		];
+
+		$this->param2SecCountMode = [
+			'last' => [
+				'C' => _('Last of').' (T)',
+				'T' => T_ZBX_INT,
+				'M' => $this->metrics,
+				'A' => true
+			],
+			'shift' => [
+				'C' => _('Time shift'),
+				'T' => T_ZBX_INT,
+				'A' => false
 			],
 			'mode' => [
 				'C' => 'Mode',
@@ -758,6 +778,20 @@ class CControllerPopupTriggerExpr extends CController {
 				'allowed_types' => $this->allowedTypesNumeric,
 				'operators' => $this->operators
 			],
+			'monodec' => [
+				'types' => [ZBX_FUNCTION_TYPE_HISTORY],
+				'description' => _('monodec() - Check for continuous item value decrease (1 - data is monotonic, 0 - otherwise), Mode (strict - require strict monotonicity)'),
+				'params' => $this->param2SecCountMode,
+				'allowed_types' => $this->allowedTypesNumeric,
+				'operators' => ['=', '<>']
+			],
+			'monoinc' => [
+				'types' => [ZBX_FUNCTION_TYPE_HISTORY],
+				'description' => _('monoinc() - Check for continuous item value increase (1 - data is monotonic, 0 - otherwise), Mode (strict - require strict monotonicity)'),
+				'params' => $this->param2SecCountMode,
+				'allowed_types' => $this->allowedTypesNumeric,
+				'operators' => ['=', '<>']
+			],
 			'nodata' => [
 				'types' => [ZBX_FUNCTION_TYPE_HISTORY],
 				'description' => _('nodata() - No data received during period of time T (1 - true, 0 - false), Mode (strict - ignore proxy time delay in sending data)'),
@@ -1084,8 +1118,12 @@ class CControllerPopupTriggerExpr extends CController {
 	}
 
 	protected function doAction() {
-		$expression_parser = new CExpressionParser(['lldmacros' => true]);
-		$expression_validator = new CExpressionValidator(['partial' => true]);
+		$expression_parser = new CExpressionParser(['usermacros' => true, 'lldmacros' => true]);
+		$expression_validator = new CExpressionValidator([
+			'usermacros' => true,
+			'lldmacros' => true,
+			'partial' => true
+		]);
 
 		$itemid = $this->getInput('itemid', 0);
 		$function = $this->getInput('function', 'last');

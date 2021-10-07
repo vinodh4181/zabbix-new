@@ -548,7 +548,7 @@ class CHostGroup extends CApiService {
 		$this->inheritRights($groups);
 		$this->inheritTagFilters($groups);
 
-		$this->addAuditBulk(AUDIT_ACTION_ADD, AUDIT_RESOURCE_HOST_GROUP, $groups);
+		$this->addAuditBulk(CAudit::ACTION_ADD, CAudit::RESOURCE_HOST_GROUP, $groups);
 
 		return ['groupids' => $groupids];
 	}
@@ -576,7 +576,7 @@ class CHostGroup extends CApiService {
 
 		DB::update('hstgrp', $upd_groups);
 
-		$this->addAuditBulk(AUDIT_ACTION_UPDATE, AUDIT_RESOURCE_HOST_GROUP, $groups, $db_groups);
+		$this->addAuditBulk(CAudit::ACTION_UPDATE, CAudit::RESOURCE_HOST_GROUP, $groups, $db_groups);
 
 		return ['groupids' => zbx_objectValues($groups, 'groupid')];
 	}
@@ -683,7 +683,7 @@ class CHostGroup extends CApiService {
 
 		DB::delete('hstgrp', ['groupid' => $groupids]);
 
-		$this->addAuditBulk(AUDIT_ACTION_DELETE, AUDIT_RESOURCE_HOST_GROUP, $db_groups);
+		$this->addAuditBulk(CAudit::ACTION_DELETE, CAudit::RESOURCE_HOST_GROUP, $db_groups);
 
 		return ['groupids' => $groupids];
 	}
@@ -792,7 +792,7 @@ class CHostGroup extends CApiService {
 			}
 			if ($db_groups[$groupid]['internal'] == ZBX_INTERNAL_GROUP) {
 				self::exception(ZBX_API_ERROR_PARAMETERS,
-					_s('Host group "%1$s" is internal and can not be deleted.', $db_groups[$groupid]['name'])
+					_s('Host group "%1$s" is internal and cannot be deleted.', $db_groups[$groupid]['name'])
 				);
 			}
 		}

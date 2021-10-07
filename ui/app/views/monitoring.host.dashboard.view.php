@@ -38,6 +38,7 @@ if (array_key_exists('no_data', $data)) {
 
 $this->addJsFile('flickerfreescreen.js');
 $this->addJsFile('gtlc.js');
+$this->addJsFile('class.calendar.js');
 $this->addJsFile('class.dashboard.js');
 $this->addJsFile('class.dashboard.page.js');
 $this->addJsFile('class.dashboard.widget.placeholder.js');
@@ -108,7 +109,7 @@ $widget = (new CWidget())
 				->addItem(
 					(new CSimpleButton(null))
 						->addClass(ZBX_STYLE_BTN_DASHBOARD_KIOSKMODE_NEXT_PAGE)
-						->setTitle(_('Previous page'))
+						->setTitle(_('Next page'))
 				)
 			: null
 	)
@@ -126,7 +127,7 @@ $widget = (new CWidget())
 
 if ($data['has_time_selector']) {
 	$widget->addItem(
-		(new CFilter(new CUrl()))
+		(new CFilter())
 			->setProfile($data['time_period']['profileIdx'], $data['time_period']['profileIdx2'])
 			->setActiveTab($data['active_tab'])
 			->addTimeSelector($data['time_period']['from'], $data['time_period']['to'],
@@ -183,13 +184,13 @@ if (count($data['dashboard']['pages']) > 1
 		->show();
 
 	(new CScriptTag('
-		initializeView(
-			'.json_encode($data['host']).',
-			'.json_encode($data['dashboard']).',
-			'.json_encode($data['widget_defaults']).',
-			'.json_encode($data['time_period']).',
-			'.json_encode($web_layout_mode).'
-		);
+		view.init('.json_encode([
+			'host' => $data['host'],
+			'dashboard' => $data['dashboard'],
+			'widget_defaults' => $data['widget_defaults'],
+			'time_period' => $data['time_period'],
+			'web_layout_mode' => $web_layout_mode
+		]).');
 	'))
 		->setOnDocumentReady()
 		->show();

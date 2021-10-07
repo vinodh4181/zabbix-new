@@ -47,19 +47,21 @@ type FsStats struct {
 }
 
 type FsInfo struct {
-	FsName    *string  `json:"{#FSNAME},omitempty"`
-	FsType    *string  `json:"{#FSTYPE},omitempty"`
-	DriveType *string  `json:"{#FSDRIVETYPE},omitempty"`
-	Bytes     *FsStats `json:"bytes,omitempty"`
-	Inodes    *FsStats `json:"inodes,omitempty"`
+	FsName     *string  `json:"{#FSNAME},omitempty"`
+	FsType     *string  `json:"{#FSTYPE},omitempty"`
+	DriveLabel *string  `json:"{#FSLABEL},omitempty"`
+	DriveType  *string  `json:"{#FSDRIVETYPE},omitempty"`
+	Bytes      *FsStats `json:"bytes,omitempty"`
+	Inodes     *FsStats `json:"inodes,omitempty"`
 }
 
 type FsInfoNew struct {
-	FsName    *string  `json:"fsname,omitempty"`
-	FsType    *string  `json:"fstype,omitempty"`
-	DriveType *string  `json:"fsdrivetype,omitempty"`
-	Bytes     *FsStats `json:"bytes,omitempty"`
-	Inodes    *FsStats `json:"inodes,omitempty"`
+	FsName     *string  `json:"fsname,omitempty"`
+	FsType     *string  `json:"fstype,omitempty"`
+	DriveLabel *string  `json:"fslabel,omitempty"`
+	DriveType  *string  `json:"fsdrivetype,omitempty"`
+	Bytes      *FsStats `json:"bytes,omitempty"`
+	Inodes     *FsStats `json:"inodes,omitempty"`
 }
 
 type Plugin struct {
@@ -121,8 +123,12 @@ func (p *Plugin) export(params []string, getStats func(string) (*FsStats, error)
 			return nil, errors.New("Invalid second parameter.")
 		}
 	}
+
+	fsCaller := p.newFSCaller(getStats, 1)
+	defer fsCaller.close()
+
 	var stats *FsStats
-	if stats, err = getStats(params[0]); err != nil {
+	if stats, err = fsCaller.run(params[0]); err != nil {
 		return
 	}
 

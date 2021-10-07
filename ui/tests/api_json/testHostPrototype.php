@@ -55,7 +55,7 @@ class testHostPrototype extends CAPITest {
 				],
 				'expected_error' => null
 			],
-			'inherit interfaces wiht empty interfaces' => [
+			'inherit interfaces with empty interfaces' => [
 				'request' => [
 					[
 						'ruleid' => 40066,
@@ -800,7 +800,7 @@ class testHostPrototype extends CAPITest {
 
 	/**
 	 * @dataProvider hostprototype_update_interfaces_data
-	 * @on-after after_update_interfaces
+	 * @onAfter after_update_interfaces
 	 */
 	public function testHostPrototype_Update_Interfaces($create_interfaces, $update_interfaces, $expected_error) {
 		$host_prototype = $this->call('hostprototype.create', [

@@ -111,8 +111,15 @@ abstract class CTriggerGeneral extends CApiService {
 			$this->getHostTriggersByDescription($tpl_triggers_by_description)
 		);
 
-		$expression_parser = new CExpressionParser(['lldmacros' => $this instanceof CTriggerPrototype]);
-		$recovery_expression_parser = new CExpressionParser(['lldmacros' => $this instanceof CTriggerPrototype]);
+		$expression_parser = new CExpressionParser([
+			'usermacros' => true,
+			'lldmacros' => $this instanceof CTriggerPrototype
+		]);
+
+		$recovery_expression_parser = new CExpressionParser([
+			'usermacros' => true,
+			'lldmacros' => $this instanceof CTriggerPrototype
+		]);
 
 		// List of triggers to check for duplicates. Grouped by description.
 		$descriptions = [];
@@ -386,8 +393,15 @@ abstract class CTriggerGeneral extends CApiService {
 	private function getHostTriggersByDescription(array $tpl_triggers_by_description) {
 		$chd_triggers_description = [];
 
-		$expression_parser = new CExpressionParser(['lldmacros' => $this instanceof CTriggerPrototype]);
-		$recovery_expression_parser = new CExpressionParser(['lldmacros' => $this instanceof CTriggerPrototype]);
+		$expression_parser = new CExpressionParser([
+			'usermacros' => true,
+			'lldmacros' => $this instanceof CTriggerPrototype
+		]);
+
+		$recovery_expression_parser = new CExpressionParser([
+			'usermacros' => true,
+			'lldmacros' => $this instanceof CTriggerPrototype
+		]);
 
 		$output = 't.triggerid,t.expression,t.description,t.url,t.status,t.priority,t.comments,t.type,t.recovery_mode,'.
 			't.recovery_expression,t.correlation_mode,t.correlation_tag,t.manual_close,t.opdata,t.event_name,i.hostid,'.
@@ -533,7 +547,10 @@ abstract class CTriggerGeneral extends CApiService {
 	 * @return array
 	 */
 	protected function populateHostIds($descriptions) {
-		$expression_parser = new CExpressionParser(['lldmacros' => $this instanceof CTriggerPrototype]);
+		$expression_parser = new CExpressionParser([
+			'usermacros' => true,
+			'lldmacros' => $this instanceof CTriggerPrototype
+		]);
 
 		$hosts = [];
 
@@ -547,7 +564,7 @@ abstract class CTriggerGeneral extends CApiService {
 		$db_hosts = DBselect(
 			'SELECT h.hostid,h.host,h.status'.
 			' FROM hosts h'.
-			' WHERE '.dbConditionInt('h.host', array_keys($hosts)).
+			' WHERE '.dbConditionString('h.host', array_keys($hosts)).
 				' AND '.dbConditionInt('h.status',
 					[HOST_STATUS_MONITORED, HOST_STATUS_NOT_MONITORED, HOST_STATUS_TEMPLATE]
 				)
@@ -1130,21 +1147,6 @@ abstract class CTriggerGeneral extends CApiService {
 	 * @throws APIException
 	 */
 	protected function createReal(array &$triggers, $inherited = false) {
-		$class = get_class($this);
-
-		switch ($class) {
-			case 'CTrigger':
-				$resource = AUDIT_RESOURCE_TRIGGER;
-				break;
-
-			case 'CTriggerPrototype':
-				$resource = AUDIT_RESOURCE_TRIGGER_PROTOTYPE;
-				break;
-
-			default:
-				self::exception(ZBX_API_ERROR_INTERNAL, _('Internal error.'));
-		}
-
 		$new_triggers = $triggers;
 		$new_functions = [];
 		$triggers_functions = [];
@@ -1162,7 +1164,7 @@ abstract class CTriggerGeneral extends CApiService {
 				$new_functions[] = $trigger_function;
 			}
 
-			if ($class === 'CTriggerPrototype') {
+			if ($this instanceof CTriggerPrototype) {
 				$new_trigger['flags'] = ZBX_FLAG_DISCOVERY_PROTOTYPE;
 			}
 
@@ -1185,7 +1187,8 @@ abstract class CTriggerGeneral extends CApiService {
 		}
 
 		if (!$inherited) {
-			$this->addAuditBulk(AUDIT_ACTION_ADD, $resource, $triggers);
+			$resource = ($this instanceof CTrigger) ? CAudit::RESOURCE_TRIGGER : CAudit::RESOURCE_TRIGGER_PROTOTYPE;
+			$this->addAuditBulk(CAudit::ACTION_ADD, $resource, $triggers);
 		}
 	}
 
@@ -1235,21 +1238,6 @@ abstract class CTriggerGeneral extends CApiService {
 	 * @throws APIException
 	 */
 	protected function updateReal(array $triggers, array $db_triggers, $inherited = false) {
-		$class = get_class($this);
-
-		switch ($class) {
-			case 'CTrigger':
-				$resource = AUDIT_RESOURCE_TRIGGER;
-				break;
-
-			case 'CTriggerPrototype':
-				$resource = AUDIT_RESOURCE_TRIGGER_PROTOTYPE;
-				break;
-
-			default:
-				self::exception(ZBX_API_ERROR_INTERNAL, _('Internal error.'));
-		}
-
 		$upd_triggers = [];
 		$new_functions = [];
 		$del_functions_triggerids = [];
@@ -1258,11 +1246,6 @@ abstract class CTriggerGeneral extends CApiService {
 		$del_triggertagids = [];
 		$save_triggers = $triggers;
 		$this->implode_expressions($triggers, $db_triggers, $triggers_functions, $inherited);
-
-		if ($class === 'CTrigger') {
-			// The list of the triggers with changed priority.
-			$changed_priority_triggerids = [];
-		}
 
 		foreach ($triggers as $tnum => $trigger) {
 			$db_trigger = $db_triggers[$tnum];
@@ -1301,16 +1284,12 @@ abstract class CTriggerGeneral extends CApiService {
 			if (array_key_exists('status', $trigger) && $trigger['status'] != $db_trigger['status']) {
 				$upd_trigger['values']['status'] = $trigger['status'];
 			}
-			if ($class === 'CTriggerPrototype'
+			if ($this instanceof CTriggerPrototype
 					&& array_key_exists('discover', $trigger) && $trigger['discover'] != $db_trigger['discover']) {
 				$upd_trigger['values']['discover'] = $trigger['discover'];
 			}
 			if (array_key_exists('priority', $trigger) && $trigger['priority'] != $db_trigger['priority']) {
 				$upd_trigger['values']['priority'] = $trigger['priority'];
-
-				if ($class === 'CTrigger') {
-					$changed_priority_triggerids[] = $trigger['triggerid'];
-				}
 			}
 			if (array_key_exists('comments', $trigger) && $trigger['comments'] !== $db_trigger['comments']) {
 				$upd_trigger['values']['comments'] = $trigger['comments'];
@@ -1380,13 +1359,9 @@ abstract class CTriggerGeneral extends CApiService {
 			DB::insert('trigger_tag', $new_tags);
 		}
 
-		if ($class === 'CTrigger' && $changed_priority_triggerids
-				&& CTriggerManager::usedInItServices($changed_priority_triggerids)) {
-			updateItServices();
-		}
-
 		if (!$inherited) {
-			$this->addAuditBulk(AUDIT_ACTION_UPDATE, $resource, $save_triggers, zbx_toHash($db_triggers, 'triggerid'));
+			$resource = ($this instanceof CTrigger) ? CAudit::RESOURCE_TRIGGER : CAudit::RESOURCE_TRIGGER_PROTOTYPE;
+			$this->addAuditBulk(CAudit::ACTION_UPDATE, $resource, $save_triggers, zbx_toHash($db_triggers, 'triggerid'));
 		}
 	}
 
@@ -1426,13 +1401,13 @@ abstract class CTriggerGeneral extends CApiService {
 
 		switch ($class) {
 			case 'CTrigger':
-				$expression_parser = new CExpressionParser();
+				$expression_parser = new CExpressionParser(['usermacros' => true]);
 				$error_wrong_host = _('Incorrect trigger expression. Host "%1$s" does not exist or you have no access to this host.');
 				$error_host_and_template = _('Incorrect trigger expression. Trigger expression elements should not belong to a template and a host simultaneously.');
 				break;
 
 			case 'CTriggerPrototype':
-				$expression_parser = new CExpressionParser(['lldmacros' => true]);
+				$expression_parser = new CExpressionParser(['usermacros' => true, 'lldmacros' => true]);
 				$error_wrong_host = _('Incorrect trigger prototype expression. Host "%1$s" does not exist or you have no access to this host.');
 				$error_host_and_template = _('Incorrect trigger prototype expression. Trigger prototype expression elements should not belong to a template and a host simultaneously.');
 				break;

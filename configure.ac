@@ -19,7 +19,7 @@ dnl
 
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT([Zabbix],[6.0.0alpha1])
+AC_INIT([Zabbix],[6.0.0alpha5])
 AC_CONFIG_SRCDIR(src/zabbix_server/server.c)
 AM_INIT_AUTOMAKE([subdir-objects filename-length-max=99])
 
@@ -1212,7 +1212,7 @@ if test "x$ARCH" = "xsolaris"; then
 	AC_MSG_RESULT(yes),
 	CFLAGS="$saved_CFLAGS"
 	AC_MSG_RESULT(no))
-	CFLAGS="${CFLAGS} -DDUK_F_OLD_SOLARIS"
+	CFLAGS="${CFLAGS} -DZBX_OLD_SOLARIS"
 fi
 
 if test "x$ARCH" = "xhpux"; then
@@ -2069,6 +2069,9 @@ AC_OUTPUT([
 	src/libs/zbxdiag/Makefile
 	src/libs/zbxtrends/Makefile
 	src/libs/zbxavailability/Makefile
+	src/libs/zbxaudit/Makefile
+	src/libs/zbxservice/Makefile
+	src/libs/zbxxml/Makefile
 	src/zabbix_agent/Makefile
 	src/zabbix_agent/logfiles/Makefile
 	src/zabbix_get/Makefile
@@ -2096,6 +2099,7 @@ AC_OUTPUT([
 	src/zabbix_server/scripts/Makefile
 	src/zabbix_server/preprocessor/Makefile
 	src/zabbix_server/availability/Makefile
+	src/zabbix_server/service/Makefile
 	src/zabbix_server/lld/Makefile
 	src/zabbix_server/reporter/Makefile
 	src/zabbix_proxy/Makefile

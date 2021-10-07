@@ -502,7 +502,7 @@ class CCorrelation extends CApiService {
 
 		DB::delete('correlation', ['correlationid' => $correlationids]);
 
-		$this->addAuditBulk(AUDIT_ACTION_DELETE, AUDIT_RESOURCE_CORRELATION, $db_correlations);
+		$this->addAuditBulk(CAudit::ACTION_DELETE, CAudit::RESOURCE_CORRELATION, $db_correlations);
 
 		return ['correlationids' => $correlationids];
 	}
@@ -1188,7 +1188,7 @@ class CCorrelation extends CApiService {
 
 		if (count($conditions) != count(array_unique($conditions, SORT_REGULAR))) {
 			self::exception(ZBX_API_ERROR_PARAMETERS,
-				_s('Conditions duplicates for correlation "%1$s".', $correlation['name'])
+				_s('Duplicate conditions for correlation "%1$s".', $correlation['name'])
 			);
 		}
 

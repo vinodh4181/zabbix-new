@@ -24,7 +24,7 @@ require_once dirname(__FILE__).'/../include/helpers/CDataHelper.php';
 /**
  * @backup token
  *
- * @on-before prepareUserTokenData
+ * @onBefore prepareUserTokenData
  */
 class testFormApiTokensUserSettings extends testFormApiTokens {
 
@@ -32,8 +32,6 @@ class testFormApiTokensUserSettings extends testFormApiTokens {
 	 * Function creates the given API tokens in the test branch.
 	 */
 	public static function prepareUserTokenData() {
-		CDataHelper::setSessionId(null);
-
 		$response = CDataHelper::call('token.create', [
 			[
 				'name' => 'Admin reference token',
@@ -208,14 +206,14 @@ class testFormApiTokensUserSettings extends testFormApiTokens {
 	}
 
 	/**
-	 * @on-before-once getTokenId
+	 * @onBeforeOnce getTokenId
 	 */
 	public function testFormApiTokensUserSettings_RegenerationFormLayout() {
 		$this->checkTokensRegenerateFormLayout('user settings');
 	}
 
 	/**
-	 * @backup-once token
+	 * @backupOnce token
 	 *
 	 * @dataProvider getTokenData
 	 */
@@ -224,9 +222,9 @@ class testFormApiTokensUserSettings extends testFormApiTokens {
 	}
 
 	/**
-	 * @backup-once token
+	 * @backupOnce token
 	 *
-	 * @on-before-once getTokenId
+	 * @onBeforeOnce getTokenId
 	 *
 	 * @dataProvider getTokenData
 	 */
@@ -235,14 +233,14 @@ class testFormApiTokensUserSettings extends testFormApiTokens {
 	}
 
 	/**
-	 * @on-before-once getTokenId
+	 * @onBeforeOnce getTokenId
 	 */
 	public function testFormApiTokensUserSettings_SimpleUpdate() {
 		$this->checkTokenSimpleUpdate('zabbix.php?action=user.token.edit&tokenid='.self::$tokenid);
 	}
 
 	/**
-	 * @on-before-once getTokenId
+	 * @onBeforeOnce getTokenId
 	 */
 	public function testFormApiTokensUserSettings_Cancel() {
 		$this->checkTokenCancel('zabbix.php?action=user.token.edit');
@@ -255,7 +253,7 @@ class testFormApiTokensUserSettings extends testFormApiTokens {
 	}
 
 	/**
-	 * @on-before-once getTokenId
+	 * @onBeforeOnce getTokenId
 	 */
 	public function testFormApiTokensUserSettings_Regenerate() {
 		$data = [

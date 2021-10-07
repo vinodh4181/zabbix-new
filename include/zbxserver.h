@@ -44,7 +44,7 @@
 #define MACRO_TYPE_ALERT		0x00010000
 #define MACRO_TYPE_TRIGGER_TAG		0x00020000
 #define MACRO_TYPE_JMX_ENDPOINT		0x00040000
-#define MACRO_TYPE_MESSAGE_ACK		0x00080000
+#define MACRO_TYPE_MESSAGE_UPDATE	0x00080000
 #define MACRO_TYPE_HTTP_RAW		0x00100000
 #define MACRO_TYPE_HTTP_JSON		0x00200000
 #define MACRO_TYPE_HTTP_XML		0x00400000
@@ -61,8 +61,6 @@
 
 #define STR_CONTAINS_MACROS(str)	(NULL != strchr(str, '{'))
 
-int	evaluate_function(char **value, DC_ITEM *item, const char *function, const char *parameter,
-		const zbx_timespec_t *ts, char **error);
 int	evaluate_function2(zbx_variant_t *value, DC_ITEM *item, const char *function, const char *parameter,
 		const zbx_timespec_t *ts, char **error);
 
@@ -70,13 +68,13 @@ int	zbx_is_trigger_function(const char *name, size_t len);
 
 int	substitute_simple_macros(const zbx_uint64_t *actionid, const DB_EVENT *event, const DB_EVENT *r_event,
 		const zbx_uint64_t *userid, const zbx_uint64_t *hostid, const DC_HOST *dc_host, const DC_ITEM *dc_item,
-		const DB_ALERT *alert, const DB_ACKNOWLEDGE *ack, const char *tz, char **data, int macro_type,
-		char *error, int maxerrlen);
+		const DB_ALERT *alert, const DB_ACKNOWLEDGE *ack, const zbx_service_alarm_t *service_alarm,
+		const DB_SERVICE *service, const char *tz, char **data, int macro_type, char *error, int maxerrlen);
 
 int	substitute_simple_macros_unmasked(const zbx_uint64_t *actionid, const DB_EVENT *event, const DB_EVENT *r_event,
 		const zbx_uint64_t *userid, const zbx_uint64_t *hostid, const DC_HOST *dc_host, const DC_ITEM *dc_item,
-		const DB_ALERT *alert, const DB_ACKNOWLEDGE *ack, const char *tz, char **data, int macro_type,
-		char *error, int maxerrlen);
+		const DB_ALERT *alert, const DB_ACKNOWLEDGE *ack, const zbx_service_alarm_t *service_alarm,
+		const DB_SERVICE *service, const char *tz, char **data, int macro_type, char *error, int maxerrlen);
 
 void	evaluate_expressions(zbx_vector_ptr_t *triggers, const zbx_vector_uint64_t *history_itemids,
 		const DC_ITEM *history_items, const int *history_errcodes);
@@ -125,7 +123,6 @@ int	zbx_expression_eval_execute(zbx_expression_eval_t *eval, const zbx_timespec_
 #define ZBX_MACRO_ANY		(ZBX_TOKEN_LLD_MACRO | ZBX_TOKEN_LLD_FUNC_MACRO | ZBX_TOKEN_USER_MACRO)
 #define ZBX_MACRO_JSON		(ZBX_MACRO_ANY | ZBX_TOKEN_JSON)
 #define ZBX_MACRO_XML		(ZBX_MACRO_ANY | ZBX_TOKEN_XML)
-#define ZBX_MACRO_SIMPLE	(ZBX_MACRO_ANY | ZBX_TOKEN_SIMPLE_MACRO)
 #define ZBX_MACRO_FUNC		(ZBX_MACRO_ANY | ZBX_TOKEN_FUNC_MACRO)
 
 int	substitute_lld_macros(char **data, const struct zbx_json_parse *jp_row, const zbx_vector_ptr_t *lld_macro_paths,

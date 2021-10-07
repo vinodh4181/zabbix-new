@@ -502,6 +502,14 @@ class CTrigger extends CTriggerGeneral {
 
 		$result = $this->unsetExtraFields($result, ['state', 'expression'], $options['output']);
 
+		// Triggers share table with trigger prototypes. Therefore remove trigger unrelated fields.
+		if ($this->outputIsRequested('discover', $options['output'])) {
+			foreach ($result as &$row) {
+				unset($row['discover']);
+			}
+			unset($row);
+		}
+
 		return $result;
 	}
 
@@ -609,7 +617,7 @@ class CTrigger extends CTriggerGeneral {
 
 		CTriggerManager::delete($triggerids);
 
-		$this->addAuditBulk(AUDIT_ACTION_DELETE, AUDIT_RESOURCE_TRIGGER, $db_triggers);
+		$this->addAuditBulk(CAudit::ACTION_DELETE, CAudit::RESOURCE_TRIGGER, $db_triggers);
 
 		return ['triggerids' => $triggerids];
 	}

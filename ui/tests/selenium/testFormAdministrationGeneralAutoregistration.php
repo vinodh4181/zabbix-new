@@ -87,10 +87,15 @@ class testFormAdministrationGeneralAutoregistration extends CWebTest {
 						'Action' => 'Update',
 						'ID' => 1,
 						'Details' => [
-							'config.tls_accept: 1 => 2',
-							'config.tls_psk_identity: ****** => ******',
-							'config.tls_psk: ****** => ******'
+							'Details',
+							'autoregistration.tls_accept: 1 => 2',
+							'autoregistration.tls_psk: ****** => ******'
 						]
+					],
+					'detail_button' => [
+						'autoregistration.tls_accept: 1 => 2',
+						'autoregistration.tls_psk: ****** => ******',
+						'autoregistration.tls_psk_identity: ****** => ******'
 					]
 				]
 			],
@@ -105,7 +110,7 @@ class testFormAdministrationGeneralAutoregistration extends CWebTest {
 						'Resource' => 'Autoregistration',
 						'Action' => 'Update',
 						'ID' => 1,
-						'Details' => ['config.tls_accept: 2 => 3']
+						'Details' => ['autoregistration.tls_accept: 2 => 3']
 					]
 				]
 			],
@@ -121,10 +126,15 @@ class testFormAdministrationGeneralAutoregistration extends CWebTest {
 						'Action' => 'Update',
 						'ID' => 1,
 						'Details' => [
-							'config.tls_accept: 3 => 1',
-							'config.tls_psk_identity: ****** => ******',
-							'config.tls_psk: ****** => ******'
+							'Details',
+							'autoregistration.tls_accept: 3 => 1',
+							'autoregistration.tls_psk: ****** => ******'
 						]
+					],
+					'detail_button' => [
+						'autoregistration.tls_accept: 3 => 1',
+						'autoregistration.tls_psk: ****** => ******',
+						'autoregistration.tls_psk_identity: ****** => ******'
 					]
 				]
 			]
@@ -133,7 +143,7 @@ class testFormAdministrationGeneralAutoregistration extends CWebTest {
 
 	/**
 	 * @dataProvider getAuditReportData
-	 * @backup-once config
+	 * @backupOnce config
 	 *
 	 * Check record on Audit report page, after updating autoregistration.
 	 */
@@ -163,6 +173,13 @@ class testFormAdministrationGeneralAutoregistration extends CWebTest {
 				sort($value);
 			}
 			$this->assertEquals($value, $text);
+		}
+		if (array_key_exists('detail_button', $data)) {
+			$row->getColumn('Details')->query('link:Details')->one()->click();
+			$details = COverlayDialogElement::find()->waitUntilVisible()->one();
+			$details_text = explode("\n", $details->query('xpath://textarea')->one()->getText());
+			sort($details_text);
+			$this->assertEquals($details_text, $data['detail_button']);
 		}
 	}
 
@@ -266,7 +283,7 @@ class testFormAdministrationGeneralAutoregistration extends CWebTest {
 
 	/**
 	 * @dataProvider getAutoregistrationValidationData
-	 * @backup-once config
+	 * @backupOnce config
 	 *
 	 * Check autoregistration validation on first update.
 	 */
@@ -436,7 +453,7 @@ class testFormAdministrationGeneralAutoregistration extends CWebTest {
 	/**
 	 * @dataProvider getAutoregistrationValidationData
 	 * @depends testFormAdministrationGeneralAutoregistration_AddPskEncryption
-	 * @backup-once config
+	 * @backupOnce config
 	 *
 	 * Check autoregistration validation, when change PSK values.
 	 */

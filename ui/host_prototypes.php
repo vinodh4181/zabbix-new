@@ -167,14 +167,12 @@ elseif (isset($_REQUEST['clone']) && isset($_REQUEST['hostid'])) {
 				: $value;
 		}, $macros);
 
-		$msg = [
-			'type' => 'error',
-			'message' => _('The cloned host prototype contains user defined macros with type "Secret text". The value and type of these macros were reset.'),
-			'source' => ''
-		];
-
-		echo makeMessageBox(false, [$msg], null, true, false)->addClass(ZBX_STYLE_MSG_WARNING);
+		warning(_('The cloned host prototype contains user defined macros with type "Secret text". The value and type of these macros were reset.'));
 	}
+
+	$macros = array_map(function($macro) {
+		return array_diff_key($macro, array_flip(['hostmacroid']));
+	}, $macros);
 
 	$_REQUEST['form'] = 'clone';
 }
@@ -218,7 +216,7 @@ elseif (hasRequest('add') || hasRequest('update')) {
 		$interfaces = getRequest('interfaces', []);
 
 		foreach ($interfaces as $key => $interface) {
-			// Proccess SNMP interface fields.
+			// Process SNMP interface fields.
 			if ($interface['type'] == INTERFACE_TYPE_SNMP) {
 				if (!array_key_exists('details', $interface)) {
 					$interface['details'] = [];
@@ -286,17 +284,6 @@ elseif (hasRequest('add') || hasRequest('update')) {
 				'groupid' => $groupId
 			];
 		}
-
-		/*
-		 * Sanitize macros array. When we clone, we have old hostmacroid.
-		 * We need delete them before we push array to API.
-		*/
-		foreach ($newHostPrototype['macros'] as &$macro) {
-			if (array_key_exists('hostmacroid', $macro)) {
-				unset($macro['hostmacroid']);
-			}
-		}
-		unset($macro);
 
 		$result = API::HostPrototype()->create($newHostPrototype);
 

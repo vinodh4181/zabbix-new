@@ -25,7 +25,7 @@ require_once dirname(__FILE__).'/../include/helpers/CDataHelper.php';
  * @backup token
  * @backup profiles
  *
- * @on-before prepareTokenData
+ * @onBefore prepareTokenData
  */
 class testPageApiTokensUserSettings extends testPageApiTokens {
 
@@ -35,8 +35,6 @@ class testPageApiTokensUserSettings extends testPageApiTokens {
 	const DELETE_TOKEN = 'Future token for admin';
 
 	public static function prepareTokenData() {
-		CDataHelper::setSessionId(null);
-
 		self::$timestamp = time() + 172800;
 
 		$response = CDataHelper::call('token.create', [
@@ -310,7 +308,7 @@ class testPageApiTokensUserSettings extends testPageApiTokens {
 	 * @dataProvider getSortData
 	 */
 	public function testPageApiTokensUserSettings_Sort($data) {
-		// Place $timestamp variable value in data provider as the data providers are formed before execution of on-before.
+		// Place $timestamp variable value in data provider as the data providers are formed before execution of onBefore.
 		if ($data['sort_field'] === 'Expires at') {
 			foreach ($data['expected'] as $i => $value) {
 				if ($value === '2 days in the future') {

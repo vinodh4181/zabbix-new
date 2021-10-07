@@ -739,7 +739,7 @@ function get_item_by_itemid($itemid) {
 	if ($db_items) {
 		return $db_items;
 	}
-	error(_s('No item with itemid="%1$s".', $itemid));
+	error(_s('No item with item ID "%1$s".', $itemid));
 	return false;
 }
 
@@ -1216,7 +1216,7 @@ function getDataOverview(?array $groupids, ?array $hostids, array $filter): arra
 	$has_hidden_hosts = (count($db_hosts) > $data_display_limit);
 	$db_hosts = array_slice($db_hosts, 0, $data_display_limit, true);
 
-	$data = array_slice($data, 0, $data_display_limit);
+	$data = array_slice($data, 0, $data_display_limit, true);
 	$items_left = $data_display_limit;
 	$itemids = [];
 	array_walk($data, function (array &$item_columns) use ($data_display_limit, &$itemids, &$items_left) {
@@ -1230,7 +1230,7 @@ function getDataOverview(?array $groupids, ?array $hostids, array $filter): arra
 		}
 
 		array_walk($item_columns, function (array &$item_column) use ($data_display_limit, &$itemids) {
-			$item_column = array_slice($item_column, 0, $data_display_limit);
+			$item_column = array_slice($item_column, 0, $data_display_limit, true);
 			$itemids += array_column($item_column, 'itemid', 'itemid');
 		});
 	});
@@ -1368,7 +1368,7 @@ function getItemDataOverviewCell(array $item, ?array $trigger = null): CCol {
 	$value = UNKNOWN_VALUE;
 
 	if ($trigger && $trigger['value'] == TRIGGER_VALUE_TRUE) {
-		$css = getSeverityStyle($trigger['priority']);
+		$css = CSeverityHelper::getStyle((int) $trigger['priority']);
 
 		if ($trigger['problem']['acknowledged'] == 1) {
 			$ack = [' ', (new CSpan())->addClass(ZBX_STYLE_ICON_ACKN)];
