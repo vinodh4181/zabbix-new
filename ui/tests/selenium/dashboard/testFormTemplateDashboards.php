@@ -567,13 +567,13 @@ class testFormTemplateDashboards extends CWebTest {
 	 */
 	public function testFormTemplateDashboards_SimpleUpdate() {
 		$sql = 'SELECT * FROM widget w INNER JOIN dashboard_page dp ON dp.dashboard_pageid=w.dashboard_pageid '.
-				'INNER JOIN dashboard d ON d.dashboardid=dp.dashboardid';
+				'INNER JOIN dashboard d ON d.dashboardid=dp.dashboardid ORDER BY w.widgetid';
 		$old_hash = CDBHelper::getHash($sql);
 
 		// TODO: delete this debug information when test failing is fixed.
 		echo (json_encode(CDBHelper::getAll(
 				'SELECT * FROM widget w INNER JOIN dashboard_page dp ON dp.dashboard_pageid=w.dashboard_pageid '.
-				'INNER JOIN dashboard d ON d.dashboardid=dp.dashboardid'
+				'INNER JOIN dashboard d ON d.dashboardid=dp.dashboardid ORDER BY w.widgetid'
 		), JSON_PRETTY_PRINT));
 
 		$this->page->login()->open('zabbix.php?action=template.dashboard.edit&dashboardid='.self::$dashboardid_with_widgets);
@@ -584,7 +584,7 @@ class testFormTemplateDashboards extends CWebTest {
 		// TODO: delete this debug information when test failing is fixed.
 		echo (json_encode(CDBHelper::getAll(
 				'SELECT * FROM widget w INNER JOIN dashboard_page dp ON dp.dashboard_pageid=w.dashboard_pageid '.
-				'INNER JOIN dashboard d ON d.dashboardid=dp.dashboardid'
+				'INNER JOIN dashboard d ON d.dashboardid=dp.dashboardid ORDER BY w.widgetid'
 		), JSON_PRETTY_PRINT));
 
 		$this->assertEquals($old_hash, CDBHelper::getHash($sql));
