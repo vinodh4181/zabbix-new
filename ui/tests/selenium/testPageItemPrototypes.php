@@ -67,7 +67,6 @@ class testPageItemPrototypes extends CLegacyWebTest {
 	 */
 	public function testPageItemPrototypes_SimpleDelete($data) {
 		$itemid = $data['itemid'];
-		$drule = $data['d_name'];
 
 		$this->zbxTestLogin('disc_prototypes.php?hostid='.$data['hostid'].'&parent_discoveryid='.$data['parent_itemid'].'&context=host');
 		$this->zbxTestCheckTitle('Configuration of item prototypes');
@@ -101,9 +100,7 @@ class testPageItemPrototypes extends CLegacyWebTest {
 	 * @backupOnce triggers
 	 */
 	public function testPageItemPrototypes_MassDelete($rule) {
-		$itemid = $rule['itemid'];
 		$druleid = $rule['parent_itemid'];
-		$drule = $rule['d_name'];
 		$hostid = $rule['hostid'];
 
 		$itemids = CDBHelper::getAll('select itemid from item_discovery where parent_itemid='.$druleid);

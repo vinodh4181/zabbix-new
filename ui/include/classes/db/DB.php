@@ -530,7 +530,7 @@ class DB {
 		}
 		unset($value);
 
-		foreach ($values as $key => &$row) {
+		foreach ($values as &$row) {
 			$row = array_merge($fields, $row);
 		}
 		unset($row);

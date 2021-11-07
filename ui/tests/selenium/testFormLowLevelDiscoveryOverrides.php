@@ -1728,9 +1728,9 @@ class testFormLowLevelDiscoveryOverrides extends CWebTest {
 					$override_overlay = $this->query('id:lldoverride_form')->waitUntilPresent()->asCheckboxForm()->one();
 
 					// Get Operations Table.
-					$operations_container = $override_overlay->getField('Operations')->asTable();
+					$override_overlay->getField('Operations')->asTable();
 
-					foreach (CTestArrayHelper::get($override, 'Operations', []) as $j => $operation) {
+					foreach (CTestArrayHelper::get($override, 'Operations', []) as $operation) {
 						$operation_action = CTestArrayHelper::get($operation, 'action', USER_ACTION_ADD);
 						// Preparing reference data for Operations.
 						switch ($operation_action) {

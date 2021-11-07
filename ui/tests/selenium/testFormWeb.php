@@ -1440,7 +1440,7 @@ class testFormWeb extends CLegacyWebTest {
 		if (isset($data['authentication'])) {
 			$this->zbxTestDropdownSelectWait('authentication', $data['authentication']);
 		}
-		$authentication = $this->zbxTestGetSelectedLabel('authentication');
+		$this->zbxTestGetSelectedLabel('authentication');
 
 		if (isset($data['http_user'])) {
 			$this->zbxTestInputTypeWait('http_user', $data['http_user']);
@@ -1450,7 +1450,6 @@ class testFormWeb extends CLegacyWebTest {
 			$this->zbxTestInputType('http_password', $data['http_password']);
 		}
 
-		$check = false;
 		if (isset($data['add_step'])) {
 			$this->zbxTestTabSwitchById('tab_stepTab' ,'Steps');
 			foreach($data['add_step'] as $item) {

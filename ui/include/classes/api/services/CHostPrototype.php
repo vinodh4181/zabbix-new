@@ -1309,7 +1309,7 @@ class CHostPrototype extends CHostBase {
 	protected function checkNotInherited(array $hostPrototypeIds) {
 		$query = DBSelect('SELECT hostid FROM hosts h WHERE h.templateid>0 AND '.dbConditionInt('h.hostid', $hostPrototypeIds), 1);
 
-		if ($hostPrototype = DBfetch($query)) {
+		if (DBfetch($query)) {
 			self::exception(ZBX_API_ERROR_PERMISSIONS, _('Cannot delete templated host prototype.'));
 		}
 	}

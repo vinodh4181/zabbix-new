@@ -117,7 +117,7 @@ function unset_not_in_list(&$fields) {
 
 function unset_if_zero($fields) {
 	foreach ($fields as $field => $checks) {
-		list($type, $opt, $flags, $validation, $exception) = $checks;
+		list(,, $flags,,) = $checks;
 
 		if ($flags&P_NZERO && isset($_REQUEST[$field]) && is_numeric($_REQUEST[$field]) && $_REQUEST[$field] == 0) {
 			unset_request($field);
@@ -127,7 +127,7 @@ function unset_if_zero($fields) {
 
 function unset_action_vars($fields) {
 	foreach ($fields as $field => $checks) {
-		list($type, $opt, $flags, $validation, $exception) = $checks;
+		list(,, $flags,,) = $checks;
 
 		if ($flags&P_ACT && isset($_REQUEST[$field])) {
 			unset_request($field);

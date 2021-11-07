@@ -71,7 +71,7 @@ function check_perm2system($userid) {
 			' WHERE ug.userid='.zbx_dbstr($userid).
 				' AND g.usrgrpid=ug.usrgrpid'.
 				' AND g.users_status='.GROUP_STATUS_DISABLED;
-	if ($res = DBfetch(DBselect($sql, 1))) {
+	if (DBfetch(DBselect($sql, 1))) {
 		return false;
 	}
 	return true;
@@ -145,7 +145,7 @@ function get_accessible_hosts_by_rights(&$rights, $user_type, $perm) {
 	$result = [];
 	$res_perm = [];
 
-	foreach ($rights as $id => $right) {
+	foreach ($rights as $right) {
 		$res_perm[$right['id']] = $right['permission'];
 	}
 

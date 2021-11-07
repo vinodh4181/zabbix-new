@@ -533,7 +533,7 @@ class testFormHostPrototype extends CLegacyWebTest {
 			$this->zbxTestAssertElementPresentXpath('//a[contains(@href, "form") and text()="'.$data['name'].'"]');
 		}
 
-		$hostid = CDBHelper::getValue('SELECT hostid FROM hosts WHERE host='.zbx_dbstr($data['name']));
+		CDBHelper::getValue('SELECT hostid FROM hosts WHERE host='.zbx_dbstr($data['name']));
 		// Check the results in form.
 		$this->checkFormFields($data);
 

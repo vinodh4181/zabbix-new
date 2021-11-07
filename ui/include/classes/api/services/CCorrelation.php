@@ -997,7 +997,7 @@ class CCorrelation extends CApiService {
 					[$db_condition['corr_conditionid']] = $condition;
 			}
 
-			foreach ($db_correlations as $correlationid => &$db_correlation) {
+			foreach ($db_correlations as &$db_correlation) {
 				if ($db_correlation['filter']['evaltype'] == CONDITION_EVAL_TYPE_EXPRESSION) {
 					$formula = $db_correlation['filter']['formula'];
 

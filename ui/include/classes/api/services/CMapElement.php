@@ -78,7 +78,7 @@ abstract class CMapElement extends CApiService {
 
 			if ($update && array_key_exists('selementid', $selement)
 						&& array_key_exists($selement['selementid'], $db_selements)) {
-				$db_selement = $db_selements[$selement['selementid']];
+				$db_selements[$selement['selementid']];
 			}
 
 			if (!$elementtype_validator->validate($selement['elementtype'])) {
@@ -537,7 +537,7 @@ abstract class CMapElement extends CApiService {
 
 		$triggers = [];
 
-		foreach ($selements as $key => $selement) {
+		foreach ($selements as $selement) {
 			if ($selement['elementtype'] == SYSMAP_ELEMENT_TYPE_TRIGGER) {
 				$selementid = $selement['selementid'];
 

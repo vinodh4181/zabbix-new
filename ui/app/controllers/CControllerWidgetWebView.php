@@ -102,7 +102,7 @@ class CControllerWidgetWebView extends CControllerWidget {
 			? CApiTagHelper::addWhereCondition($fields['tags'], $fields['evaltype'], 'ht', 'httptest_tag', 'httptestid')
 			: '';
 
-		$result = DbFetchArray(DBselect($s=
+		$result = DbFetchArray(DBselect(
 			'SELECT DISTINCT ht.httptestid,hg.groupid'.
 			' FROM httptest ht,hosts_groups hg'.
 			' WHERE ht.hostid=hg.hostid'.

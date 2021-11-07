@@ -660,7 +660,6 @@ class CExpressionParser extends CParser {
 		}
 
 		$p += strlen($matches[0]);
-		$p2 = $p - 1;
 		$_tokens = [];
 		$state = self::STATE_NEW;
 

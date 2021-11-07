@@ -690,8 +690,6 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 	 * @dataProvider getCreateUpdateWebhookData
 	 */
 	public function testFormAdministrationMediaTypeWebhook_CreateUpdate($data) {
-		$old_hash = CDBHelper::getHash($this->sql);
-
 		$this->page->login()->open('zabbix.php?action=mediatype.list');
 		$button = CTestArrayHelper::get($data, 'update', false) ? 'link:Reference webhook' : 'button:Create media type';
 		$this->query($button)->one()->WaitUntilClickable()->click();
@@ -732,7 +730,7 @@ class testFormAdministrationMediaTypeWebhook extends CWebTest {
 
 		$this->page->login()->open('zabbix.php?action=mediatype.list');
 		$this->query('link:Reference webhook')->one()->WaitUntilClickable()->click();
-		$form = $this->query('id:media-type-form')->asForm()->waitUntilVisible()->one()->submit();
+		$this->query('id:media-type-form')->asForm()->waitUntilVisible()->one()->submit();
 		$this->page->waitUntilReady();
 
 		$message = CMessageElement::find()->one();

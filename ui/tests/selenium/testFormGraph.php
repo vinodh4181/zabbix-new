@@ -199,7 +199,6 @@ class testFormGraph extends CLegacyWebTest {
 			$this->query('button:Reset')->one()->click();
 			$form = $this->query('name:zbx_filter')->asForm()->waitUntilReady()->one();
 			$this->filterEntriesAndOpenGraph($data['template'], $form);
-			$hostid = 30000;
 		}
 
 		if (isset($data['host'])) {
@@ -207,12 +206,6 @@ class testFormGraph extends CLegacyWebTest {
 			$this->query('button:Reset')->one()->click();
 			$form = $this->query('name:zbx_filter')->asForm()->waitUntilReady()->one();
 			$this->filterEntriesAndOpenGraph($data['host'], $form);
-			if (isset($data['templatedHost'])) {
-				$hostid = 30001;
-			}
-			else {
-				$hostid = 40001;
-			}
 		}
 
 		$this->zbxTestCheckTitle('Configuration of graphs');
@@ -913,24 +906,14 @@ class testFormGraph extends CLegacyWebTest {
 
 		if (isset($data['yaxismin'])) {
 			$this->zbxTestInputType('yaxismin' ,$data['yaxismin']);
-			$yaxismin = $this->zbxTestGetValue("//input[@id='yaxismin']");
-		}
-		elseif ($ymin_type == 'Fixed') {
-			$yaxismin = $this->zbxTestGetValue("//input[@id='yaxismin']");
-		}
-		else {
-			$yaxismin = null;
 		}
 
 		if (isset($data['yaxismax'])) {
 			$this->zbxTestInputType('yaxismax' ,$data['yaxismax']);
-			$yaxismin = $this->zbxTestGetValue("//input[@id='yaxismax']");
+			$this->zbxTestGetValue("//input[@id='yaxismax']");
 		}
 		elseif ($ymax_type == 'Fixed') {
-			$yaxismax = $this->zbxTestGetValue("//input[@id='yaxismax']");
-		}
-		else {
-			$yaxismax = null;
+			$this->zbxTestGetValue("//input[@id='yaxismax']");
 		}
 
 		if (isset($data['ymin_name'])) {

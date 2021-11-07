@@ -1433,7 +1433,6 @@ class CTrigger extends CTriggerGeneral {
 			// Now process all mapped dependencies and unset any disabled "up" triggers so they do not participate in
 			// decisions regarding nesting resolution in next step.
 			foreach ($downToUpTriggerIds as $downTriggerId => $upTriggerIds) {
-				$upTriggerIdsToUnset = [];
 				foreach ($upTriggerIds as $upTriggerId) {
 					if (isset($disabledTriggerIds[$upTriggerId])) {
 						unset($downToUpTriggerIds[$downTriggerId][$upTriggerId]);

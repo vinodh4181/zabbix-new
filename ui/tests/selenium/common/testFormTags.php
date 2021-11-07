@@ -703,7 +703,7 @@ class testFormTags extends CWebTest {
 			}
 
 			// Remove trailing spaces from tag and value.
-			foreach ($expected as $i => &$options) {
+			foreach ($expected as &$options) {
 				foreach (['tag', 'value'] as $parameter) {
 					if (array_key_exists($parameter, $options)) {
 						$options[$parameter] = trim($options[$parameter]);

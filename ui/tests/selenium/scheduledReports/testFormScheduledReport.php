@@ -1463,7 +1463,7 @@ class testFormScheduledReport extends CWebTest {
 	 * @param array $subscriptions
 	 */
 	private function checkSubscriptions($subscriptions) {
-		foreach ($subscriptions as $i => $subscriber) {
+		foreach ($subscriptions as $subscriber) {
 			$report_form = $this->query('id:scheduledreport-form')->waitUntilVisible()->asForm()->one();
 			$table = $report_form->getField('Subscriptions')->asTable();
 

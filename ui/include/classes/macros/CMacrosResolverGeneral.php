@@ -114,7 +114,7 @@ class CMacrosResolverGeneral {
 		foreach (['macros', 'macros_n', 'macros_an', 'macro_funcs_n'] as $type) {
 			if (array_key_exists($type, $types)) {
 				$patterns = [];
-				foreach ($types[$type] as $key => $_patterns) {
+				foreach ($types[$type] as $_patterns) {
 					$patterns = array_merge($patterns, $_patterns);
 				}
 				$types[$type] = $patterns;

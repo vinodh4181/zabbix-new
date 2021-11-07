@@ -316,7 +316,6 @@ class testFormGraphPrototype extends CLegacyWebTest {
 			$form = $this->query('name:zbx_filter')->asForm()->waitUntilReady()->one();
 			$this->filterEntriesAndOpenDiscovery($form, $data['template']);
 			$discoveryRule = $this->discoveryRuleTemplate;
-			$hostid = 30000;
 		}
 
 		if (isset($data['host'])) {
@@ -325,11 +324,9 @@ class testFormGraphPrototype extends CLegacyWebTest {
 			$this->filterEntriesAndOpenDiscovery($form, $data['host']);
 			if (!isset($data['templatedHost'])) {
 				$discoveryRule = $this->discoveryRule;
-				$hostid = 40001;
 			}
 			else {
 				$discoveryRule = $this->discoveryRuleTemplate;
-				$hostid = 30001;
 			}
 		}
 

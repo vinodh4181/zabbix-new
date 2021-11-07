@@ -592,7 +592,6 @@ class testDashboardHostAvailabilityWidget extends CWebTest {
 
 		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid=101');
 		$dashboard = CDashboardElement::find()->one()->edit();
-		$widget = $dashboard->getWidget($name);
 		$dashboard->deleteWidget($name);
 		$this->page->waitUntilReady();
 

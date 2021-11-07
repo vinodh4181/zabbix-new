@@ -225,7 +225,7 @@ class testTaskCreate extends CAPITest {
 		$result = $this->call('task.create', $task, $expected_error);
 
 		if ($expected_error === null) {
-			foreach ($result['result']['taskids'] as $key => $id) {
+			foreach ($result['result']['taskids'] as $id) {
 				$dbResult = DBSelect('select * from task_check_now where taskid='.zbx_dbstr($id));
 				$dbRow = DBFetch($dbResult);
 				$this->assertEquals($dbRow['itemid'], $task['request']['itemid']);

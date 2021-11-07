@@ -92,7 +92,7 @@ class CControllerDashboardWidgetsSanitize extends CController {
 	protected function doAction() {
 		$widgets = [];
 
-		foreach ($this->widgets as $index => $widget) {
+		foreach ($this->widgets as $widget) {
 			$form = CWidgetConfig::getForm($widget['type'], $widget['fields'],
 				($this->context === CWidgetConfig::CONTEXT_TEMPLATE_DASHBOARD) ? $this->getInput('templateid') : null
 			);

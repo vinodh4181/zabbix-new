@@ -523,7 +523,7 @@ function get_host_by_itemid($itemids) {
 	}
 
 	if (!$res_array) {
-		foreach ($hosts as $itemid => $host) {
+		foreach ($hosts as $host) {
 			$result = $host;
 		}
 	}

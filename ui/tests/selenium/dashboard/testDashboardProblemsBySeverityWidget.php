@@ -1468,7 +1468,6 @@ class testDashboardProblemsBySeverityWidget extends CWebTest {
 		foreach (['Reference PBS widget to delete', 'Totals reference PBS widget to delete'] as $name) {
 			$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid=104');
 			$dashboard = CDashboardElement::find()->one()->edit();
-			$widget = $dashboard->getWidget($name);
 			$dashboard->deleteWidget($name);
 			$this->page->waitUntilReady();
 			$dashboard->save();

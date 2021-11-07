@@ -2049,7 +2049,7 @@ class testFormItemPrototype extends CLegacyWebTest {
 			}
 			$this->zbxTestAssertElementValue('name', $data['name']);
 		}
-		$name = $this->zbxTestGetValue("//input[@id='name']");
+		$this->zbxTestGetValue("//input[@id='name']");
 
 		if (isset($data['key'])) {
 			$this->zbxTestInputTypeOverwrite('key', $data['key']);
@@ -2058,7 +2058,7 @@ class testFormItemPrototype extends CLegacyWebTest {
 			}
 			$this->zbxTestAssertElementValue('key', $data['key']);
 		}
-		$key = $this->zbxTestGetValue("//input[@id='key']");
+		$this->zbxTestGetValue("//input[@id='key']");
 
 		if (isset($data['username'])) {
 			$this->zbxTestInputType('username', $data['username']);

@@ -118,7 +118,6 @@ class testPageUserGroups extends CLegacyWebTest {
 	*/
 	public function testPageUserGroups_MassEnable($group) {
 		$usrgrpid = $group['usrgrpid'];
-		$name = $group['name'];
 
 		$sqlHashGroups = "select * from usrgrp where usrgrpid<>$usrgrpid order by usrgrpid";
 		$oldHashGroups = CDBHelper::getHash($sqlHashGroups);
@@ -144,7 +143,6 @@ class testPageUserGroups extends CLegacyWebTest {
 	*/
 	public function testPageUserGroups_MassEnableDEBUG($group) {
 		$usrgrpid = $group['usrgrpid'];
-		$name = $group['name'];
 
 		$sqlHashGroups = "select * from usrgrp where usrgrpid<>$usrgrpid order by usrgrpid";
 		$oldHashGroups = CDBHelper::getHash($sqlHashGroups);
@@ -170,7 +168,6 @@ class testPageUserGroups extends CLegacyWebTest {
 	*/
 	public function testPageUserGroups_MassDisableDEBUG($group) {
 		$usrgrpid = $group['usrgrpid'];
-		$name = $group['name'];
 
 		$sqlHashGroups = "select * from usrgrp where usrgrpid<>$usrgrpid order by usrgrpid";
 		$oldHashGroups = CDBHelper::getHash($sqlHashGroups);

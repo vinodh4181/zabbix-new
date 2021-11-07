@@ -254,7 +254,7 @@ class testEscalations extends CIntegrationTest {
 		]);
 		$this->assertArrayHasKey('maintenanceids', $response['result']);
 		$this->assertEquals(1, count($response['result']['maintenanceids']));
-		$maintenance_id = $response['result']['maintenanceids'][0];
+		$response['result']['maintenanceids'][0];
 
 		$this->reloadConfigurationCache();
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, 'End of zbx_dc_update_maintenances()', true);
@@ -320,7 +320,7 @@ class testEscalations extends CIntegrationTest {
 		]);
 		$this->assertArrayHasKey('maintenanceids', $response['result']);
 		$this->assertEquals(1, count($response['result']['maintenanceids']));
-		$maintenance_id = $response['result']['maintenanceids'][0];
+		$response['result']['maintenanceids'][0];
 
 		$this->reloadConfigurationCache();
 

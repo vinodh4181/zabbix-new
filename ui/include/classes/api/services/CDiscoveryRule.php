@@ -1640,7 +1640,6 @@ class CDiscoveryRule extends CItemGeneral {
 									 * already validated by previously set conditionValidator.
 									 */
 									if (!array_key_exists('formulaid', $condition)) {
-										$cond_path = $path.'/'.($ovrd_idx + 1).'/filter/conditions/'.($cnd_idx + 1);
 										self::exception(ZBX_API_ERROR_PARAMETERS,
 											_s('Invalid parameter "%1$s": %2$s.', $path,
 												_s('the parameter "%1$s" is missing', 'formulaid')

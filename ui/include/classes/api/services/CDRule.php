@@ -475,7 +475,7 @@ class CDRule extends CApiService {
 			);
 		}
 
-		foreach ($dchecks as $dcnum => $dcheck) {
+		foreach ($dchecks as $dcheck) {
 			if (!is_array($dcheck)) {
 				self::exception(ZBX_API_ERROR_PARAMETERS,
 					_s('Incorrect value for field "%1$s": %2$s.', 'dchecks', _('an array is expected'))

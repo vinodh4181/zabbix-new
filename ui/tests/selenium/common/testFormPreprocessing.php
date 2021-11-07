@@ -2069,7 +2069,7 @@ abstract class testFormPreprocessing extends CWebTest {
 		$this->assertMessage(TEST_GOOD, $this->success_message);
 
 		// Remove spaces.
-		foreach ($data['preprocessing'] as $i => &$options) {
+		foreach ($data['preprocessing'] as &$options) {
 			foreach (['parameter_1', 'parameter_2'] as $parameter) {
 				if (array_key_exists($parameter, $options)) {
 					$options[$parameter] = trim($options[$parameter]);

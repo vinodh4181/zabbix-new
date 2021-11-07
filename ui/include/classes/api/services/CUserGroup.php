@@ -586,7 +586,7 @@ class CUserGroup extends CApiService {
 			}
 		}
 
-		foreach ($users_groups as $usrgrpid => $userids) {
+		foreach ($users_groups as $userids) {
 			foreach (array_keys($userids) as $userid) {
 				$ins_userids[$userid] = true;
 			}

@@ -42,7 +42,6 @@ class CValidationRule {
 		$pos = 0;
 		$state = self::STATE_BEGIN;
 		$rules = [];
-		$is_empty = true;
 
 		while (isset($buffer[$pos])) {
 			switch ($state) {

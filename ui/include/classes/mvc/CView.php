@@ -127,8 +127,6 @@ class CView {
 	 * @return string
 	 */
 	public function getOutput() {
-		$data = $this->data;
-
 		$file_path = $this->directory.'/'.$this->name.'.php';
 
 		ob_start();

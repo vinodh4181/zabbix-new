@@ -73,7 +73,7 @@ class C10ItemKeyConverter extends CConverter {
 				return 'net.tcp.service['.$key.$port.']';
 			}
 			elseif (in_array($key, $perfKeys)) {
-				list($key, $perfSuffix) = explode('_', $key);
+				list($key,) = explode('_', $key);
 				return 'net.tcp.service.perf['.$key.$port.']';
 			}
 		}

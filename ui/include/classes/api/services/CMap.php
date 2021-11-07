@@ -523,7 +523,7 @@ class CMap extends CMapElement {
 	 * @param array $elements[<elementid>]
 	 */
 	private static function setHasElements(array &$sysmaps_r, array $elements) {
-		foreach ($elements as $elementid => $selements) {
+		foreach ($elements as $selements) {
 			foreach ($selements as $selement) {
 				$sysmaps_r[$selement['sysmapid']]['has_elements'] = true;
 			}
