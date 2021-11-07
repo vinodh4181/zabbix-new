@@ -139,7 +139,7 @@ class CTextTriggerConstructor {
 				$sub_eq = $eq_global;
 			}
 
-			foreach ($expr_array as $expr) {
+			foreach ($expr_array as $id => $expr) {
 				$eq = ($expr['eq'] === '') ? '' : ' '.$expr['eq'].' ';
 				$not = ($expr['not'] === '') ? '' : $expr['not'].' ';
 				$function = 'find('.$query.',,"'.$expr['func'].'","'.$expr['pattern'].'")';

@@ -597,7 +597,7 @@ class CMapHelper {
 
 			$new_linkid = (count($sysmap['links']) > 0) ? (int) max(array_keys($sysmap['links'])) : 0;
 
-			foreach ($sysmap['selements'] as &$selement) {
+			foreach ($sysmap['selements'] as $selement_key => &$selement) {
 				if ($selement['elementtype'] != SYSMAP_ELEMENT_TYPE_HOST_GROUP
 						|| $selement['elementsubtype'] != SYSMAP_ELEMENT_SUBTYPE_HOST_GROUP_ELEMENTS) {
 					continue;

@@ -2140,7 +2140,7 @@ class testMassUpdateItems extends CWebTest{
 						}
 
 						// Remove trailing spaces from tag and value for asserting expected result.
-						foreach ($expected as &$options) {
+						foreach ($expected as $i => &$options) {
 							foreach (['tag', 'value'] as $parameter) {
 								if (array_key_exists($parameter, $options)) {
 									$options[$parameter] = trim($options[$parameter]);

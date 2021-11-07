@@ -193,7 +193,7 @@ class CSvgGraphHelper {
 			$metric_points = [];
 
 			if ($result) {
-				foreach ($result as $points) {
+				foreach ($result as $itemid => $points) {
 					foreach ($points['data'] as $point) {
 						$metric_points[$point['tick']]['itemid'][] = $point['itemid'];
 						$metric_points[$point['tick']]['clock'][] = $point['clock'];

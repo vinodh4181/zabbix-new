@@ -142,7 +142,7 @@ class testUserMacro extends CAPITest {
 		$result = $this->call('usermacro.create', $hostmacro, $expected_error);
 
 		if ($expected_error === null) {
-			foreach ($result['result']['hostmacroids'] as $id) {
+			foreach ($result['result']['hostmacroids'] as $key => $id) {
 				$dbResult = DBSelect('select * from hostmacro where hostmacroid='.zbx_dbstr($id));
 				$dbRow = DBFetch($dbResult);
 				$this->assertEquals($dbRow['macro'], $hostmacro['macro']);

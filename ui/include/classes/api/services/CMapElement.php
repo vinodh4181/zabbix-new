@@ -537,7 +537,7 @@ abstract class CMapElement extends CApiService {
 
 		$triggers = [];
 
-		foreach ($selements as $selement) {
+		foreach ($selements as $key => $selement) {
 			if ($selement['elementtype'] == SYSMAP_ELEMENT_TYPE_TRIGGER) {
 				$selementid = $selement['selementid'];
 

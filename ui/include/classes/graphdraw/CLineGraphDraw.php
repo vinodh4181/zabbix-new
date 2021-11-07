@@ -1850,7 +1850,7 @@ class CLineGraphDraw extends CGraphDraw {
 		$rows_min = (int) max(1, floor($this->sizeY / $this->cell_height_min / 1.5));
 		$rows_max = (int) max(1, floor($this->sizeY / $this->cell_height_min));
 
-		foreach ($this->getVerticalScalesInUse() as $side) {
+		foreach ($this->getVerticalScalesInUse() as $side_index => $side) {
 			$min = $this->calculateMinY($side);
 			$max = $this->calculateMaxY($side);
 

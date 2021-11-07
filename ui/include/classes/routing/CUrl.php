@@ -79,7 +79,7 @@ class CUrl {
 		}
 		if ($query !== null) {
 			$args = explode('&', $query);
-			foreach ($args as $arg) {
+			foreach ($args as $id => $arg) {
 				if (empty($arg)) {
 					continue;
 				}

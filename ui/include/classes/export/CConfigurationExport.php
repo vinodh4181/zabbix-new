@@ -558,7 +558,7 @@ class CConfigurationExport {
 			]);
 		}
 
-		foreach ($items as &$item) {
+		foreach ($items as $idx => &$item) {
 			$item['valuemap'] = [];
 
 			if ($item['valuemapid'] != 0) {

@@ -145,7 +145,7 @@ function get_accessible_hosts_by_rights(&$rights, $user_type, $perm) {
 	$result = [];
 	$res_perm = [];
 
-	foreach ($rights as $right) {
+	foreach ($rights as $id => $right) {
 		$res_perm[$right['id']] = $right['permission'];
 	}
 

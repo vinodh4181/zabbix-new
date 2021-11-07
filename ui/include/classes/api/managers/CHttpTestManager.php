@@ -779,7 +779,7 @@ class CHttpTestManager {
 		$upd_httptest_fields = [];
 		$del_httptest_fieldids = [];
 
-		foreach ($db_httptest_fields as $db_httptest_field) {
+		foreach ($db_httptest_fields as $index =>  $db_httptest_field) {
 			if (array_key_exists($db_httptest_field['type'], $httptest_fields[$db_httptest_field['httptestid']])) {
 				$httptest_field =
 					array_shift($httptest_fields[$db_httptest_field['httptestid']][$db_httptest_field['type']]);
@@ -876,7 +876,7 @@ class CHttpTestManager {
 		$upd_httpstep_fields = [];
 		$del_httpstep_fieldids = [];
 
-		foreach ($db_httpstep_fields as $db_httpstep_field) {
+		foreach ($db_httpstep_fields as $index =>  $db_httpstep_field) {
 			if (array_key_exists($db_httpstep_field['type'], $httpstep_fields[$db_httpstep_field['httpstepid']])) {
 				$httpstep_field =
 					array_shift($httpstep_fields[$db_httpstep_field['httpstepid']][$db_httpstep_field['type']]);

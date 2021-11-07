@@ -1868,7 +1868,7 @@ class testScripts extends CAPITest {
 									// Check newly added parameters.
 									$this->assertNotEmpty($db_script_parameters);
 
-									foreach ($scripts[$num]['parameters'] as $parameter) {
+									foreach ($scripts[$num]['parameters'] as $sp_num => $parameter) {
 										$db_script_parameter = CDBHelper::getRow(
 											'SELECT sp.script_paramid,sp.name,sp.value'.
 											' FROM script_param sp'.
@@ -3808,7 +3808,7 @@ class testScripts extends CAPITest {
 									if ($script['parameters']) {
 										$this->assertNotEmpty($db_upd_script['parameters']);
 
-										foreach ($script['parameters'] as $parameter) {
+										foreach ($script['parameters'] as $sp_num => $parameter) {
 											$db_upd_script_parameter = CDBHelper::getRow(
 												'SELECT sp.script_paramid,sp.name,sp.value'.
 												' FROM script_param sp'.

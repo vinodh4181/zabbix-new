@@ -875,9 +875,11 @@ class testFormAdministrationScripts extends CWebTest {
 
 				if (CTestArrayHelper::get($data, 'trim', false) === true) {
 					// Remove trailing spaces from name and value.
-					foreach (['Name', 'Value'] as $parameter) {
-						if (array_key_exists($parameter, $fields)) {
-							$fields[$parameter] = trim($fields[$parameter]);
+					foreach ($data['Parameters'] as $i => &$fields) {
+						foreach (['Name', 'Value'] as $parameter) {
+							if (array_key_exists($parameter, $fields)) {
+								$fields[$parameter] = trim($fields[$parameter]);
+							}
 						}
 					}
 					unset($fields);

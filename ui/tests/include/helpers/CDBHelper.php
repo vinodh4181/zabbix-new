@@ -199,7 +199,7 @@ class CDBHelper {
 
 		$schema = DB::getSchema();
 
-		foreach ($schema[$top_table]['fields'] as $field_data) {
+		foreach ($schema[$top_table]['fields'] as $field => $field_data) {
 			if (!array_key_exists('ref_table', $field_data)) {
 				continue;
 			}

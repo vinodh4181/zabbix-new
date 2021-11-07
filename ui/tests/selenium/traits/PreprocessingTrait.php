@@ -204,7 +204,7 @@ trait PreprocessingTrait {
 	 */
 	protected function listPreprocessingSteps() {
 		$data = [];
-		foreach ($this->getPreprocessingSteps(true) as $step) {
+		foreach ($this->getPreprocessingSteps(true) as $i => $step) {
 			$values = [];
 			foreach ($step as $control) {
 				$field = $control['field'];

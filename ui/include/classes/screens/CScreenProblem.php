@@ -923,7 +923,7 @@ class CScreenProblem extends CScreenBase {
 			];
 
 			// Add problems to table.
-			foreach ($data['problems'] as $problem) {
+			foreach ($data['problems'] as $eventid => $problem) {
 				$trigger = $data['triggers'][$problem['objectid']];
 
 				$cell_clock = ($problem['clock'] >= $today)
