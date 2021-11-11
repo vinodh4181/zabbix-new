@@ -85,12 +85,13 @@ class CLogHelper {
 	 * @param string       $path          log file path
 	 * @param string|array $lines         line(s) to look for
 	 * @param boolean      $incremental   flag to be used to enable incremental read
+	 * @param boolean      $match_regex   flag to be used to match line by regex
 	 *
 	 * @return string|null
 	 *
 	 * @throws Exception    on cases when log is not available
 	 */
-	public static function readLogUntil($path, $lines, $incremental = true) {
+	public static function readLogUntil($path, $lines, $incremental = true, $match_regex = false) {
 		if (!is_array($lines)) {
 			$lines = [$lines];
 		}
@@ -98,7 +99,7 @@ class CLogHelper {
 		$content = self::readLog($path, $incremental);
 		$offset = -1;
 		foreach ($lines as $line) {
-			if (($temp = self::getLineOffset($content, $line)) === null) {
+			if (($temp = self::getLineOffset($content, $line, $match_regex)) === null) {
 				continue;
 			}
 
@@ -136,9 +137,14 @@ class CLogHelper {
 	 *
 	 * @return integer|null
 	 */
-	public static function getLineOffset($content, $line) {
+	public static function getLineOffset($content, $line, $match_regex = false) {
 		$matches = [];
-		$regex = '/^ *[0-9]+:[0-9]+:[0-9]+\.[0-9]+ .*'.preg_quote($line, '/').'.*$/m';
+		$regex = '';
+
+		if ($match_regex === false)
+			$regex = '/^ *[0-9]+:[0-9]+:[0-9]+\.[0-9]+ .*'.preg_quote($line, '/').'.*$/m';
+		else
+			$regex = '/^ *[0-9]+:[0-9]+:[0-9]+\.[0-9]+ .*'.$line.'.*$/m';
 
 		if (preg_match($regex, $content, $matches, PREG_OFFSET_CAPTURE) === 1) {
 			return $matches[0][1];
@@ -153,10 +159,11 @@ class CLogHelper {
 	 * @param string  $path          log file path
 	 * @param string|array $lines    line(s) to look for
 	 * @param boolean $incremental   flag to be used to enable incremental read
+	 * @param boolean $match_regex   flag to be used to match line by regex
 	 *
 	 * @return boolean
 	 */
-	public static function isLogLinePresent($path, $lines, $incremental = true) {
-		return (self::readLogUntil($path, $lines, $incremental) !== null);
+	public static function isLogLinePresent($path, $lines, $incremental = true, $match_regex = false) {
+		return (self::readLogUntil($path, $lines, $incremental, $match_regex) !== null);
 	}
 }

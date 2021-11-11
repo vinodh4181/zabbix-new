@@ -39,15 +39,17 @@ class CIntegrationTest extends CAPITest {
 	const DATA_PROCESSING_DELAY		= 5; // Data processing delay.
 
 	// Zabbix component constants.
-	const COMPONENT_SERVER	= 'server';
-	const COMPONENT_PROXY	= 'proxy';
-	const COMPONENT_AGENT	= 'agentd';
-	const COMPONENT_AGENT2	= 'agent2';
+	const COMPONENT_SERVER			= 'server';
+	const COMPONENT_SERVER_HANODE1	= 'server_ha1';
+	const COMPONENT_PROXY			= 'proxy';
+	const COMPONENT_AGENT			= 'agentd';
+	const COMPONENT_AGENT2			= 'agent2';
 
 	// Zabbix component port constants.
 	const AGENT_PORT_SUFFIX = '50';
 	const SERVER_PORT_SUFFIX = '51';
 	const PROXY_PORT_SUFFIX = '52';
+	const SERVER_HANODE1_PORT_SUFFIX = '61';
 
 	/**
 	 * Components required by test suite.
@@ -314,10 +316,10 @@ class CIntegrationTest extends CAPITest {
 	 */
 	private static function getComponents() {
 		return [
-			self::COMPONENT_SERVER, self::COMPONENT_PROXY, self::COMPONENT_AGENT, self::COMPONENT_AGENT2
+			self::COMPONENT_SERVER, self::COMPONENT_PROXY, self::COMPONENT_AGENT, self::COMPONENT_AGENT2,
+			self::COMPONENT_SERVER_HANODE1
 		];
 	}
-
 	/**
 	 * Validate component name.
 	 *
@@ -445,6 +447,12 @@ class CIntegrationTest extends CAPITest {
 				'SocketDir' => PHPUNIT_COMPONENT_DIR,
 				'ListenPort' => PHPUNIT_PORT_PREFIX.self::SERVER_PORT_SUFFIX
 			]),
+			self::COMPONENT_SERVER_HANODE1 => array_merge($db, [
+				'LogFile' => PHPUNIT_COMPONENT_DIR.'zabbix_server_ha1.log',
+				'PidFile' => PHPUNIT_COMPONENT_DIR.'zabbix_server_ha1.pid',
+				'SocketDir' => PHPUNIT_COMPONENT_DIR.'ha1/',
+				'ListenPort' => PHPUNIT_PORT_PREFIX.self::SERVER_HANODE1_PORT_SUFFIX
+			]),
 			self::COMPONENT_PROXY => array_merge($db, [
 				'LogFile' => PHPUNIT_COMPONENT_DIR.'zabbix_proxy.log',
 				'PidFile' => PHPUNIT_COMPONENT_DIR.'zabbix_proxy.pid',
@@ -480,7 +488,11 @@ class CIntegrationTest extends CAPITest {
 	protected static function prepareComponentConfiguration($component, $values) {
 		self::validateComponent($component);
 
-		$path = PHPUNIT_CONFIG_SOURCE_DIR.'zabbix_'.$component.'.conf';
+		if ($component == self::COMPONENT_SERVER_HANODE1)
+			$path = PHPUNIT_CONFIG_SOURCE_DIR.'zabbix_'.self::COMPONENT_SERVER.'.conf';
+		else
+			$path = PHPUNIT_CONFIG_SOURCE_DIR.'zabbix_'.$component.'.conf';
+
 		if (!file_exists($path) || ($config = @file_get_contents($path)) === false) {
 			throw new Exception('There is no configuration file for component "'.$component.'": '.$path.'.');
 		}
@@ -522,7 +534,18 @@ class CIntegrationTest extends CAPITest {
 
 		self::clearLog($component);
 		$suffix = ($component === self::COMPONENT_AGENT2) ? ' > /dev/null 2>&1 &' : '';
-		self::executeCommand(PHPUNIT_BINARY_DIR.'zabbix_'.$component, ['-c', $config], $suffix);
+
+		$bin_path = '';
+
+		if ($component === self::COMPONENT_SERVER_HANODE1) {
+			$bin_path = "/tmp/zabbix_".self::COMPONENT_SERVER_HANODE1;
+			copy(PHPUNIT_BINARY_DIR.'zabbix_'.self::COMPONENT_SERVER, $bin_path);
+			chmod($bin_path, 0755);
+		}
+		else
+			$bin_path = PHPUNIT_BINARY_DIR.'zabbix_'.$component;
+
+		self::executeCommand($bin_path, ['-c', $config], $suffix);
 		self::waitForStartup($component);
 	}
 
@@ -848,11 +871,12 @@ class CIntegrationTest extends CAPITest {
 	 * @param string       $component     name of the component
 	 * @param string|array $lines         line(s) to look for
 	 * @param boolean      $incremental   flag to be used to enable incremental read
+	 * @param boolean      $match_regex   flag to be used to match line by regex
 	 *
 	 * @return boolean
 	 */
-	protected static function isLogLinePresent($component, $lines, $incremental = true) {
-		return CLogHelper::isLogLinePresent(self::getLogPath($component), $lines, $incremental);
+	protected static function isLogLinePresent($component, $lines, $incremental = true, $match_regex = false) {
+		return CLogHelper::isLogLinePresent(self::getLogPath($component), $lines, $incremental, $match_regex);
 	}
 
 	/**
@@ -863,10 +887,11 @@ class CIntegrationTest extends CAPITest {
 	 * @param boolean      $incremental   flag to be used to enable incremental read
 	 * @param integer      $iterations    iteration count
 	 * @param integer      $delay         iteration delay
+	 * @param boolean      $match_regex   flag to be used to match line by regex
 	 *
 	 * @throws Exception    on failed wait operation
 	 */
-	protected function waitForLogLineToBePresent($component, $lines, $incremental = true, $iterations = null, $delay = null) {
+	protected function waitForLogLineToBePresent($component, $lines, $incremental = true, $iterations = null, $delay = null, $match_regex = false) {
 		if ($iterations === null) {
 			$iterations = self::WAIT_ITERATIONS;
 		}
@@ -876,7 +901,7 @@ class CIntegrationTest extends CAPITest {
 		}
 
 		for ($r = 0; $r < $iterations; $r++) {
-			if ($this->isLogLinePresent($component, $lines, $incremental)) {
+			if ($this->isLogLinePresent($component, $lines, $incremental, $match_regex)) {
 				return;
 			}
 
@@ -896,10 +921,34 @@ class CIntegrationTest extends CAPITest {
 		}
 
 		$c = CLogHelper::readLog($this->getLogPath($component), false);
-		$c2 = CLogHelper::readLog($this->getLogPath(self::COMPONENT_AGENT), false);
+
+		try {
+			$c2 = CLogHelper::readLog($this->getLogPath(self::COMPONENT_AGENT), false);
+		} catch (Exception $e) {
+			$c2 = '';
+		}
 
 		throw new Exception('Failed to wait for '.$description.' to be present in '.$component .
 				'log file path:'.self::getLogPath($component).' and server log file contents: ' .
 				$c  . "\n and agent log file contents: " . $c2);
+	}
+
+	/**
+	 * Check if line is present.
+	 *
+	 * @param string       $component     name of the component
+	 * @param string|array $cmd           command
+	 *
+	 * @throws Exception    on execution error
+	 */
+	protected function executeRuntimeControlCommand($component, $cmd) {
+		if (!is_array($cmd)) {
+			$cmd = [$cmd];
+		}
+
+		$params = ['-c', PHPUNIT_CONFIG_DIR.'zabbix_'.$component.'.conf', '--runtime-control'];
+		$args = array_merge($params, $cmd);
+
+		self::executeCommand(PHPUNIT_BINARY_DIR.'zabbix_'.$component, $args, '> /dev/null 2>&1');
 	}
 }
