@@ -550,8 +550,11 @@ static const char	*__zbx_json_rbracket(const char *p)
 
 	rbracket = ('{' == lbracket ? '}' : ']');
 
-	while ('\0' != *p)
+	while (1)
 	{
+		if (NULL == (p = strpbrk(p, "\"\\[{]}")))
+			return NULL;
+
 		switch (*p)
 		{
 			case '"':
@@ -658,6 +661,9 @@ const char	*zbx_json_next(const struct zbx_json_parse *jp, const char *p)
 
 	while (p <= jp->end)
 	{
+		if (NULL == (p = strpbrk(p, "\"\\[{]},")))
+			return NULL;
+
 		switch (*p)
 		{
 			case '"':
