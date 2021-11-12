@@ -477,15 +477,15 @@ static int	parse_label_value(const char *data, size_t pos, zbx_strloc_t *loc)
 
 	while ('"' != *(++ptr))
 	{
-		/*char	*p;
+		char	*p;
 
 		if (NULL != (p = strpbrk(ptr, "\\\"")))
 		{
+			ptr = p;
+
 			if ('"' == *p)
 				break;
-
-			ptr = p;
-		}*/
+		}
 
 		if ('\\' == *ptr)
 		{
