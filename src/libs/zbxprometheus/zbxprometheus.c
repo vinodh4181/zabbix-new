@@ -352,6 +352,14 @@ static int	parse_metric(const char *data, size_t pos, zbx_strloc_t *loc)
 
 	while ('\0' != *(++ptr))
 	{
+		char	*p;
+
+		if (NULL != (p = strchr(ptr, '{')))
+		{
+			ptr = p;
+			break;
+		}
+
 		if (0 == isalnum(*ptr) && ':' != *ptr && '_' != *ptr)
 			break;
 	}
@@ -385,6 +393,14 @@ static int	parse_label(const char *data, size_t pos, zbx_strloc_t *loc)
 
 	while ('\0' != *(++ptr))
 	{
+		char	*p;
+
+		if (NULL != (p = strchr(ptr, '=')))
+		{
+			ptr = p;
+			break;
+		}
+
 		if (0 == isalnum(*ptr) && '_' != *ptr)
 			break;
 	}
@@ -957,6 +973,17 @@ static int	condition_match_metric_value(const char *pattern, const char *value)
 }
 ZBX_VECTOR_DECL(strloc, zbx_strloc_t)
 ZBX_VECTOR_IMPL(strloc, zbx_strloc_t)
+
+typedef struct
+{
+	zbx_strloc_t	key;
+	zbx_strloc_t	value;
+}
+zbx_strloc_pair_t;
+
+ZBX_VECTOR_DECL(strloc_pair, zbx_strloc_pair_t)
+ZBX_VECTOR_IMPL(strloc_pair, zbx_strloc_pair_t)
+
 /******************************************************************************
  *                                                                            *
  * Function: prometheus_metric_parse_labels                                   *
@@ -974,7 +1001,7 @@ ZBX_VECTOR_IMPL(strloc, zbx_strloc_t)
  *                                                                            *
  ******************************************************************************/
 static int	prometheus_metric_parse_labels(const char *data, size_t pos, zbx_vector_ptr_t *labels,
-		zbx_vector_strloc_t *loc_keys, zbx_vector_strloc_t *loc_values, zbx_strloc_t *loc, char **error)
+		zbx_vector_strloc_pair_t *strloc_pairs, zbx_strloc_t *loc, char **error)
 {
 	zbx_strloc_t		loc_key, loc_value, loc_op;
 	zbx_prometheus_label_t	*label;
@@ -985,6 +1012,7 @@ static int	prometheus_metric_parse_labels(const char *data, size_t pos, zbx_vect
 	while ('}' != data[pos])
 	{
 		zbx_prometheus_condition_op_t	op;
+		zbx_strloc_pair_t		strloc_pair;
 
 		if (FAIL == parse_condition(data, pos, &loc_key, &loc_op, &loc_value))
 		{
@@ -998,9 +1026,9 @@ static int	prometheus_metric_parse_labels(const char *data, size_t pos, zbx_vect
 			*error = zbx_strdup(*error, "invalid label assignment operator");
 			return FAIL;
 		}
-
-		zbx_vector_strloc_append(loc_keys, loc_key);
-		zbx_vector_strloc_append(loc_values, loc_value);
+		strloc_pair.key = loc_key;
+		strloc_pair.value = loc_value;
+		zbx_vector_strloc_pair_append(strloc_pairs, strloc_pair);
 
 		pos = skip_spaces(data, loc_value.r + 1);
 
@@ -1044,18 +1072,17 @@ static int	prometheus_metric_parse_labels(const char *data, size_t pos, zbx_vect
 static int	prometheus_parse_row(zbx_prometheus_filter_t *filter, char *data, size_t pos,
 		zbx_prometheus_row_t **prow, zbx_strloc_t *loc_row, char **error)
 {
-	zbx_strloc_t		loc;
-	zbx_prometheus_row_t	*row;
-	int			ret = FAIL, match = SUCCEED, i, j;
-	zbx_vector_strloc_t	loc_keys, loc_values;
+	zbx_strloc_t			loc;
+	zbx_prometheus_row_t		*row;
+	int				ret = FAIL, match = SUCCEED, i, j;
+	zbx_vector_strloc_pair_t	strloc_pairs;
 
 	loc_row->l = pos;
 
 	row = (zbx_prometheus_row_t *)zbx_malloc(NULL, sizeof(zbx_prometheus_row_t));
 	memset(row, 0, sizeof(zbx_prometheus_row_t));
 	zbx_vector_ptr_create(&row->labels);
-	zbx_vector_strloc_create(&loc_keys);
-	zbx_vector_strloc_create(&loc_values);
+	zbx_vector_strloc_pair_create(&strloc_pairs);
 
 	/* parse metric and check against the filter */
 
@@ -1073,8 +1100,7 @@ static int	prometheus_parse_row(zbx_prometheus_filter_t *filter, char *data, siz
 			goto out;
 	}
 
-	zbx_vector_strloc_reserve(&loc_keys, 16);
-	zbx_vector_strloc_reserve(&loc_values, 16);
+	zbx_vector_strloc_pair_reserve(&strloc_pairs, 16);
 
 	/* parse labels and check against the filter */
 
@@ -1084,36 +1110,36 @@ static int	prometheus_parse_row(zbx_prometheus_filter_t *filter, char *data, siz
 	{
 		zbx_prometheus_label_t	*label;
 
-		if (SUCCEED != prometheus_metric_parse_labels(data, pos, &row->labels, &loc_keys, &loc_values, &loc, error))
+		if (SUCCEED != prometheus_metric_parse_labels(data, pos, &row->labels, &strloc_pairs, &loc, error))
 			goto out;
 
 		for (i = 0; i < filter->labels.values_num; i++)
 		{
 			zbx_prometheus_condition_t	*condition = filter->labels.values[i];
 
-			for (j = 0; j < loc_keys.values_num; j++)
+			for (j = 0; j < strloc_pairs.values_num; j++)
 			{
-				char	*key = data + loc_keys.values[j].l, *value = data + loc_values.values[j].l + 1;
+				char	*key = data + strloc_pairs.values[j].key.l, *value = data + strloc_pairs.values[j].value.l + 1;
 				char	a, b;
 
-				a = data[loc_keys.values[j].r + 1];
-				b = data[loc_values.values[j].r];
+				a = data[strloc_pairs.values[j].key.r + 1];
+				b = data[strloc_pairs.values[j].value.r];
 
-				data[loc_keys.values[j].r + 1] = 0;
-				data[loc_values.values[j].r] = 0;
+				data[strloc_pairs.values[j].key.r + 1] = 0;
+				data[strloc_pairs.values[j].value.r] = 0;
 
 				if (SUCCEED == condition_match_key_value(condition, key, value))
 				{
-					data[loc_keys.values[j].r + 1] = a;
-					data[loc_values.values[j].r] = b;
+					data[strloc_pairs.values[j].key.r + 1] = a;
+					data[strloc_pairs.values[j].value.r] = b;
 					break;
 				}
 
-				data[loc_keys.values[j].r + 1] = a;
-				data[loc_values.values[j].r] = b;
+				data[strloc_pairs.values[j].key.r + 1] = a;
+				data[strloc_pairs.values[j].value.r] = b;
 			}
 
-			if (j == loc_keys.values_num)
+			if (j == strloc_pairs.values_num)
 			{
 				/* no matching labels */
 				match = FAIL;
@@ -1121,12 +1147,12 @@ static int	prometheus_parse_row(zbx_prometheus_filter_t *filter, char *data, siz
 			}
 		}
 
-		for (j = 0; j < loc_keys.values_num; j++)
+		for (j = 0; j < strloc_pairs.values_num; j++)
 		{
 
 			label = (zbx_prometheus_label_t *)zbx_malloc(NULL, sizeof(zbx_prometheus_label_t));
-			label->name = str_loc_dup(data, &loc_keys.values[j]);
-			label->value = str_loc_unquote_dyn(data, &loc_values.values[j]);
+			label->name = str_loc_dup(data, &strloc_pairs.values[j].key);
+			label->value = str_loc_unquote_dyn(data, &strloc_pairs.values[j].value);
 			zbx_vector_ptr_append(&row->labels, label);
 		}
 
@@ -1206,8 +1232,8 @@ out:
 		loc_row->r = pos;
 	}
 
-	zbx_vector_strloc_destroy(&loc_keys);
-	zbx_vector_strloc_destroy(&loc_values);
+	zbx_vector_strloc_pair_destroy(&strloc_pairs);
+
 	return ret;
 }
 
