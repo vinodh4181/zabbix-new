@@ -44,8 +44,6 @@ typedef enum
 }
 zbx_dbpatch_arg_t;
 
-ZBX_VECTOR_IMPL(strloc, zbx_strloc_t)
-
 /******************************************************************************
  *                                                                            *
  * Function: str_rename_macro                                                 *

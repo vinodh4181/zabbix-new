@@ -23,6 +23,7 @@
 #include "log.h"
 #include "zbxjson.h"
 #include "zbxprometheus.h"
+#include "../zbxalgo/vectorimpl.h"
 
 /* Defines maximum row length to be written in error message in the case of parsing failure */
 #define ZBX_PROMEHTEUS_ERROR_MAX_ROW_LENGTH	50
@@ -955,7 +956,7 @@ static int	condition_match_metric_value(const char *pattern, const char *value)
 	return SUCCEED;
 }
 ZBX_VECTOR_DECL(strloc, zbx_strloc_t)
-
+ZBX_VECTOR_IMPL(strloc, zbx_strloc_t)
 /******************************************************************************
  *                                                                            *
  * Function: prometheus_metric_parse_labels                                   *
