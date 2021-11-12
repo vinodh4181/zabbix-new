@@ -354,7 +354,7 @@ static int	parse_metric(const char *data, size_t pos, zbx_strloc_t *loc)
 	{
 		char	*p;
 
-		if (NULL != (p = strchr(ptr, '{')))
+		if (NULL != (p = strpbrk(ptr, "{ \n")))
 		{
 			ptr = p;
 			break;
@@ -395,7 +395,7 @@ static int	parse_label(const char *data, size_t pos, zbx_strloc_t *loc)
 	{
 		char	*p;
 
-		if (NULL != (p = strchr(ptr, '=')))
+		if (NULL != (p = strpbrk(ptr, "=! \t")))
 		{
 			ptr = p;
 			break;
@@ -476,6 +476,16 @@ static int	parse_label_value(const char *data, size_t pos, zbx_strloc_t *loc)
 
 	while ('"' != *(++ptr))
 	{
+		char	*p;
+
+		if (NULL != (p = strpbrk(ptr, "\\\"")))
+		{
+			if ('"' == *p)
+				break;
+
+			ptr = p;
+		}
+
 		if ('\\' == *ptr)
 		{
 			ptr++;
