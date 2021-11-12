@@ -352,14 +352,13 @@ static int	parse_metric(const char *data, size_t pos, zbx_strloc_t *loc)
 
 	while ('\0' != *(++ptr))
 	{
-		/*
 		char	*p;
 
 		if (NULL != (p = strpbrk(ptr, "{ \n")))
 		{
 			ptr = p;
 			break;
-		}*/
+		}
 
 		if (0 == isalnum(*ptr) && ':' != *ptr && '_' != *ptr)
 			break;
@@ -396,11 +395,11 @@ static int	parse_label(const char *data, size_t pos, zbx_strloc_t *loc)
 	{
 		char	*p;
 
-		/*if (NULL != (p = strpbrk(ptr, "=! \t")))
+		if (NULL != (p = strpbrk(ptr, "=! \t")))
 		{
 			ptr = p;
 			break;
-		}*/
+		}
 
 		if (0 == isalnum(*ptr) && '_' != *ptr)
 			break;
