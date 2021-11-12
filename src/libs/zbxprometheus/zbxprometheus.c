@@ -1056,8 +1056,6 @@ static int	prometheus_parse_row(zbx_prometheus_filter_t *filter, char *data, siz
 	zbx_vector_ptr_create(&row->labels);
 	zbx_vector_strloc_create(&loc_keys);
 	zbx_vector_strloc_create(&loc_values);
-	zbx_vector_strloc_reserve(&loc_keys, 16);
-	zbx_vector_strloc_reserve(&loc_values, 16);
 
 	/* parse metric and check against the filter */
 
@@ -1074,6 +1072,9 @@ static int	prometheus_parse_row(zbx_prometheus_filter_t *filter, char *data, siz
 		if (FAIL == (match = condition_match_key_value(filter->metric, NULL, row->metric)))
 			goto out;
 	}
+
+	zbx_vector_strloc_reserve(&loc_keys, 16);
+	zbx_vector_strloc_reserve(&loc_values, 16);
 
 	/* parse labels and check against the filter */
 
