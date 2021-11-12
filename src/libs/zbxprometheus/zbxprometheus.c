@@ -1097,7 +1097,7 @@ static int	prometheus_parse_row(zbx_prometheus_filter_t *filter, char *data, siz
 
 				data[loc_keys.values[j].r + 1] = 0;
 				data[loc_values.values[j].r] = 0;
-				//zabbix_log(LOG_LEVEL_INFORMATION, "key '%s' value '%s'", key, value);
+
 				if (SUCCEED == condition_match_key_value(condition, key, value))
 				{
 					data[loc_keys.values[j].r + 1] = a;
