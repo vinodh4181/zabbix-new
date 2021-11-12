@@ -954,6 +954,7 @@ static int	condition_match_metric_value(const char *pattern, const char *value)
 
 	return SUCCEED;
 }
+ZBX_VECTOR_DECL(strloc, zbx_strloc_t)
 
 /******************************************************************************
  *                                                                            *
@@ -972,7 +973,7 @@ static int	condition_match_metric_value(const char *pattern, const char *value)
  *                                                                            *
  ******************************************************************************/
 static int	prometheus_metric_parse_labels(const char *data, size_t pos, zbx_vector_ptr_t *labels,
-		zbx_strloc_t *loc, char **error)
+		zbx_vector_strloc_t *loc_keys, zbx_vector_strloc_t *loc_values, zbx_strloc_t *loc, char **error)
 {
 	zbx_strloc_t		loc_key, loc_value, loc_op;
 	zbx_prometheus_label_t	*label;
@@ -997,10 +998,11 @@ static int	prometheus_metric_parse_labels(const char *data, size_t pos, zbx_vect
 			return FAIL;
 		}
 
-		label = (zbx_prometheus_label_t *)zbx_malloc(NULL, sizeof(zbx_prometheus_label_t));
-		label->name = str_loc_dup(data, &loc_key);
-		label->value = str_loc_unquote_dyn(data, &loc_value);
-		zbx_vector_ptr_append(labels, label);
+		//label = (zbx_prometheus_label_t *)zbx_malloc(NULL, sizeof(zbx_prometheus_label_t));
+		//label->name = str_loc_dup(data, &loc_key);
+		//label->value = str_loc_unquote_dyn(data, &loc_value);
+		zbx_vector_strloc_append(loc_keys, loc_key);
+		zbx_vector_strloc_append(loc_values, loc_value);
 
 		pos = skip_spaces(data, loc_value.r + 1);
 
@@ -1041,18 +1043,21 @@ static int	prometheus_metric_parse_labels(const char *data, size_t pos, zbx_vect
  *           conditions then success with NULL prow is be returned.           *
  *                                                                            *
  ******************************************************************************/
-static int	prometheus_parse_row(zbx_prometheus_filter_t *filter, const char *data, size_t pos,
+static int	prometheus_parse_row(zbx_prometheus_filter_t *filter, char *data, size_t pos,
 		zbx_prometheus_row_t **prow, zbx_strloc_t *loc_row, char **error)
 {
 	zbx_strloc_t		loc;
 	zbx_prometheus_row_t	*row;
 	int			ret = FAIL, match = SUCCEED, i, j;
+	zbx_vector_strloc_t	loc_keys, loc_values;
 
 	loc_row->l = pos;
 
 	row = (zbx_prometheus_row_t *)zbx_malloc(NULL, sizeof(zbx_prometheus_row_t));
 	memset(row, 0, sizeof(zbx_prometheus_row_t));
 	zbx_vector_ptr_create(&row->labels);
+	zbx_vector_strloc_create(&loc_keys);
+	zbx_vector_strloc_create(&loc_values);
 
 	/* parse metric and check against the filter */
 
@@ -1076,28 +1081,54 @@ static int	prometheus_parse_row(zbx_prometheus_filter_t *filter, const char *dat
 
 	if ('{' == data[pos])
 	{
-		if (SUCCEED != prometheus_metric_parse_labels(data, pos, &row->labels, &loc, error))
+		zbx_prometheus_label_t	*label;
+
+		if (SUCCEED != prometheus_metric_parse_labels(data, pos, &row->labels, &loc_keys, &loc_values, &loc, error))
 			goto out;
 
 		for (i = 0; i < filter->labels.values_num; i++)
 		{
 			zbx_prometheus_condition_t	*condition = filter->labels.values[i];
 
-			for (j = 0; j < row->labels.values_num; j++)
+			for (j = 0; j < loc_keys.values_num; j++)
 			{
-				zbx_prometheus_label_t	*label = row->labels.values[j];
+				char	*key = data + loc_keys.values[j].l, *value = data + loc_values.values[j].l + 1;
+				char	a, b;
 
-				if (SUCCEED == condition_match_key_value(condition, label->name, label->value))
+				a = data[loc_keys.values[j].r + 1];
+				b = data[loc_values.values[j].r];
+
+				data[loc_keys.values[j].r + 1] = 0;
+				data[loc_values.values[j].r] = 0;
+				//zabbix_log(LOG_LEVEL_INFORMATION, "key '%s' value '%s'", key, value);
+				if (SUCCEED == condition_match_key_value(condition, key, value))
+				{
+					data[loc_keys.values[j].r + 1] = a;
+					data[loc_values.values[j].r] = b;
 					break;
+				}
+
+				data[loc_keys.values[j].r + 1] = a;
+				data[loc_values.values[j].r] = b;
 			}
 
-			if (j == row->labels.values_num)
+			if (j == loc_keys.values_num)
 			{
 				/* no matching labels */
 				match = FAIL;
 				goto out;
 			}
 		}
+
+		for (j = 0; j < loc_keys.values_num; j++)
+		{
+
+			label = (zbx_prometheus_label_t *)zbx_malloc(NULL, sizeof(zbx_prometheus_label_t));
+			label->name = str_loc_dup(data, &loc_keys.values[j]);
+			label->value = str_loc_unquote_dyn(data, &loc_values.values[j]);
+			zbx_vector_ptr_append(&row->labels, label);
+		}
+
 
 		pos = skip_spaces(data, loc.r + 1);
 	}
@@ -1174,6 +1205,8 @@ out:
 		loc_row->r = pos;
 	}
 
+	zbx_vector_strloc_destroy(&loc_keys);
+	zbx_vector_strloc_destroy(&loc_values);
 	return ret;
 }
 
@@ -1435,7 +1468,7 @@ static int	prometheus_parse_rows(zbx_prometheus_filter_t *filter, const char *da
 			continue;
 		}
 
-		if (SUCCEED != prometheus_parse_row(filter, data, pos, &row, &loc, &errmsg))
+		if (SUCCEED != prometheus_parse_row(filter, (char *)data, pos, &row, &loc, &errmsg))
 			goto out;
 
 		if (NULL != row)
