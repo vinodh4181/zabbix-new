@@ -998,9 +998,6 @@ static int	prometheus_metric_parse_labels(const char *data, size_t pos, zbx_vect
 			return FAIL;
 		}
 
-		//label = (zbx_prometheus_label_t *)zbx_malloc(NULL, sizeof(zbx_prometheus_label_t));
-		//label->name = str_loc_dup(data, &loc_key);
-		//label->value = str_loc_unquote_dyn(data, &loc_value);
 		zbx_vector_strloc_append(loc_keys, loc_key);
 		zbx_vector_strloc_append(loc_values, loc_value);
 
