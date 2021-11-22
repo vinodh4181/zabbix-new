@@ -74,7 +74,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
@@ -89,7 +89,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
@@ -104,7 +104,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
@@ -119,7 +119,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
@@ -134,7 +134,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
@@ -149,7 +149,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
@@ -164,7 +164,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
@@ -179,12 +179,12 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
 					[
-						'type' => 'graph', // 8 img src?
+						'type' => 'graph', // 8
 						'name' => 'Graph widget',
 						'x' => 4,
 						'y' => 2,
@@ -194,12 +194,12 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
 					[
-						'type' => 'map', // 9 svg g?
+						'type' => 'map', // 9
 						'name' => 'Map widget',
 						'x' => 6,
 						'y' => 2,
@@ -209,7 +209,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								],
 								[
 									'type' => 8,
@@ -229,12 +229,12 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
 					[
-						'type' => 'plaintext', // 11 pre br ?
+						'type' => 'plaintext', // 11
 						'name' => 'Plain text widget',
 						'x' => 10,
 						'y' => 2,
@@ -244,7 +244,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
@@ -259,7 +259,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
@@ -274,7 +274,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
@@ -289,7 +289,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
@@ -304,7 +304,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
@@ -319,12 +319,12 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
 					[
-						'type' => 'url', // 17 pre br ?
+						'type' => 'url', // 17
 						'name' => 'URL widget',
 						'x' => 10,
 						'y' => 4,
@@ -334,7 +334,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					],
@@ -349,29 +349,14 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 								[
 									'type' => 0,
 									'name' => 'rf_rate',
-									'value' => 3
+									'value' => 1
 								]
 							]
 					]
 				]
 			]
 		]);
-/*		$host_response = CDataHelper::call('host.get', [
-*			[
-*
-*				'filter' => [
-*				'host' => 'Zabbix server',
-*
-*				]
-*
-*			]
-*		]);
-*		var_dump($host_response)."\r\n";
-*		self::$dashboardid = $response['dashboardids'][0];
-*		self::$hostid = $host_response['hostid'];
-*		var_dump(self::$hostid);
-*
-*/
+	self::$dashboardid = $response['dashboardids'][0];
 	}
 
 	/**
@@ -495,59 +480,42 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 		$dashboard = CDashboardElement::find()->one();
 		$widget = $dashboard->getWidget($data['name']);
 		$id_xpath = 'xpath:.//div[@class="dashbrd-grid-widget-content"]/';
-//		$svg = 'xpath:.//*[local-name()="svg"]';
-//		var_dump($dashboard->getWidgets()->count());
-//		var_dump($data['name']);
 		$type = (array_key_exists('check_type', $data)) ? $data['check_type'] : 'id_table';
 
 		switch ($type) {
 				case 'id_table':
 					$attribute = $widget->query($id_xpath.'table')->one()->getAttribute('id');
-//					var_dump($attribute);
-					sleep(5);
-//					var_dump($widget->query($id_xpath.'table')->one()->getAttribute('id'));
-//					var_dump($widget->getHeaderText());
-					$this->assertNotEquals($attribute, $widget->query($id_xpath.'table')
-							->one()->getAttribute('id'));
+					sleep(2);
+					$this->assertNotEquals($attribute, $widget->query($id_xpath.'table')->one()->getAttribute('id'));
 					break;
 
 				case 'id':
 					$attribute = $widget->query($id_xpath.$data['tag'])->one()->getAttribute('id');
-//					var_dump($attribute);
-					sleep(5);
-//					var_dump($widget->query($id_xpath.$data['tag'])->one()->getAttribute('id'));
-//					var_dump($widget->getHeaderText());
-					$this->assertNotEquals($attribute, $widget->query($id_xpath.$data['tag'])
-							->one()->getAttribute('id'));
+					sleep(2);
+					$this->assertNotEquals($attribute, $widget->query($id_xpath.$data['tag'])->one()->getAttribute('id'));
 					break;
 
 				case 'svg':
 					$attribute = $widget->query($data['tag'])->one()->getAttribute('id');
-					sleep(5);
-					$this->assertNotEquals($attribute, $widget->query($data['tag'])
-							->one()->getAttribute('id'));
+					sleep(2);
+					$this->assertNotEquals($attribute, $widget->query($data['tag'])->one()->getAttribute('id'));
 					break;
 
 				case 'map':
 					$host_id = CDBHelper::getValue('SELECT hostid FROM hosts WHERE host="Test host"');
 					$host_ip = CDBHelper::getValue('SELECT ip FROM interface WHERE hostid='.$host_id);
-//					var_dump($host_id);
-//					var_dump($host_ip);
-//					self::mapCreate($host_id);
 
 					DBexecute('UPDATE interface SET ip = "200.2.2.3" WHERE hostid='.$host_id);
-					sleep(5);
+					sleep(2);
 					$host_new_ip = $widget->query('xpath:.//*[contains(text(),"200.2.2.3")]')->one()->getText();
-//					var_dump($host_new_ip);
 					$this->assertNotEquals($host_ip, $host_new_ip);
 					DBexecute('UPDATE interface SET ip = "127.0.0.1" WHERE hostid='.$host_id);
 					break;
 
 				default:
-					$attribute = $widget->getContent()->query($id_xpath.'table')->one()->getAttribute('id');
-					sleep(5);
-					$this->assertNotEquals($attribute, $widget->getContent()->query($id_xpath.'table')
-							->one()->getAttribute('id'));
+					$attribute = $widget->query($id_xpath.'table')->one()->getAttribute('id');
+					sleep(2);
+					$this->assertNotEquals($attribute, $widget->query($id_xpath.'table')->one()->getAttribute('id'));
 					break;
 			}
 
@@ -567,7 +535,5 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 //		var_dump($widget === $widgetNew);
 //		$this->assertNotEquals($attribute, $widget->query('xpath:(//div[@class="dashbrd-grid-widget-content"]/*[1])')->one()->getAttribute('id'));
 	}
-
-
 }
 
