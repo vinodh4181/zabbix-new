@@ -22,19 +22,21 @@ require_once dirname(__FILE__) . '/../../include/CWebTest.php';
 require_once dirname(__FILE__).'/../behaviors/CMessageBehavior.php';
 
 /**
+ * @onBefore prepareDashboardCopyWidgetsData
+ *
  * @backup widget, profiles
  */
 class testDashboardCopyWidgets extends CWebTest {
 
-	const DASHBOARD_ID = 130;
-	const PASTE_DASHBOARD_ID = 131;
-	const NEW_PAGE_ID = 143;
 	const NEW_PAGE_NAME = 'Test_page';
 	const UPDATE_TEMPLATEID = 50000;
 	const TEMPLATED_PAGE_NAME = 'Page for pasting widgets';
 
 	private static $replaced_widget_name = "Test widget for replace";
 	private static $replaced_widget_size = [ 'width' => '13', 'height' => '8'];
+
+	protected static $dashboard_id;
+	protected static $paste_dashboard_id;
 
 	private static $dashboardid_with_widgets;
 	private static $empty_dashboardid;
@@ -49,6 +51,1205 @@ class testDashboardCopyWidgets extends CWebTest {
 		return [
 			'class' => CMessageBehavior::class
 		];
+	}
+
+	/**
+	 * Create new dashboards for copy widgets scenarios.
+	 */
+	public function prepareDashboardCopyWidgetsData() {
+		$response = CDataHelper::call('dashboard.create', [
+			[
+				'name' => 'Dashboard for Copying widgets',
+				'display_period' => 30,
+				'auto_start' => 1,
+				'pages' => [
+					[
+						'name' => 'Page 1',
+						'widgets' => [
+							[
+								'name' => 'Test copy Action log',
+								'type' => 'actionlog',
+								'x' => 0,
+								'y' => 0,
+								'width' => 7,
+								'height' => 6,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '10'
+									],
+									[
+										'type' => 0,
+										'name' => 'show_lines',
+										'value' => 3
+									],
+									[
+										'type' => 0,
+										'name' => 'sort_triggers',
+										'value' => 7
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Clock',
+								'type' => 'clock',
+								'x' => 7,
+								'y' => 0,
+								'width' => 2,
+								'height' => 2,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '60'
+									],
+									[
+										'type' => 0,
+										'name' => 'time_type',
+										'value' => 2
+									],
+									[
+										'type' => 4,
+										'name' => 'itemid',
+										'value' => 29172
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Data overview',
+								'type' => 'dataover',
+								'x' => 9,
+								'y' => 0,
+								'width' => 4,
+								'height' => 2,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '0'
+									],
+									[
+										'type' => 0,
+										'name' => 'show_suppressed',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'style',
+										'value' => 1
+									],
+									[
+										'type' => 1,
+										'name' => 'application',
+										'value' => '3'
+									],
+									[
+										'type' => 2,
+										'name' => 'groupids',
+										'value' => 50011
+									],
+									[
+										'type' => 3,
+										'name' => 'hostids',
+										'value' => 50012
+									]
+								]
+							],
+							[
+								'name' => 'Test copy classic Graph',
+								'type' => 'graph',
+								'x' => 13,
+								'y' => 0,
+								'width' => 11,
+								'height' => 6,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '30'
+									],
+									[
+										'type' => 0,
+										'name' => 'dynamic',
+										'value' => 10
+									],
+									[
+										'type' => 0,
+										'name' => 'show_legend',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'source_type',
+										'value' => 1
+									],
+									[
+										'type' => 4,
+										'name' => 'itemid',
+										'value' => 99088
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Favourite graphs',
+								'type' => 'favgraphs',
+								'x' => 7,
+								'y' => 2,
+								'width' => 2,
+								'height' => 2,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '30'
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Favourite maps',
+								'type' => 'favmaps',
+								'x' => 9,
+								'y' => 2,
+								'width' => 4,
+								'height' => 2,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '600'
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Discovery status',
+								'type' => 'discovery',
+								'x' => 9,
+								'y' => 4,
+								'width' => 4,
+								'height' => 2,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '900'
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Graph prototype',
+								'type' => 'graphprototype',
+								'x' => 0,
+								'y' => 6,
+								'width' => 13,
+								'height' => 4,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => '0',
+										'name' => 'columns',
+										'value' => 3
+									],
+									[
+										'type' => '0',
+										'name' => 'rows',
+										'value' => 2
+									],
+									[
+										'type' => '0',
+										'name' => 'dynamic',
+										'value' => 1
+									],
+									[
+										'type' => '0',
+										'name' => 'rf_rate',
+										'value' => '30'
+									],
+									[
+										'type' => '0',
+										'name' => 'show_legend',
+										'value' => 0
+									],
+									[
+										'type' => '7',
+										'name' => 'graphid',
+										'value' => 600000
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Host availability',
+								'type' => 'hostavail',
+								'x' => 13,
+								'y' => 6,
+								'width' => 5,
+								'height' => 4,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'interface_type',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'interface_type',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'interface_type',
+										'value' => 3
+									],
+									[
+										'type' => 0,
+										'name' => 'layout',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'maintenance',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '60'
+									],
+									[
+										'type' => 2,
+										'name' => 'groupids',
+										'value' => 50013
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Map',
+								'type' => 'map',
+								'x' => 18,
+								'y' => 6,
+								'width' => 6,
+								'height' => 4,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 1,
+										'name' => 'reference',
+										'value' => 'OYKZW'
+									],
+									[
+										'type' => 8,
+										'name' => 'sysmapid',
+										'value' => 3
+									]
+								]
+							],
+							[
+								'name' => 'Test copy plain text',
+								'type' => 'plaintext',
+								'x' => 13,
+								'y' => 10,
+								'width' => 5,
+								'height' => 2,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'dynamic',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '0'
+									],
+									[
+										'type' => 0,
+										'name' => 'show_as_html',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'show_lines',
+										'value' => 12
+									],
+									[
+										'type' => 0,
+										'name' => 'style',
+										'value' => 1
+									],
+									[
+										'type' => 4,
+										'name' => 'itemids',
+										'value' => 29171
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Problem hosts',
+								'type' => 'problemhosts',
+								'x' => 18,
+								'y' => 10,
+								'width' => 6,
+								'height' => 2,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'evaltype',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'ext_ack',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'hide_empty_groups',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '30'
+									],
+									[
+										'type' => 0,
+										'name' => 'severities',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'severities',
+										'value' => 3
+									],
+									[
+										'type' => 0,
+										'name' => 'severities',
+										'value' => 5
+									],
+									[
+										'type' => 0,
+										'name' => 'show_suppressed',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'tags.operator.0',
+										'value' => 1
+									],
+									[
+										'type' => 1,
+										'name' => 'problem',
+										'value' => 'Test'
+									],
+									[
+										'type' => 1,
+										'name' => 'tags.tag.0',
+										'value' => 'Tag1'
+									],
+									[
+										'type' => 1,
+										'name' => 'tags.value.0',
+										'value' => '1'
+									],
+									[
+										'type' => 2,
+										'name' => 'exclude_groupids',
+										'value' => 50014
+									],
+									[
+										'type' => 2,
+										'name' => 'groupids',
+										'value' => 50011
+									],
+									[
+										'type' => 4,
+										'name' => 'itemids',
+										'value' => 29171
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Problems',
+								'type' => 'problems',
+								'x' => 0,
+								'y' => 12,
+								'width' => 8,
+								'height' => 6,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'severities',
+										'value' => 0
+									],
+									[
+										'type' => 0,
+										'name' => 'severities',
+										'value' => 4
+									],
+									[
+										'type' => 0,
+										'name' => 'severities',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'evaltype',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '900'
+									],
+									[
+										'type' => 0,
+										'name' => 'show',
+										'value' => 3
+									],
+									[
+										'type' => 0,
+										'name' => 'show_lines',
+										'value' => 12
+									],
+									[
+										'type' => 0,
+										'name' => 'show_opdata',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'show_suppressed',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'show_tags',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'sort_triggers',
+										'value' => 15
+									],
+									[
+										'type' => 0,
+										'name' => 'show_timeline',
+										'value' => 0
+									],
+									[
+										'type' => 0,
+										'name' => 'tag_name_format',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'tags.operator.0',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'tags.operator.1',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'unacknowledged',
+										'value' => 1
+									],
+									[
+										'type' => 1,
+										'name' => 'problem',
+										'value' => 'test2'
+									],
+									[
+										'type' => 1,
+										'name' => 'tags.value.0',
+										'value' => '2'
+									],
+									[
+										'type' => 1,
+										'name' => 'tags.value.1',
+										'value' => '33'
+									],
+									[
+										'type' => 1,
+										'name' => 'tag_priority',
+										'value' => '1,2'
+									],
+									[
+										'type' => 1,
+										'name' => 'tags.tag.0',
+										'value' => 'tag2'
+									],
+									[
+										'type' => 1,
+										'name' => 'tags.tag.1',
+										'value' => 'tagg33'
+									],
+									[
+										'type' => 2,
+										'name' => 'exclude_groupids',
+										'value' => 50014
+									],
+									[
+										'type' => 2,
+										'name' => 'groupids',
+										'value' => 50005
+									],
+									[
+										'type' => 3,
+										'name' => 'hostids',
+										'value' => 99026
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Problems 2',
+								'type' => 'problems',
+								'x' => 8,
+								'y' => 12,
+								'width' => 16,
+								'height' => 2,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '60'
+									],
+									[
+										'type' => 0,
+										'name' => 'show',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'show_lines',
+										'value' => 5
+									],
+									[
+										'type' => 0,
+										'name' => 'show_opdata',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'show_suppressed',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'show_tags',
+										'value' => 3
+									],
+									[
+										'type' => 0,
+										'name' => 'show_timeline',
+										'value' => 0
+									],
+									[
+										'type' => 0,
+										'name' => 'sort_triggers',
+										'value' => 3
+									],
+									[
+										'type' => 0,
+										'name' => 'tag_name_format',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'tags.operator.0',
+										'value' => 0
+									],
+									[
+										'type' => 0,
+										'name' => 'tags.operator.1',
+										'value' => 0
+									],
+									[
+										'type' => 0,
+										'name' => 'unacknowledged',
+										'value' => 1
+									],
+									[
+										'type' => 1,
+										'name' => 'problem',
+										'value' => 'test4'
+									],
+									[
+										'type' => 1,
+										'name' => 'tags.value.0',
+										'value' => '3'
+									],
+									[
+										'type' => 1,
+										'name' => 'tags.value.1',
+										'value' => '44'
+									],
+									[
+										'type' => 1,
+										'name' => 'tag_priority',
+										'value' => 'test5, test6',
+									],
+									[
+										'type' => 1,
+										'name' => 'tags.tag.0',
+										'value' => 'tag3'
+									],
+									[
+										'type' => 1,
+										'name' => 'tags.tag.1',
+										'value' => 'tag44'
+									],
+									[
+										'type' => 2,
+										'name' => 'exclude_groupids',
+										'value' => 50014
+									],
+									[
+										'type' => 2,
+										'name' => 'groupids',
+										'value' => 50006
+									],
+									[
+										'type' => 3,
+										'name' => 'hostids',
+										'value' => 99015
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Problems by severity',
+								'type' => 'problemsbysv',
+								'x' => 8,
+								'y' => 14,
+								'width' => 16,
+								'height' => 4,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'evaltype',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'ext_ack',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'layout',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '30'
+									],
+									[
+										'type' => 0,
+										'name' => 'severities',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'severities',
+										'value' => 3
+									],
+									[
+										'type' => 0,
+										'name' => 'show_opdata',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'show_timeline',
+										'value' => 0
+									],
+									[
+										'type' => 0,
+										'name' => 'show_type',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'tags.operator.0',
+										'value' => 1
+									],
+									[
+										'type' => 1,
+										'name' => 'problem',
+										'value' => 'test problem'
+									],
+									[
+										'type' => 1,
+										'name' => 'tags.tag.0',
+										'value' => 'tag5'
+									],
+									[
+										'type' => 1,
+										'name' => 'tags.value.0',
+										'value' => '5'
+									],
+									[
+										'type' => 2,
+										'name' => 'exclude_groupids',
+										'value' => 50008
+									],
+									[
+										'type' => 2,
+										'name' => 'groupids',
+										'value' => 50011
+									],
+									[
+										'type' => 3,
+										'name' => 'hostids',
+										'value' => 99012
+									]
+								]
+							],
+							[
+								'name' => 'Test copy System information',
+								'type' => 'systeminfo',
+								'x' => 0,
+								'y' => 18,
+								'width' => 7,
+								'height' => 3,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '30'
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Trigger overview',
+								'type' => 'trigover',
+								'x' => 7,
+								'y' => 18,
+								'width' => 17,
+								'height' => 3,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '120'
+									],
+									[
+										'type' => 0,
+										'name' => 'show',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'show_suppressed',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'style',
+										'value' => 1
+									],
+									[
+										'type' => 1,
+										'name' => 'application',
+										'value' => 'Inventory'
+									],
+									[
+										'type' => 2,
+										'name' => 'groupids',
+										'value' => 50011
+									],
+									[
+										'type' => 3,
+										'name' => 'hostids',
+										'value' => 99012
+									]
+								]
+							],
+							[
+								'name' => 'Test copy URL',
+								'type' => 'url',
+								'x' => 0,
+								'y' => 21,
+								'width' => 7,
+								'height' => 3,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'dynamic',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '120'
+									],
+									[
+										'type' => 1,
+										'name' => 'url',
+										'value' => 'https://www.zabbix.com/integrations'
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Web monitoring',
+								'type' => 'web',
+								'x' => 7,
+								'y' => 21,
+								'width' => 3,
+								'height' => 3,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'maintenance',
+										'value' => 0
+									],
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '120'
+									],
+									[
+										'type' => 2,
+										'name' => 'exclude_groupids',
+										'value' => 50008
+									],
+									[
+										'type' => 2,
+										'name' => 'groupids',
+										'value' => 50016
+									],
+									[
+										'type' => 3,
+										'name' => 'hostids',
+										'value' => 99133
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Problems 3',
+								'type' => 'problems',
+								'x' => 10,
+								'y' => 21,
+								'width' => 14,
+								'height' => 2,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'evaltype',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '60'
+									],
+									[
+										'type' => 0,
+										'name' => 'severities',
+										'value' => 0
+									],
+									[
+										'type' => 0,
+										'name' => 'severities',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'severities',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'severities',
+										'value' => 3
+									],
+									[
+										'type' => 0,
+										'name' => 'severities',
+										'value' => 4
+									],
+									[
+										'type' => 0,
+										'name' => 'severities',
+										'value' => 5
+									],
+									[
+										'type' => 0,
+										'name' => 'show',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'show_lines',
+										'value' => 5
+									],
+									[
+										'type' => 0,
+										'name' => 'show_opdata',
+										'value' => 2,
+									],
+									[
+										'type' => 0,
+										'name' => 'show_suppressed',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'show_tags',
+										'value' => 3
+									],
+									[
+										'type' => 0,
+										'name' => 'sort_triggers',
+										'value' => 3
+									],
+									[
+										'type' => 0,
+										'name' => 'tags.operator.0',
+										'value' => 1
+									],
+									[
+										'type' => 0,
+										'name' => 'tag_name_format',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'unacknowledged',
+										'value' => 1
+									],
+									[
+										'type' => 1,
+										'name' => 'problem',
+										'value' => 'test5'
+									],
+									[
+										'type' => 1,
+										'name' => 'tag_priority',
+										'value' => 'test7, test8'
+									],
+									[
+										'type' => 1,
+										'name' => 'tags.tag.0',
+										'value' => 'tag9'
+									],
+									[
+										'type' => 1,
+										'name' => 'tags.value.0',
+										'value' => '9'
+									],
+									[
+										'type' => 2,
+										'name' => 'exclude_groupids',
+										'value' => 50014
+									],
+									[
+										'type' => 2,
+										'name' => 'groupids',
+										'value' => 50006
+									],
+									[
+										'type' => 3,
+										'name' => 'hostids',
+										'value' => 99015
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Graph prototype 2',
+								'type' => 'graphprototype',
+								'x' => 10,
+								'y' => 23,
+								'width' => 14,
+								'height' => 5,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'show_legend',
+										'value' => 0
+									],
+									[
+										'type' => 0,
+										'name' => 'columns',
+										'value' => 20
+									],
+									[
+										'type' => 0,
+										'name' => 'rows',
+										'value' => 5
+									],
+									[
+										'type' => 0,
+										'name' => 'dynamic',
+										'value' => 0
+									],
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '600'
+									],
+									[
+										'type' => 7,
+										'name' => 'graphid',
+										'value' => 600000
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Map from tree',
+								'type' => 'map',
+								'x' => 6,
+								'y' => 10,
+								'width' => 7,
+								'height' => 2,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '120'
+									],
+									[
+										'type' => 0,
+										'name' => 'source_type',
+										'value' => 2
+									],
+									[
+										'type' => 1,
+										'name' => 'filter_widget_reference',
+										'value' => 'STZDI'
+									],
+									[
+										'type' => 1,
+										'name' => 'reference',
+										'value' => 'PVEYR'
+									]
+								]
+							],
+							[
+								'name' => 'Test copy Map navigation tree',
+								'type' => 'navtree',
+								'x' => 0,
+								'y' => 10,
+								'width' => 6,
+								'height' => 2,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 0,
+										'name' => 'navtree.order.2',
+										'value' => 2
+									],
+									[
+										'type' => 0,
+										'name' => 'rf_rate',
+										'value' => '60'
+									],
+									[
+										'type' => 0,
+										'name' => 'show_unavailable',
+										'value' => 1
+									],
+									[
+										'type' => 1,
+										'name' => 'navtree.name.1',
+										'value' => 'Map with icon mapping'
+									],
+									[
+										'type' => 1,
+										'name' => 'navtree.name.2',
+										'value' => 'Public map with image'
+									],
+									[
+										'type' => 1,
+										'name' => 'reference',
+										'value' => 'STZDI'
+									],
+									[
+										'type' => 8,
+										'name' => 'navtree.sysmapid.1',
+										'value' => 6
+									],
+									[
+										'type' => 8,
+										'name' => 'navtree.sysmapid.2',
+										'value' => 10
+									]
+								]
+							]
+						]
+					],
+					[
+						'name' => 'Test_page'
+					]
+				]
+			],
+			[
+				'name' => 'Dashboard for Paste widgets',
+				'display_period' => 30,
+				'auto_start' => 1,
+				'pages' => [
+					[
+						'name' => '',
+						'widgets' => [
+							[
+								'name' => 'Test widget for replace',
+								'type' => 'clock',
+								'x' => 6,
+								'y' => 0,
+								'width' => 13,
+								'height' => 8,
+								'view_mode' => 0
+							],
+							[
+								'name' => 'Test copy Map navigation tree',
+								'type' => 'navtree',
+								'x' => 0,
+								'y' => 0,
+								'width' => 6,
+								'height' => 4,
+								'view_mode' => 0,
+								'fields' => [
+									[
+										'type' => 1,
+										'name' => 'reference',
+										'value' => 'FYKXG'
+									]
+								]
+							]
+						]
+					]
+				]
+			]
+		]);
+
+		$this->assertArrayHasKey('dashboardids', $response);
+		$dashboard_ids = CDataHelper::getIds('name');
+
+		self::$dashboard_id = $dashboard_ids['Dashboard for Copying widgets'];
+		self::$paste_dashboard_id = $dashboard_ids['Dashboard for Paste widgets'];
 	}
 
 	/**
@@ -167,7 +1368,7 @@ class testDashboardCopyWidgets extends CWebTest {
 				'SELECT NULL'.
 				' FROM dashboard_page dp'.
 				' WHERE w.dashboard_pageid=dp.dashboard_pageid'.
-					' AND dp.dashboardid='.self::DASHBOARD_ID.
+					' AND dp.dashboardid='.self::$dashboard_id.
 			') ORDER BY w.widgetid DESC'
 		);
 	}
@@ -224,10 +1425,11 @@ class testDashboardCopyWidgets extends CWebTest {
 			$url = 'zabbix.php?action=template.dashboard.edit&dashboardid=';
 		}
 		else {
-			$dashboard_id = self::DASHBOARD_ID;
-			$new_dashboard_id = self::PASTE_DASHBOARD_ID;
+			$dashboard_id = self::$dashboard_id;
+			$new_dashboard_id = self::$paste_dashboard_id;
 			$new_page_name = self::NEW_PAGE_NAME;
-			$new_page_id = self::NEW_PAGE_ID;
+			$new_page_id =  CDBHelper::getValue('SELECT dashboard_pageid FROM dashboard_page WHERE name='.
+					zbx_dbstr(self::NEW_PAGE_NAME));
 			$url = 'zabbix.php?action=dashboard.view&dashboardid=';
 		}
 
