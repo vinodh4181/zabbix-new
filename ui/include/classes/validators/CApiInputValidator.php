@@ -835,6 +835,7 @@ class CApiInputValidator {
 	 *
 	 * @param array  $rule
 	 * @param int    $rule['flags']   (optional) API_NOT_EMPTY, API_ALLOW_NULL, API_NORMALIZE
+	 * @param string $rule['in']      (optional) a comma-delimited character string, for example: '0,60:900'
 	 * @param mixed  $data
 	 * @param string $path
 	 * @param string $error
@@ -865,6 +866,10 @@ class CApiInputValidator {
 
 		$data = array_values($data);
 		$rules = ['type' => API_FLOAT];
+
+		if (array_key_exists('in', $rule)) {
+			$rules['in'] = $rule['in'];
+		}
 
 		foreach ($data as $index => &$value) {
 			$subpath = ($path === '/' ? $path : $path.'/').($index + 1);
