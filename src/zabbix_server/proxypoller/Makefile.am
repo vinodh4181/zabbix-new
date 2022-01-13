@@ -3,6 +3,5 @@
 noinst_LIBRARIES = libzbxproxypoller.a
 
 libzbxproxypoller_a_SOURCES = \
-	proxypoller.c \
-	proxypoller.h
+	proxypoller.c
 

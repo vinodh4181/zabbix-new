@@ -3,7 +3,6 @@
 noinst_LIBRARIES = libzbxvmware.a
 
 libzbxvmware_a_SOURCES = \
-	vmware.c \
-	vmware.h
+	vmware.c
 
 libzbxvmware_a_CFLAGS = $(LIBXML2_CFLAGS)

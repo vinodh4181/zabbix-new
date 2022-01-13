@@ -3,5 +3,4 @@
 noinst_LIBRARIES = libzbxtimer.a
 
 libzbxtimer_a_SOURCES = \
-	timer.c \
-	timer.h
+	timer.c

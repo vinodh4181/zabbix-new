@@ -3,5 +3,4 @@
 noinst_LIBRARIES = libzbxdiscoverer.a
 
 libzbxdiscoverer_a_SOURCES = \
-	discoverer.c \
-	discoverer.h
+	discoverer.c

@@ -33,13 +33,9 @@ noinst_LIBRARIES = libzbxserver.a
 
 libzbxserver_a_SOURCES = \
 	actions.c \
-	actions.h \
 	events.c \
-	events.h \
 	operations.c \
-	operations.h \
-	postinit.c \
-	postinit.h
+	postinit.c
 
 libzbxserver_a_CFLAGS = \
 	-DZABBIX_DAEMON \

@@ -3,5 +3,4 @@
 noinst_LIBRARIES = libzbxdbconfig.a
 
 libzbxdbconfig_a_SOURCES = \
-	dbconfig.c \
-	dbconfig.h
+	dbconfig.c

@@ -3,5 +3,4 @@
 noinst_LIBRARIES = libzbxescalator.a
 
 libzbxescalator_a_SOURCES = \
-	escalator.c \
-	escalator.h
+	escalator.c

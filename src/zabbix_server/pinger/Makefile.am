@@ -3,5 +3,4 @@
 noinst_LIBRARIES = libzbxpinger.a
 
 libzbxpinger_a_SOURCES = \
-	pinger.c \
-	pinger.h
+	pinger.c

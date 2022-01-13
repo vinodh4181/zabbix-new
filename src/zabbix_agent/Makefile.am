@@ -2,7 +2,7 @@
 
 SUBDIRS = \
 	logfiles
-	
+
 EXTRA_DIST = \
 	eventlog.c \
 	eventlog.h \
@@ -15,24 +15,14 @@ noinst_LIBRARIES = libzbxagent.a
 
 libzbxagent_a_SOURCES = \
 	active.c \
-	active.h \
 	cpustat.c \
-	cpustat.h \
 	diskdevices.c \
-	diskdevices.h \
 	listener.c \
-	listener.h \
-	metrics.h \
 	procstat.c \
-	procstat.h \
 	stats.c \
-	stats.h \
 	vmstats.c \
-	vmstats.h \
 	zbxconf.c \
-	zbxconf.h \
-	zbxkstat.c \
-	zbxkstat.h
+	zbxkstat.c
 
 libzbxagent_a_CFLAGS = \
 	-DZABBIX_DAEMON
