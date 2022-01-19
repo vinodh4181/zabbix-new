@@ -998,6 +998,11 @@ class testFormAdministrationGeneralMacros extends CLegacyWebTest {
 	public function testFormAdministrationGeneralMacros_CreateVaultMacros($data) {
 		$this->page->login()->open('zabbix.php?action=macros.edit')->waitUntilReady();
 		$this->fillMacros([$data['macro_fields']]);
+
+		$value_field = $this->query('xpath://div[contains(@class, "macro-value")]')->all()->last()->asInputGroup();
+		$this->assertEquals($data['macro_fields']['value']['type'], $value_field->getInputType());
+		$this->assertEquals($data['macro_fields']['value']['text'], $value_field->getValue());
+
 		$this->query('button:Update')->one()->click();
 		if ($data['expected'] == TEST_BAD) {
 			$this->assertMessage($data['expected'], $data['title'], $data['message']);

@@ -28,6 +28,7 @@ class CInputGroupElement extends CElement {
 
 	const TYPE_SECRET = 'Secret text';
 	const TYPE_TEXT = 'Text';
+	const TYPE_VAULT = 'Vault secret';
 
 	/**
 	 * Get value of InputGroup element.
@@ -77,10 +78,12 @@ class CInputGroupElement extends CElement {
 	 * @return string
 	 */
 	public function getInputType() {
-		$xpath = 'xpath:.//button['.CXPathHelper::fromClass('icon-text').']';
-		$type = ($this->query($xpath)->exists()) ? self::TYPE_TEXT : self::TYPE_SECRET;
-
-		return $type;
+		$classes = ['icon-text' => self::TYPE_TEXT, 'icon-invisible' => self::TYPE_SECRET, 'icon-secret' => self::TYPE_VAULT];
+		foreach ($classes as $class => $type) {
+			if ($this->query('xpath:.//button['.CXPathHelper::fromClass($class).']')->exists()) {
+				return $type;
+			}
+		}
 	}
 
 	/**
