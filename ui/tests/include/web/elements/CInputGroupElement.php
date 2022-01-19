@@ -80,7 +80,7 @@ class CInputGroupElement extends CElement {
 	public function getInputType() {
 		$classes = ['icon-text' => self::TYPE_TEXT, 'icon-invisible' => self::TYPE_SECRET, 'icon-secret' => self::TYPE_VAULT];
 		foreach ($classes as $class => $type) {
-			if ($this->query('xpath:.//button['.CXPathHelper::fromClass($class).']')->exists()) {
+			if ($this->query("xpath:.//button[".CXPathHelper::fromClass($class)."]")->exists()) {
 				return $type;
 			}
 		}
