@@ -904,7 +904,7 @@ class CIntegrationTest extends CAPITest {
 		}
 
 		$c = CLogHelper::readLog(self::getLogPath($component), false);
-		$c2 = CLogHelper::readLog(self::getLogPath(self::COMPONENT_AGENT), false);
+		$c2 = @CLogHelper::readLog(self::getLogPath(self::COMPONENT_AGENT), false);
 
 		throw new Exception('Failed to wait for '.$description.' to be present in '.$component .
 				'log file path:'.self::getLogPath($component).' and server log file contents: ' .
