@@ -1,7 +1,7 @@
 <?php
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -289,7 +289,7 @@ class testExpandExpressionMacros extends CWebTest {
 		$covered_region = [
 			'x' => 365,
 			'y' => 484,
-			'width' => 105,
+			'width' => 145,
 			'height' => 13
 		];
 		$this->assertScreenshotExcept($map_image, $covered_region, 'Map with expression macros');

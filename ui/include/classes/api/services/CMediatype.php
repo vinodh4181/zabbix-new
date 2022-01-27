@@ -1,7 +1,7 @@
 <?php
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -668,7 +668,7 @@ class CMediatype extends CApiService {
 					if ($upd_param) {
 						$upd_params[] = [
 							'values' => $upd_param,
-							'where' => ['mediatype_paramid' => $upd_param['mediatype_paramid']]
+							'where' => ['mediatype_paramid' => $param['mediatype_paramid']]
 						];
 					}
 				}

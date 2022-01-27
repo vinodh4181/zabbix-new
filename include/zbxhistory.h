@@ -1,6 +1,6 @@
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -32,6 +32,8 @@ typedef struct
 zbx_history_record_t;
 
 ZBX_VECTOR_DECL(history_record, zbx_history_record_t)
+
+int     history_record_float_compare(const zbx_history_record_t *d1, const zbx_history_record_t *d2);
 
 void	zbx_history_record_vector_clean(zbx_vector_history_record_t *vector, int value_type);
 void	zbx_history_record_vector_destroy(zbx_vector_history_record_t *vector, int value_type);

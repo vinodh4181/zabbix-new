@@ -1,7 +1,7 @@
 <?php
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -40,7 +40,9 @@ class CScript extends CApiService {
 	/**
 	 * Fields from "actions" table. Used in get() validation and addRelatedObjects() when selecting action fields.
 	 */
-	private $action_fields = ['actionid', 'name', 'eventsource', 'status', 'esc_period', 'pause_suppressed'];
+	private $action_fields = ['actionid', 'name', 'eventsource', 'status', 'esc_period', 'pause_suppressed',
+		'notify_if_canceled'
+	];
 
 	/**
 	 * This property, if filled out, will contain all hostrgroup ids

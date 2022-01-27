@@ -1,6 +1,6 @@
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -26,7 +26,6 @@
 #include "zbxgetopt.h"
 #include "comms.h"
 #include "modbtype.h"
-
 
 char	*CONFIG_HOSTS_ALLOWED		= NULL;
 char	*CONFIG_HOSTNAMES		= NULL;
@@ -189,6 +188,7 @@ const char	*help_message[] = {
 	"  -R --runtime-control runtime-option   Perform administrative functions",
 	"",
 	"    Runtime control options:",
+	"      " ZBX_USER_PARAMETERS_RELOAD "       Reload user parameters from the configuration file",
 	"      " ZBX_LOG_LEVEL_INCREASE "=target  Increase log level, affects all processes if",
 	"                                 target is not specified",
 	"      " ZBX_LOG_LEVEL_DECREASE "=target  Decrease log level, affects all processes if",
@@ -299,7 +299,7 @@ int	CONFIG_ALERTDB_FORKS		= 0;
 int	CONFIG_HISTORYPOLLER_FORKS	= 0;
 int	CONFIG_AVAILMAN_FORKS		= 0;
 int	CONFIG_SERVICEMAN_FORKS		= 0;
-int	CONFIG_PROBLEMHOUSEKEEPER_FORKS = 0;
+int	CONFIG_TRIGGERHOUSEKEEPER_FORKS = 0;
 
 char	*opt = NULL;
 
@@ -365,7 +365,7 @@ static int	parse_commandline(int argc, char **argv, ZBX_TASK_EX *t)
 				break;
 #ifndef _WINDOWS
 			case 'R':
-				if (SUCCEED != parse_rtc_options(zbx_optarg, program_type, &t->data))
+				if (SUCCEED != parse_rtc_options(zbx_optarg, &t->data))
 					exit(EXIT_FAILURE);
 
 				t->task = ZBX_TASK_RUNTIME_CONTROL;
@@ -553,11 +553,7 @@ out:
 
 /******************************************************************************
  *                                                                            *
- * Function: set_defaults                                                     *
- *                                                                            *
  * Purpose: set configuration defaults                                        *
- *                                                                            *
- * Author: Vladimir Levijev, Rudolfs Kreicbergs                               *
  *                                                                            *
  ******************************************************************************/
 static void	set_defaults(void)
@@ -619,8 +615,6 @@ static void	set_defaults(void)
 
 /******************************************************************************
  *                                                                            *
- * Function: zbx_validate_config_hostnames                                    *
- *                                                                            *
  * Purpose: validate listed host names                                        *
  *                                                                            *
  ******************************************************************************/
@@ -649,11 +643,7 @@ static void	zbx_validate_config_hostnames(zbx_vector_str_t *hostnames)
 
 /******************************************************************************
  *                                                                            *
- * Function: zbx_validate_config                                              *
- *                                                                            *
  * Purpose: validate configuration parameters                                 *
- *                                                                            *
- * Author: Vladimir Levijev                                                   *
  *                                                                            *
  ******************************************************************************/
 static void	zbx_validate_config(ZBX_TASK_EX *task)
@@ -793,8 +783,6 @@ static void	parse_hostnames(const char *hostname_param, zbx_vector_str_t *hostna
 
 /******************************************************************************
  *                                                                            *
- * Function: load_enable_remote_commands                                      *
- *                                                                            *
  * Purpose: aliases EnableRemoteCommands parameter to                         *
  *          Allow/DenyKey=system.run[*]                                       *
  *                                                                            *
@@ -824,8 +812,6 @@ static int	load_enable_remote_commands(const char *value, const struct cfg_line 
 }
 
 /******************************************************************************
- *                                                                            *
- * Function: zbx_load_config                                                  *
  *                                                                            *
  * Purpose: load configuration from config file                               *
  *                                                                            *
@@ -966,7 +952,7 @@ static void	zbx_load_config(int requirement, ZBX_TASK_EX *task)
 	zbx_strarr_init(&CONFIG_PERF_COUNTERS);
 	zbx_strarr_init(&CONFIG_PERF_COUNTERS_EN);
 #endif
-	parse_cfg_file(CONFIG_FILE, cfg, requirement, ZBX_CFG_STRICT);
+	parse_cfg_file(CONFIG_FILE, cfg, requirement, ZBX_CFG_STRICT, ZBX_CFG_EXIT_FAILURE);
 
 	finalize_key_access_rules_configuration();
 
@@ -1006,23 +992,19 @@ static void	zbx_load_config(int requirement, ZBX_TASK_EX *task)
 
 /******************************************************************************
  *                                                                            *
- * Function: zbx_free_config                                                  *
- *                                                                            *
  * Purpose: free configuration memory                                         *
- *                                                                            *
- * Author: Vladimir Levijev                                                   *
  *                                                                            *
  ******************************************************************************/
 static void	zbx_free_config(void)
 {
-	zbx_strarr_free(CONFIG_ALIASES);
-	zbx_strarr_free(CONFIG_USER_PARAMETERS);
+	zbx_strarr_free(&CONFIG_ALIASES);
+	zbx_strarr_free(&CONFIG_USER_PARAMETERS);
 #ifndef _WINDOWS
-	zbx_strarr_free(CONFIG_LOAD_MODULE);
+	zbx_strarr_free(&CONFIG_LOAD_MODULE);
 #endif
 #ifdef _WINDOWS
-	zbx_strarr_free(CONFIG_PERF_COUNTERS);
-	zbx_strarr_free(CONFIG_PERF_COUNTERS_EN);
+	zbx_strarr_free(&CONFIG_PERF_COUNTERS);
+	zbx_strarr_free(&CONFIG_PERF_COUNTERS_EN);
 #endif
 }
 
@@ -1120,6 +1102,15 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 		exit(EXIT_FAILURE);
 	}
 #endif
+
+	if (FAIL == load_user_parameters(CONFIG_USER_PARAMETERS, &error))
+	{
+		zabbix_log(LOG_LEVEL_CRIT, "cannot load user parameters: %s", error);
+		zbx_free(error);
+		zbx_free_service_resources(FAIL);
+		exit(EXIT_FAILURE);
+	}
+
 	if (0 != CONFIG_PASSIVE_FORKS)
 	{
 		if (FAIL == zbx_tcp_listen(&listen_sock, CONFIG_LISTEN_IP, (unsigned short)CONFIG_LISTEN_PORT))
@@ -1266,8 +1257,6 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 
 /******************************************************************************
  *                                                                            *
- * Function: zbx_free_service_resources                                       *
- *                                                                            *
  * Purpose: free service resources allocated by main thread                   *
  *                                                                            *
  ******************************************************************************/
@@ -1327,9 +1316,9 @@ void	zbx_on_exit(int ret)
 int	main(int argc, char **argv)
 {
 	ZBX_TASK_EX	t = {ZBX_TASK_START};
+	char		*error = NULL;
 #ifdef _WINDOWS
 	int		ret;
-	char		*error;
 
 	/* Provide, so our process handles errors instead of the system itself. */
 	/* Attention!!! */
@@ -1428,7 +1417,14 @@ int	main(int argc, char **argv)
 			}
 #endif
 			set_user_parameter_dir(CONFIG_USER_PARAMETER_DIR);
-			load_user_parameters(CONFIG_USER_PARAMETERS);
+
+			if (FAIL == load_user_parameters(CONFIG_USER_PARAMETERS, &error))
+			{
+				zabbix_log(LOG_LEVEL_CRIT, "cannot load user parameters: %s", error);
+				zbx_free(error);
+				exit(EXIT_FAILURE);
+			}
+
 			load_aliases(CONFIG_ALIASES);
 			zbx_free_config();
 			if (ZBX_TASK_TEST_METRIC == t.task)
@@ -1465,7 +1461,6 @@ int	main(int argc, char **argv)
 		default:
 			zbx_load_config(ZBX_CFG_FILE_REQUIRED, &t);
 			set_user_parameter_dir(CONFIG_USER_PARAMETER_DIR);
-			load_user_parameters(CONFIG_USER_PARAMETERS);
 			load_aliases(CONFIG_ALIASES);
 			break;
 	}

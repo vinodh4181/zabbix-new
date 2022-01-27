@@ -1,7 +1,7 @@
 <?php
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ class CControllerWidgetSvgGraphView extends CControllerWidget {
 		$height = (int) $this->getInput('content_height', self::GRAPH_HEIGHT_MIN);
 		$preview = (bool) $this->getInput('preview', 0); // Configuration preview.
 
-		$parser = new CNumberParser(['with_suffix' => true]);
+		$parser = new CNumberParser(['with_size_suffix' => true, 'with_time_suffix' => true]);
 		$lefty_min = $parser->parse($fields['lefty_min']) == CParser::PARSE_SUCCESS ? $parser->calcValue() : '';
 		$lefty_max = $parser->parse($fields['lefty_max']) == CParser::PARSE_SUCCESS ? $parser->calcValue() : '';
 		$righty_min = $parser->parse($fields['righty_min']) == CParser::PARSE_SUCCESS ? $parser->calcValue() : '';

@@ -1,6 +1,6 @@
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -73,3 +73,7 @@ void	zbx_service_send(zbx_uint32_t code, unsigned char *data, zbx_uint32_t size,
 	}
 }
 
+void	zbx_service_reload_cache(void)
+{
+	zbx_service_send(ZBX_IPC_SERVICE_RELOAD_CACHE, NULL, 0, NULL);
+}

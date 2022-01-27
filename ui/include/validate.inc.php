@@ -1,7 +1,7 @@
 <?php
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -168,7 +168,7 @@ function check_type(&$field, $flags, &$var, $type, $caption = null) {
 		}
 	}
 	elseif ($type == T_ZBX_DBL) {
-		$number_parser = new CNumberParser(['with_suffix' => false]);
+		$number_parser = new CNumberParser();
 
 		if ($number_parser->parse($var) != CParser::PARSE_SUCCESS) {
 			$error = true;

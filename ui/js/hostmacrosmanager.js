@@ -1,6 +1,6 @@
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -205,11 +205,10 @@ class HostMacrosManager {
 		});
 
 		// Init tab indicator observer.
-		const macro_indicator = new MacrosTabIndicatorItem();
-		const tab = document.querySelector('#tab_macros-tab');
+		const tab = document.querySelector('#tab_macros-tab, #tab_macroTab');
 
 		if (tab) {
-			macro_indicator.initObserver(tab);
+			new MacrosTabIndicatorItem().initObserver(tab);
 		}
 	}
 

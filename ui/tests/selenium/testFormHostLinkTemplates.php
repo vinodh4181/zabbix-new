@@ -1,7 +1,7 @@
 <?php
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -47,10 +47,9 @@ class testFormHostLinkTemplates extends CLegacyWebTest {
 		$this->zbxTestClickLinkTextWait($this->host_for_template);
 
 		$dialog = COverlayDialogElement::find()->asForm()->waitUntilReady()->one();
-		$dialog->selectTab('Templates');
-		$dialog->fill(['Link new templates' => 'Linux by Zabbix agent']);
+		$dialog->fill(['Templates' => 'Linux by Zabbix agent active']);
 
-		$this->zbxTestTextPresent('Linux by Zabbix agent');
+		$this->zbxTestTextPresent('Linux by Zabbix agent active');
 		$dialog->submit();
 		$this->zbxTestCheckTitle('Configuration of hosts');
 		$this->zbxTestWaitUntilMessageTextPresent('msg-good', 'Host updated');
@@ -63,7 +62,7 @@ class testFormHostLinkTemplates extends CLegacyWebTest {
 	public function testFormHostLinkTemplates_TemplateUnlink() {
 		// Unlink a template from a host from host properties page
 
-		$template = 'Linux by Zabbix agent';
+		$template = 'Linux by Zabbix agent active';
 		$host = 'Template linkage test host';
 
 		$sql = 'select hostid from hosts where host='.zbx_dbstr($host).' and status in ('.HOST_STATUS_MONITORED.','.HOST_STATUS_NOT_MONITORED.')';
@@ -79,11 +78,10 @@ class testFormHostLinkTemplates extends CLegacyWebTest {
 		$this->zbxTestClickLinkTextWait($this->host_for_template);
 
 		$dialog = COverlayDialogElement::find()->asForm()->waitUntilReady()->one();
-		$dialog->selectTab('Templates');
 
 		// Clicks button named "Unlink" next to a template by name.
 		$this->assertTrue($dialog->query('link', $template)->exists());
-		$dialog->query('id:linked-template')->asTable()->one()->findRow('Name', $template)->getColumn('Action')
+		$dialog->query('id:linked-templates')->asTable()->one()->findRow('Name', $template)->getColumn('Action')
 				->query('button:Unlink')->one()->click();
 		$this->assertFalse($dialog->query('link', $template)->exists());
 
@@ -109,10 +107,9 @@ class testFormHostLinkTemplates extends CLegacyWebTest {
 		$this->zbxTestClickLinkTextWait($this->host_for_template);
 
 		$form = $this->query('name:host-form')->asForm()->waitUntilReady()->one();
-		$form->selectTab('Templates');
-		$form->fill(['Link new templates' => 'Linux by Zabbix agent']);
+		$form->fill(['Templates' => 'Linux by Zabbix agent active']);
 
-		$this->zbxTestTextPresent('Linux by Zabbix agent');
+		$this->zbxTestTextPresent('Linux by Zabbix agent active');
 		$form->submit();
 		$this->zbxTestCheckTitle('Configuration of hosts');
 		$this->zbxTestWaitUntilMessageTextPresent('msg-good', 'Host updated');
@@ -125,7 +122,7 @@ class testFormHostLinkTemplates extends CLegacyWebTest {
 	public function testFormHostLinkTemplates_TemplateUnlinkAndClear() {
 		// Unlink and clear a template from a host from host properties page
 
-		$template = 'Linux by Zabbix agent';
+		$template = 'Linux by Zabbix agent active';
 		$host = 'Template linkage test host';
 
 		$sql = 'select hostid from hosts where host='.zbx_dbstr($host).' and status in ('.HOST_STATUS_MONITORED.','.HOST_STATUS_NOT_MONITORED.')';
@@ -141,11 +138,10 @@ class testFormHostLinkTemplates extends CLegacyWebTest {
 		$this->zbxTestClickLinkTextWait($this->host_for_template);
 
 		$dialog = COverlayDialogElement::find()->asForm()->waitUntilReady()->one();
-		$dialog->selectTab('Templates');
 
 		// Clicks button named "Unlink and clear" next to a template by name.
 		$this->assertTrue($dialog->query('link', $template)->exists());
-		$dialog->query('id:linked-template')->asTable()->one()->findRow('Name', $template)->getColumn('Action')
+		$dialog->query('id:linked-templates')->asTable()->one()->findRow('Name', $template)->getColumn('Action')
 				->query('button:Unlink and clear')->one()->click();
 		$this->assertFalse($dialog->query('link', $template)->exists());
 

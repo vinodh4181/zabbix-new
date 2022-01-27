@@ -1,7 +1,7 @@
 <?php declare(strict_types = 1);
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -128,10 +128,10 @@ final class CItemData {
 			'kernel.maxfiles',
 			'kernel.maxproc',
 			'kernel.openfiles',
-			'log.count[file,<regexp>,<encoding>,<maxproclines>,<mode>,<maxdelay>,<options>]',
-			'log[file,<regexp>,<encoding>,<maxlines>,<mode>,<output>,<maxdelay>,<options>]',
-			'logrt.count[file_regexp,<regexp>,<encoding>,<maxproclines>,<mode>,<maxdelay>,<options>]',
-			'logrt[file_regexp,<regexp>,<encoding>,<maxlines>,<mode>,<output>,<maxdelay>,<options>]',
+			'log.count[file,<regexp>,<encoding>,<maxproclines>,<mode>,<maxdelay>,<options>,<persistent_dir>]',
+			'log[file,<regexp>,<encoding>,<maxlines>,<mode>,<output>,<maxdelay>,<options>,<persistent_dir>]',
+			'logrt.count[file_regexp,<regexp>,<encoding>,<maxproclines>,<mode>,<maxdelay>,<options>,<persistent_dir>]',
+			'logrt[file_regexp,<regexp>,<encoding>,<maxlines>,<mode>,<output>,<maxdelay>,<options>,<persistent_dir>]',
 			'modbus.get[endpoint,<slaveid>,<function>,<address>,<count>,<type>,<endianness>,<offset>]',
 			'mqtt.get[<broker_url>,topic]',
 			'net.dns.record[<ip>,name,<type>,<timeout>,<count>,<protocol>]',
@@ -727,21 +727,6 @@ final class CItemData {
 					'publickey'
 				]
 			],
-			// Dropdown entries of parent with {id} to disable for specific type.
-			'disable_for_type' => [
-				ITEM_TYPE_CALCULATED => [
-					'value_type' => [
-						ITEM_VALUE_TYPE_STR,
-						ITEM_VALUE_TYPE_LOG,
-						ITEM_VALUE_TYPE_TEXT
-					],
-					'value_type_steps' => [
-						ITEM_VALUE_TYPE_STR,
-						ITEM_VALUE_TYPE_LOG,
-						ITEM_VALUE_TYPE_TEXT
-					]
-				]
-			],
 			'for_http_auth_type' => [
 				HTTPTEST_AUTH_BASIC => [
 					'js-item-http-username-label',
@@ -904,19 +889,19 @@ final class CItemData {
 				'description' => _('Number of currently open file descriptors. Returns integer'),
 				'value_type' => ITEM_VALUE_TYPE_UINT64
 			],
-			'log.count[file,<regexp>,<encoding>,<maxproclines>,<mode>,<maxdelay>,<options>]' => [
+			'log.count[file,<regexp>,<encoding>,<maxproclines>,<mode>,<maxdelay>,<options>,<persistent_dir>]' => [
 				'description' => _('Count of matched lines in log file monitoring. Returns integer'),
 				'value_type' => ITEM_VALUE_TYPE_UINT64
 			],
-			'log[file,<regexp>,<encoding>,<maxlines>,<mode>,<output>,<maxdelay>,<options>]' => [
+			'log[file,<regexp>,<encoding>,<maxlines>,<mode>,<output>,<maxdelay>,<options>,<persistent_dir>]' => [
 				'description' => _('Log file monitoring. Returns log'),
 				'value_type' => ITEM_VALUE_TYPE_LOG
 			],
-			'logrt.count[file_regexp,<regexp>,<encoding>,<maxproclines>,<mode>,<maxdelay>,<options>]' => [
+			'logrt.count[file_regexp,<regexp>,<encoding>,<maxproclines>,<mode>,<maxdelay>,<options>,<persistent_dir>]' => [
 				'description' => _('Count of matched lines in log file monitoring with log rotation support. Returns integer'),
 				'value_type' => ITEM_VALUE_TYPE_UINT64
 			],
-			'logrt[file_regexp,<regexp>,<encoding>,<maxlines>,<mode>,<output>,<maxdelay>,<options>]' => [
+			'logrt[file_regexp,<regexp>,<encoding>,<maxlines>,<mode>,<output>,<maxdelay>,<options>,<persistent_dir>]' => [
 				'description' => _('Log file monitoring with log rotation support. Returns log'),
 				'value_type' => ITEM_VALUE_TYPE_LOG
 			],

@@ -1,7 +1,7 @@
 <?php
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -130,7 +130,7 @@ class testPageDashboardWidgets extends CWebTest {
 	 */
 	public function testPageDashboardWidgets_checkProblemHostsWidget() {
 		// Authorize user and open the page 'zabbix.php?action=dashboard.view&dashboardid=100'.
-		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid=100');
+		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid=1000');
 
 		// Find dashboard element.
 		$dashboard = CDashboardElement::find()->one();

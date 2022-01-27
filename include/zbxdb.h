@@ -1,6 +1,6 @@
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -231,6 +231,10 @@ void	zbx_db_version_json_create(struct zbx_json *json, struct zbx_db_version_inf
 #	define ZBX_DB_TIMESTAMP()	"cast(extract(epoch from now()) as int)"
 #else /* HAVE_ORACLE */
 #	define ZBX_DB_TIMESTAMP()	"(cast(sys_extract_utc(systimestamp) as date) - date'1970-01-01') * 86400"
+#endif
+
+#if defined(HAVE_MYSQL)
+void zbx_db_set_character_set(const char *char_set);
 #endif
 
 #endif

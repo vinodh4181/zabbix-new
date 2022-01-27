@@ -1,7 +1,7 @@
 <?php
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -594,23 +594,34 @@ function prepareItemHttpAgentFormData(array $item) {
 
 		foreach ($item['query_fields']['name'] as $index => $key) {
 			$value = $item['query_fields']['value'][$index];
+			$sortorder = $item['query_fields']['sortorder'][$index];
 
 			if ($key !== '' || $value !== '') {
-				$query_fields[] = [$key => $value];
+				$query_fields[$sortorder] = [$key => $value];
 			}
 		}
+
+		ksort($query_fields);
 		$item['query_fields'] = $query_fields;
 	}
 
 	if ($item['headers']) {
-		$headers = [];
+		$tmp_headers = [];
 
 		foreach ($item['headers']['name'] as $index => $key) {
 			$value = $item['headers']['value'][$index];
+			$sortorder = $item['headers']['sortorder'][$index];
 
 			if ($key !== '' || $value !== '') {
-				$headers[$key] = $value;
+				$tmp_headers[$sortorder] = [$key => $value];
 			}
+		}
+
+		ksort($tmp_headers);
+		$headers = [];
+
+		foreach ($tmp_headers as $key_value_pair) {
+			$headers[key($key_value_pair)] = reset($key_value_pair);
 		}
 
 		$item['headers'] = $headers;
@@ -783,10 +794,12 @@ function getItemFormData(array $item = [], array $options = []) {
 					&& array_key_exists('value', $data[$property])) {
 				foreach ($data[$property]['name'] as $index => $key) {
 					if (array_key_exists($index, $data[$property]['value'])) {
-						$values[] = [$key => $data[$property]['value'][$index]];
+						$sortorder = $data[$property]['sortorder'][$index];
+						$values[$sortorder] = [$key => $data[$property]['value'][$index]];
 					}
 				}
 			}
+			ksort($values);
 			$data[$property] = $values;
 		}
 
@@ -819,10 +832,8 @@ function getItemFormData(array $item = [], array $options = []) {
 
 	// Dependent item initialization by master_itemid.
 	if (array_key_exists('master_item', $item)) {
-		$expanded = CMacrosResolverHelper::resolveItemNames([$item['master_item']]);
-		$master_item = reset($expanded);
-		$data['master_itemid'] = $master_item['itemid'];
-		$data['master_itemname'] = $master_item['name_expanded'];
+		$data['master_itemid'] = $item['master_item']['itemid'];
+		$data['master_itemname'] = $item['master_item']['name'];
 		// Do not initialize item data if only master_item array was passed.
 		unset($item['master_item']);
 	}
@@ -1334,11 +1345,37 @@ function getItemPreprocessing(CForm $form, array $preprocessing, $readonly, arra
 				break;
 
 			case ZBX_PREPROC_PROMETHEUS_PATTERN:
+				$step_param_2_value = (array_key_exists('params', $step) && array_key_exists(2, $step['params']))
+					? $step['params'][2]
+					: '';
+
+				if ($step_param_1_value === ZBX_PREPROC_PROMETHEUS_FUNCTION) {
+					$step_param_1_value = $step_param_2_value;
+					$step_param_2_value = '';
+				}
+
 				$params = [
 					$step_param_0->setAttribute('placeholder',
 						_('<metric name>{<label name>="<label value>", ...} == <value>')
 					),
-					$step_param_1->setAttribute('placeholder', _('<label name>'))
+					(new CSelect('preprocessing['.$i.'][params][1]'))
+						->addOptions(CSelect::createOptionsFromArray([
+							ZBX_PREPROC_PROMETHEUS_VALUE => _('value'),
+							ZBX_PREPROC_PROMETHEUS_LABEL => _('label'),
+							ZBX_PREPROC_PROMETHEUS_SUM => 'sum',
+							ZBX_PREPROC_PROMETHEUS_MIN => 'min',
+							ZBX_PREPROC_PROMETHEUS_MAX => 'max',
+							ZBX_PREPROC_PROMETHEUS_AVG => 'avg',
+							ZBX_PREPROC_PROMETHEUS_COUNT => 'count'
+						]))
+						->addClass('js-preproc-param-prometheus-pattern-function')
+						->setValue($step_param_1_value)
+						->setReadonly($readonly),
+					(new CTextBox('preprocessing['.$i.'][params][2]', $step_param_2_value))
+						->setTitle($step_param_2_value)
+						->setAttribute('placeholder', _('<label name>'))
+						->setEnabled($step_param_1_value === ZBX_PREPROC_PROMETHEUS_LABEL)
+						->setReadonly($readonly)
 				];
 				break;
 
@@ -1348,7 +1385,6 @@ function getItemPreprocessing(CForm $form, array $preprocessing, $readonly, arra
 				);
 				break;
 
-			// ZBX-16642
 			case ZBX_PREPROC_CSV_TO_JSON:
 				$step_param_2_value = (array_key_exists('params', $step) && array_key_exists(2, $step['params']))
 					? $step['params'][2]
@@ -1445,7 +1481,7 @@ function getItemPreprocessing(CForm $form, array $preprocessing, $readonly, arra
 		$preprocessing_list->addItem(
 			(new CListItem([
 				(new CDiv([
-					(new CDiv())
+					(new CDiv(new CVar('preprocessing['.$i.'][sortorder]', $step['sortorder'])))
 						->addClass(ZBX_STYLE_DRAG_ICON)
 						->addClass(!$sortable ? ZBX_STYLE_DISABLED : null),
 					(new CDiv($preproc_types_select))

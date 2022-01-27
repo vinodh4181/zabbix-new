@@ -1,7 +1,7 @@
 <?php
 /*
 ** Zabbix
-** Copyright (C) 2001-2021 Zabbix SIA
+** Copyright (C) 2001-2022 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -130,12 +130,12 @@ class testPageTemplates extends CLegacyWebTest {
 		$this->query('button:Reset')->one()->click();
 		$filter = $this->query('name:zbx_filter')->asForm()->one();
 		$filter->getField('Linked templates')->fill([
-				'values' => 'ICMP Ping',
+				'values' => 'Template ZBX6663 Second',
 				'context' => 'Templates'
 		]);
 		$filter->submit();
 		$this->zbxTestWaitForPageToLoad();
-		$this->zbxTestAssertElementPresentXpath("//tbody//a[text()='Generic SNMP']");
+		$this->zbxTestAssertElementPresentXpath("//tbody//a[text()='Template ZBX6663 Second']");
 		$this->zbxTestAssertElementPresentXpath("//div[@class='table-stats'][text()='Displaying 1 of 1 found']");
 	}
 
