@@ -107,6 +107,27 @@ class testHighAvailability extends CIntegrationTest {
 		return true;
 	}
 
+	/**
+	 * Stopping the active node (Standby node should take over)
+	 * Starting stopped node (when another node is active and when there are no active nodes)
+	 * Stopping a stand-by node
+	 *
+	 * @required-components server, server_ha1
+	 * @configurationDataProvider serverConfigurationProvider_ha
+	 */
+	public function testHighAvailability_checkModeSwitching2() {
+		$this->startComponent(self::COMPONENT_SERVER_HANODE1, "HA manager started");
+		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, '"'.self::NODE2_NAME.'" node started in "standby" mode', true, 5, 15));
+
+		$this->stopComponent(self::COMPONENT_SERVER);
+		$this->startComponent(self::COMPONENT_SERVER);
+
+		$this->executeRuntimeControlCommand(self::COMPONENT_SERVER, 'ha_status');
+		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, '', true, 1, 1);
+
+		return true;
+	}
+
 	private function verifyNodesStatus($expected_nodes) {
 		$this->executeRuntimeControlCommand(self::COMPONENT_SERVER, 'ha_status');
 
@@ -186,6 +207,8 @@ class testHighAvailability extends CIntegrationTest {
 			]
 		]);
 		$this->assertCount(1, $response['result']);
+
+		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, '"'.self::NODE2_NAME.'" node switched to "active" mode', true, 5, 15));
 	}
 
 }
