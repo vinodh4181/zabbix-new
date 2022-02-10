@@ -139,6 +139,7 @@ class testHighAvailability extends CIntegrationTest {
 
 		$this->executeRuntimeControlCommand(self::COMPONENT_SERVER, 'ha_status');
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, 'sss', true, 1, 1);
+		$this->stopComponent(self::COMPONENT_SERVER_HANODE1);
 
 		return true;
 	}
