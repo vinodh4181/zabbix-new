@@ -127,10 +127,6 @@ class testHighAvailability extends CIntegrationTest {
 	public function testHighAvailability_haStatus() {
 		$expected_nodes = [
 			[
-				"nodename" => self::STANDALONE_NAME,
-				"expected_status" => "stopped"
-			],
-			[
 				"nodename" => self::NODE1_NAME,
 				"expected_status" => "active"
 			],
@@ -150,7 +146,7 @@ class testHighAvailability extends CIntegrationTest {
 	 * @configurationDataProvider serverConfigurationProvider_ha
 	 */
 	public function testHighAvailability_removeNode() {
-		$this->executeRuntimeControlCommand(self::COMPONENT_SERVER, 'ha_remove_node=1');
+		$this->executeRuntimeControlCommand(self::COMPONENT_SERVER, 'ha_remove_node=node1');
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "removed node", true, 3, 5);
 
 		$response = $this->call('hanode.get', [
