@@ -887,7 +887,7 @@ class CIntegrationTest extends CAPITest {
 		}
 
 		for ($r = 0; $r < $iterations; $r++) {
-			if (self::isLogLinePresent($component, $lines, $incremental)) {
+			if (self::isLogLinePresent($component, $lines, $incremental, $match_regex)) {
 				return;
 			}
 
