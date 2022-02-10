@@ -46,6 +46,21 @@ class testHighAvailability extends CIntegrationTest {
 	}
 
 	/**
+	 * Component configuration provider for standalone mode
+	 * Used to test if server quits gracefully when cache size is too low
+	 *
+	 * @return array
+	 */
+	public function serverConfigurationProvider_cacheSize() {
+		return [
+			self::COMPONENT_SERVER => [
+				'HANodeName' => self::NODE1_NAME,
+				'CacheSize' => '128K'
+			]
+		];
+	}
+
+	/**
 	 * Component configuration provider for 2 nodes (Active + standby)
 	 *
 	 * @return array
@@ -123,7 +138,7 @@ class testHighAvailability extends CIntegrationTest {
 		$this->startComponent(self::COMPONENT_SERVER);
 
 		$this->executeRuntimeControlCommand(self::COMPONENT_SERVER, 'ha_status');
-		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, '', true, 1, 1);
+		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, 'sss', true, 1, 1);
 
 		return true;
 	}
@@ -211,4 +226,15 @@ class testHighAvailability extends CIntegrationTest {
 		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, '"'.self::NODE2_NAME.'" node switched to "active" mode', true, 5, 15));
 	}
 
+	/**
+	 * Updating the failover delay via ha_set_failover_delay runtime command
+	 *
+	 * @required-components server, server_ha1
+	 * @configurationDataProvider serverConfigurationProvider_ha
+	 */
+	public function testHighAvailability_failover() {
+	{
+		$this->stopComponent(self::COMPONENT_SERVER);
+		$this->startComponent(self::COMPONENT_SERVER);
+	}
 }
