@@ -326,7 +326,7 @@ class CIntegrationTest extends CAPITest {
 	 *
 	 * @throws Exception    on failed wait operation
 	 */
-	protected static function waitForStartup($component) {
+	protected static function waitForStartup($component, $waitLogLineOverride = '') {
 		self::validateComponent($component);
 
 		for ($r = 0; $r < self::WAIT_ITERATIONS; $r++) {
@@ -338,7 +338,8 @@ class CIntegrationTest extends CAPITest {
 						break;
 					case self::COMPONENT_SERVER:
 					case self::COMPONENT_PROXY:
-						self::waitForLogLineToBePresent($component, 'started [trapper #1]', false, 5, 1);
+						$line = empty($waitLogLineOverride) ? 'started [trapper #1]' : $waitLogLineOverride;
+						self::waitForLogLineToBePresent($component, $line, false, 5, 1);
 						break;
 					case self::COMPONENT_AGENT:
 						self::waitForLogLineToBePresent($component, 'started [listener #1]', false, 5, 1);
@@ -520,7 +521,7 @@ class CIntegrationTest extends CAPITest {
 	 *
 	 * @throws Exception    on missing configuration or failed start
 	 */
-	protected function startComponent($component) {
+	protected function startComponent($component, $waitLogLineOverride = '') {
 		self::validateComponent($component);
 
 		$config = PHPUNIT_CONFIG_DIR.'zabbix_'.$component.'.conf';
@@ -543,7 +544,7 @@ class CIntegrationTest extends CAPITest {
 			$bin_path = PHPUNIT_BINARY_DIR.'zabbix_'.$component;
 
 		self::executeCommand($bin_path, ['-c', $config], $background);
-		self::waitForStartup($component);
+		self::waitForStartup($component, $waitLogLineOverride);
 	}
 
 	/**
