@@ -95,10 +95,12 @@ class testHighAvailability extends CIntegrationTest {
 	 * @configurationDataProvider serverConfigurationProvider_ha
 	 */
 	public function testHighAvailability_checkModeSwitching() {
+		var_dump("stopping server");
 		$this->stopComponent(self::COMPONENT_SERVER);
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, '"'.self::NODE2_NAME.'" node switched to "active" mode', true, 5, 15);
 
-		$this->startComponent(self::COMPONENT_SERVER);
+		var_dump("starting server");
+		$this->startComponent(self::COMPONENT_SERVER, "HA manager started");
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, '"'.self::NODE1_NAME.'" node started in "standby" mode', true, 5, 15);
 
 		$this->stopComponent(self::COMPONENT_SERVER_HANODE1);
