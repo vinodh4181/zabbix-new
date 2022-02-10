@@ -333,11 +333,13 @@ class CIntegrationTest extends CAPITest {
 			$pid = @file_get_contents(self::getPidPath($component));
 			if ($pid && is_numeric($pid) && posix_kill($pid, 0)) {
 				switch ($component) {
+					case self::COMPONENT_SERVER_HANODE1:
+						self::waitForLogLineToBePresent($component, 'HA manager started', false, 5, 1);
+						break;
 					case self::COMPONENT_SERVER:
 					case self::COMPONENT_PROXY:
 						self::waitForLogLineToBePresent($component, 'started [trapper #1]', false, 5, 1);
 						break;
-
 					case self::COMPONENT_AGENT:
 						self::waitForLogLineToBePresent($component, 'started [listener #1]', false, 5, 1);
 						break;
