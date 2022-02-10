@@ -68,7 +68,7 @@ class testHighAvailability extends CIntegrationTest {
 	 * @required-components server
 	 */
 	public function testHighAvailability_checkStandaloneModeStartup() {
-		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "standalone node started", true, 3, 3);
+		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "standalone node started", true, 3, 3));
 
 		return true;
 	}
@@ -80,8 +80,8 @@ class testHighAvailability extends CIntegrationTest {
 	 * @configurationDataProvider serverConfigurationProvider_ha
 	 */
 	public function testHighAvailability_checkHaStartup() {
-		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, '"'.self::NODE1_NAME.'" node started in "active" mode', true, 3, 3);
-		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, '"'.self::NODE2_NAME.'" node started in "standby" mode', true, 3, 3);
+		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER, '"'.self::NODE1_NAME.'" node started in "active" mode', true, 3, 3));
+		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, '"'.self::NODE2_NAME.'" node started in "standby" mode', true, 3, 3));
 
 		return true;
 	}
@@ -95,16 +95,14 @@ class testHighAvailability extends CIntegrationTest {
 	 * @configurationDataProvider serverConfigurationProvider_ha
 	 */
 	public function testHighAvailability_checkModeSwitching() {
-		var_dump("stopping server");
 		$this->stopComponent(self::COMPONENT_SERVER);
-		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, '"'.self::NODE2_NAME.'" node switched to "active" mode', true, 5, 15);
+		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, '"'.self::NODE2_NAME.'" node switched to "active" mode', true, 5, 15));
 
-		var_dump("starting server");
 		$this->startComponent(self::COMPONENT_SERVER, "HA manager started");
-		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, '"'.self::NODE1_NAME.'" node started in "standby" mode', true, 5, 15);
+		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER, '"'.self::NODE1_NAME.'" node started in "standby" mode', true, 5, 15));
 
 		$this->stopComponent(self::COMPONENT_SERVER_HANODE1);
-		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, '"'.self::NODE1_NAME.'" node switched to "active" mode', true, 5, 15);
+		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER, '"'.self::NODE1_NAME.'" node switched to "active" mode', true, 5, 15));
 
 		return true;
 	}
@@ -116,6 +114,8 @@ class testHighAvailability extends CIntegrationTest {
 			$re = $node["nodename"].".*".$node["expected_status"];
 			$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, $re, true, 20, 3, true);
 		}
+
+		return true;
 	}
 
 	/**
@@ -136,7 +136,7 @@ class testHighAvailability extends CIntegrationTest {
 			]
 		];
 
-		$this->verifyNodesStatus($expected_nodes);
+		$this->assertTrue($this->verifyNodesStatus($expected_nodes));
 	}
 
 	/**
