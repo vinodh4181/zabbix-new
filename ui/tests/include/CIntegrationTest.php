@@ -888,7 +888,7 @@ class CIntegrationTest extends CAPITest {
 
 		for ($r = 0; $r < $iterations; $r++) {
 			if (self::isLogLinePresent($component, $lines, $incremental, $match_regex)) {
-				return;
+				return true;
 			}
 
 			sleep($delay);
@@ -916,8 +916,6 @@ class CIntegrationTest extends CAPITest {
 		throw new Exception('Failed to wait for '.$description.' to be present in '.$component .
 				'log file path:'.self::getLogPath($component).' and server log file contents: ' .
 				$c  . "\n and agent log file contents: " . $c2);
-
-		return true;
 	}
 
 	/**
