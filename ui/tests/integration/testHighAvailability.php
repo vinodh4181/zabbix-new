@@ -239,3 +239,4 @@ class testHighAvailability extends CIntegrationTest {
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, 'sss', true, 1, 1);
 	}
 }
+}
