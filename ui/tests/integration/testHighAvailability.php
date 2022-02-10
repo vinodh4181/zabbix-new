@@ -146,7 +146,7 @@ class testHighAvailability extends CIntegrationTest {
 	 * @configurationDataProvider serverConfigurationProvider_ha
 	 */
 	public function testHighAvailability_removeNode() {
-		$this->executeRuntimeControlCommand(self::COMPONENT_SERVER, 'ha_remove_node=node1');
+		$this->executeRuntimeControlCommand(self::COMPONENT_SERVER, 'ha_remove_node=node2');
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "removed node", true, 3, 5);
 
 		$response = $this->call('hanode.get', [
