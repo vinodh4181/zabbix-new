@@ -221,7 +221,7 @@ class testHighAvailability extends CIntegrationTest {
 		]);
 		$this->assertCount(1, $response['result']);
 
-		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER, '"'.self::NODE1_NAME.'" node switched to "active" mode', true, 5, 15));
+		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER, '"'.self::NODE1_NAME.'" node switched to "active" mode', true, 60, 2));
 	}
 
 	/**
