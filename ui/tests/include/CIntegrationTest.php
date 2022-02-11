@@ -537,10 +537,11 @@ class CIntegrationTest extends CAPITest {
 
 		if ($component === self::COMPONENT_SERVER_HANODE1) {
 			$bin_path = "/tmp/zabbix_".self::COMPONENT_SERVER_HANODE1;
-			if (!file_exists($bin_path)) {
-				copy(PHPUNIT_BINARY_DIR.'zabbix_'.self::COMPONENT_SERVER, $bin_path);
-				chmod($bin_path, 0755);
+			if (file_exists($bin_path)) {
+				unlink($bin_path);
 			}
+			copy(PHPUNIT_BINARY_DIR.'zabbix_'.self::COMPONENT_SERVER, $bin_path);
+			chmod($bin_path, 0755);
 		}
 		else
 			$bin_path = PHPUNIT_BINARY_DIR.'zabbix_'.$component;
