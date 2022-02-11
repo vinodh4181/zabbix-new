@@ -136,6 +136,7 @@ class testHighAvailability extends CIntegrationTest {
 
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, '"node2" node switched to "active" mode', true, 20, 3);
 		$this->stopComponent(self::COMPONENT_SERVER_HANODE1);
+		$this->stopComponent(self::COMPONENT_SERVER);
 
 		return true;
 	}
