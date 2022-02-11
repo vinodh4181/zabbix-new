@@ -116,7 +116,7 @@ class testHighAvailability extends CIntegrationTest {
 		$this->startComponent(self::COMPONENT_SERVER, "HA manager started");
 		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER, '"'.self::NODE1_NAME.'" node started in "standby" mode', true, 5, 15));
 
-		$this->stopComponent(self::COMPONENT_SERVER_HANODE1);
+		$this->stopComponent(self::COMPONENT_SERVER_HANODE1, "HA manager started");
 		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER, '"'.self::NODE1_NAME.'" node switched to "active" mode', true, 5, 15));
 
 		return true;
