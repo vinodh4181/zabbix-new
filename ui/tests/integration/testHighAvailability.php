@@ -211,7 +211,7 @@ class testHighAvailability extends CIntegrationTest {
 		$ha_srv_pid = file_get_contents(self::getPidPath(self::COMPONENT_SERVER_HANODE1));
 		posix_kill(intval($ha_srv_pid), 9);
 
-		sleep(12);
+		sleep(30);
 
 		$response = $this->call('hanode.get', [
 			'output' => 'extend',
