@@ -200,6 +200,8 @@ class testHighAvailability extends CIntegrationTest {
 	 * @configurationDataProvider serverConfigurationProvider_ha
 	 */
 	public function testHighAvailability_failover() {
+		$this->stopComponent(self::COMPONENT_SERVER);
+		$this->startComponent(self::COMPONENT_SERVER, 'HA manager started');
 		$this->executeRuntimeControlCommand(self::COMPONENT_SERVER_HANODE1, 'ha_set_failover_delay=10s');
 		$this->executeRuntimeControlCommand(self::COMPONENT_SERVER, 'ha_set_failover_delay=10s');
 		//$this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, 'HA failover delay set to 10s', true, 20, 3);
