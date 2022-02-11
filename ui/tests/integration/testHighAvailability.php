@@ -221,14 +221,14 @@ class testHighAvailability extends CIntegrationTest {
 		]);
 		$this->assertCount(1, $response['result']);
 
-		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, '"'.self::NODE2_NAME.'" node switched to "active" mode', true, 5, 15));
+		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER, '"'.self::NODE1_NAME.'" node switched to "active" mode', true, 5, 15));
 	}
 
 	/**
 	 * Updating the failover delay via ha_set_failover_delay runtime command
 	 *
 	 * @required-components server, server_ha1
-	 * @configurationDataProvider serverConfigurationProvider_ha
+	 * @configurationDataProvider serverConfigurationProvider_cacheSize
 	 */
 	public function testHighAvailability_cacheSize() {
 		$this->stopComponent(self::COMPONENT_SERVER);
