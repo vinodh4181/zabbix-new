@@ -131,7 +131,7 @@ class testHighAvailability extends CIntegrationTest {
 	 * @configurationDataProvider serverConfigurationProvider_ha
 	 */
 	public function testHighAvailability_checkModeSwitching2() {
-		//$this->startComponent(self::COMPONENT_SERVER_HANODE1);
+		$this->startComponent(self::COMPONENT_SERVER_HANODE1);
 		//$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, '"'.self::NODE2_NAME.'" node started in "standby" mode', true, 5, 15));
 
 		$this->stopComponent(self::COMPONENT_SERVER);
