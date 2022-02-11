@@ -202,6 +202,7 @@ class testHighAvailability extends CIntegrationTest {
 	public function testHighAvailability_failover() {
 		$this->stopComponent(self::COMPONENT_SERVER);
 		$this->startComponent(self::COMPONENT_SERVER, 'HA manager started');
+		sleep(10);
 		$this->executeRuntimeControlCommand(self::COMPONENT_SERVER_HANODE1, 'ha_set_failover_delay=10s');
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER_HANODE1, 'HA failover delay set to 10s', true, 20, 3);
 
@@ -211,7 +212,7 @@ class testHighAvailability extends CIntegrationTest {
 		$ha_srv_pid = file_get_contents(self::getPidPath(self::COMPONENT_SERVER_HANODE1));
 		posix_kill(intval($ha_srv_pid), 9);
 
-		sleep(11);
+		sleep(30);
 
 		$response = $this->call('hanode.get', [
 			'output' => 'extend',
