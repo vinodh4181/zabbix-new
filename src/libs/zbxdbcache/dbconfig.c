@@ -5393,13 +5393,14 @@ static void	DCsync_item_preproc(zbx_dbsync_t *sync, int timestamp)
 	unsigned char		tag;
 	zbx_uint64_t		item_preprocid, itemid;
 	int			found, ret, i, index;
-	ZBX_DC_PREPROCITEM	*preprocitem = NULL;
+	ZBX_DC_PREPROCITEM	*preprocitem;
 	zbx_dc_preproc_op_t	*op;
 	zbx_vector_ptr_t	items;
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
 	zbx_vector_ptr_create(&items);
+	zbx_vector_ptr_reserve(&items, sync->add_num + sync->update_num + sync->remove_num);
 
 	while (SUCCEED == (ret = zbx_dbsync_next(sync, &rowid, &row, &tag)))
 	{
@@ -5409,23 +5410,20 @@ static void	DCsync_item_preproc(zbx_dbsync_t *sync, int timestamp)
 
 		ZBX_STR2UINT64(itemid, row[1]);
 
-		if (NULL == preprocitem || itemid != preprocitem->itemid)
+		if (NULL == (preprocitem = (ZBX_DC_PREPROCITEM *)zbx_hashset_search(&config->preprocitems, &itemid)))
 		{
-			if (NULL == (preprocitem = (ZBX_DC_PREPROCITEM *)zbx_hashset_search(&config->preprocitems, &itemid)))
-			{
-				ZBX_DC_PREPROCITEM	preprocitem_local;
+			ZBX_DC_PREPROCITEM	preprocitem_local;
 
-				preprocitem_local.itemid = itemid;
+			preprocitem_local.itemid = itemid;
 
-				preprocitem = (ZBX_DC_PREPROCITEM *)zbx_hashset_insert(&config->preprocitems, &preprocitem_local,
-						sizeof(preprocitem_local));
+			preprocitem = (ZBX_DC_PREPROCITEM *)zbx_hashset_insert(&config->preprocitems, &preprocitem_local,
+					sizeof(preprocitem_local));
 
-				zbx_vector_ptr_create_ext(&preprocitem->preproc_ops, __config_mem_malloc_func,
-						__config_mem_realloc_func, __config_mem_free_func);
-			}
-
-			preprocitem->update_time = timestamp;
+			zbx_vector_ptr_create_ext(&preprocitem->preproc_ops, __config_mem_malloc_func,
+					__config_mem_realloc_func, __config_mem_free_func);
 		}
+
+		preprocitem->update_time = timestamp;
 
 		ZBX_STR2UINT64(item_preprocid, row[0]);
 

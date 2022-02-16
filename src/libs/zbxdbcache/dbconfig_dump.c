@@ -640,7 +640,7 @@ static void	DCdump_items(void)
 		item = (ZBX_DC_ITEM *)index.values[i];
 		zabbix_log(LOG_LEVEL_TRACE, "itemid:" ZBX_FS_UI64 " hostid:" ZBX_FS_UI64 " key:'%s'",
 				item->itemid, item->hostid, item->key);
-		zabbix_log(LOG_LEVEL_TRACE, "  syncid:" ZBX_FS_UI64 " commitid:" ZBX_FS_COMMITID, item->syncid,
+		zabbix_log(LOG_LEVEL_TRACE, "  syncid:%d commitid:" ZBX_FS_COMMITID, item->syncid,
 				item->commitid);
 		zabbix_log(LOG_LEVEL_TRACE, "  type:%u value_type:%u", item->type, item->value_type);
 		zabbix_log(LOG_LEVEL_TRACE, "  interfaceid:" ZBX_FS_UI64, item->interfaceid);
