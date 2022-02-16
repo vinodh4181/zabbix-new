@@ -1898,7 +1898,7 @@ int	zbx_dbsync_compare_items(zbx_dbsync_t *sync)
 	size_t			sql_alloc = 0, sql_offset = 0;
 	int			ret = SUCCEED;
 
-	zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset,
+	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset,
 			"select i.itemid,i.hostid,i.status,i.type,i.value_type,i.key_,i.snmp_oid,i.ipmi_sensor,i.delay,"
 				"i.trapper_hosts,i.logtimefmt,i.params,ir.state,i.authtype,i.username,i.password,"
 				"i.publickey,i.privatekey,i.flags,i.interfaceid,ir.lastlogsize,ir.mtime,"
@@ -1908,15 +1908,17 @@ int	zbx_dbsync_compare_items(zbx_dbsync_t *sync)
 				"i.request_method,i.output_format,i.ssl_cert_file,i.ssl_key_file,i.ssl_key_password,"
 				"i.verify_peer,i.verify_host,i.allow_traps,i.templateid,null," ZBX_DBSYNC_COMMITID("i")
 			" from items i"
-			" inner join hosts h on i.hostid=h.hostid"
-			" join item_rtdata ir on i.itemid=ir.itemid"
-			" where h.status in (%d,%d) and i.flags<>%d",
-			HOST_STATUS_MONITORED, HOST_STATUS_NOT_MONITORED, ZBX_FLAG_DISCOVERY_PROTOTYPE);
+			" join item_rtdata ir on i.itemid=ir.itemid");
 
 	if (ZBX_DBSYNC_INIT == sync->mode)
 	{
-		if (NULL == (sync->dbresult = DBselect("%s", sql)))
+		if (NULL == (sync->dbresult = DBselect("%s"
+				" inner join hosts h on i.hostid=h.hostid"
+				" where h.status in (%d,%d) and i.flags<>%d",
+				sql, HOST_STATUS_MONITORED, HOST_STATUS_NOT_MONITORED, ZBX_FLAG_DISCOVERY_PROTOTYPE)))
+		{
 			ret = FAIL;
+		}
 		goto out;
 	}
 
@@ -1956,6 +1958,8 @@ int	zbx_dbsync_compare_items(zbx_dbsync_t *sync)
 
 	if (0 != create_ids.values_num || 0 != modify_ids.values_num)
 	{
+		zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " where");
+
 		if (0 != create_ids.values_num)
 		{
 			dbsync_get_rows(sync, &sql, &sql_alloc, &sql_offset, "i.itemid", NULL, &create_ids,
@@ -3864,24 +3868,24 @@ int	zbx_dbsync_compare_item_preprocs(zbx_dbsync_t *sync)
 	zbx_vector_uint64_t	create_ids, modify_ids;
 	zbx_commitid_t		commitid;
 
-	zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset,
+	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset,
 			"select pp.item_preprocid,pp.itemid,pp.type,pp.params,pp.step,h.hostid,pp.error_handler,"
 				"pp.error_handler_params," ZBX_DBSYNC_COMMITID("i")
 			" from item_preproc pp,items i,hosts h"
 			" where pp.itemid=i.itemid"
 				" and i.hostid=h.hostid"
-				" and (h.proxy_hostid is null"
-					" or i.type in (%d,%d,%d))"
-				" and h.status in (%d,%d)"
-				" and i.flags<>%d",
-			ITEM_TYPE_INTERNAL, ITEM_TYPE_CALCULATED, ITEM_TYPE_DEPENDENT,
-			HOST_STATUS_MONITORED, HOST_STATUS_NOT_MONITORED,
-			ZBX_FLAG_DISCOVERY_PROTOTYPE);
+			);
 
 
 	if (ZBX_DBSYNC_INIT == sync->mode)
 	{
-		if (NULL == (sync->dbresult = DBselect("%s", sql)))
+		if (NULL == (sync->dbresult = DBselect("%s"
+				" and (h.proxy_hostid is null or i.type in (%d,%d,%d))"
+				" and h.status in (%d,%d)"
+				" and i.flags<>%d",
+				sql, ITEM_TYPE_INTERNAL, ITEM_TYPE_CALCULATED, ITEM_TYPE_DEPENDENT,
+				HOST_STATUS_MONITORED, HOST_STATUS_NOT_MONITORED,
+				ZBX_FLAG_DISCOVERY_PROTOTYPE)))
 			ret = FAIL;
 		goto out;
 	}
@@ -3929,15 +3933,17 @@ int	zbx_dbsync_compare_item_preprocs(zbx_dbsync_t *sync)
 
 	if (0 != create_ids.values_num || 0 != modify_ids.values_num)
 	{
+		zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " and");
+
 		if (0 != create_ids.values_num)
 		{
-			dbsync_get_rows(sync, &sql, &sql_alloc, &sql_offset, "pp.item_preprocid", " order by pp.itemid",
+			dbsync_get_rows(sync, &sql, &sql_alloc, &sql_offset, "pp.item_preprocid", NULL,
 					&create_ids, ZBX_DBSYNC_ROW_ADD);
 		}
 
 		if (0 != modify_ids.values_num)
 		{
-			dbsync_get_rows(sync, &sql, &sql_alloc, &sql_offset, "pp.item_preprocid", " order by pp.itemid",
+			dbsync_get_rows(sync, &sql, &sql_alloc, &sql_offset, "pp.item_preprocid", NULL,
 					&modify_ids, ZBX_DBSYNC_ROW_UPDATE);
 		}
 	}
