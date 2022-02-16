@@ -2849,6 +2849,8 @@ static void	DCsync_items(zbx_dbsync_t *sync, int flags)
 
 			zbx_vector_ptr_create_ext(&item->tags, __config_mem_malloc_func, __config_mem_realloc_func,
 					__config_mem_free_func);
+
+			item->syncid = 0;
 		}
 		else
 		{
@@ -2867,6 +2869,8 @@ static void	DCsync_items(zbx_dbsync_t *sync, int flags)
 				dc_interface_update_agent_stats(interface_old, item->type, -1);
 			}
 		}
+
+		ZBX_COMMITID_COPY(item->commitid, row[50]);
 
 		if (ITEM_STATUS_ACTIVE == status)
 		{
@@ -5437,7 +5441,10 @@ static void	DCsync_item_preproc(zbx_dbsync_t *sync, int timestamp)
 		{
 			op->itemid = itemid;
 			zbx_vector_ptr_append(&preprocitem->preproc_ops, op);
+			op->syncid = 0;
 		}
+
+		ZBX_COMMITID_COPY(op->commitid, row[8]);
 
 		zbx_vector_ptr_append(&items, preprocitem);
 	}
@@ -6411,6 +6418,8 @@ void	DCsync_configuration(unsigned char mode)
 
 	update_sec = zbx_time() - sec;
 
+	zabbix_increase_log_level();
+
 	if (SUCCEED == ZBX_CHECK_LOG_LEVEL(LOG_LEVEL_DEBUG))
 	{
 		total = csec + hsec + hisec + htsec + gmsec + hmsec + ifsec + idsec + isec +  tisec + pisec + tsec + dsec + fsec + expr_sec +
@@ -6678,6 +6687,8 @@ void	DCsync_configuration(unsigned char mode)
 
 		zbx_mem_dump_stats(LOG_LEVEL_DEBUG, config_mem);
 	}
+
+	zabbix_decrease_log_level();
 out:
 	if (0 == sync_in_progress)
 	{

@@ -220,4 +220,18 @@ zbx_uint128_t;
 
 typedef struct zbx_variant zbx_variant_t;
 
+/* CUID support */
+
+#define CUID_LEN	26
+
+typedef struct
+{
+	char	str[CUID_LEN];
+}
+zbx_cuid_t;
+
+#define zbx_cuid_empty(a)	('\0' == *(a).str ? SUCCEED : FAIL)
+#define zbx_cuid_compare(a, b)	(0 == memcmp((a).str, (b).str, CUID_LEN) ? SUCCEED : FAIL)
+#define zbx_cuid_clear(a)	memset((a).str, 0, CUID_LEN)
+
 #endif

@@ -1761,7 +1761,6 @@ int	zbx_check_xml_memory(char *mem, int maxerrlen, char **errmsg);
 #define ZBX_AUDITLOG_ENABLED	1
 
 /* includes terminating '\0' */
-#define CUID_LEN	26
 void	zbx_new_cuid(char *cuid);
 
 /* report scheduling */

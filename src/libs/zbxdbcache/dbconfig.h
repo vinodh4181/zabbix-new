@@ -20,8 +20,37 @@
 #ifndef ZABBIX_DBCONFIG_H
 #define ZABBIX_DBCONFIG_H
 
+#include "zbxtypes.h"
+
 #ifndef ZBX_DBCONFIG_IMPL
 #	error This header must be used by configuration cache implementation
+#endif
+
+#define ZBX_DBSYNC_BATCH_SIZE	1000
+// #define ZBX_DBSYNC_CUID	1
+
+#ifdef ZBX_DBSYNC_CUID
+
+#	define ZBX_DBSYNC_COMMITID(t)	t ".commit_cuid"
+
+typedef zbx_cuid_t	zbx_commitid_t;
+
+#	define ZBX_COMMITID_EQUAL(x, y)		(0 == memcmp(x, y, ZBX_CUID_LEN))
+#	define ZBX_COMMITID_COPY(dst, src)	memcpy(dst, src, ZBX_CUID_LEN)
+
+#	define ZBX_FS_COMMITID			"%s"
+
+#else
+
+#	define ZBX_DBSYNC_COMMITID(t)	t ".commitid"
+
+typedef zbx_uint64_t	zbx_commitid_t;
+
+#	define ZBX_COMMITID_EQUAL(x, y)		(x == y)
+#	define ZBX_COMMITID_COPY(dst, src)	ZBX_STR2UINT64(dst, src)
+
+#	define ZBX_FS_COMMITID			ZBX_FS_UI64
+
 #endif
 
 typedef struct
@@ -115,9 +144,12 @@ typedef struct
 	unsigned char		queue_priority;
 	unsigned char		schedulable;
 	unsigned char		update_triggers;
+	unsigned char		syncid;
 	zbx_uint64_t		templateid;
 
 	zbx_vector_ptr_t	tags;
+
+	zbx_commitid_t		commitid;
 }
 ZBX_DC_ITEM;
 
@@ -727,8 +759,11 @@ typedef struct
 	int		step;
 	int		error_handler;
 	unsigned char	type;
+	unsigned char	syncid;
 	const char	*params;
 	const char	*error_handler_params;
+
+	zbx_commitid_t	commitid;
 }
 zbx_dc_preproc_op_t;
 

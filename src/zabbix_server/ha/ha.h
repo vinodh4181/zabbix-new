@@ -23,16 +23,6 @@
 #include "common.h"
 #include "zbxrtc.h"
 
-typedef struct
-{
-	char	str[CUID_LEN];
-}
-zbx_cuid_t;
-
-#define zbx_cuid_empty(a)	('\0' == *(a).str ? SUCCEED : FAIL)
-#define zbx_cuid_compare(a, b)	(0 == memcmp((a).str, (b).str, CUID_LEN) ? SUCCEED : FAIL)
-#define zbx_cuid_clear(a)	memset((a).str, 0, CUID_LEN)
-
 int	zbx_ha_start(zbx_rtc_t *rtc, int ha_status, char **error);
 int	zbx_ha_pause(char **error);
 int	zbx_ha_stop(char **error);
