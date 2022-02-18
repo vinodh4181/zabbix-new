@@ -1859,7 +1859,6 @@ static void	dbsync_get_rows(zbx_dbsync_t *sync, char **sql, size_t *sql_alloc, s
 	for (batch = ids->values; batch < ids->values + ids->values_num; batch += ZBX_DBSYNC_BATCH_SIZE)
 	{
 		batch_size = MIN(ZBX_DBSYNC_BATCH_SIZE, ids->values + ids->values_num - batch);
-		zbx_strcpy_alloc(sql, sql_alloc, sql_offset, " and");
 		DBadd_condition_alloc(sql, sql_alloc, sql_offset, field, batch, batch_size);
 		if (NULL != order)
 			zbx_strcpy_alloc(sql, sql_alloc, sql_offset, order);
@@ -1906,9 +1905,11 @@ int	zbx_dbsync_compare_items(zbx_dbsync_t *sync)
 				"i.master_itemid,i.timeout,i.url,i.query_fields,i.posts,i.status_codes,"
 				"i.follow_redirects,i.post_type,i.http_proxy,i.headers,i.retrieve_mode,"
 				"i.request_method,i.output_format,i.ssl_cert_file,i.ssl_key_file,i.ssl_key_password,"
-				"i.verify_peer,i.verify_host,i.allow_traps,i.templateid,null," ZBX_DBSYNC_COMMITID("i")
+				"i.verify_peer,i.verify_host,i.allow_traps,i.templateid,null," ZBX_DBSYNC_COMMITID("i.")
 			" from items i"
 			" join item_rtdata ir on i.itemid=ir.itemid");
+
+	dbsync_prepare(sync, 51, dbsync_item_preproc_row);
 
 	if (ZBX_DBSYNC_INIT == sync->mode)
 	{
@@ -1922,7 +1923,7 @@ int	zbx_dbsync_compare_items(zbx_dbsync_t *sync)
 		goto out;
 	}
 
-	result = DBselect("select i.itemid,i.commitid"
+	result = DBselect("select i.itemid," ZBX_DBSYNC_COMMITID("i.")
 			" from items i"
 			" inner join hosts h on i.hostid=h.hostid"
 			" where h.status in (%d,%d) and i.flags<>%d",
@@ -1953,8 +1954,6 @@ int	zbx_dbsync_compare_items(zbx_dbsync_t *sync)
 			zbx_vector_uint64_append(&create_ids, rowid);
 	}
 	DBfree_result(result);
-
-	dbsync_prepare(sync, 51, dbsync_item_preproc_row);
 
 	if (0 != create_ids.values_num || 0 != modify_ids.values_num)
 	{
@@ -2409,61 +2408,89 @@ int	zbx_dbsync_compare_triggers(zbx_dbsync_t *sync)
 {
 	DB_ROW			dbrow;
 	DB_RESULT		result;
-	zbx_hashset_t		ids;
 	zbx_hashset_iter_t	iter;
 	zbx_uint64_t		rowid;
 	ZBX_DC_TRIGGER		*trigger;
-	char			**row;
+	zbx_vector_uint64_t	create_ids, modify_ids;
+	zbx_commitid_t		commitid;
+	char			*sql = NULL;
+	size_t			sql_alloc = 0, sql_offset = 0;
+	int			ret = SUCCEED;
 
-	if (NULL == (result = DBselect(
+	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset,
 			"select triggerid,description,expression,error,priority,type,value,state,lastchange,status,"
 			"recovery_mode,recovery_expression,correlation_mode,correlation_tag,opdata,event_name,null,"
-			"null,null,flags"
-			" from triggers")))
-	{
-		return FAIL;
-	}
+			"null,null,flags," ZBX_DBSYNC_COMMITID("")
+			" from triggers");
 
-	dbsync_prepare(sync, 20, dbsync_trigger_preproc_row);
+	dbsync_prepare(sync, 21, dbsync_trigger_preproc_row);
 
 	if (ZBX_DBSYNC_INIT == sync->mode)
 	{
-		sync->dbresult = result;
-		return SUCCEED;
+		if (NULL == (sync->dbresult = DBselect("%s", sql)))
+			ret = FAIL;
+		goto out;
 	}
 
-	zbx_hashset_create(&ids, dbsync_env.cache->triggers.num_data, ZBX_DEFAULT_UINT64_HASH_FUNC,
-			ZBX_DEFAULT_UINT64_COMPARE_FUNC);
+	result = DBselect("select triggerid," ZBX_DBSYNC_COMMITID("") " from triggers");
+
+	if (NULL == result)
+	{
+		ret = FAIL;
+		goto out;
+	}
+
+	zbx_vector_uint64_create(&create_ids);
+	zbx_vector_uint64_create(&modify_ids);
 
 	while (NULL != (dbrow = DBfetch(result)))
 	{
 		ZBX_STR2UINT64(rowid, dbrow[0]);
-		zbx_hashset_insert(&ids, &rowid, sizeof(rowid));
 
-		row = dbsync_preproc_row(sync, dbrow);
-
-		if (NULL == (trigger = (ZBX_DC_TRIGGER *)zbx_hashset_search(&dbsync_env.cache->triggers, &rowid)))
+		if (NULL != (trigger = (ZBX_DC_TRIGGER *)zbx_hashset_search(&dbsync_env.cache->triggers, &rowid)))
 		{
-			dbsync_add_row(sync, rowid, ZBX_DBSYNC_ROW_ADD, row);
+			trigger->syncid = dbsync_env.syncid;
+			ZBX_COMMITID_COPY(commitid, dbrow[1]);
+
+			if (!ZBX_COMMITID_EQUAL(trigger->commitid, commitid))
+				zbx_vector_uint64_append(&modify_ids, rowid);
 		}
 		else
+			zbx_vector_uint64_append(&create_ids, rowid);
+	}
+	DBfree_result(result);
+
+	if (0 != create_ids.values_num || 0 != modify_ids.values_num)
+	{
+		zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " where");
+
+		if (0 != create_ids.values_num)
 		{
-			if (FAIL == dbsync_compare_trigger(trigger, row))
-				dbsync_add_row(sync, rowid, ZBX_DBSYNC_ROW_UPDATE, row);
+			dbsync_get_rows(sync, &sql, &sql_alloc, &sql_offset, "triggerid", NULL, &create_ids,
+					ZBX_DBSYNC_ROW_ADD);
+		}
+
+		if (0 != modify_ids.values_num)
+		{
+			dbsync_get_rows(sync, &sql, &sql_alloc, &sql_offset, "triggerid", NULL, &modify_ids,
+					ZBX_DBSYNC_ROW_UPDATE);
 		}
 	}
 
 	zbx_hashset_iter_reset(&dbsync_env.cache->triggers, &iter);
 	while (NULL != (trigger = (ZBX_DC_TRIGGER *)zbx_hashset_iter_next(&iter)))
 	{
-		if (NULL == zbx_hashset_search(&ids, &trigger->triggerid))
+		if (trigger->syncid != dbsync_env.syncid)
 			dbsync_add_row(sync, trigger->triggerid, ZBX_DBSYNC_ROW_REMOVE, NULL);
+
 	}
 
-	zbx_hashset_destroy(&ids);
-	DBfree_result(result);
+	zbx_vector_uint64_destroy(&create_ids);
+	zbx_vector_uint64_destroy(&modify_ids);
+out:
+	zbx_free(sql);
 
-	return SUCCEED;
+	return ret;
 }
 
 /******************************************************************************
@@ -2632,59 +2659,89 @@ int	zbx_dbsync_compare_functions(zbx_dbsync_t *sync)
 {
 	DB_ROW			dbrow;
 	DB_RESULT		result;
-	zbx_hashset_t		ids;
 	zbx_hashset_iter_t	iter;
 	zbx_uint64_t		rowid, itemid;
 	ZBX_DC_FUNCTION		*function;
-	char			**row;
+	zbx_vector_uint64_t	create_ids, modify_ids;
+	zbx_commitid_t		commitid;
+	char			*sql = NULL;
+	size_t			sql_alloc = 0, sql_offset = 0;
+	int			ret = SUCCEED;
 
-	if (NULL == (result = DBselect("select itemid,functionid,name,parameter,triggerid from functions")))
-		return FAIL;
+	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset,
+			"select itemid,functionid,name,parameter,triggerid," ZBX_DBSYNC_COMMITID("") " from functions");
 
-	dbsync_prepare(sync, 5, dbsync_function_preproc_row);
+	dbsync_prepare(sync, 6, dbsync_function_preproc_row);
 
 	if (ZBX_DBSYNC_INIT == sync->mode)
 	{
-		sync->dbresult = result;
-		return SUCCEED;
+		if (NULL == (sync->dbresult = DBselect("%s", sql)))
+			ret = FAIL;
+		goto out;
 	}
 
-	zbx_hashset_create(&ids, dbsync_env.cache->functions.num_data, ZBX_DEFAULT_UINT64_HASH_FUNC,
-			ZBX_DEFAULT_UINT64_COMPARE_FUNC);
+	result = DBselect("select itemid,functionid," ZBX_DBSYNC_COMMITID("") " from functions");
+
+	if (NULL == result)
+	{
+		ret = FAIL;
+		goto out;
+	}
+
+	zbx_vector_uint64_create(&create_ids);
+	zbx_vector_uint64_create(&modify_ids);
 
 	while (NULL != (dbrow = DBfetch(result)))
 	{
-		unsigned char	tag = ZBX_DBSYNC_ROW_NONE;
-
 		ZBX_STR2UINT64(itemid, dbrow[0]);
-		if (NULL == (ZBX_DC_ITEM *)zbx_hashset_search(&config->items, &itemid))
+		if (NULL == zbx_hashset_search(&dbsync_env.cache->items, &itemid))
 			continue;
 
 		ZBX_STR2UINT64(rowid, dbrow[1]);
-		zbx_hashset_insert(&ids, &rowid, sizeof(rowid));
 
-		row = dbsync_preproc_row(sync, dbrow);
+		if (NULL != (function = (ZBX_DC_FUNCTION *)zbx_hashset_search(&dbsync_env.cache->functions, &rowid)))
+		{
+			function->syncid = dbsync_env.syncid;
+			ZBX_COMMITID_COPY(commitid, dbrow[2]);
 
-		if (NULL == (function = (ZBX_DC_FUNCTION *)zbx_hashset_search(&dbsync_env.cache->functions, &rowid)))
-			tag = ZBX_DBSYNC_ROW_ADD;
-		else if (FAIL == dbsync_compare_function(function, row))
-			tag = ZBX_DBSYNC_ROW_UPDATE;
+			if (!ZBX_COMMITID_EQUAL(function->commitid, commitid))
+				zbx_vector_uint64_append(&modify_ids, rowid);
+		}
+		else
+			zbx_vector_uint64_append(&create_ids, rowid);
+	}
+	DBfree_result(result);
 
-		if (ZBX_DBSYNC_ROW_NONE != tag)
-			dbsync_add_row(sync, rowid, tag, row);
+	if (0 != create_ids.values_num || 0 != modify_ids.values_num)
+	{
+		zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " where");
+
+		if (0 != create_ids.values_num)
+		{
+			dbsync_get_rows(sync, &sql, &sql_alloc, &sql_offset, "functionid", NULL, &create_ids,
+					ZBX_DBSYNC_ROW_ADD);
+		}
+
+		if (0 != modify_ids.values_num)
+		{
+			dbsync_get_rows(sync, &sql, &sql_alloc, &sql_offset, "functionid", NULL, &modify_ids,
+					ZBX_DBSYNC_ROW_UPDATE);
+		}
 	}
 
 	zbx_hashset_iter_reset(&dbsync_env.cache->functions, &iter);
 	while (NULL != (function = (ZBX_DC_FUNCTION *)zbx_hashset_iter_next(&iter)))
 	{
-		if (NULL == zbx_hashset_search(&ids, &function->functionid))
+		if (function->syncid != dbsync_env.syncid)
 			dbsync_add_row(sync, function->functionid, ZBX_DBSYNC_ROW_REMOVE, NULL);
 	}
 
-	zbx_hashset_destroy(&ids);
-	DBfree_result(result);
+	zbx_vector_uint64_destroy(&create_ids);
+	zbx_vector_uint64_destroy(&modify_ids);
+out:
+	zbx_free(sql);
 
-	return SUCCEED;
+	return ret;
 }
 
 /******************************************************************************
@@ -3870,12 +3927,13 @@ int	zbx_dbsync_compare_item_preprocs(zbx_dbsync_t *sync)
 
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset,
 			"select pp.item_preprocid,pp.itemid,pp.type,pp.params,pp.step,h.hostid,pp.error_handler,"
-				"pp.error_handler_params," ZBX_DBSYNC_COMMITID("i")
+				"pp.error_handler_params," ZBX_DBSYNC_COMMITID("i.")
 			" from item_preproc pp,items i,hosts h"
 			" where pp.itemid=i.itemid"
 				" and i.hostid=h.hostid"
 			);
 
+	dbsync_prepare(sync, 9, dbsync_item_pp_preproc_row);
 
 	if (ZBX_DBSYNC_INIT == sync->mode)
 	{
@@ -3890,7 +3948,7 @@ int	zbx_dbsync_compare_item_preprocs(zbx_dbsync_t *sync)
 		goto out;
 	}
 
-	result = DBselect("select pp.item_preprocid,i.commitid"
+	result = DBselect("select pp.item_preprocid," ZBX_DBSYNC_COMMITID("i.")
 			" from item_preproc pp,items i,hosts h"
 			" where pp.itemid=i.itemid"
 				" and i.hostid=h.hostid"
@@ -3928,8 +3986,6 @@ int	zbx_dbsync_compare_item_preprocs(zbx_dbsync_t *sync)
 			zbx_vector_uint64_append(&create_ids, rowid);
 	}
 	DBfree_result(result);
-
-	dbsync_prepare(sync, 9, dbsync_item_pp_preproc_row);
 
 	if (0 != create_ids.values_num || 0 != modify_ids.values_num)
 	{

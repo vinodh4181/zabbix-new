@@ -3705,6 +3705,7 @@ static void	DCsync_triggers(zbx_dbsync_t *sync)
 					__config_mem_free_func);
 			trigger->topoindex = 1;
 			trigger->itemids = NULL;
+			trigger->syncid = 0;
 		}
 		else
 		{
@@ -3718,6 +3719,8 @@ static void	DCsync_triggers(zbx_dbsync_t *sync)
 		trigger->recovery_expression_bin = config_decode_serialized_expression(row[17]);
 		trigger->timer = atoi(row[18]);
 		trigger->revision = config->sync_start_ts;
+
+		ZBX_COMMITID_COPY(trigger->commitid, row[20]);
 	}
 
 	/* remove deleted triggers from buffer */
@@ -4251,7 +4254,10 @@ static void	DCsync_functions(zbx_dbsync_t *sync)
 			}
 		}
 		else
+		{
 			function->timer_revision = 0;
+			function->syncid = 0;
+		}
 
 		function->triggerid = triggerid;
 		function->itemid = itemid;
@@ -4260,6 +4266,9 @@ static void	DCsync_functions(zbx_dbsync_t *sync)
 
 		function->type = zbx_get_function_type(function->function);
 		function->revision = config->sync_start_ts;
+
+		ZBX_COMMITID_COPY(function->commitid, row[5]);
+
 
 		dc_item_reset_triggers(item);
 	}

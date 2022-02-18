@@ -27,22 +27,23 @@
 #endif
 
 #define ZBX_DBSYNC_BATCH_SIZE	1000
-// #define ZBX_DBSYNC_CUID	1
+// #define ZBX_DBSYNC_CUID
 
 #ifdef ZBX_DBSYNC_CUID
 
-#	define ZBX_DBSYNC_COMMITID(t)	t ".commit_cuid"
+#	define ZBX_DBSYNC_COMMITID(prefix)	prefix "commit_cuid"
 
 typedef zbx_cuid_t	zbx_commitid_t;
 
-#	define ZBX_COMMITID_EQUAL(x, y)		(0 == memcmp(x, y, ZBX_CUID_LEN))
-#	define ZBX_COMMITID_COPY(dst, src)	memcpy(dst, src, ZBX_CUID_LEN)
+#	define ZBX_COMMITID_EQUAL(x, y)		(0 == memcmp(x.str, y.str, CUID_LEN))
+#	define ZBX_COMMITID_COPY(dst, src)	memcpy(dst.str, src, CUID_LEN)
 
 #	define ZBX_FS_COMMITID			"%s"
+#	define ZBX_COMMITID_PRINT(cid)		cid.str
 
 #else
 
-#	define ZBX_DBSYNC_COMMITID(t)	t ".commitid"
+#	define ZBX_DBSYNC_COMMITID(prefix)	prefix "commitid"
 
 typedef zbx_uint64_t	zbx_commitid_t;
 
@@ -50,6 +51,7 @@ typedef zbx_uint64_t	zbx_commitid_t;
 #	define ZBX_COMMITID_COPY(dst, src)	ZBX_STR2UINT64(dst, src)
 
 #	define ZBX_FS_COMMITID			ZBX_FS_UI64
+#	define ZBX_COMMITID_PRINT(cid)		cid
 
 #endif
 
@@ -80,10 +82,13 @@ typedef struct
 	unsigned char		correlation_mode;	/* see ZBX_TRIGGER_CORRELATION_* defines */
 	unsigned char		timer;
 	unsigned char		flags;
+	unsigned char		syncid;
 
 	zbx_uint64_t		*itemids;
 
 	zbx_vector_ptr_t	tags;
+
+	zbx_commitid_t		commitid;
 }
 ZBX_DC_TRIGGER;
 
@@ -112,6 +117,8 @@ typedef struct
 	int		revision;
 	int		timer_revision;
 	unsigned char	type;
+	unsigned char	syncid;
+	zbx_commitid_t	commitid;
 }
 ZBX_DC_FUNCTION;
 
