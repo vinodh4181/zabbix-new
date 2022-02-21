@@ -83,7 +83,7 @@ class testHighAvailability extends CIntegrationTest {
 	 * @required-components server
 	 */
 	public function testHighAvailability_checkStandaloneModeStartup() {
-		$this->assertTrue($this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "standalone node started", true, 3, 3));
+		$this->assertFalse($this->isLogLinePresent(self::COMPONENT_SERVER, '"'.self::NODE1_NAME.'" node started in "active" mode'));
 
 		return true;
 	}
