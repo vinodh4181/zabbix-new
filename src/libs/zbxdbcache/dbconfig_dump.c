@@ -168,7 +168,8 @@ static void	DCdump_proxies(void)
 	for (i = 0; i < index.values_num; i++)
 	{
 		proxy = (ZBX_DC_PROXY *)index.values[i];
-		zabbix_log(LOG_LEVEL_TRACE, "hostid:" ZBX_FS_UI64 " location:%u", proxy->hostid, proxy->location);
+		zabbix_log(LOG_LEVEL_TRACE, "hostid:" ZBX_FS_UI64 " timediff:%d location:%u", proxy->hostid,
+				proxy->timediff, proxy->location);
 		zabbix_log(LOG_LEVEL_TRACE, "  proxy_address:'%s'", proxy->proxy_address);
 		zabbix_log(LOG_LEVEL_TRACE, "  compress:%d", proxy->auto_compress);
 

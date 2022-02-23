@@ -1487,7 +1487,6 @@ A......... [ZBX-14409] fixed icon mapping expression validation (miks)
 ..F....... [ZBX-13779] fixed redirect button link in multiple places (miks)
 ..F....... [ZBXNEXT-4361] fixed selected breadcrumbs item style; fixed active time range tabs hover cursor style (Andzs, ashubin)
 ..F....... [ZBX-14420] fixed link to Problems screen in map element's context menu (miks)
-.......PS. [ZBX-12957] removed time adjustment of received packets for server and proxy (MVekslers)
 .........T [ZBX-12171] added missing items zabbix[process,vmware collector,avg,busy] and zabbix[vmware,buffer,pfree] to Template App Zabbix Proxy (yurii)
 
 --------------------------------------------------------------------------------
