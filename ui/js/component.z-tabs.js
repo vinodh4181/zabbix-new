@@ -75,7 +75,7 @@ class ZTabs extends HTMLElement {
 
 	_getTemplate() {
 		const template = document.createElement('template');
-
+		// style is not theme aware yet.
 		template.innerHTML = `
 				<style>
 					:host {
@@ -137,6 +137,7 @@ class ZTabs extends HTMLElement {
 						cursor: default;
 						background-color: transparent;
 						color: gray;
+						border: none;
 					}
 				</style>
 				<div class="component-container">
@@ -152,7 +153,7 @@ class ZTabs extends HTMLElement {
 	}
 
 	_getTabs() {
-		return Array.from(this.children);
+		return Array.from(this.children).filter((element) => element.tagName.toLowerCase() === 'z-tab');
 	}
 
 	_getTabButton(index) {
@@ -160,7 +161,7 @@ class ZTabs extends HTMLElement {
 	}
 
 	_getTabButtons() {
-		return this.shadowRoot.querySelectorAll('button[data-tab-index]');
+		return Array.from(this.shadowRoot.querySelectorAll('button[data-tab-index]'));
 	}
 
 	_selectTab(index) {
@@ -172,14 +173,14 @@ class ZTabs extends HTMLElement {
 		button.removeAttribute('tabindex');
 	}
 
-	// save tab state in cookie
 	_initStartingPosition() {
-		if (this.activeTab === null) {
-			this.activeTab = 0;
+		let init_position = this._findNextTab(this.activeTab || 0, true);
+
+		if (this.activeTab == init_position) {
+			this._selectTab(init_position);
 		}
-		else {
-			this._selectTab(this.activeTab);
-		}
+
+		this.activeTab = init_position;
 	}
 
 	_reset() {
@@ -192,12 +193,10 @@ class ZTabs extends HTMLElement {
 
 	_renderTabsNav() {
 		const nav_container = this.shadowRoot.querySelector('.tabs');
-
 		this._getTabs().forEach((tab, index) => {
 			if (tab.tagName.toLowerCase() !== 'z-tab') {
 				return;
 			}
-
 			const tab_button = this._createButtonElement(tab, index);
 
 			tab_button.firstElementChild.addEventListener('click', (event) => {
@@ -236,43 +235,71 @@ class ZTabs extends HTMLElement {
 		return button_item;
 	}
 
-	// apply delay, skip disabled tabs.
-	_onKeyDown(event) {
-		if (event.target.getAttribute('role') !== 'tab') {
-			return;
+	_findNextTab(index, forward) {
+		let valid_index = this._adjustIndex(index);
+
+		if (!this._getTabButtons().find((button) => !button.disabled)) {
+			return 0;
 		}
 
-		if (event.altKey) {
+		while (this._getTabButton(valid_index).disabled) {
+			valid_index = (forward ? valid_index + 1 : valid_index - 1);
+			valid_index = this._adjustIndex(valid_index);
+		}
+
+		return valid_index;
+	}
+
+	_adjustIndex(index) {
+		let length = this._getTabs().length;
+
+		return (index + length) % length;
+	}
+
+	_onKeyDown(event) {
+		if (event.target.getAttribute('role') !== 'tab' || event.altKey) {
 			return;
 		}
 
 		let tab_count = this._getTabs().length;
-		let next_tab;
+		let focus_tab = this.shadowRoot.activeElement.dataset.tabIndex;
+		let forward = true;
 
 		switch (event.keyCode) {
 			case KEYCODE.RIGHT:
 			case KEYCODE.DOWN:
-				next_tab = (this.activeTab + 1) % tab_count;
+				focus_tab++;
 				break;
 
 			case KEYCODE.LEFT:
 			case KEYCODE.UP:
-				next_tab = (tab_count + this.activeTab - 1) % tab_count;
+				forward = false;
+				focus_tab--;
 				break;
 
 			case KEYCODE.HOME:
-				next_tab = 0;
+				focus_tab = 0;
 				break;
 
 			case KEYCODE.END:
-				next_tab = tab_count - 1;
+				forward = false;
+				focus_tab = tab_count - 1;
 				break;
 			default:
 				return;
 		}
 
+		event.preventDefault();
+		clearTimeout(this.activating);
+
+		let next_tab = this._findNextTab(focus_tab, forward);
 		this._getTabButton(next_tab).focus();
-		this.activeTab = next_tab;
+
+		if (!event.ctrlKey && !event.metaKey) {
+			this.activating = setTimeout(() => {
+				this.activeTab = next_tab;
+			}, 300);
+		}
 	}
 }
 

@@ -42,7 +42,7 @@
 						explicabo
 						voluptatum vel!'
 					))
-				))->setTitle('First'),
+				))->setTitle('First')->setDisabled(true),
 				(new CTab(
 					(new CTag(
 						'p',
@@ -94,6 +94,7 @@
 						voluptatum vel!'
 					))
 				))->setTitle('First'),
+				new CTag('p', true,'Invalid tab test'),
 				(new CTab(
 					(new CTag(
 						'p',
@@ -144,7 +145,7 @@
 						explicabo
 						voluptatum vel!'
 					))
-				))->setTitle('First'),
+				))->setTitle('First')->setDisabled(true),
 				(new CTab(
 					(new CTag(
 						'p',
@@ -174,7 +175,7 @@
 						explicabo
 						voluptatum vel!'
 					))
-				))->setTitle('Third'),
+				))->setTitle('Third')->setDisabled(true),
 			]
-		)->setActiveTab(2)
+		)->setActiveTab(1)
 )->show();
