@@ -60,6 +60,10 @@ final class CItemData {
 			'proc.mem[<name>,<user>,<mode>,<cmdline>,<memtype>]',
 			'proc.num[<name>,<user>,<state>,<cmdline>,<zone>]',
 			'proc_info[process,<attribute>,<type>]',
+			'registry.key.get[rootkey,keypath]',
+			'registry.key.mtime[rootkey,keypath]',
+			'registry.key.subkeys[rootkey,keypath]',
+			'registry.key.value[rootkey,keypath,valuename]',
 			'sensor[device,sensor,<mode>]',
 			'service.info[service,<param>]',
 			'services[<type>,<state>,<exclude>]',
@@ -159,6 +163,10 @@ final class CItemData {
 			'proc.mem[<name>,<user>,<mode>,<cmdline>,<memtype>]',
 			'proc.num[<name>,<user>,<state>,<cmdline>,<zone>]',
 			'proc_info[process,<attribute>,<type>]',
+			'registry.key.get[rootkey,keypath]',
+			'registry.key.mtime[rootkey,keypath]',
+			'registry.key.subkeys[rootkey,keypath]',
+			'registry.key.value[rootkey,keypath,valuename]',
 			'sensor[device,sensor,<mode>]',
 			'service.info[service,<param>]',
 			'services[<type>,<state>,<exclude>]',
@@ -1001,6 +1009,22 @@ final class CItemData {
 			'proc.num[<name>,<user>,<state>,<cmdline>,<zone>]' => [
 				'description' => _('The number of processes. Returns integer'),
 				'value_type' => ITEM_VALUE_TYPE_UINT64
+			],
+			'registry.key.get[rootkey,keypath]' => [
+				'description' => _('Lists value names with their values of specified registry key. Returns JSON array'),
+				'value_type' => ITEM_VALUE_TYPE_TEXT
+			],
+			'registry.key.mtime[rootkey,keypath]' => [
+				'description' => _('Modification time of specified registry key. Returns unix timestamp'),
+				'value_type' => ITEM_VALUE_TYPE_UINT64
+			],
+			'registry.key.subkeys[rootkey,keypath]' => [
+				'description' => _('Lists subkeys of specified registry key. Returns JSON array'),
+				'value_type' => ITEM_VALUE_TYPE_TEXT
+			],
+			'registry.key.value[rootkey,keypath,valuename]' => [
+				'description' => _('Value of specified registrykey value name. SZ and EXPAND_SZ values are returned as strings, MULTI_SZ values are returned as newline-delimited strings. DWORD and QWORD values are returned as integers. Binary values are returned as HEX'),
+				'value_type' => null
 			],
 			'proc_info[process,<attribute>,<type>]' => [
 				'description' => _('Various information about specific process(es). Returns float'),
