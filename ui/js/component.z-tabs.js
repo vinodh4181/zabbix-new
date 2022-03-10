@@ -75,79 +75,79 @@ class ZTabs extends HTMLElement {
 
 	_getTemplate() {
 		const template = document.createElement('template');
-		// style is not theme aware yet.
+
 		template.innerHTML = `
-				<style>
-					:host {
-						contain: content;
-						box-sizing: border-box;
-					}
+			<style>
+				:host {
+					contain: content;
+					box-sizing: border-box;
+				}
 
-					.component-container {
-						margin: 0 0 10px;
-						background-color: #ffffff;
-						border: 1px solid #dfe4e7;
-						padding: 10px;
-					}
+				.component-container {
+					margin: 0 0 10px;
+					background-color: var(--component-bg-color);
+					border: 1px solid var(--component-border-color);
+					padding: 10px;
+				}
 
-					ul {
-						margin: -10px -10px 10px;
-						padding: 0;
-						height: 30px;
-						list-style: none;
-						border-bottom: 1px solid #ebeef0;
-						background-color: white;
-					}
+				ul {
+					margin: -10px -10px 10px;
+					padding: 0;
+					height: 30px;
+					list-style: none;
+					border-bottom: 1px solid var(--component-table-border-color);
+					background-color: var(--component-bg-color);
+				}
 
-					li {
-						display: inline-block;
-					}
+				li {
+					display: inline-block;
+				}
 
-					button {
-						position: relative;
-						outline: none;
-						font: inherit;
-						height: 30px;
-						line-height: 0;
-						border: none;
-						color: #0275b8;
-						background-color: white;
-						padding: 8px 10px 6px;
-						cursor: pointer;
-						transition: background-color .2s ease-out;
-					}
+				button {
+					position: relative;
+					outline: none;
+					font: inherit;
+					height: 30px;
+					line-height: 0;
+					border: none;
+					color: var(--component-link-color, blue);
+					background-color: var(--component-bg-color);
+					padding: 8px 10px 6px;
+					cursor: pointer;
+					transition: background-color .2s ease-out;
+				}
 
-					button:focus {
-						outline: 1px dotted black;
-						z-index: 1;
-					}
+				button:focus {
+					outline: 1px dotted var(--component-font-color);
+					z-index: 1;
+				}
 
-					button[aria-selected=true] {
-						border-bottom: 3px solid #0275b8;
-						background-color: transparent;
-						cursor: default;
-						color: #1f2c33;
-					}
+				button[aria-selected=true] {
+					border-bottom: 3px solid var(--component-tab-bg-selected-color);
+					background-color: transparent;
+					cursor: default;
+					color: var(--component-font-color);
+				}
 
-					button[aria-selected=false]:not([disabled]):hover {
-						background-color: #e8f5ff;
-					}
+				button[aria-selected=false]:not([disabled]):hover {
+					background-color: var(--component-hover-color);
+				}
 
-					button:disabled {
-						cursor: default;
-						background-color: transparent;
-						color: gray;
-						border: none;
-					}
-				</style>
-				<div class="component-container">
-					<ul class="tabs" role=tablist>
+				button:disabled {
+					cursor: default;
+					background-color: transparent;
+					color: var(--component-disabled-font-color);
+					border: none;
+				}
+			</style>
+			<div class="component-container">
+				<ul class="tabs" role=tablist>
 
-					</ul>
+				</ul>
 
-					<slot></slot>
-				</div>
-			`;
+				<slot></slot>
+			</div>
+		`;
 
 		return template;
 	}

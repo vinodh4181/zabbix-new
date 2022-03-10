@@ -94,7 +94,6 @@
 						voluptatum vel!'
 					))
 				))->setTitle('First'),
-				new CTag('p', true,'Invalid tab test'),
 				(new CTab(
 					(new CTag(
 						'p',

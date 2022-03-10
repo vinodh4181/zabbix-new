@@ -2628,6 +2628,16 @@ z-select,
     .z-select[readonly] button:focus {
       border-color: #bbbbbb; }
 
+z-tabs {
+  --component-bg-color: #000000;
+  --component-border-color: #444444;
+  --component-tab-bg-selected-color: #ffffff;
+  --component-disabled-font-color: #7d7d7d;
+  --component-table-border-color: #333333;
+  --component-hover-color: #222222;
+  --component-font-color: #ffffff;
+  --component-link-color: #f8f8f8; }
+
 div.dashboard-grid-widget-slareport .date-vertical {
   writing-mode: vertical-lr;
   transform: rotate(180deg); }
