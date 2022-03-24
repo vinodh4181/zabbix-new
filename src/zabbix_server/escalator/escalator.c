@@ -143,6 +143,60 @@ static int	get_user_info(zbx_uint64_t userid, zbx_uint64_t *roleid, char **user_
 	return user_type;
 }
 
+
+/**
+ * Force multiple problem generation triggers to have only one recovery escalation per action.
+ *
+ * This is done by caching of recovered escalation data and skipping escalation recovery
+ * operations if another escalation created by the same trigger and action was recovered
+ * by the same recovery event.
+ */
+typedef struct
+{
+	zbx_uint64_t	triggerid;
+	zbx_uint64_t	r_eventid;
+	zbx_uint64_t	actionid;
+}
+zbx_esc_recovery_t;
+
+static zbx_hash_t	esc_recovery_hash_func(const void *d)
+{
+	const zbx_esc_recovery_t	*er = (const zbx_esc_recovery_t *)d;
+	zbx_hash_t	hash;
+
+	hash = ZBX_DEFAULT_UINT64_HASH_FUNC(&er->actionid);
+	hash = ZBX_DEFAULT_STRING_HASH_ALGO(&er->r_eventid, sizeof(er->r_eventid), hash);
+	return ZBX_DEFAULT_STRING_HASH_ALGO(&er->triggerid, sizeof(er->triggerid), hash);
+}
+
+static int	esc_recovery_compare_func(const void *d1, const void *d2)
+{
+	const zbx_esc_recovery_t	*er1 = (const zbx_esc_recovery_t *)d1;
+	const zbx_esc_recovery_t	*er2 = (const zbx_esc_recovery_t *)d2;
+
+	ZBX_RETURN_IF_NOT_EQUAL(er1->actionid, er2->actionid);
+	ZBX_RETURN_IF_NOT_EQUAL(er1->triggerid, er2->triggerid);
+	ZBX_RETURN_IF_NOT_EQUAL(er1->r_eventid, er2->r_eventid);
+	return 0;
+}
+
+static int	esc_recovery_register(zbx_hashset_t *esc_recovery, zbx_uint64_t actionid, zbx_uint64_t triggerid,
+		zbx_uint64_t r_eventid)
+{
+	zbx_esc_recovery_t	er_local;
+
+	er_local.actionid = actionid;
+	er_local.triggerid = triggerid;
+	er_local.r_eventid = r_eventid;
+
+	if (NULL != zbx_hashset_search(esc_recovery, &er_local))
+		return FAIL;
+
+	zbx_hashset_insert(esc_recovery, &er_local, sizeof(er_local));
+
+	return SUCCEED;
+}
+
 /******************************************************************************
  *                                                                            *
  * Purpose: Return user permissions for access to the host                    *
@@ -2441,20 +2495,32 @@ static void	escalation_execute(DB_ESCALATION *escalation, const DB_ACTION *actio
  *                                                                            *
  * Purpose: process escalation recovery                                       *
  *                                                                            *
- * Parameters: escalation - [IN/OUT] the escalation to recovery               *
- *             action     - [IN]     the action                               *
- *             event      - [IN]     the event                                *
- *             r_event    - [IN]     the recovery event                       *
+ * Parameters: escalation   - [IN/OUT] the escalation to recovery             *
+ *             action       - [IN]     the action                             *
+ *             event        - [IN]     the event                              *
+ *             r_event      - [IN]     the recovery event                     *
+ *             esc_recovery - [IN/OUT] the recovered escalations              *
  *                                                                            *
  ******************************************************************************/
 static void	escalation_recover(DB_ESCALATION *escalation, const DB_ACTION *action, const DB_EVENT *event,
 		const DB_EVENT *r_event, const DB_SERVICE *service, const char *default_timezone,
-		zbx_hashset_t *roles)
+		zbx_hashset_t *roles,  zbx_hashset_t *esc_recovery)
 {
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() escalationid:" ZBX_FS_UI64 " status:%s",
 			__func__, escalation->escalationid, zbx_escalation_status_string(escalation->status));
 
-	escalation_execute_recovery_operations(event, r_event, action, service, default_timezone, roles);
+	if (EVENT_SOURCE_TRIGGERS != event->source || SUCCEED == esc_recovery_register(esc_recovery,
+			escalation->actionid, event->trigger.triggerid, r_event->eventid))
+	{
+		escalation_execute_recovery_operations(event, r_event, action, service, default_timezone, roles);
+	}
+	else
+	{
+		zabbix_log(LOG_LEVEL_DEBUG, "%s() skipping recovery operations because escalation created by action "
+				ZBX_FS_UI64 " and trigger " ZBX_FS_UI64 " has been already recovered by event "
+				ZBX_FS_UI64, __func__, escalation->actionid, event->trigger.triggerid,
+				r_event->eventid);
+	}
 
 	escalation->status = ESCALATION_STATUS_COMPLETED;
 
@@ -2856,7 +2922,8 @@ static void	service_role_clean(zbx_service_role_t *role)
 }
 
 static int	process_db_escalations(int now, int *nextcheck, zbx_vector_ptr_t *escalations,
-		zbx_vector_uint64_t *eventids, zbx_vector_uint64_t *actionids, const char *default_timezone)
+		zbx_vector_uint64_t *eventids, zbx_vector_uint64_t *actionids, const char *default_timezone,
+		zbx_hashset_t *esc_recovery)
 {
 	int				i, ret;
 	zbx_vector_uint64_t		escalationids;
@@ -3061,9 +3128,14 @@ static int	process_db_escalations(int now, int *nextcheck, zbx_vector_ptr_t *esc
 		else if (NULL != r_event)
 		{
 			if (0 == escalation->esc_step)
+			{
 				escalation_execute(escalation, action, event, service, default_timezone, &service_roles);
+			}
 			else
-				escalation_recover(escalation, action, event, r_event, service, default_timezone, &service_roles);
+			{
+				escalation_recover(escalation, action, event, r_event, service, default_timezone,
+						&service_roles, esc_recovery);
+			}
 		}
 		else if (escalation->nextcheck <= now)
 		{
@@ -3225,9 +3297,9 @@ static int	process_escalations(int now, int *nextcheck, unsigned int escalation_
 	DB_ROW			row;
 	char			*filter = NULL;
 	size_t			filter_alloc = 0, filter_offset = 0;
-
-	zbx_vector_ptr_t		escalations;
-	zbx_vector_uint64_t		actionids, eventids;
+	zbx_vector_ptr_t	escalations;
+	zbx_vector_uint64_t	actionids, eventids;
+	zbx_hashset_t		esc_recovery;
 
 	DB_ESCALATION		*escalation;
 
@@ -3236,6 +3308,7 @@ static int	process_escalations(int now, int *nextcheck, unsigned int escalation_
 	zbx_vector_ptr_create(&escalations);
 	zbx_vector_uint64_create(&actionids);
 	zbx_vector_uint64_create(&eventids);
+	zbx_hashset_create(&esc_recovery, 0, esc_recovery_hash_func, esc_recovery_compare_func);
 
 	/* Selection of escalations to be processed:                                                          */
 	/*                                                                                                    */
@@ -3339,7 +3412,7 @@ static int	process_escalations(int now, int *nextcheck, unsigned int escalation_
 		if (escalations.values_num >= ZBX_ESCALATIONS_PER_STEP)
 		{
 			ret += process_db_escalations(now, nextcheck, &escalations, &eventids, &actionids,
-					default_timezone);
+					default_timezone, &esc_recovery);
 			zbx_vector_ptr_clear_ext(&escalations, zbx_ptr_free);
 			zbx_vector_uint64_clear(&actionids);
 			zbx_vector_uint64_clear(&eventids);
@@ -3349,10 +3422,12 @@ static int	process_escalations(int now, int *nextcheck, unsigned int escalation_
 
 	if (0 < escalations.values_num)
 	{
-		ret += process_db_escalations(now, nextcheck, &escalations, &eventids, &actionids, default_timezone);
+		ret += process_db_escalations(now, nextcheck, &escalations, &eventids, &actionids, default_timezone,
+				&esc_recovery);
 		zbx_vector_ptr_clear_ext(&escalations, zbx_ptr_free);
 	}
 
+	zbx_hashset_destroy(&esc_recovery);
 	zbx_vector_ptr_destroy(&escalations);
 	zbx_vector_uint64_destroy(&actionids);
 	zbx_vector_uint64_destroy(&eventids);
