@@ -434,7 +434,7 @@ static void	get_template_items(zbx_uint64_t hostid, const zbx_vector_uint64_t *t
 #define SET_FLAG_UINT64(r, i, f)			\
 							\
 {							\
-	if (SUCCEED == zbx_DBis_null(r))			\
+	if (SUCCEED == zbx_DBis_null(r))		\
 		uint64_orig = 0;			\
 	else						\
 		ZBX_STR2UINT64(uint64_orig, (r));	\

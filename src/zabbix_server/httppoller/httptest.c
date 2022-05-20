@@ -1092,12 +1092,14 @@ int	process_httptests(int httppoller_num, int now)
 		if (HTTPTEST_AUTH_NONE != (httptest.httptest.authentication = atoi(row[6])))
 		{
 			httptest.httptest.http_user = zbx_strdup(NULL, row[7]);
-			zbx_substitute_simple_macros_unmasked(NULL, NULL, NULL, NULL, &host.hostid, NULL, NULL, NULL, NULL,
-					NULL, NULL, NULL, &httptest.httptest.http_user, MACRO_TYPE_COMMON, NULL, 0);
+			zbx_substitute_simple_macros_unmasked(NULL, NULL, NULL, NULL, &host.hostid, NULL, NULL, NULL,
+					NULL, NULL, NULL, NULL, &httptest.httptest.http_user, MACRO_TYPE_COMMON, NULL,
+					0);
 
 			httptest.httptest.http_password = zbx_strdup(NULL, row[8]);
-			zbx_substitute_simple_macros_unmasked(NULL, NULL, NULL, NULL, &host.hostid, NULL, NULL, NULL, NULL,
-					NULL, NULL, NULL, &httptest.httptest.http_password, MACRO_TYPE_COMMON, NULL, 0);
+			zbx_substitute_simple_macros_unmasked(NULL, NULL, NULL, NULL, &host.hostid, NULL, NULL, NULL,
+					NULL, NULL, NULL, NULL, &httptest.httptest.http_password, MACRO_TYPE_COMMON,
+					NULL, 0);
 		}
 
 		if ('\0' != *row[9])
@@ -1120,8 +1122,8 @@ int	process_httptests(int httppoller_num, int now)
 				&httptest.httptest.ssl_key_file, MACRO_TYPE_HTTPTEST_FIELD, NULL, 0);
 
 		httptest.httptest.ssl_key_password = zbx_strdup(NULL, row[13]);
-		zbx_substitute_simple_macros_unmasked(NULL, NULL, NULL, NULL, &host.hostid, NULL, NULL, NULL, NULL, NULL,
-				NULL, NULL, &httptest.httptest.ssl_key_password, MACRO_TYPE_COMMON, NULL, 0);
+		zbx_substitute_simple_macros_unmasked(NULL, NULL, NULL, NULL, &host.hostid, NULL, NULL, NULL, NULL,
+				NULL, NULL, NULL, &httptest.httptest.ssl_key_password, MACRO_TYPE_COMMON, NULL, 0);
 
 		httptest.httptest.verify_peer = atoi(row[14]);
 		httptest.httptest.verify_host = atoi(row[15]);

@@ -94,7 +94,8 @@ static int	DBpatch_4050011(void)
 				" value_str='',"
 				" type=1"	/* PROFILE_TYPE_ID */
 			" where type=3"	/* PROFILE_TYPE_STR */
-				" and (idx='web.latest.filter.groupids' or idx='web.latest.filter.hostids')", cast_value_str))
+				" and (idx='web.latest.filter.groupids' or idx='web.latest.filter.hostids')",
+			cast_value_str))
 	{
 		return FAIL;
 	}
@@ -991,8 +992,8 @@ static int	DBpatch_snmp_if_save(zbx_vector_dbu_snmp_if_t *snmp_ifs)
 			continue;
 
 		zbx_db_insert_add_values(&db_insert_snmp_if, s->interfaceid, s->version, s->bulk, s->community,
-				s->securityname, s->securitylevel, s->authpassphrase, s->privpassphrase, s->authprotocol,
-				s->privprotocol, s->contextname);
+				s->securityname, s->securitylevel, s->authpassphrase, s->privpassphrase,
+				s->authprotocol, s->privprotocol, s->contextname);
 	}
 
 	ret = zbx_db_insert_execute(&db_insert_snmp_if);
@@ -1557,9 +1558,9 @@ static int	DBpatch_4050063(void)
 
 		for (i = value_int + 1; i < 6; i++)
 		{
-			if (ZBX_DB_OK > zbx_DBexecute("insert into profiles (profileid,userid,idx,idx2,value_id,value_int,"
-					"type) values (" ZBX_FS_UI64 "," ZBX_FS_UI64 ",'%s'," ZBX_FS_UI64 ",0,%d,2)",
-					DBget_maxid("profiles"), userid, profile, ++idx2, i))
+			if (ZBX_DB_OK > zbx_DBexecute("insert into profiles (profileid,userid,idx,idx2,value_id,"
+					"value_int,type) values (" ZBX_FS_UI64 "," ZBX_FS_UI64 ",'%s'," ZBX_FS_UI64
+					",0,%d,2)", DBget_maxid("profiles"), userid, profile, ++idx2, i))
 			{
 				ret = FAIL;
 				break;
@@ -1662,7 +1663,8 @@ static int	DBpatch_4050074(void)
 			"web..hostid", "web.view.groupid", "web.view.hostid", "web.view.graphid",
 			"web.config.groupid", "web.config.hostid", "web.templates.php.groupid", "web.cm.groupid",
 			"web.httpmon.php.sort", "web.httpmon.php.sortorder", "web.avail_report.0.hostid",
-			"web.avail_report.0.groupid", "web.graphs.filter.to", "web.graphs.filter.from", "web.graphs.filter.active"
+			"web.avail_report.0.groupid", "web.graphs.filter.to", "web.graphs.filter.from",
+			"web.graphs.filter.active"
 		};
 
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))

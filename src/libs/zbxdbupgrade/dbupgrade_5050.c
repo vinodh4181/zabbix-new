@@ -323,8 +323,11 @@ static int	DBpatch_5050030(void)
 	if (0 == (ZBX_PROGRAM_TYPE_SERVER & program_type))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > zbx_DBexecute("delete from ids where table_name='auditlog_details' and field_name='auditdetailid'"))
+	if (ZBX_DB_OK > zbx_DBexecute("delete from ids where table_name='auditlog_details' and"
+			" field_name='auditdetailid'"))
+	{
 		return FAIL;
+	}
 
 	return SUCCEED;
 }
@@ -608,14 +611,16 @@ static int	DBpatch_5050063(void)
 
 static int	DBpatch_5050064(void)
 {
-	const ZBX_FIELD	field = {"value_serviceid", NULL, "services", "serviceid", 0, ZBX_TYPE_ID, 0, ZBX_FK_CASCADE_DELETE};
+	const ZBX_FIELD	field = {"value_serviceid", NULL, "services", "serviceid", 0, ZBX_TYPE_ID, 0,
+						ZBX_FK_CASCADE_DELETE};
 
 	return DBadd_field("role_rule", &field);
 }
 
 static int	DBpatch_5050065(void)
 {
-	const ZBX_FIELD	field = {"value_serviceid", NULL, "services", "serviceid", 0, ZBX_TYPE_ID, 0, ZBX_FK_CASCADE_DELETE};
+	const ZBX_FIELD	field = {"value_serviceid", NULL, "services", "serviceid", 0, ZBX_TYPE_ID, 0,
+						ZBX_FK_CASCADE_DELETE};
 
 	return DBadd_foreign_key("role_rule", 3, &field);
 }
@@ -705,7 +710,8 @@ static int	DBpatch_5050068(void)
 			if (USER_TYPE_ZABBIX_ADMIN != role_type && USER_TYPE_SUPER_ADMIN != role_type)
 				services_write = 0;
 
-			zbx_db_insert_add_values(&db_insert, __UINT64_C(0), roleid, 0, "services.write", services_write);
+			zbx_db_insert_add_values(&db_insert, __UINT64_C(0), roleid, 0, "services.write",
+					services_write);
 		}
 
 	}
@@ -780,8 +786,11 @@ static int	DBpatch_5050076(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > zbx_DBexecute("update profiles set idx='web.hosts.sortorder' where idx='web.hosts.php.sortorder'"))
+	if (ZBX_DB_OK > zbx_DBexecute("update profiles set idx='web.hosts.sortorder' where"
+			" idx='web.hosts.php.sortorder'"))
+	{
 		return FAIL;
+	}
 
 	return SUCCEED;
 }
@@ -1797,8 +1806,11 @@ out:
 
 static int	DBpatch_5050133(void)
 {
-	if (ZBX_DB_OK > zbx_DBexecute("update role_rule set name='ui.services.services' where name='ui.monitoring.services'"))
+	if (ZBX_DB_OK > zbx_DBexecute("update role_rule set name='ui.services.services' where"
+			" name='ui.monitoring.services'"))
+	{
 		return FAIL;
+	}
 
 	return SUCCEED;
 }
@@ -1925,8 +1937,11 @@ static int	DBpatch_5050148(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > zbx_DBexecute("update services set algorithm=case algorithm when 1 then 2 when 2 then 1 else 0 end"))
+	if (ZBX_DB_OK > zbx_DBexecute("update services set algorithm=case algorithm when 1 then 2 when 2 then 1"
+			" else 0 end"))
+	{
 		return FAIL;
+	}
 
 	return SUCCEED;
 }

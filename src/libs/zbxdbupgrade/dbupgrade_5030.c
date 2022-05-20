@@ -62,7 +62,8 @@ typedef struct
 }
 zbx_dbpatch_profile_t;
 
-static void	DBpatch_get_key_fields(DB_ROW row, zbx_dbpatch_profile_t *profile, char **subsect, char **field, char **key)
+static void	DBpatch_get_key_fields(DB_ROW row, zbx_dbpatch_profile_t *profile, char **subsect, char **field,
+		char **key)
 {
 	int	tok_idx = 0;
 	char	*token;
@@ -156,8 +157,8 @@ static int	DBpatch_5030001(void)
 				"(profileid,userid,idx,idx2,value_id,value_int,value_str,source,type) values "
 				"(" ZBX_FS_UI64 "," ZBX_FS_UI64 ",'web.hosts.%s.%s.%s'," ZBX_FS_UI64 ","
 				ZBX_FS_UI64 ",%d,'%s','%s',%d)",
-				DBget_maxid("profiles"), profile.userid, subsect, key, field, profile.idx2, profile.value_id,
-				profile.value_int, profile.value_str, profile.source, profile.type))
+				DBget_maxid("profiles"), profile.userid, subsect, key, field, profile.idx2,
+				profile.value_id, profile.value_int, profile.value_str, profile.source, profile.type))
 		{
 			ret = FAIL;
 		}
@@ -166,14 +167,14 @@ static int	DBpatch_5030001(void)
 				"(profileid,userid,idx,idx2,value_id,value_int,value_str,source,type) values "
 				"(" ZBX_FS_UI64 "," ZBX_FS_UI64 ",'web.templates.%s.%s.%s'," ZBX_FS_UI64 ","
 				ZBX_FS_UI64 ",%d,'%s','%s',%d)",
-				DBget_maxid("profiles"), profile.userid, subsect, key, field, profile.idx2, profile.value_id,
-				profile.value_int, profile.value_str, profile.source, profile.type))
+				DBget_maxid("profiles"), profile.userid, subsect, key, field, profile.idx2,
+				profile.value_id, profile.value_int, profile.value_str, profile.source, profile.type))
 		{
 			ret = FAIL;
 		}
 
-		if (SUCCEED == ret &&
-				ZBX_DB_OK > zbx_DBexecute("delete from profiles where profileid=" ZBX_FS_UI64, profile.id))
+		if (SUCCEED == ret && ZBX_DB_OK > zbx_DBexecute("delete from profiles where profileid=" ZBX_FS_UI64,
+				profile.id))
 		{
 			ret = FAIL;
 		}
@@ -370,8 +371,11 @@ static int	DBpatch_5030025(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx='web.overview.type' or idx='web.actionconf.eventsource'"))
+	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx='web.overview.type' or idx="
+			"'web.actionconf.eventsource'"))
+	{
 		return FAIL;
+	}
 
 	return SUCCEED;
 }
@@ -925,8 +929,11 @@ static int	DBpatch_5030055(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > zbx_DBexecute("update profiles set idx='web.user.filter_username' where idx='web.user.filter_alias'"))
+	if (ZBX_DB_OK > zbx_DBexecute("update profiles set idx='web.user.filter_username' where idx="
+			"'web.user.filter_alias'"))
+	{
 		return FAIL;
+	}
 
 	return SUCCEED;
 }
@@ -936,8 +943,11 @@ static int	DBpatch_5030056(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > zbx_DBexecute("update profiles set value_str='username' where idx='web.user.sort' and value_str like 'alias'"))
+	if (ZBX_DB_OK > zbx_DBexecute("update profiles set value_str='username' where idx='web.user.sort' and"
+			" value_str like 'alias'"))
+	{
 		return FAIL;
+	}
 
 	return SUCCEED;
 }
@@ -1514,8 +1524,8 @@ static int	DBpatch_5030069(void)
 
 			zbx_free(script_name);
 
-			rc = zbx_DBexecute("insert into scripts (scriptid,name,command,description,type,execute_on,scope,"
-					"port,authtype,username,password,publickey,privatekey) values ("
+			rc = zbx_DBexecute("insert into scripts (scriptid,name,command,description,type,execute_on,"
+					"scope,port,authtype,username,password,publickey,privatekey) values ("
 					ZBX_FS_UI64 ",'%s','%s',''," ZBX_FS_UI64 "," ZBX_FS_UI64 ",%d,'%s',"
 					ZBX_FS_UI64 ",'%s','%s','%s','%s')",
 					scriptid, script_name_esc, command_esc, type, execute_on,
@@ -2647,7 +2657,8 @@ do {							\
 			break;
 		case SCREEN_RESOURCE_LLD_GRAPH:
 			w->type = zbx_strdup(NULL, ZBX_WIDGET_TYPE_GRAPH_PROTOTYPE);
-			/* source_type = ZBX_WIDGET_FIELD_RESOURCE_GRAPH_PROTOTYPE (2); don't add because it's default */
+			/* source_type = ZBX_WIDGET_FIELD_RESOURCE_GRAPH_PROTOTYPE (2); */
+			/* don't add because it's default */
 			ADD_FIELD(ZBX_WIDGET_FIELD_TYPE_GRAPH_PROTOTYPE, "graphid", (void *)&si->resourceid);
 			/* add field "columns" because the default value is 2 */
 			tmp = 1;
@@ -2850,7 +2861,7 @@ static void	DBpatch_trace_widget(zbx_db_widget_t *w)
 }
 
 /* adds new dashboard to the DB, sets new dashboardid in the struct */
-static int 	DBpatch_add_dashboard(zbx_db_dashboard_t *dashboard)
+static int	DBpatch_add_dashboard(zbx_db_dashboard_t *dashboard)
 {
 	char	*name_esc;
 	int	res;
@@ -2871,7 +2882,7 @@ static int 	DBpatch_add_dashboard(zbx_db_dashboard_t *dashboard)
 }
 
 /* adds new dashboard page to the DB, sets new dashboard_pageid in the struct */
-static int 	DBpatch_add_dashboard_page(zbx_db_dashboard_page_t *dashboard_page, uint64_t dashboardid, char *name,
+static int	DBpatch_add_dashboard_page(zbx_db_dashboard_page_t *dashboard_page, uint64_t dashboardid, char *name,
 		int display_period, int sortorder)
 {
 	int	res;
@@ -2904,8 +2915,8 @@ static int	DBpatch_add_widget(uint64_t dashboardid, zbx_db_widget_t *widget, zbx
 
 	zabbix_log(LOG_LEVEL_TRACE, "adding widget id: " ZBX_FS_UI64 ", type: %s", widget->widgetid, widget->type);
 
-	if (ZBX_DB_OK > zbx_DBexecute("insert into widget (widgetid,dashboard_pageid,type,name,x,y,width,height,view_mode) "
-			"values (" ZBX_FS_UI64 "," ZBX_FS_UI64 ",'%s','%s',%d,%d,%d,%d,%d)",
+	if (ZBX_DB_OK > zbx_DBexecute("insert into widget (widgetid,dashboard_pageid,type,name,x,y,width,height,"
+			"view_mode) values (" ZBX_FS_UI64 "," ZBX_FS_UI64 ",'%s','%s',%d,%d,%d,%d,%d)",
 			widget->widgetid, widget->dashboardid, widget->type, name_esc,
 			widget->x, widget->y, widget->width, widget->height, widget->view_mode))
 	{
@@ -2952,8 +2963,8 @@ static int DBpatch_set_permissions_screen(uint64_t dashboardid, uint64_t screeni
 
 	while (NULL != (row = zbx_DBfetch(result)))
 	{
-		if (ZBX_DB_OK > zbx_DBexecute("insert into dashboard_user (dashboard_userid,dashboardid,userid,permission)"
-			" values (" ZBX_FS_UI64 "," ZBX_FS_UI64 ",%s,%s)",
+		if (ZBX_DB_OK > zbx_DBexecute("insert into dashboard_user (dashboard_userid,dashboardid,userid,"
+			"permission) values (" ZBX_FS_UI64 "," ZBX_FS_UI64 ",%s,%s)",
 			DBget_maxid("dashboard_user"), dashboardid, row[0], row[1]))
 		{
 			ret = FAIL;
@@ -2987,12 +2998,13 @@ static int DBpatch_set_permissions_slideshow(uint64_t dashboardid, uint64_t slid
 	DB_RESULT	result;
 	DB_ROW		row;
 
-	result = zbx_DBselect("select userid,permission from slideshow_user where slideshowid=" ZBX_FS_UI64, slideshowid);
+	result = zbx_DBselect("select userid,permission from slideshow_user where slideshowid=" ZBX_FS_UI64,
+			slideshowid);
 
 	while (NULL != (row = zbx_DBfetch(result)))
 	{
-		if (ZBX_DB_OK > zbx_DBexecute("insert into dashboard_user (dashboard_userid,dashboardid,userid,permission)"
-			" values ("ZBX_FS_UI64 ","ZBX_FS_UI64 ",%s,%s)",
+		if (ZBX_DB_OK > zbx_DBexecute("insert into dashboard_user (dashboard_userid,dashboardid,userid,"
+			"permission) values ("ZBX_FS_UI64 ","ZBX_FS_UI64 ",%s,%s)",
 			DBget_maxid("dashboard_user"), dashboardid, row[0], row[1]))
 		{
 			ret = FAIL;
@@ -3323,7 +3335,7 @@ static int	DBpatch_convert_slideshow(uint64_t slideshowid, char *name, int delay
 		zbx_db_dashboard_page_t	dashboard_page;
 		DB_RESULT		result2, result3;
 		DB_ROW			row2;
-		uint64_t 		screenid;
+		uint64_t		screenid;
 
 		step = atoi(row[2]);
 		page_delay = atoi(row[3]);
@@ -3617,8 +3629,8 @@ static int	DBpatch_5030109(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > zbx_DBexecute("update profiles set idx=CONCAT('web.dashboard.widget.navtree.item-', SUBSTR(idx, 21))"
-			" where idx like 'web.dashbrd.navtree-%%.toggle'"))
+	if (ZBX_DB_OK > zbx_DBexecute("update profiles set idx=CONCAT('web.dashboard.widget.navtree.item-',"
+			" SUBSTR(idx, 21)) where idx like 'web.dashbrd.navtree-%%.toggle'"))
 	{
 		return FAIL;
 	}
@@ -3859,8 +3871,8 @@ static int	DBpatch_5030127(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > zbx_DBexecute("update conditions set conditiontype=%d,value2='Application' where conditiontype=%d",
-			CONDITION_TYPE_EVENT_TAG_VALUE, CONDITION_TYPE_APPLICATION))
+	if (ZBX_DB_OK > zbx_DBexecute("update conditions set conditiontype=%d,value2='Application' where"
+			" conditiontype=%d", CONDITION_TYPE_EVENT_TAG_VALUE, CONDITION_TYPE_APPLICATION))
 	{
 		return FAIL;
 	}
@@ -4884,7 +4896,8 @@ static int	DBpatch_5030165(void)
 				if (0 != (func->flags & ZBX_DBPATCH_FUNCTION_UPDATE_PARAM))
 				{
 					esc = DBdyn_escape_field("functions", "parameter", func->parameter);
-					zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset,"%cparameter='%s'", delim, esc);
+					zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset,"%cparameter='%s'", delim,
+							esc);
 					zbx_free(esc);
 				}
 
@@ -5282,7 +5295,8 @@ static int	DBpatch_5030168(void)
 						if ('\0' != *func->parameter)
 						{
 							zbx_chrcpy_alloc(&out, &out_alloc, &out_offset, ',');
-							zbx_strcpy_alloc(&out, &out_alloc, &out_offset, func->parameter);
+							zbx_strcpy_alloc(&out, &out_alloc, &out_offset,
+									func->parameter);
 						}
 						zbx_chrcpy_alloc(&out, &out_alloc, &out_offset, ')');
 						last_pos = token.loc.r + 1;

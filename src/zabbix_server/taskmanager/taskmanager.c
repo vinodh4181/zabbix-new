@@ -112,7 +112,8 @@ static int	tm_try_task_close_problem(zbx_uint64_t taskid)
 		{
 			zabbix_log(LOG_LEVEL_DEBUG, "cannot process close problem task because related event"
 					" was removed");
-			zbx_DBexecute("update task set status=%d where taskid=" ZBX_FS_UI64, ZBX_TM_STATUS_DONE, taskid);
+			zbx_DBexecute("update task set status=%d where taskid=" ZBX_FS_UI64, ZBX_TM_STATUS_DONE,
+					taskid);
 
 			ret = SUCCEED;
 		}

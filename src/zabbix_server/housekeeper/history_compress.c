@@ -136,7 +136,8 @@ static int	hk_get_table_compression_age(const char *table_name)
 	{
 		result = zbx_DBselect("select extract(epoch from (config::json->>'compress_after')::interval) from"
 				" timescaledb_information.jobs where application_name like 'Compression%%' and"
-				" hypertable_schema='%s' and hypertable_name='%s'", zbx_db_get_schema_esc(), table_name);
+				" hypertable_schema='%s' and hypertable_name='%s'", zbx_db_get_schema_esc(),
+				table_name);
 	}
 
 	if (NULL != (row = zbx_DBfetch(result)))

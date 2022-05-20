@@ -58,8 +58,11 @@ static int	DBpatch_5010003(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx in ('web.latest.toggle','web.latest.toggle_other')"))
+	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx in ('web.latest.toggle',"
+			"'web.latest.toggle_other')"))
+	{
 		return FAIL;
+	}
 
 	return SUCCEED;
 }
@@ -135,7 +138,8 @@ static int	DBpatch_5010010(void)
 
 static int	DBpatch_5010011(void)
 {
-	const ZBX_FIELD	field = {"uri_valid_schemes", "http,https,ftp,file,mailto,tel,ssh", NULL, NULL, 255, ZBX_TYPE_CHAR, ZBX_NOTNULL, 0};
+	const ZBX_FIELD	field = {"uri_valid_schemes", "http,https,ftp,file,mailto,tel,ssh", NULL, NULL, 255,
+						ZBX_TYPE_CHAR, ZBX_NOTNULL, 0};
 
 	return DBadd_field("config", &field);
 }
@@ -313,8 +317,11 @@ static int	DBpatch_5010035(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx like 'web.hostsmon.filter.%%' or idx like 'web.problem.filter%%'"))
+	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx like 'web.hostsmon.filter.%%' or idx like"
+			" 'web.problem.filter%%'"))
+	{
 		return FAIL;
+	}
 
 	return SUCCEED;
 }
@@ -597,7 +604,8 @@ static void	DBpatch_get_preferred_widget_size(zbx_db_screen_item_t *item, int *w
 	*h = item->height;
 
 	if (SCREEN_RESOURCE_LLD_GRAPH == item->resourcetype || SCREEN_RESOURCE_LLD_SIMPLE_GRAPH == item->resourcetype ||
-			SCREEN_RESOURCE_GRAPH == item->resourcetype || SCREEN_RESOURCE_SIMPLE_GRAPH == item->resourcetype)
+			SCREEN_RESOURCE_GRAPH == item->resourcetype || SCREEN_RESOURCE_SIMPLE_GRAPH ==
+			item->resourcetype)
 	{
 		*h += 215;	/* SCREEN_LEGEND_HEIGHT */
 	}
@@ -1105,7 +1113,8 @@ do {							\
 			break;
 		case SCREEN_RESOURCE_LLD_GRAPH:
 			w->type = zbx_strdup(NULL, ZBX_WIDGET_TYPE_GRAPH_PROTOTYPE);
-			/* source_type = ZBX_WIDGET_FIELD_RESOURCE_GRAPH_PROTOTYPE (2); don't add because it's default */
+			/* source_type = ZBX_WIDGET_FIELD_RESOURCE_GRAPH_PROTOTYPE (2); */
+			/* don't add because it's default */
 			ADD_FIELD(ZBX_WIDGET_FIELD_TYPE_GRAPH_PROTOTYPE, "graphid", (void *)&si->resourceid);
 			/* add field "columns" because the default value is 2 */
 			tmp = 1;

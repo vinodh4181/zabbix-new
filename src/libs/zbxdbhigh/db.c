@@ -1560,8 +1560,11 @@ static void	process_autoreg_hosts(zbx_vector_ptr_t *autoreg_hosts, zbx_uint64_t 
 					if (ZBX_CONN_IP == autoreg_host->flag && 0 != strcmp(row[4], autoreg_host->ip))
 						break;
 
-					if (ZBX_CONN_DNS == autoreg_host->flag && 0 != strcmp(row[5], autoreg_host->dns))
+					if (ZBX_CONN_DNS == autoreg_host->flag && 0 != strcmp(row[5],
+							autoreg_host->dns))
+					{
 						break;
+					}
 				}
 
 				zbx_vector_ptr_remove(autoreg_hosts, i);
@@ -3512,7 +3515,8 @@ int	zbx_db_check_instanceid(void)
 			char	*token;
 
 			token = zbx_create_token(0);
-			if (ZBX_DB_OK > zbx_DBexecute("update config set instanceid='%s' where configid=%s", token, row[0]))
+			if (ZBX_DB_OK > zbx_DBexecute("update config set instanceid='%s' where configid=%s", token,
+					row[0]))
 			{
 				zabbix_log(LOG_LEVEL_ERR, "cannot update instance id in database");
 				ret = FAIL;

@@ -819,10 +819,14 @@ static int	process_discovery(void)
 		{
 			zabbix_log(LOG_LEVEL_WARNING, "discovery rule \"%s\": nextcheck update causes overflow",
 					row[2]);
-			zbx_DBexecute("update drules set nextcheck=%d where druleid=" ZBX_FS_UI64, ZBX_JAN_2038, druleid);
+			zbx_DBexecute("update drules set nextcheck=%d where druleid=" ZBX_FS_UI64, ZBX_JAN_2038,
+					druleid);
 		}
 		else
-			zbx_DBexecute("update drules set nextcheck=%d where druleid=" ZBX_FS_UI64, now + delay, druleid);
+		{
+			zbx_DBexecute("update drules set nextcheck=%d where druleid=" ZBX_FS_UI64, now + delay,
+					druleid);
+		}
 	}
 	DBfree_result(result);
 

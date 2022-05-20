@@ -298,12 +298,12 @@ static int	DBpatch_4030020(void)
 			{
 				token_esc = DBdyn_escape_string(token);
 
-				if (ZBX_DB_OK > zbx_DBexecute("insert into widget_field (widgetid,widget_fieldid,type,name,"
-						"value_str) values (" ZBX_FS_UI64 "," ZBX_FS_UI64 ",1,'%s.%u','%s')",
-						widgetid, DBget_maxid_num("widget_field", 1), field, next_id,
-						token_esc) ||
-						ZBX_DB_OK > zbx_DBexecute("delete from widget_field where widget_fieldid="
-								ZBX_FS_UI64, fieldid))
+				if (ZBX_DB_OK > zbx_DBexecute("insert into widget_field (widgetid,widget_fieldid,type,"
+						"name,value_str) values (" ZBX_FS_UI64 "," ZBX_FS_UI64
+						",1,'%s.%u','%s')", widgetid, DBget_maxid_num("widget_field", 1),
+						field, next_id, token_esc) ||
+						ZBX_DB_OK > zbx_DBexecute("delete from widget_field where"
+						" widget_fieldid=" ZBX_FS_UI64, fieldid))
 				{
 					zbx_free(token_esc);
 					ret = FAIL;
@@ -392,7 +392,8 @@ static int	DBpatch_4030027(void)
 		return SUCCEED;
 
 	/* type : 1 - MEDIA_TYPE_EXEC, 3 - MEDIA_TYPE_JABBER, 100 - MEDIA_TYPE_EZ_TEXTING */
-	result = zbx_DBselect("select mediatypeid,type,username,passwd,exec_path from media_type where type in (3,100)");
+	result = zbx_DBselect("select mediatypeid,type,username,passwd,exec_path from media_type where type"
+			" in (3,100)");
 
 	while (NULL != (row = zbx_DBfetch(result)))
 	{

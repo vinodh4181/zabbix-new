@@ -89,8 +89,8 @@ static int	zbx_get_script_details(zbx_uint64_t scriptid, zbx_script_t *script, i
 	DB_ROW		row;
 	zbx_uint64_t	usrgrpid_l, groupid_l;
 
-	db_result = zbx_DBselect("select command,host_access,usrgrpid,groupid,type,execute_on,timeout,scope,port,authtype"
-			",username,password,publickey,privatekey"
+	db_result = zbx_DBselect("select command,host_access,usrgrpid,groupid,type,execute_on,timeout,scope,port"
+			",authtype,username,password,publickey,privatekey"
 			" from scripts"
 			" where scriptid=" ZBX_FS_UI64, scriptid);
 
@@ -200,7 +200,8 @@ static int	zbx_check_event_end_recovery_event(zbx_uint64_t eventid, zbx_uint64_t
 	DB_RESULT	db_result;
 	DB_ROW		row;
 
-	if (NULL == (db_result = zbx_DBselect("select r_eventid from event_recovery where eventid="ZBX_FS_UI64, eventid)))
+	if (NULL == (db_result = zbx_DBselect("select r_eventid from event_recovery where eventid="ZBX_FS_UI64,
+			eventid)))
 	{
 		zbx_strlcpy(error, "Database error, cannot read from 'events' and 'event_recovery' tables.", error_len);
 		return FAIL;

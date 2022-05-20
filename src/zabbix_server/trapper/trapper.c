@@ -483,8 +483,8 @@ static int	DBget_user_count(zbx_uint64_t *count_online, zbx_uint64_t *count_offl
 	DBfree_result(result);
 	now = time(NULL);
 
-	if (NULL == (result = zbx_DBselect("select max(lastaccess) from sessions where status=%d group by userid,status",
-			ZBX_SESSION_ACTIVE)))
+	if (NULL == (result = zbx_DBselect("select max(lastaccess) from sessions where status=%d group by userid,"
+			"status", ZBX_SESSION_ACTIVE)))
 	{
 		goto out;
 	}

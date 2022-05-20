@@ -174,8 +174,11 @@ static int	DBpatch_4010016(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx='web.triggers.filter_priority' and value_int='-1'"))
+	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx='web.triggers.filter_priority' and"
+			" value_int='-1'"))
+	{
 		return FAIL;
+	}
 
 	return SUCCEED;
 }
@@ -249,8 +252,8 @@ static int	DBpatch_4010025(void)
 
 	DBfree_result(result);
 
-	if (0 != nextid && ZBX_DB_OK > zbx_DBexecute("insert into ids values ('proxy_history','history_lastid'," ZBX_FS_UI64
-			")", nextid))
+	if (0 != nextid && ZBX_DB_OK > zbx_DBexecute("insert into ids values ('proxy_history','history_lastid',"
+			ZBX_FS_UI64 ")", nextid))
 	{
 		return FAIL;
 	}

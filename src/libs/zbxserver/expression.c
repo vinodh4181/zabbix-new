@@ -63,9 +63,9 @@ ZBX_VECTOR_IMPL(rootcause, zbx_rootcause_t)
 
 static int	substitute_simple_macros_impl(const zbx_uint64_t *actionid, const ZBX_DB_EVENT *event,
 		const ZBX_DB_EVENT *r_event, const zbx_uint64_t *userid, const zbx_uint64_t *hostid,
-		const DC_HOST *dc_host, const DC_ITEM *dc_item, const ZBX_DB_ALERT *alert, const ZBX_DB_ACKNOWLEDGE *ack,
-		const zbx_service_alarm_t *service_alarm, const ZBX_DB_SERVICE *service, const char *tz, char **data,
-		int macro_type, char *error, int maxerrlen);
+		const DC_HOST *dc_host, const DC_ITEM *dc_item, const ZBX_DB_ALERT *alert,
+		const ZBX_DB_ACKNOWLEDGE *ack, const zbx_service_alarm_t *service_alarm, const ZBX_DB_SERVICE *service,
+		const char *tz, char **data, int macro_type, char *error, int maxerrlen);
 
 static int	substitute_key_macros_impl(char **data, zbx_uint64_t *hostid, DC_ITEM *dc_item,
 		const struct zbx_json_parse *jp_row, const zbx_vector_ptr_t *lld_macro_paths, int macro_type,
@@ -912,8 +912,8 @@ static int	DBget_drule_value_by_event(const ZBX_DB_EVENT *event, char **replace_
 			break;
 		case EVENT_OBJECT_DSERVICE:
 			result = zbx_DBselect("select r.%s from drules r,dhosts h,dservices s"
-					" where r.druleid=h.druleid and h.dhostid=s.dhostid and s.dserviceid=" ZBX_FS_UI64,
-					fieldname, event->objectid);
+					" where r.druleid=h.druleid and h.dhostid=s.dhostid and s.dserviceid="
+					ZBX_FS_UI64, fieldname, event->objectid);
 			break;
 		default:
 			return ret;
@@ -1168,7 +1168,8 @@ static void	get_escalation_history(zbx_uint64_t actionid, const ZBX_DB_EVENT *ev
 			zbx_date2str(event->clock, tz), zbx_time2str(event->clock, tz),
 			zbx_age2str(time(NULL) - event->clock));
 
-	result = zbx_DBselect("select a.clock,a.alerttype,a.status,mt.name,a.sendto,a.error,a.esc_step,a.userid,a.message"
+	result = zbx_DBselect("select a.clock,a.alerttype,a.status,mt.name,a.sendto,a.error,a.esc_step,a.userid,"
+			"a.message"
 			" from alerts a"
 			" left join media_type mt"
 				" on mt.mediatypeid=a.mediatypeid"
@@ -1258,8 +1259,8 @@ static void	get_escalation_history(zbx_uint64_t actionid, const ZBX_DB_EVENT *ev
  * Purpose: retrieve event acknowledges history                               *
  *                                                                            *
  ******************************************************************************/
-static void	get_event_update_history(const ZBX_DB_EVENT *event, char **replace_to, const zbx_uint64_t *recipient_userid,
-		const char *tz)
+static void	get_event_update_history(const ZBX_DB_EVENT *event, char **replace_to,
+		const zbx_uint64_t *recipient_userid, const char *tz)
 {
 	DB_RESULT	result;
 	DB_ROW		row;
@@ -2642,9 +2643,9 @@ static int	resolve_host_target_macros(const char *m, const DC_HOST *dc_host, DC_
  ******************************************************************************/
 static int	substitute_simple_macros_impl(const zbx_uint64_t *actionid, const ZBX_DB_EVENT *event,
 		const ZBX_DB_EVENT *r_event, const zbx_uint64_t *userid, const zbx_uint64_t *hostid,
-		const DC_HOST *dc_host, const DC_ITEM *dc_item, const ZBX_DB_ALERT *alert, const ZBX_DB_ACKNOWLEDGE *ack,
-		const zbx_service_alarm_t *service_alarm, const ZBX_DB_SERVICE *service, const char *tz, char **data,
-		int macro_type, char *error, int maxerrlen)
+		const DC_HOST *dc_host, const DC_ITEM *dc_item, const ZBX_DB_ALERT *alert,
+		const ZBX_DB_ACKNOWLEDGE *ack, const zbx_service_alarm_t *service_alarm, const ZBX_DB_SERVICE *service,
+		const char *tz, char **data, int macro_type, char *error, int maxerrlen)
 {
 	char				c, *replace_to = NULL, sql[64];
 	const char			*m;
@@ -6628,13 +6629,12 @@ exit:
  ******************************************************************************/
 int	zbx_substitute_simple_macros(const zbx_uint64_t *actionid, const ZBX_DB_EVENT *event,
 		const ZBX_DB_EVENT *r_event, const zbx_uint64_t *userid, const zbx_uint64_t *hostid,
-		const DC_HOST *dc_host, const DC_ITEM *dc_item, const ZBX_DB_ALERT *alert, const ZBX_DB_ACKNOWLEDGE *ack,
-		const zbx_service_alarm_t *service_alarm, const ZBX_DB_SERVICE *service, const char *tz, char **data,
-		int macro_type, char *error, int maxerrlen)
+		const DC_HOST *dc_host, const DC_ITEM *dc_item, const ZBX_DB_ALERT *alert,
+		const ZBX_DB_ACKNOWLEDGE *ack, const zbx_service_alarm_t *service_alarm, const ZBX_DB_SERVICE *service,
+		const char *tz, char **data, int macro_type, char *error, int maxerrlen)
 {
 	return substitute_simple_macros_impl(actionid, event, r_event, userid, hostid, dc_host, dc_item, alert, ack,
 			service_alarm, service, tz, data, macro_type, error, maxerrlen);
-
 }
 
 /******************************************************************************
@@ -6644,9 +6644,9 @@ int	zbx_substitute_simple_macros(const zbx_uint64_t *actionid, const ZBX_DB_EVEN
  ******************************************************************************/
 int	zbx_substitute_simple_macros_unmasked(const zbx_uint64_t *actionid, const ZBX_DB_EVENT *event,
 		const ZBX_DB_EVENT *r_event, const zbx_uint64_t *userid, const zbx_uint64_t *hostid,
-		const DC_HOST *dc_host, const DC_ITEM *dc_item, const ZBX_DB_ALERT *alert, const ZBX_DB_ACKNOWLEDGE *ack,
-		const zbx_service_alarm_t *service_alarm, const ZBX_DB_SERVICE *service, const char *tz, char **data,
-		int macro_type, char *error, int maxerrlen)
+		const DC_HOST *dc_host, const DC_ITEM *dc_item, const ZBX_DB_ALERT *alert,
+		const ZBX_DB_ACKNOWLEDGE *ack, const zbx_service_alarm_t *service_alarm, const ZBX_DB_SERVICE *service,
+		const char *tz, char **data, int macro_type, char *error, int maxerrlen)
 {
 	int			ret;
 	zbx_dc_um_handle_t	*um_handle;

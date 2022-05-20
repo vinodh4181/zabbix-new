@@ -174,7 +174,8 @@ static int	DBpatch_6010007(void)
 
 static int	DBpatch_6010008(void)
 {
-	const ZBX_FIELD	field = {"ldap_userdirectoryid", NULL, "userdirectory", "userdirectoryid", 0, ZBX_TYPE_ID, 0, 0};
+	const ZBX_FIELD	field = {"ldap_userdirectoryid", NULL, "userdirectory", "userdirectoryid", 0,
+						ZBX_TYPE_ID, 0, 0};
 
 	return DBadd_foreign_key("config", 3, &field);
 }

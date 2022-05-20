@@ -649,8 +649,8 @@ static void	add_user_msg(zbx_uint64_t userid, zbx_uint64_t mediatypeid, ZBX_USER
 
 	if (MACRO_EXPAND_YES == expand_macros)
 	{
-		zbx_substitute_simple_macros(&actionid, event, r_event, &userid, NULL, NULL, NULL, NULL, ack, service_alarm,
-				service, tz, &subject, macro_type, NULL, 0);
+		zbx_substitute_simple_macros(&actionid, event, r_event, &userid, NULL, NULL, NULL, NULL, ack,
+				service_alarm, service, tz, &subject, macro_type, NULL, 0);
 		zbx_substitute_simple_macros(&actionid, event, r_event, &userid, NULL, NULL, NULL, NULL, ack,
 				service_alarm, service, tz, &message, macro_type, NULL, 0);
 	}
@@ -782,7 +782,8 @@ static void	add_user_msgs(zbx_uint64_t userid, zbx_uint64_t operationid, zbx_uin
 		if (0 != mtmid)
 		{
 			add_user_msg(userid, mediatypeid, user_msg, row[1], row[2], actionid, event, r_event, ack,
-					service_alarm, service, MACRO_EXPAND_YES, macro_type, ZBX_ALERT_MESSAGE_ERR_NONE, tz);
+					service_alarm, service, MACRO_EXPAND_YES, macro_type,
+					ZBX_ALERT_MESSAGE_ERR_NONE, tz);
 		}
 		else
 		{
@@ -1083,8 +1084,8 @@ clean:
  *                                                                            *
  ******************************************************************************/
 static void	add_sentusers_ack_msg(ZBX_USER_MSG **user_msg, zbx_uint64_t actionid, zbx_uint64_t operationid,
-		const ZBX_DB_EVENT *event, const ZBX_DB_EVENT *r_event, const ZBX_DB_ACKNOWLEDGE *ack, unsigned char evt_src,
-		const char *default_timezone)
+		const ZBX_DB_EVENT *event, const ZBX_DB_EVENT *r_event, const ZBX_DB_ACKNOWLEDGE *ack,
+		unsigned char evt_src, const char *default_timezone)
 {
 	DB_RESULT	result;
 	DB_ROW		row;
@@ -1246,7 +1247,8 @@ static void	execute_commands(const ZBX_DB_EVENT *event, const ZBX_DB_EVENT *r_ev
 					",s.authtype,s.username,s.password,s.publickey,s.privatekey,s.command,s.groupid"
 					",s.scope,s.timeout,s.name,h.tls_connect"
 #ifdef HAVE_OPENIPMI
-				/* do not forget to update ZBX_IPMI_FIELDS_NUM if number of selected IPMI fields changes */
+				/* do not forget to update ZBX_IPMI_FIELDS_NUM if number of selected IPMI */
+				/* fields changes */
 				",h.ipmi_authtype,h.ipmi_privilege,h.ipmi_username,h.ipmi_password"
 #endif
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
@@ -2290,8 +2292,8 @@ static int	check_unfinished_alerts(const ZBX_DB_ESCALATION *escalation)
  *               ZBX_ESCALATION_PROCESS  - otherwise                          *
  *                                                                            *
  ******************************************************************************/
-static int	check_escalation(const ZBX_DB_ESCALATION *escalation, const ZBX_DB_ACTION *action, const ZBX_DB_EVENT *event,
-		char **error)
+static int	check_escalation(const ZBX_DB_ESCALATION *escalation, const ZBX_DB_ACTION *action,
+		const ZBX_DB_EVENT *event, char **error)
 {
 	DC_ITEM		item;
 	int		errcode, ret = ZBX_ESCALATION_CANCEL;
@@ -2441,8 +2443,9 @@ static void	escalation_cancel(ZBX_DB_ESCALATION *escalation, const ZBX_DB_ACTION
  *             event      - [IN]     the event                                *
  *                                                                            *
  ******************************************************************************/
-static void	escalation_execute(ZBX_DB_ESCALATION *escalation, const ZBX_DB_ACTION *action, const ZBX_DB_EVENT *event,
-		const ZBX_DB_SERVICE *service, const char *default_timezone, zbx_hashset_t *roles)
+static void	escalation_execute(ZBX_DB_ESCALATION *escalation, const ZBX_DB_ACTION *action,
+		const ZBX_DB_EVENT *event, const ZBX_DB_SERVICE *service, const char *default_timezone,
+		zbx_hashset_t *roles)
 {
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() escalationid:" ZBX_FS_UI64 " status:%s",
 			__func__, escalation->escalationid, zbx_escalation_status_string(escalation->status));
@@ -2462,9 +2465,9 @@ static void	escalation_execute(ZBX_DB_ESCALATION *escalation, const ZBX_DB_ACTIO
  *             r_event    - [IN]     the recovery event                       *
  *                                                                            *
  ******************************************************************************/
-static void	escalation_recover(ZBX_DB_ESCALATION *escalation, const ZBX_DB_ACTION *action, const ZBX_DB_EVENT *event,
-		const ZBX_DB_EVENT *r_event, const ZBX_DB_SERVICE *service, const char *default_timezone,
-		zbx_hashset_t *roles)
+static void	escalation_recover(ZBX_DB_ESCALATION *escalation, const ZBX_DB_ACTION *action,
+		const ZBX_DB_EVENT *event, const ZBX_DB_EVENT *r_event, const ZBX_DB_SERVICE *service,
+		const char *default_timezone, zbx_hashset_t *roles)
 {
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() escalationid:" ZBX_FS_UI64 " status:%s",
 			__func__, escalation->escalationid, zbx_escalation_status_string(escalation->status));
@@ -2486,8 +2489,9 @@ static void	escalation_recover(ZBX_DB_ESCALATION *escalation, const ZBX_DB_ACTIO
  *             r_event    - [IN]     the recovery event                       *
  *                                                                            *
  ******************************************************************************/
-static void	escalation_acknowledge(ZBX_DB_ESCALATION *escalation, const ZBX_DB_ACTION *action, const ZBX_DB_EVENT *event,
-		const ZBX_DB_EVENT *r_event, const char *default_timezone, zbx_hashset_t *roles)
+static void	escalation_acknowledge(ZBX_DB_ESCALATION *escalation, const ZBX_DB_ACTION *action,
+		const ZBX_DB_EVENT *event, const ZBX_DB_EVENT *r_event, const char *default_timezone,
+		zbx_hashset_t *roles)
 {
 	DB_ROW		row;
 	DB_RESULT	result;
@@ -2543,7 +2547,8 @@ static void	escalation_update(ZBX_DB_ESCALATION *escalation, const ZBX_DB_ACTION
 			__func__, escalation->escalationid, escalation->servicealarmid,
 			zbx_escalation_status_string(escalation->status));
 
-	escalation_execute_update_operations(event, NULL, action, NULL, service_alarm, service, default_timezone, roles);
+	escalation_execute_update_operations(event, NULL, action, NULL, service_alarm, service, default_timezone,
+			roles);
 
 	escalation->status = ESCALATION_STATUS_COMPLETED;
 
@@ -2562,7 +2567,7 @@ typedef struct
 #define ZBX_DIFF_ESCALATION_UPDATE_NEXTCHECK		__UINT64_C(0x0001)
 #define ZBX_DIFF_ESCALATION_UPDATE_ESC_STEP		__UINT64_C(0x0002)
 #define ZBX_DIFF_ESCALATION_UPDATE_STATUS		__UINT64_C(0x0004)
-#define ZBX_DIFF_ESCALATION_UPDATE 								\
+#define ZBX_DIFF_ESCALATION_UPDATE								\
 		(ZBX_DIFF_ESCALATION_UPDATE_NEXTCHECK | ZBX_DIFF_ESCALATION_UPDATE_ESC_STEP |	\
 		ZBX_DIFF_ESCALATION_UPDATE_STATUS)
 	zbx_uint64_t		flags;
@@ -3312,12 +3317,12 @@ static int	process_escalations(int now, int *nextcheck, unsigned int escalation_
 			break;
 	}
 
-	result = zbx_DBselect("select escalationid,actionid,triggerid,eventid,r_eventid,nextcheck,esc_step,status,itemid,"
-					"acknowledgeid,servicealarmid,serviceid"
-				" from escalations"
-				" where %s and nextcheck<=%d"
-				" order by actionid,triggerid,itemid,escalationid", filter,
-				now + CONFIG_ESCALATOR_FREQUENCY);
+	result = zbx_DBselect("select escalationid,actionid,triggerid,eventid,r_eventid,nextcheck,esc_step,status,"
+			"itemid,acknowledgeid,servicealarmid,serviceid"
+			" from escalations"
+			" where %s and nextcheck<=%d"
+			" order by actionid,triggerid,itemid,escalationid", filter,
+			now + CONFIG_ESCALATOR_FREQUENCY);
 	zbx_free(filter);
 
 	while (NULL != (row = zbx_DBfetch(result)) && ZBX_IS_RUNNING())

@@ -1032,8 +1032,8 @@ static void	rm_update_cache_reports(zbx_rm_t *manager, int now)
 
 	zbx_vector_uint64_create(&reportids);
 
-	result = zbx_DBselect("select r.reportid,r.userid,r.name,r.dashboardid,r.period,r.cycle,r.weekdays,r.start_time,"
-				"r.active_since,r.active_till,u.timezone,r.state,r.info,r.lastsent,r.status"
+	result = zbx_DBselect("select r.reportid,r.userid,r.name,r.dashboardid,r.period,r.cycle,r.weekdays,"
+			"r.start_time,r.active_since,r.active_till,u.timezone,r.state,r.info,r.lastsent,r.status"
 			" from report r,users u"
 			" where r.userid=u.userid");
 

@@ -1190,8 +1190,11 @@ static int	DBpatch_2030095(void)
 		{
 			params_esc = DBdyn_escape_string(params);
 
-			if (ZBX_DB_OK > zbx_DBexecute("update items set params='%s' where itemid=%s", params_esc, row[0]))
+			if (ZBX_DB_OK > zbx_DBexecute("update items set params='%s' where itemid=%s", params_esc,
+					row[0]))
+			{
 				ret = FAIL;
+			}
 
 			zbx_free(params_esc);
 		}
@@ -1327,7 +1330,8 @@ static int	DBpatch_2030112(void)
 
 static int	DBpatch_2030113(void)
 {
-	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx in ('web.latest.php.sort', 'web.httpmon.php.sort')"))
+	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx in ('web.latest.php.sort',"
+			" 'web.httpmon.php.sort')"))
 		return FAIL;
 
 	return SUCCEED;
@@ -1335,8 +1339,11 @@ static int	DBpatch_2030113(void)
 
 static int	DBpatch_2030114(void)
 {
-	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx='web.httpconf.php.sort' and value_str='h.hostid'"))
+	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx='web.httpconf.php.sort'"
+			" and value_str='h.hostid'"))
+	{
 		return FAIL;
+	}
 
 	return SUCCEED;
 }

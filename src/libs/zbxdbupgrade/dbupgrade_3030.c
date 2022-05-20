@@ -573,8 +573,9 @@ static int	DBpatch_3030046(void)
 
 	while (NULL != (row = zbx_DBfetch(result)))
 	{
-		if (ZBX_DB_OK > zbx_DBexecute("insert into sysmap_shape (shapeid,sysmapid,width,height,text,border_width)"
-				" values (" ZBX_FS_UI64 ",%s,%s,15,'{MAP.NAME}',0)", shapeid++, row[0], row[1]))
+		if (ZBX_DB_OK > zbx_DBexecute("insert into sysmap_shape (shapeid,sysmapid,width,height,text,"
+				" border_width) values (" ZBX_FS_UI64 ",%s,%s,15,'{MAP.NAME}',0)", shapeid++, row[0],
+				row[1]))
 		{
 			goto out;
 		}
@@ -745,7 +746,7 @@ static int	DBpatch_3030059(void)
 	return DBadd_foreign_key("httpstep_field", 1, &field);
 }
 
-static int 	DBpatch_3030060_pair_cmp_func(const void *d1, const void *d2)
+static int	DBpatch_3030060_pair_cmp_func(const void *d1, const void *d2)
 {
 	const zbx_ptr_pair_t	*pair1 = (const zbx_ptr_pair_t *)d1;
 	const zbx_ptr_pair_t	*pair2 = (const zbx_ptr_pair_t *)d2;
@@ -2190,8 +2191,11 @@ static int	DBpatch_3030188(void)
 {
 	if (SUCCEED == DBtable_exists("widget_tmp"))
 	{
-		if (ZBX_DB_OK > zbx_DBexecute("insert into widget_tmp (select widgetid,col,row,width,height from widget)"))
+		if (ZBX_DB_OK > zbx_DBexecute("insert into widget_tmp (select widgetid,col,row,width,height"
+				" from widget)"))
+		{
 			return FAIL;
+		}
 	}
 
 	return SUCCEED;
@@ -2289,9 +2293,11 @@ static int	DBpatch_3030197(void)
 
 		while (NULL != (row = zbx_DBfetch(result)))
 		{
-			if (ZBX_DB_OK > zbx_DBexecute("update widget set x=%s,y=%s,width=%s,height=%s where widgetid=%s",
-					row[1], row[2], row[3], row[4], row[0]))
+			if (ZBX_DB_OK > zbx_DBexecute("update widget set x=%s,y=%s,width=%s,height=%s where"
+					"widgetid=%s", row[1], row[2], row[3], row[4], row[0]))
+			{
 				goto out;
+			}
 		}
 
 		ret = SUCCEED;

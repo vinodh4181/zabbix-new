@@ -354,7 +354,8 @@ static int	DBpatch_3050026(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	res = zbx_DBexecute("update profiles set value_str='name' where idx='web.problem.sort' and value_str='problem'");
+	res = zbx_DBexecute("update profiles set value_str='name' where idx='web.problem.sort' and"
+			"value_str='problem'");
 
 	if (ZBX_DB_OK > res)
 		return FAIL;
@@ -1502,7 +1503,8 @@ static int	DBpatch_3050133(void)
 
 static int	DBpatch_3050134(void)
 {
-	const ZBX_FIELD	field = {"maintenanceid", NULL, "maintenances", "maintenanceid", 0, 0, 0, ZBX_FK_CASCADE_DELETE};
+	const ZBX_FIELD	field = {"maintenanceid", NULL, "maintenances", "maintenanceid", 0, 0, 0,
+						ZBX_FK_CASCADE_DELETE};
 
 	return DBadd_foreign_key("event_suppress", 2, &field);
 }
@@ -1532,7 +1534,8 @@ static int	DBpatch_3050136(void)
 
 static int	DBpatch_3050137(void)
 {
-	const ZBX_FIELD	field = {"maintenanceid", NULL, "maintenances", "maintenanceid", 0, 0, 0, ZBX_FK_CASCADE_DELETE};
+	const ZBX_FIELD	field = {"maintenanceid", NULL, "maintenances", "maintenanceid", 0, 0, 0,
+							ZBX_FK_CASCADE_DELETE};
 
 	return DBadd_foreign_key("maintenance_tag", 1, &field);
 }

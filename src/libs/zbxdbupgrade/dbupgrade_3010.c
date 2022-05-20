@@ -1239,8 +1239,11 @@ static int	DBpatch_3010042(void)
 
 static int	DBpatch_3010043(void)
 {
-	if (ZBX_DB_OK <= zbx_DBexecute("update config set blink_period=%d where blink_period>%d", SEC_PER_DAY, SEC_PER_DAY))
+	if (ZBX_DB_OK <= zbx_DBexecute("update config set blink_period=%d where blink_period>%d", SEC_PER_DAY,
+			SEC_PER_DAY))
+	{
 		return SUCCEED;
+	}
 
 	return FAIL;
 }
