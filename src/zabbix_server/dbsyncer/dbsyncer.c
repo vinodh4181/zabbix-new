@@ -109,7 +109,7 @@ ZBX_THREAD_ENTRY(dbsyncer_thread, args)
 
 	/* database APIs might not handle signals correctly and hang, block signals to avoid hanging */
 	zbx_block_signals(&orig_mask);
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	if (1 == process_num)
 		db_trigger_queue_cleanup();
@@ -190,7 +190,7 @@ ZBX_THREAD_ENTRY(dbsyncer_thread, args)
 	if (SUCCEED != zbx_db_trigger_queue_locked())
 		zbx_db_flush_timer_queue();
 
-	DBclose();
+	zbx_DBclose();
 	zbx_unblock_signals(&orig_mask);
 
 	zbx_log_sync_history_cache_progress();

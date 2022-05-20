@@ -2319,7 +2319,7 @@ ZBX_THREAD_ENTRY(report_manager_thread, args)
 		exit(EXIT_FAILURE);
 	}
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	/* initialize statistics */
 	time_stat = zbx_time();

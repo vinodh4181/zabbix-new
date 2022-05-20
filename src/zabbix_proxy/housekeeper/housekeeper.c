@@ -224,7 +224,7 @@ ZBX_THREAD_ENTRY(housekeeper_thread, args)
 
 		zbx_setproctitle("%s [connecting to the database]", get_process_type_string(process_type));
 
-		DBconnect(ZBX_DB_CONNECT_NORMAL);
+		zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 		zbx_setproctitle("%s [removing old history]", get_process_type_string(process_type));
 
@@ -232,7 +232,7 @@ ZBX_THREAD_ENTRY(housekeeper_thread, args)
 		records = housekeeping_history(start);
 		sec = zbx_time() - sec;
 
-		DBclose();
+		zbx_DBclose();
 
 		zbx_dc_cleanup_data_sessions();
 

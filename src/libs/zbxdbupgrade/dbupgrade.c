@@ -863,7 +863,7 @@ int	DBcheck_version(void)
 			required = patches[i].version;
 	}
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	if (SUCCEED != DBtable_exists(dbversion_table_name))
 	{
@@ -996,7 +996,7 @@ int	DBcheck_version(void)
 #endif	/* not HAVE_SQLITE3 */
 
 out:
-	DBclose();
+	zbx_DBclose();
 
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s():%s", __func__, zbx_result_string(ret));
 
@@ -1013,7 +1013,7 @@ int	DBcheck_double_type(void)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 #if defined(HAVE_MYSQL)
 	sql = DBdyn_escape_string(CONFIG_DBNAME);
@@ -1046,7 +1046,7 @@ int	DBcheck_double_type(void)
 
 	DBfree_result(result);
 out:
-	DBclose();
+	zbx_DBclose();
 	zbx_free(sql);
 
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);

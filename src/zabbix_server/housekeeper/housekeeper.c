@@ -1199,7 +1199,7 @@ ZBX_THREAD_ENTRY(housekeeper_thread, args)
 		now = time(NULL);
 
 		zbx_setproctitle("%s [connecting to the database]", get_process_type_string(process_type));
-		DBconnect(ZBX_DB_CONNECT_NORMAL);
+		zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 		zbx_config_get(&cfg, ZBX_CONFIG_FLAGS_HOUSEKEEPER | ZBX_CONFIG_FLAGS_DB_EXTENSION);
 
@@ -1244,7 +1244,7 @@ ZBX_THREAD_ENTRY(housekeeper_thread, args)
 
 		zbx_config_clean(&cfg);
 
-		DBclose();
+		zbx_DBclose();
 
 		zbx_dc_cleanup_data_sessions();
 		zbx_vc_housekeeping_value_cache();

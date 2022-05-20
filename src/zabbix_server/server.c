@@ -1029,9 +1029,9 @@ static void	zbx_on_exit(int ret)
 
 	if (ZBX_NODE_STATUS_ACTIVE == ha_status)
 	{
-		DBconnect(ZBX_DB_CONNECT_EXIT);
+		zbx_DBconnect(ZBX_DB_CONNECT_EXIT);
 		free_database_cache(ZBX_SYNC_ALL);
-		DBclose();
+		zbx_DBclose();
 	}
 
 	if (SUCCEED != zbx_ha_stop(&error))
@@ -1235,7 +1235,7 @@ static void	zbx_check_db(void)
 		result = FAIL;
 	}
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	if(SUCCEED == DBfield_exists("config", "dbversion_status"))
 	{
@@ -1260,7 +1260,7 @@ static void	zbx_check_db(void)
 		zbx_json_free(&db_version_json);
 	}
 
-	DBclose();
+	zbx_DBclose();
 	zbx_free(db_version_info.friendly_current_version);
 
 	if(SUCCEED != result)
@@ -1384,14 +1384,14 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 				if (ZBX_NODE_STATUS_ACTIVE != *ha_stat)
 					goto out;
 
-				DBconnect(ZBX_DB_CONNECT_NORMAL);
+				zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 				if (SUCCEED != zbx_check_postinit_tasks(&error))
 				{
 					zabbix_log(LOG_LEVEL_CRIT, "cannot complete post initialization tasks: %s",
 							error);
 					zbx_free(error);
-					DBclose();
+					zbx_DBclose();
 
 					ret = FAIL;
 					goto out;
@@ -1400,7 +1400,7 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 				/* update maintenance states */
 				zbx_dc_update_maintenances();
 
-				DBclose();
+				zbx_DBclose();
 
 				zbx_vc_enable();
 				break;

@@ -620,7 +620,7 @@ ZBX_THREAD_ENTRY(proxypoller_thread, args)
 	zbx_setproctitle("%s #%d [connecting to the database]", get_process_type_string(process_type), process_num);
 	last_stat_time = time(NULL);
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	zbx_rtc_subscribe(&rtc, process_type, process_num);
 

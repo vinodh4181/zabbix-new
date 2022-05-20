@@ -103,7 +103,7 @@ ZBX_THREAD_ENTRY(trigger_housekeeper_thread, args)
 	update_selfmon_counter(ZBX_PROCESS_STATE_BUSY);
 
 	zbx_setproctitle("%s [connecting to the database]", get_process_type_string(process_type));
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	zbx_setproctitle("%s [startup idle for %d second(s)]", get_process_type_string(process_type),
 			CONFIG_PROBLEMHOUSEKEEPING_FREQUENCY);
@@ -142,7 +142,7 @@ ZBX_THREAD_ENTRY(trigger_housekeeper_thread, args)
 				CONFIG_PROBLEMHOUSEKEEPING_FREQUENCY);
 	}
 
-	DBclose();
+	zbx_DBclose();
 
 	zbx_setproctitle("%s #%d [terminated]", get_process_type_string(process_type), process_num);
 

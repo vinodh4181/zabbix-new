@@ -311,7 +311,7 @@ ZBX_THREAD_ENTRY(datasender_thread, args)
 #endif
 	zbx_setproctitle("%s [connecting to the database]", get_process_type_string(process_type));
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	last_conn_time = time(NULL);
 

@@ -1366,7 +1366,7 @@ static void	am_sync_watchdog(zbx_am_t *manager, zbx_am_media_t **medias, int med
 static int	am_prepare_mediatype_exec_command(zbx_am_mediatype_t *mediatype, zbx_am_alert_t *alert, char **cmd,
 		char **error)
 {
-	DB_ALERT	db_alert;
+	ZBX_DB_ALERT	db_alert;
 	size_t		cmd_alloc = ZBX_KIBIBYTE, cmd_offset = 0;
 	int		ret = FAIL;
 
@@ -2272,8 +2272,8 @@ ZBX_THREAD_ENTRY(alert_manager_thread, args)
 
 		if (time_ping + ZBX_DB_PING_FREQUENCY < now)
 		{
-			manager.dbstatus = DBconnect(ZBX_DB_CONNECT_ONCE);
-			DBclose();
+			manager.dbstatus = zbx_DBconnect(ZBX_DB_CONNECT_ONCE);
+			zbx_DBclose();
 			time_ping = now;
 		}
 		if (ZBX_DB_DOWN == manager.dbstatus)

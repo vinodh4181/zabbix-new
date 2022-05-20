@@ -246,7 +246,7 @@ void	hk_history_compression_init(void)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 	zbx_config_get(&cfg, ZBX_CONFIG_FLAGS_DB_EXTENSION);
 	compression_status_cache = cfg.db.history_compression_status;
 	compress_older_cache = cfg.db.history_compress_older;
@@ -297,7 +297,7 @@ void	hk_history_compression_init(void)
 		zbx_free(db_log_level);
 	}
 
-	DBclose();
+	zbx_DBclose();
 
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);
 #endif

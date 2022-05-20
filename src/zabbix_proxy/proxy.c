@@ -965,12 +965,12 @@ static void	zbx_on_exit(int ret)
 	free_metrics();
 	zbx_ipc_service_free_env();
 
-	DBconnect(ZBX_DB_CONNECT_EXIT);
+	zbx_DBconnect(ZBX_DB_CONNECT_EXIT);
 	free_database_cache(ZBX_SYNC_ALL);
 	free_configuration_cache();
-	DBclose();
+	zbx_DBclose();
 
-	DBdeinit();
+	zbx_DBdeinit();
 
 	/* free vmware support */
 	zbx_vmware_destroy();
@@ -1312,14 +1312,14 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 		exit(EXIT_FAILURE);
 	}
 
-	if (SUCCEED != DBinit(&error))
+	if (SUCCEED != zbx_DBinit(&error))
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "cannot initialize database: %s", error);
 		zbx_free(error);
 		exit(EXIT_FAILURE);
 	}
 
-	DBinit_autoincrement_options();
+	zbx_zbx_DBinit_autoincrement_options();
 
 	if (ZBX_DB_UNKNOWN == (db_type = zbx_db_get_database_type()))
 	{

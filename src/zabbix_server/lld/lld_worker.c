@@ -197,7 +197,7 @@ ZBX_THREAD_ENTRY(lld_worker_thread, args)
 
 	time_stat = zbx_time();
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	zbx_setproctitle("%s #%d started", get_process_type_string(process_type), process_num);
 
@@ -247,7 +247,7 @@ ZBX_THREAD_ENTRY(lld_worker_thread, args)
 	while (1)
 		zbx_sleep(SEC_PER_MIN);
 
-	DBclose();
+	zbx_DBclose();
 
 	zbx_ipc_socket_close(&lld_socket);
 }

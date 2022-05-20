@@ -3276,7 +3276,7 @@ ZBX_THREAD_ENTRY(service_manager_thread, args)
 
 	zbx_setproctitle("%s #%d [connecting to the database]", get_process_type_string(process_type), process_num);
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	if (FAIL == zbx_ipc_service_start(&service, ZBX_IPC_SERVICE_SERVICE, &error))
 	{
@@ -3441,7 +3441,7 @@ ZBX_THREAD_ENTRY(service_manager_thread, args)
 
 	service_manager_free(&service_manager);
 
-	DBclose();
+	zbx_DBclose();
 
 	exit(EXIT_SUCCESS);
 #undef STAT_INTERVAL

@@ -3474,7 +3474,7 @@ void	get_db_actions_info(zbx_vector_uint64_t *actionids, zbx_vector_ptr_t *actio
 	DB_ROW		row;
 	char		*filter = NULL;
 	size_t		filter_alloc = 0, filter_offset = 0;
-	DB_ACTION	*action;
+	ZBX_DB_ACTION	*action;
 
 	zbx_vector_uint64_sort(actionids, ZBX_DEFAULT_UINT64_COMPARE_FUNC);
 	zbx_vector_uint64_uniq(actionids, ZBX_DEFAULT_UINT64_COMPARE_FUNC);
@@ -3490,7 +3490,7 @@ void	get_db_actions_info(zbx_vector_uint64_t *actionids, zbx_vector_ptr_t *actio
 	{
 		char	*tmp;
 
-		action = (DB_ACTION *)zbx_malloc(NULL, sizeof(DB_ACTION));
+		action = (ZBX_DB_ACTION *)zbx_malloc(NULL, sizeof(ZBX_DB_ACTION));
 		ZBX_STR2UINT64(action->actionid, row[0]);
 		ZBX_STR2UCHAR(action->status, row[2]);
 		ZBX_STR2UCHAR(action->eventsource, row[3]);
@@ -3526,7 +3526,7 @@ void	get_db_actions_info(zbx_vector_uint64_t *actionids, zbx_vector_ptr_t *actio
 		ZBX_STR2UINT64(actionid, row[0]);
 		if (FAIL != (index = zbx_vector_ptr_bsearch(actions, &actionid, ZBX_DEFAULT_UINT64_PTR_COMPARE_FUNC)))
 		{
-			action = (DB_ACTION *)actions->values[index];
+			action = (ZBX_DB_ACTION *)actions->values[index];
 			action->recovery = ZBX_ACTION_RECOVERY_OPERATIONS;
 		}
 	}
@@ -3535,7 +3535,7 @@ void	get_db_actions_info(zbx_vector_uint64_t *actionids, zbx_vector_ptr_t *actio
 	zbx_free(filter);
 }
 
-void	free_db_action(DB_ACTION *action)
+void	free_db_action(ZBX_DB_ACTION *action)
 {
 	zbx_free(action->name);
 	zbx_free(action);

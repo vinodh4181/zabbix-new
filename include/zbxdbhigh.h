@@ -305,16 +305,7 @@ typedef struct
 	zbx_alert_status_t	status;
 	int		retries;
 }
-DB_ALERT;
-
-typedef struct
-{
-	zbx_uint64_t	housekeeperid;
-	char		*tablename;
-	char		*field;
-	zbx_uint64_t	value;
-}
-DB_HOUSEKEEPER;
+ZBX_DB_ALERT;
 
 typedef struct
 {
@@ -333,7 +324,7 @@ typedef struct
 	int		verify_peer;
 	int		verify_host;
 }
-DB_HTTPTEST;
+ZBX_DB_HTTPTEST;
 
 typedef struct
 {
@@ -350,7 +341,7 @@ typedef struct
 	int		retrieve_mode;
 	int		post_type;
 }
-DB_HTTPSTEP;
+ZBX_DB_HTTPSTEP;
 
 typedef struct
 {
@@ -367,7 +358,7 @@ typedef struct
 	int			esc_step;
 	zbx_escalation_status_t	status;
 }
-DB_ESCALATION;
+ZBX_DB_ESCALATION;
 
 typedef struct
 {
@@ -380,7 +371,7 @@ typedef struct
 	unsigned char	status;
 	unsigned char	notify_if_canceled;
 }
-DB_ACTION;
+ZBX_DB_ACTION;
 
 typedef struct
 {
@@ -392,7 +383,7 @@ typedef struct
 	int		old_severity;
 	int		new_severity;
 }
-DB_ACKNOWLEDGE;
+ZBX_DB_ACKNOWLEDGE;
 
 typedef struct
 {
@@ -402,13 +393,13 @@ typedef struct
 }
 zbx_service_alarm_t;
 
-int	DBinit(char **error);
-void	DBdeinit(void);
+int	zbx_DBinit(char **error);
+void	zbx_DBdeinit(void);
 
-void	DBinit_autoincrement_options(void);
+void	zbx_zbx_DBinit_autoincrement_options(void);
 
-int	DBconnect(int flag);
-void	DBclose(void);
+int	zbx_DBconnect(int flag);
+void	zbx_DBclose(void);
 
 int	zbx_db_validate_config_features(void);
 #if defined(HAVE_MYSQL) || defined(HAVE_POSTGRESQL)

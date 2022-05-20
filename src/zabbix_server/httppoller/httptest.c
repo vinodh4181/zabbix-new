@@ -610,7 +610,7 @@ out:
 static void	process_httptest(DC_HOST *host, zbx_httptest_t *httptest)
 {
 	DB_RESULT	result;
-	DB_HTTPSTEP	db_httpstep;
+	ZBX_DB_HTTPSTEP	db_httpstep;
 	char		*err_str = NULL, *buffer = NULL;
 	int		lastfailedstep = 0;
 	zbx_timespec_t	ts;

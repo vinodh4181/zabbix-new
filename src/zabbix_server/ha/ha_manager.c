@@ -250,7 +250,7 @@ static void	ha_set_error(zbx_ha_info_t *info, const char *fmt, ...)
 static int	ha_db_begin(zbx_ha_info_t *info)
 {
 	if (ZBX_DB_DOWN == info->db_status)
-		info->db_status = DBconnect(ZBX_DB_CONNECT_ONCE);
+		info->db_status = zbx_DBconnect(ZBX_DB_CONNECT_ONCE);
 
 	if (ZBX_DB_OK <= info->db_status)
 		info->db_status = zbx_db_begin();
@@ -273,7 +273,7 @@ static int	ha_db_rollback(zbx_ha_info_t *info)
 	if (ZBX_DB_OK > (info->db_status = zbx_db_rollback()))
 	{
 		if (ZBX_DB_DOWN == info->db_status)
-			DBclose();
+			zbx_DBclose();
 	}
 
 	if (ZBX_DB_FAIL == info->db_status)
@@ -301,7 +301,7 @@ static int	ha_db_commit(zbx_ha_info_t *info)
 		if (ZBX_DB_FAIL == info->db_status)
 			ha_set_error(info, "database error");
 		else
-			DBclose();
+			zbx_DBclose();
 	}
 
 	return info->db_status;
@@ -1929,7 +1929,7 @@ pause:
 
 	ha_db_update_exit_status(&info);
 
-	DBclose();
+	zbx_DBclose();
 
 	zbx_ipc_async_socket_close(&rtc_socket);
 	zbx_ipc_service_close(&service);

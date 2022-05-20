@@ -24,7 +24,7 @@
 
 typedef struct
 {
-	DB_HTTPTEST		httptest;
+	ZBX_DB_HTTPTEST		httptest;
 	char			*headers;
 	zbx_vector_ptr_pair_t	variables;
 	/* httptest macro cache consisting of (key, value) pair array */
@@ -34,7 +34,7 @@ zbx_httptest_t;
 
 typedef struct
 {
-	DB_HTTPSTEP		*httpstep;
+	ZBX_DB_HTTPSTEP		*httpstep;
 	zbx_httptest_t		*httptest;
 
 	char			*url;

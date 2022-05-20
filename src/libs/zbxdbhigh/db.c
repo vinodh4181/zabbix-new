@@ -71,7 +71,7 @@ extern char	ZBX_PG_ESCAPE_BACKSLASH;
 static int	connection_failure;
 extern unsigned char	program_type;
 
-void	DBclose(void)
+void	zbx_DBclose(void)
 {
 	zbx_db_close();
 }
@@ -169,7 +169,7 @@ void	zbx_db_validate_config(void)
  * Purpose: specify the autoincrement options when connecting to the database *
  *                                                                            *
  ******************************************************************************/
-void	DBinit_autoincrement_options(void)
+void	zbx_zbx_DBinit_autoincrement_options(void)
 {
 	zbx_db_init_autoincrement_options();
 }
@@ -185,7 +185,7 @@ void	DBinit_autoincrement_options(void)
  * Return value: same as zbx_db_connect()                                     *
  *                                                                            *
  ******************************************************************************/
-int	DBconnect(int flag)
+int	zbx_DBconnect(int flag)
 {
 	int	err;
 
@@ -221,12 +221,12 @@ int	DBconnect(int flag)
 	return err;
 }
 
-int	DBinit(char **error)
+int	zbx_DBinit(char **error)
 {
 	return zbx_db_init(CONFIG_DBNAME, db_schema, error);
 }
 
-void	DBdeinit(void)
+void	zbx_DBdeinit(void)
 {
 	zbx_db_deinit();
 }
@@ -244,8 +244,8 @@ static void	DBtxn_operation(int (*txn_operation)(void))
 
 	while (ZBX_DB_DOWN == rc)
 	{
-		DBclose();
-		DBconnect(ZBX_DB_CONNECT_NORMAL);
+		zbx_DBclose();
+		zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 		if (ZBX_DB_DOWN == (rc = txn_operation()))
 		{
@@ -299,8 +299,8 @@ void	DBrollback(void)
 	{
 		zabbix_log(LOG_LEVEL_WARNING, "cannot perform transaction rollback, connection will be reset");
 
-		DBclose();
-		DBconnect(ZBX_DB_CONNECT_NORMAL);
+		zbx_DBclose();
+		zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 	}
 }
 
@@ -337,8 +337,8 @@ void	DBstatement_prepare(const char *sql)
 
 	while (ZBX_DB_DOWN == rc)
 	{
-		DBclose();
-		DBconnect(ZBX_DB_CONNECT_NORMAL);
+		zbx_DBclose();
+		zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 		if (ZBX_DB_DOWN == (rc = zbx_db_statement_prepare(sql)))
 		{
@@ -368,8 +368,8 @@ int	DBexecute(const char *fmt, ...)
 
 	while (ZBX_DB_DOWN == rc)
 	{
-		DBclose();
-		DBconnect(ZBX_DB_CONNECT_NORMAL);
+		zbx_DBclose();
+		zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 		if (ZBX_DB_DOWN == (rc = zbx_db_vexecute(fmt, args)))
 		{
@@ -466,8 +466,8 @@ DB_RESULT	DBselect(const char *fmt, ...)
 
 	while ((DB_RESULT)ZBX_DB_DOWN == rc)
 	{
-		DBclose();
-		DBconnect(ZBX_DB_CONNECT_NORMAL);
+		zbx_DBclose();
+		zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 		if ((DB_RESULT)ZBX_DB_DOWN == (rc = zbx_db_vselect(fmt, args)))
 		{
@@ -497,8 +497,8 @@ DB_RESULT	DBselectN(const char *query, int n)
 
 	while ((DB_RESULT)ZBX_DB_DOWN == rc)
 	{
-		DBclose();
-		DBconnect(ZBX_DB_CONNECT_NORMAL);
+		zbx_DBclose();
+		zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 		if ((DB_RESULT)ZBX_DB_DOWN == (rc = zbx_db_select_n(query, n)))
 		{
@@ -762,9 +762,9 @@ zbx_uint64_t	DBget_maxid_num(const char *tablename, int num)
  ******************************************************************************/
 void	DBextract_version_info(struct zbx_db_version_info_t *version_info)
 {
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 	zbx_dbms_version_info_extract(version_info);
-	DBclose();
+	zbx_DBclose();
 }
 
 /******************************************************************************
@@ -805,7 +805,7 @@ int	DBcheck_capabilities(zbx_uint32_t db_version)
 	DB_RESULT	result;
 	DB_ROW		row;
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	if (FAIL == DBfield_exists("config", "db_extension"))
 		goto out;
@@ -848,7 +848,7 @@ int	DBcheck_capabilities(zbx_uint32_t db_version)
 clean:
 	DBfree_result(result);
 out:
-	DBclose();
+	zbx_DBclose();
 #else
 	ZBX_UNUSED(db_version);
 #endif
@@ -2297,7 +2297,7 @@ void	DBcheck_character_set(void)
 	DB_ROW		row;
 
 	database_name_esc = DBdyn_escape_string(CONFIG_DBNAME);
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	result = DBselect(
 			"select default_character_set_name,default_collation_name"
@@ -2365,13 +2365,13 @@ void	DBcheck_character_set(void)
 	}
 
 	DBfree_result(result);
-	DBclose();
+	zbx_DBclose();
 	zbx_free(database_name_esc);
 #elif defined(HAVE_ORACLE)
 	DB_RESULT	result;
 	DB_ROW		row;
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 	result = DBselect(
 			"select parameter,value"
 			" from NLS_DATABASE_PARAMETERS"
@@ -2408,7 +2408,7 @@ void	DBcheck_character_set(void)
 	}
 
 	DBfree_result(result);
-	DBclose();
+	zbx_DBclose();
 #elif defined(HAVE_POSTGRESQL)
 #define OID_LENGTH_MAX		20
 
@@ -2418,7 +2418,7 @@ void	DBcheck_character_set(void)
 
 	database_name_esc = DBdyn_escape_string(CONFIG_DBNAME);
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 	result = DBselect(
 			"select pg_encoding_to_char(encoding)"
 			" from pg_database"
@@ -2507,7 +2507,7 @@ void	DBcheck_character_set(void)
 	}
 out:
 	DBfree_result(result);
-	DBclose();
+	zbx_DBclose();
 	zbx_free(database_name_esc);
 #endif
 }
@@ -2967,8 +2967,8 @@ retry_oracle:
 			sleep(ZBX_DB_WAIT_DOWN);
 		}
 
-		DBclose();
-		DBconnect(ZBX_DB_CONNECT_NORMAL);
+		zbx_DBclose();
+		zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 		goto retry_oracle;
 	}
@@ -3111,7 +3111,7 @@ int	zbx_db_get_database_type(void)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	if (NULL == (result = DBselectN("select userid from users", 1)))
 	{
@@ -3132,7 +3132,7 @@ int	zbx_db_get_database_type(void)
 
 	DBfree_result(result);
 out:
-	DBclose();
+	zbx_DBclose();
 
 	switch (ret)
 	{
@@ -3502,7 +3502,7 @@ int	zbx_db_check_instanceid(void)
 	DB_ROW		row;
 	int		ret = SUCCEED;
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	result = DBselect("select configid,instanceid from config order by configid");
 	if (NULL != (row = DBfetch(result)))
@@ -3527,7 +3527,7 @@ int	zbx_db_check_instanceid(void)
 	}
 	DBfree_result(result);
 
-	DBclose();
+	zbx_DBclose();
 
 	return ret;
 }

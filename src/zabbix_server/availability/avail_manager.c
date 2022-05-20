@@ -419,7 +419,7 @@ ZBX_THREAD_ENTRY(availability_manager_thread, args)
 
 	zbx_setproctitle("%s #%d [connecting to the database]", get_process_type_string(process_type), process_num);
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	if (FAIL == zbx_ipc_service_start(&service, ZBX_IPC_SERVICE_AVAILABILITY, &error))
 	{
@@ -550,7 +550,7 @@ ZBX_THREAD_ENTRY(availability_manager_thread, args)
 		zbx_vector_availability_ptr_sort(&interface_availabilities, interface_availability_compare);
 		zbx_db_update_interface_availabilities(&interface_availabilities);
 	}
-	DBclose();
+	zbx_DBclose();
 	zbx_unblock_signals(&orig_mask);
 
 	exit(EXIT_SUCCESS);

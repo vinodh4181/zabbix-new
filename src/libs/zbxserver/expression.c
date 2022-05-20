@@ -63,7 +63,7 @@ ZBX_VECTOR_IMPL(rootcause, zbx_rootcause_t)
 
 static int	substitute_simple_macros_impl(const zbx_uint64_t *actionid, const ZBX_DB_EVENT *event,
 		const ZBX_DB_EVENT *r_event, const zbx_uint64_t *userid, const zbx_uint64_t *hostid,
-		const DC_HOST *dc_host, const DC_ITEM *dc_item, const DB_ALERT *alert, const DB_ACKNOWLEDGE *ack,
+		const DC_HOST *dc_host, const DC_ITEM *dc_item, const ZBX_DB_ALERT *alert, const ZBX_DB_ACKNOWLEDGE *ack,
 		const zbx_service_alarm_t *service_alarm, const ZBX_DB_SERVICE *service, const char *tz, char **data,
 		int macro_type, char *error, int maxerrlen);
 
@@ -112,7 +112,7 @@ static int	get_trigger_severity_name(unsigned char priority, char **replace_to)
  *               FAIL    - no matching actions were made                      *
  *                                                                            *
  ******************************************************************************/
-static int	get_problem_update_actions(const DB_ACKNOWLEDGE *ack, int actions, char **out)
+static int	get_problem_update_actions(const ZBX_DB_ACKNOWLEDGE *ack, int actions, char **out)
 {
 	const char	*prefixes[] = {"", ", ", ", ", ", ", ", "};
 	char		*buf = NULL;
@@ -1278,7 +1278,7 @@ static void	get_event_update_history(const ZBX_DB_EVENT *event, char **replace_t
 	{
 		const char	*user_name;
 		char		*actions = NULL;
-		DB_ACKNOWLEDGE	ack;
+		ZBX_DB_ACKNOWLEDGE	ack;
 
 		ack.clock = atoi(row[0]);
 		ZBX_STR2UINT64(ack.userid, row[1]);
@@ -2642,7 +2642,7 @@ static int	resolve_host_target_macros(const char *m, const DC_HOST *dc_host, DC_
  ******************************************************************************/
 static int	substitute_simple_macros_impl(const zbx_uint64_t *actionid, const ZBX_DB_EVENT *event,
 		const ZBX_DB_EVENT *r_event, const zbx_uint64_t *userid, const zbx_uint64_t *hostid,
-		const DC_HOST *dc_host, const DC_ITEM *dc_item, const DB_ALERT *alert, const DB_ACKNOWLEDGE *ack,
+		const DC_HOST *dc_host, const DC_ITEM *dc_item, const ZBX_DB_ALERT *alert, const ZBX_DB_ACKNOWLEDGE *ack,
 		const zbx_service_alarm_t *service_alarm, const ZBX_DB_SERVICE *service, const char *tz, char **data,
 		int macro_type, char *error, int maxerrlen)
 {
@@ -6628,7 +6628,7 @@ exit:
  ******************************************************************************/
 int	zbx_substitute_simple_macros(const zbx_uint64_t *actionid, const ZBX_DB_EVENT *event,
 		const ZBX_DB_EVENT *r_event, const zbx_uint64_t *userid, const zbx_uint64_t *hostid,
-		const DC_HOST *dc_host, const DC_ITEM *dc_item, const DB_ALERT *alert, const DB_ACKNOWLEDGE *ack,
+		const DC_HOST *dc_host, const DC_ITEM *dc_item, const ZBX_DB_ALERT *alert, const ZBX_DB_ACKNOWLEDGE *ack,
 		const zbx_service_alarm_t *service_alarm, const ZBX_DB_SERVICE *service, const char *tz, char **data,
 		int macro_type, char *error, int maxerrlen)
 {
@@ -6643,8 +6643,8 @@ int	zbx_substitute_simple_macros(const zbx_uint64_t *actionid, const ZBX_DB_EVEN
  *                                                                            *
  ******************************************************************************/
 int	zbx_substitute_simple_macros_unmasked(const zbx_uint64_t *actionid, const ZBX_DB_EVENT *event,
-		const ZBX_DB_EVENT *r_event, const zbx_uint64_t *userid, const zbx_uint64_t *hostid, const DC_HOST *dc_host,
-		const DC_ITEM *dc_item, const DB_ALERT *alert, const DB_ACKNOWLEDGE *ack,
+		const ZBX_DB_EVENT *r_event, const zbx_uint64_t *userid, const zbx_uint64_t *hostid,
+		const DC_HOST *dc_host, const DC_ITEM *dc_item, const ZBX_DB_ALERT *alert, const ZBX_DB_ACKNOWLEDGE *ack,
 		const zbx_service_alarm_t *service_alarm, const ZBX_DB_SERVICE *service, const char *tz, char **data,
 		int macro_type, char *error, int maxerrlen)
 {

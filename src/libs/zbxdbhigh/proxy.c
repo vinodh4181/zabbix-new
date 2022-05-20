@@ -4463,7 +4463,7 @@ int	proxy_get_history_count(void)
 	zbx_uint64_t	id;
 	int		count = 0;
 
-	DBconnect(ZBX_DB_CONNECT_NORMAL);
+	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
 	proxy_get_lastid("proxy_history", "history_lastid", &id);
 
@@ -4478,7 +4478,7 @@ int	proxy_get_history_count(void)
 
 	DBfree_result(result);
 
-	DBclose();
+	zbx_DBclose();
 
 	return count;
 }
