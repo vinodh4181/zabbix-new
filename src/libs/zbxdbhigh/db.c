@@ -169,7 +169,7 @@ void	zbx_db_validate_config(void)
  * Purpose: specify the autoincrement options when connecting to the database *
  *                                                                            *
  ******************************************************************************/
-void	zbx_zbx_DBinit_autoincrement_options(void)
+void	zbx_DBinit_autoincrement_options(void)
 {
 	zbx_db_init_autoincrement_options();
 }

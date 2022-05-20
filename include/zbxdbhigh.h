@@ -396,7 +396,7 @@ zbx_service_alarm_t;
 int	zbx_DBinit(char **error);
 void	zbx_DBdeinit(void);
 
-void	zbx_zbx_DBinit_autoincrement_options(void);
+void	zbx_DBinit_autoincrement_options(void);
 
 int	zbx_DBconnect(int flag);
 void	zbx_DBclose(void);

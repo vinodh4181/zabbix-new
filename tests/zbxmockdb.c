@@ -69,7 +69,7 @@ struct zbx_db_result
 
 DB_RESULT	__fwd_zbx_db_select(const char *fmt, ...);
 DB_RESULT	__wrap_zbx_db_select_n(const char *query, int n);
-int	__wrap___zbx_zbx_DBexecute(const char *fmt, ...);
+int		__wrap___zbx_DBexecute(const char *fmt, ...);
 
 /* zbx_mockdb_t:queries hashset support */
 static zbx_hash_t	mockdb_query_hash(const void *data)
@@ -267,7 +267,7 @@ void	__wrap_DBfree_result(DB_RESULT result)
 	zbx_free(result);
 }
 
-int	__wrap___zbx_zbx_DBexecute(const char *fmt, ...)
+int	__wrap___zbx_DBexecute(const char *fmt, ...)
 {
 	ZBX_UNUSED(fmt);
 

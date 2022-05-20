@@ -1319,7 +1319,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 		exit(EXIT_FAILURE);
 	}
 
-	zbx_zbx_DBinit_autoincrement_options();
+	zbx_DBinit_autoincrement_options();
 
 	if (ZBX_DB_UNKNOWN == (db_type = zbx_db_get_database_type()))
 	{
