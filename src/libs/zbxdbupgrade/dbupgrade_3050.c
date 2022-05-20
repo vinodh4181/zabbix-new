@@ -355,7 +355,7 @@ static int	DBpatch_3050026(void)
 		return SUCCEED;
 
 	res = zbx_DBexecute("update profiles set value_str='name' where idx='web.problem.sort' and"
-			"value_str='problem'");
+			" value_str='problem'");
 
 	if (ZBX_DB_OK > res)
 		return FAIL;
