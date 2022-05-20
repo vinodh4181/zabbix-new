@@ -416,9 +416,9 @@ static void	lld_items_get(const zbx_vector_ptr_t *item_prototypes, zbx_vector_pt
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "id.parent_itemid", parent_itemids.values,
 			parent_itemids.values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(itemid, row[45]);
 
@@ -685,9 +685,9 @@ static void	lld_items_get(const zbx_vector_ptr_t *item_prototypes, zbx_vector_pt
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "id.parent_itemid", parent_itemids.values,
 			parent_itemids.values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	item_preprocid;
 
@@ -718,9 +718,9 @@ static void	lld_items_get(const zbx_vector_ptr_t *item_prototypes, zbx_vector_pt
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "id.parent_itemid", parent_itemids.values,
 			parent_itemids.values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(itemid, row[1]);
 
@@ -754,9 +754,9 @@ static void	lld_items_get(const zbx_vector_ptr_t *item_prototypes, zbx_vector_pt
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "id.parent_itemid", parent_itemids.values,
 			parent_itemids.values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(itemid, row[1]);
 
@@ -1077,9 +1077,9 @@ static void	lld_item_dependencies_get(const zbx_vector_ptr_t *item_prototypes, z
 
 		zbx_vector_uint64_clear(check_ids);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			int			dependence_found = 0;
 			zbx_item_dependence_t	*dependence = NULL;
@@ -1746,9 +1746,9 @@ static void	lld_items_validate(zbx_uint64_t hostid, zbx_vector_ptr_t *items, zbx
 					itemids.values, itemids.values_num);
 		}
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			for (i = 0; i < items->values_num; i++)
 			{
@@ -3585,7 +3585,7 @@ static int	lld_items_save(zbx_uint64_t hostid, const zbx_vector_ptr_t *item_prot
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "itemid", upd_keys.values,
 				upd_keys.values_num);
 
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 		{
 			ret = FAIL;
 			goto out;
@@ -3687,7 +3687,7 @@ static int	lld_items_save(zbx_uint64_t hostid, const zbx_vector_ptr_t *item_prot
 
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 		if (sql_offset > 16)
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 	}
 out:
 	zbx_free(sql);
@@ -3882,7 +3882,7 @@ static int	lld_items_preproc_save(zbx_uint64_t hostid, zbx_vector_ptr_t *items, 
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 		if (16 < sql_offset)	/* in ORACLE always present begin..end; */
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 	}
 
 	if (0 != new_preproc_num)
@@ -3897,7 +3897,7 @@ static int	lld_items_preproc_save(zbx_uint64_t hostid, zbx_vector_ptr_t *items, 
 		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "delete from item_preproc where");
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "item_preprocid", deleteids.values,
 				deleteids.values_num);
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
 		delete_preproc_num = deleteids.values_num;
 	}
@@ -4061,7 +4061,7 @@ static int	lld_items_param_save(zbx_uint64_t hostid, zbx_vector_ptr_t *items, in
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 		if (16 < sql_offset)	/* in ORACLE always present begin..end; */
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 	}
 
 	if (0 != new_param_num)
@@ -4076,7 +4076,7 @@ static int	lld_items_param_save(zbx_uint64_t hostid, zbx_vector_ptr_t *items, in
 		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "delete from item_parameter where");
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "item_parameterid", deleteids.values,
 				deleteids.values_num);
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
 		delete_param_num = deleteids.values_num;
 	}
@@ -4240,7 +4240,7 @@ static int	lld_items_tags_save(zbx_uint64_t hostid, zbx_vector_ptr_t *items, int
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 		if (16 < sql_offset)	/* in ORACLE always present begin..end; */
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 	}
 
 	if (0 != new_tag_num)
@@ -4255,7 +4255,7 @@ static int	lld_items_tags_save(zbx_uint64_t hostid, zbx_vector_ptr_t *items, int
 		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "delete from item_tag where");
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "itemtagid", deleteids.values,
 				deleteids.values_num);
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
 		delete_tag_num = deleteids.values_num;
 	}
@@ -4352,7 +4352,7 @@ static void	lld_item_prototypes_get(zbx_uint64_t lld_ruleid, zbx_vector_ptr_t *i
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select i.itemid,i.name,i.key_,i.type,i.value_type,i.delay,"
 				"i.history,i.trends,i.status,i.trapper_hosts,i.units,i.formula,"
 				"i.logtimefmt,i.valuemapid,i.params,i.ipmi_sensor,i.snmp_oid,i.authtype,"
@@ -4366,7 +4366,7 @@ static void	lld_item_prototypes_get(zbx_uint64_t lld_ruleid, zbx_vector_ptr_t *i
 				" and id.parent_itemid=" ZBX_FS_UI64,
 			lld_ruleid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		item_prototype = (zbx_lld_item_prototype_t *)zbx_malloc(NULL, sizeof(zbx_lld_item_prototype_t));
 
@@ -4433,14 +4433,14 @@ static void	lld_item_prototypes_get(zbx_uint64_t lld_ruleid, zbx_vector_ptr_t *i
 
 	/* get item prototype preprocessing options */
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select ip.itemid,ip.step,ip.type,ip.params,ip.error_handler,ip.error_handler_params"
 			" from item_preproc ip,item_discovery id"
 			" where ip.itemid=id.itemid"
 				" and id.parent_itemid=" ZBX_FS_UI64,
 			lld_ruleid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(itemid, row[0]);
 
@@ -4466,14 +4466,14 @@ static void	lld_item_prototypes_get(zbx_uint64_t lld_ruleid, zbx_vector_ptr_t *i
 
 	/* get item prototype parameters */
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select ip.itemid,ip.name,ip.value"
 			" from item_parameter ip,item_discovery id"
 			" where ip.itemid=id.itemid"
 				" and id.parent_itemid=" ZBX_FS_UI64,
 			lld_ruleid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(itemid, row[0]);
 
@@ -4503,14 +4503,14 @@ static void	lld_item_prototypes_get(zbx_uint64_t lld_ruleid, zbx_vector_ptr_t *i
 
 	/* get item prototype tags */
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select it.itemid,it.tag,it.value"
 			" from item_tag it,item_discovery id"
 			" where it.itemid=id.itemid"
 				" and id.parent_itemid=" ZBX_FS_UI64,
 			lld_ruleid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(itemid, row[0]);
 
@@ -4621,14 +4621,14 @@ int	lld_update_items(zbx_uint64_t hostid, zbx_uint64_t lld_ruleid, zbx_vector_pt
 
 	lld_items_validate(hostid, &items, &item_prototypes, &item_dependencies, error);
 
-	DBbegin();
+	zbx_DBbegin();
 
 	if (SUCCEED == lld_items_save(hostid, &item_prototypes, &items, &items_index, &host_record_is_locked) &&
 			SUCCEED == lld_items_preproc_save(hostid, &items, &host_record_is_locked) &&
 			SUCCEED == lld_items_param_save(hostid, &items, &host_record_is_locked) &&
 			SUCCEED == lld_items_tags_save(hostid, &items, &host_record_is_locked))
 	{
-		if (ZBX_DB_OK != DBcommit())
+		if (ZBX_DB_OK != zbx_DBcommit())
 		{
 			ret = FAIL;
 			goto clean;
@@ -4637,7 +4637,7 @@ int	lld_update_items(zbx_uint64_t hostid, zbx_uint64_t lld_ruleid, zbx_vector_pt
 	else
 	{
 		ret = FAIL;
-		DBrollback();
+		zbx_DBrollback();
 		goto clean;
 	}
 

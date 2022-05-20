@@ -266,7 +266,7 @@ void	zbx_db_update_interface_availabilities(const zbx_vector_availability_ptr_t 
 	{
 		size_t	sql_offset = 0;
 
-		DBbegin();
+		zbx_DBbegin();
 		zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 		for (i = 0; i < interface_availabilities->values_num; i++)
@@ -284,9 +284,9 @@ void	zbx_db_update_interface_availabilities(const zbx_vector_availability_ptr_t 
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 		if (16 < sql_offset)
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 
-		txn_error = DBcommit();
+		txn_error = zbx_DBcommit();
 	}
 	while (ZBX_DB_DOWN == txn_error);
 

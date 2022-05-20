@@ -84,7 +84,7 @@ static int	DBpatch_3030007(void)
 	/* After dropping fields type and key_ from table dservices there is no guarantee that a unique
 	index with fields dcheckid, ip and port can be created. To create a unique index for the same
 	fields later this will delete rows where all three of them are identical only leaving the latest. */
-	result = DBselect(
+	result = zbx_DBselect(
 			"select ds.dserviceid"
 			" from dservices ds"
 			" where not exists ("
@@ -95,7 +95,7 @@ static int	DBpatch_3030007(void)
 					" and ds.key_ = dc.key_"
 			")");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(dserviceid, row[0]);
 
@@ -226,9 +226,9 @@ static int	DBpatch_3030018(void)
 
 	zbx_db_insert_prepare(&db_insert, "item_preproc", "item_preprocid", "itemid", "step", "type", "params", NULL);
 
-	result = DBselect("select itemid,value_type,data_type,multiplier,formula,delta from items");
+	result = zbx_DBselect("select itemid,value_type,data_type,multiplier,formula,delta from items");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(itemid, row[0]);
 		ZBX_STR2UCHAR(value_type, row[1]);
@@ -272,7 +272,7 @@ static int	DBpatch_3030021(void)
 
 static int	DBpatch_3030022(void)
 {
-	if (ZBX_DB_OK > DBexecute("update items set formula='' where flags<>1 or evaltype<>3"))
+	if (ZBX_DB_OK > zbx_DBexecute("update items set formula='' where flags<>1 or evaltype<>3"))
 		return FAIL;
 
 	return SUCCEED;
@@ -280,7 +280,7 @@ static int	DBpatch_3030022(void)
 
 static int	DBpatch_3030023(void)
 {
-	if (ZBX_DB_OK > DBexecute("delete from profiles where idx like 'web.dashboard.widget.%%'"))
+	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx like 'web.dashboard.widget.%%'"))
 		return FAIL;
 
 	return SUCCEED;
@@ -362,7 +362,7 @@ static int	DBpatch_3030030(void)
 		}
 		zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " order by e.r_eventid desc, e.eventid desc");
 
-		if (NULL == (result = DBselectN(sql, 10000)))
+		if (NULL == (result = zbx_DBselectN(sql, 10000)))
 		{
 			ret = FAIL;
 			break;
@@ -371,7 +371,7 @@ static int	DBpatch_3030030(void)
 		sql_offset = 0;
 		zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			ZBX_STR2UINT64(r_eventid, row[1]);
 			if (last_r_eventid == r_eventid)
@@ -392,7 +392,7 @@ static int	DBpatch_3030030(void)
 
 		if (16 < sql_offset)
 		{
-			if (ZBX_DB_OK > DBexecute("%s", sql))
+			if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 				ret = FAIL;
 		}
 out:
@@ -505,7 +505,7 @@ static int	DBpatch_3030040(void)
 static int	DBpatch_3030041(void)
 {
 	/* 1 - ZBX_TM_STATUS_NEW */
-	if (ZBX_DB_OK > DBexecute("update task set status=1"))
+	if (ZBX_DB_OK > zbx_DBexecute("update task set status=1"))
 		return FAIL;
 
 	return SUCCEED;
@@ -569,11 +569,11 @@ static int	DBpatch_3030046(void)
 	int		ret = FAIL;
 	zbx_uint64_t	shapeid = 0;
 
-	result = DBselect("select sysmapid,width from sysmaps");
+	result = zbx_DBselect("select sysmapid,width from sysmaps");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
-		if (ZBX_DB_OK > DBexecute("insert into sysmap_shape (shapeid,sysmapid,width,height,text,border_width)"
+		if (ZBX_DB_OK > zbx_DBexecute("insert into sysmap_shape (shapeid,sysmapid,width,height,text,border_width)"
 				" values (" ZBX_FS_UI64 ",%s,%s,15,'{MAP.NAME}',0)", shapeid++, row[0], row[1]))
 		{
 			goto out;
@@ -648,13 +648,13 @@ static int	DBpatch_3030053(void)
 			NULL);
 
 	/* sysmaps_elements.elementid for trigger map elements (2) should be migrated to table sysmap_element_trigger */
-	result = DBselect("select e.selementid,e.label,t.triggerid"
+	result = zbx_DBselect("select e.selementid,e.label,t.triggerid"
 			" from sysmaps_elements e"
 			" left join triggers t on"
 			" e.elementid=t.triggerid"
 			" where e.elementtype=2");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(selementid, row[0]);
 		if (NULL != row[2])
@@ -665,7 +665,7 @@ static int	DBpatch_3030053(void)
 		}
 		else
 		{
-			if (ZBX_DB_OK > DBexecute("delete from sysmaps_elements where selementid=" ZBX_FS_UI64,
+			if (ZBX_DB_OK > zbx_DBexecute("delete from sysmaps_elements where selementid=" ZBX_FS_UI64,
 					selementid))
 			{
 				goto out;
@@ -863,9 +863,9 @@ static int	DBpatch_3030060_migrate_pairs(const char *table, const char *field, i
 
 	zbx_db_insert_prepare(&db_insert, target, target_id, source_id, "type", "name", "value", NULL);
 
-	result = DBselect("select %s,%s from %s", source_id, field, table);
+	result = zbx_DBselect("select %s,%s from %s", source_id, field, table);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(parentid, row[0]);
 
@@ -973,7 +973,7 @@ static int	DBpatch_3030073(void)
 
 static int	DBpatch_3030074(void)
 {
-	if (ZBX_DB_OK > DBexecute("update sysmap_shape set text_halign=text_halign+1,text_valign=text_valign+1,"
+	if (ZBX_DB_OK > zbx_DBexecute("update sysmap_shape set text_halign=text_halign+1,text_valign=text_valign+1,"
 			"border_type=border_type+1"))
 	{
 		return FAIL;
@@ -1059,13 +1059,13 @@ static int	DBpatch_table_convert(const char *table, const char *recid, const DBp
 		zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, fc->field);
 	}
 
-	result = DBselect("select %s%s from %s", recid, sql, table);
+	result = zbx_DBselect("select %s%s from %s", recid, sql, table);
 
 	sql_offset = 0;
 
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "update %s set ", table);
 
@@ -1087,7 +1087,7 @@ static int	DBpatch_table_convert(const char *table, const char *recid, const DBp
 
 	if (16 < sql_offset)	/* in ORACLE always present begin..end; */
 	{
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			goto out;
 	}
 
@@ -1246,11 +1246,11 @@ static int	DBpatch_3030093(void)
 	size_t		sql_alloc = 0, sql_offset = 0;
 	int		delay, ret = FAIL;
 
-	result = DBselect("select itemid,delay,delay_flex from items");
+	result = zbx_DBselect("select itemid,delay,delay_flex from items");
 
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		delay = atoi(row[1]);
 		DBpatch_conv_sec(&delay, &suffix);
@@ -1287,7 +1287,7 @@ static int	DBpatch_3030093(void)
 
 	if (16 < sql_offset)	/* in ORACLE always present begin..end; */
 	{
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			goto out;
 	}
 
@@ -1368,11 +1368,11 @@ static int	DBpatch_3030102(void)
 	const char	*suffix;
 	int		value, ret = FAIL;
 
-	result = DBselect("select itemid,lifetime from items");
+	result = zbx_DBselect("select itemid,lifetime from items");
 
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, "update items set lifetime='");
 
@@ -1395,7 +1395,7 @@ static int	DBpatch_3030102(void)
 
 	if (16 < sql_offset)	/* in ORACLE always present begin..end; */
 	{
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			goto out;
 	}
 
@@ -1688,7 +1688,7 @@ static int	DBpatch_3030137(void)
 				"'web.items.subfilter_trends'"
 			")";
 
-	if (ZBX_DB_OK > DBexecute("%s", sql))
+	if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 		return FAIL;
 
 	return SUCCEED;
@@ -1704,11 +1704,11 @@ static int	DBpatch_trailing_semicolon_remove(const char *table, const char *reci
 	size_t		sql_alloc = 0, sql_offset = 0;
 	int		ret = FAIL;
 
-	result = DBselect("select %s,%s from %s%s", recid, field, table, condition);
+	result = zbx_DBselect("select %s,%s from %s%s", recid, field, table, condition);
 
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		if (NULL == (semicolon = strrchr(row[1], ';')) || '\0' != *(semicolon + 1))
 			continue;
@@ -1724,7 +1724,7 @@ static int	DBpatch_trailing_semicolon_remove(const char *table, const char *reci
 
 	if (16 < sql_offset)	/* in ORACLE always present begin..end; */
 	{
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			goto out;
 	}
 
@@ -1763,7 +1763,7 @@ static int	DBpatch_3030142(void)
 {
 #define ZBX_DEFAULT_JMX_ENDPOINT	"service:jmx:rmi:///jndi/rmi://{HOST.CONN}:{HOST.PORT}/jmxrmi"
 	/* 16 - ITEM_TYPE_JMX */
-	if (ZBX_DB_OK > DBexecute("update items set jmx_endpoint='" ZBX_DEFAULT_JMX_ENDPOINT "' where type=16"))
+	if (ZBX_DB_OK > zbx_DBexecute("update items set jmx_endpoint='" ZBX_DEFAULT_JMX_ENDPOINT "' where type=16"))
 		return FAIL;
 
 	return SUCCEED;
@@ -2031,7 +2031,7 @@ static int	DBpatch_3030174(void)
 	if (ZBX_PROGRAM_TYPE_SERVER == program_type)
 	{
 		/* type=3 -> type=USER_TYPE_SUPER_ADMIN */
-		if (ZBX_DB_OK > DBexecute(
+		if (ZBX_DB_OK > zbx_DBexecute(
 				"insert into dashboard (dashboardid,name,userid,private)"
 				" values (1,'Dashboard',(select min(userid) from users where type=3),0)"))
 			return FAIL;
@@ -2061,7 +2061,7 @@ static int	DBpatch_3030175(void)
 	{
 		for (i = 0; NULL != values[i]; i++)
 		{
-			if (ZBX_DB_OK > DBexecute("insert into widget (%s) values (%s)", columns, values[i]))
+			if (ZBX_DB_OK > zbx_DBexecute("insert into widget (%s) values (%s)", columns, values[i]))
 				return FAIL;
 		}
 	}
@@ -2129,7 +2129,7 @@ static int	DBpatch_3030182(void)
 
 static int	DBpatch_3030183(void)
 {
-	if (ZBX_DB_OK > DBexecute("update actions set "
+	if (ZBX_DB_OK > zbx_DBexecute("update actions set "
 			"ack_shortdata='Acknowledged: {TRIGGER.NAME}', "
 			"ack_longdata="
 				"'{USER.FULLNAME} acknowledged problem at {ACK.DATE} {ACK.TIME} "
@@ -2190,7 +2190,7 @@ static int	DBpatch_3030188(void)
 {
 	if (SUCCEED == DBtable_exists("widget_tmp"))
 	{
-		if (ZBX_DB_OK > DBexecute("insert into widget_tmp (select widgetid,col,row,width,height from widget)"))
+		if (ZBX_DB_OK > zbx_DBexecute("insert into widget_tmp (select widgetid,col,row,width,height from widget)"))
 			return FAIL;
 	}
 
@@ -2285,11 +2285,11 @@ static int	DBpatch_3030197(void)
 		DB_ROW		row;
 		int		ret = FAIL;
 
-		result = DBselect("select widgetid,x,y,width,height from widget_tmp");
+		result = zbx_DBselect("select widgetid,x,y,width,height from widget_tmp");
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
-			if (ZBX_DB_OK > DBexecute("update widget set x=%s,y=%s,width=%s,height=%s where widgetid=%s",
+			if (ZBX_DB_OK > zbx_DBexecute("update widget set x=%s,y=%s,width=%s,height=%s where widgetid=%s",
 					row[1], row[2], row[3], row[4], row[0]))
 				goto out;
 		}

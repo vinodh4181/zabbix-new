@@ -47,7 +47,7 @@ int	DBpatch_3020001(void)
 
 	for (i = 0; i < (int)ARRSIZE(sources); i++)
 	{
-		result = DBselect(
+		result = zbx_DBselect(
 				"select p.eventid"
 				" from problem p"
 				" where p.source=%d and p.object=%d and not exists ("
@@ -57,7 +57,7 @@ int	DBpatch_3020001(void)
 				")",
 				sources[i], EVENT_OBJECT_TRIGGER);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			ZBX_STR2UINT64(eventid, row[0]);
 			zbx_vector_uint64_append(&eventids, eventid);
@@ -67,7 +67,7 @@ int	DBpatch_3020001(void)
 
 	for (i = 0; i < (int)ARRSIZE(objects); i++)
 	{
-		result = DBselect(
+		result = zbx_DBselect(
 				"select p.eventid"
 				" from problem p"
 				" where p.source=%d and p.object=%d and not exists ("
@@ -77,7 +77,7 @@ int	DBpatch_3020001(void)
 				")",
 				EVENT_SOURCE_INTERNAL, objects[i]);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			ZBX_STR2UINT64(eventid, row[0]);
 			zbx_vector_uint64_append(&eventids, eventid);

@@ -412,7 +412,7 @@ int	DBcreate_table(const ZBX_TABLE *table)
 
 	DBcreate_table_sql(&sql, &sql_alloc, &sql_offset, table);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -428,7 +428,7 @@ int	DBrename_table(const char *table_name, const char *new_name)
 
 	DBrename_table_sql(&sql, &sql_alloc, &sql_offset, table_name, new_name);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -444,7 +444,7 @@ int	DBdrop_table(const char *table_name)
 
 	DBdrop_table_sql(&sql, &sql_alloc, &sql_offset, table_name);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -460,7 +460,7 @@ int	DBadd_field(const char *table_name, const ZBX_FIELD *field)
 
 	DBadd_field_sql(&sql, &sql_alloc, &sql_offset, table_name, field);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -476,7 +476,7 @@ int	DBrename_field(const char *table_name, const char *field_name, const ZBX_FIE
 
 	DBrename_field_sql(&sql, &sql_alloc, &sql_offset, table_name, field_name, field);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -496,7 +496,7 @@ static int	DBmodify_field_type_with_copy(const char *table_name, const ZBX_FIELD
 	zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "alter table %s rename column %s to " ZBX_OLD_FIELD,
 			table_name, field->name);
 
-	if (ZBX_DB_OK > DBexecute("%s", sql))
+	if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 		goto out;
 
 	if (ZBX_DB_OK > DBadd_field(table_name, field))
@@ -506,7 +506,7 @@ static int	DBmodify_field_type_with_copy(const char *table_name, const ZBX_FIELD
 	zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "update %s set %s=" ZBX_OLD_FIELD, table_name,
 			field->name);
 
-	if (ZBX_DB_OK > DBexecute("%s", sql))
+	if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 		goto out;
 
 	ret = DBdrop_field(table_name, ZBX_OLD_FIELD);
@@ -544,7 +544,7 @@ int	DBmodify_field_type(const char *table_name, const ZBX_FIELD *field, const ZB
 #endif
 	DBmodify_field_type_sql(&sql, &sql_alloc, &sql_offset, table_name, field);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -560,7 +560,7 @@ int	DBset_not_null(const char *table_name, const ZBX_FIELD *field)
 
 	DBset_not_null_sql(&sql, &sql_alloc, &sql_offset, table_name, field);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -576,7 +576,7 @@ int	DBset_default(const char *table_name, const ZBX_FIELD *field)
 
 	DBset_default_sql(&sql, &sql_alloc, &sql_offset, table_name, field);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -592,7 +592,7 @@ int	DBdrop_default(const char *table_name, const ZBX_FIELD *field)
 
 	DBdrop_default_sql(&sql, &sql_alloc, &sql_offset, table_name, field);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -608,7 +608,7 @@ int	DBdrop_not_null(const char *table_name, const ZBX_FIELD *field)
 
 	DBdrop_not_null_sql(&sql, &sql_alloc, &sql_offset, table_name, field);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -624,7 +624,7 @@ int	DBdrop_field(const char *table_name, const char *field_name)
 
 	DBdrop_field_sql(&sql, &sql_alloc, &sql_offset, table_name, field_name);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -640,7 +640,7 @@ int	DBcreate_index(const char *table_name, const char *index_name, const char *f
 
 	DBcreate_index_sql(&sql, &sql_alloc, &sql_offset, table_name, index_name, fields, unique);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -656,7 +656,7 @@ int	DBdrop_index(const char *table_name, const char *index_name)
 
 	DBdrop_index_sql(&sql, &sql_alloc, &sql_offset, table_name, index_name);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -673,7 +673,7 @@ int	DBrename_index(const char *table_name, const char *old_name, const char *new
 
 	DBrename_index_sql(&sql, &sql_alloc, &sql_offset, table_name, old_name, new_name, fields, unique);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -689,7 +689,7 @@ int	DBadd_foreign_key(const char *table_name, int id, const ZBX_FIELD *field)
 
 	DBadd_foreign_key_sql(&sql, &sql_alloc, &sql_offset, table_name, id, field);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -705,7 +705,7 @@ int	DBdrop_foreign_key(const char *table_name, int id)
 
 	DBdrop_foreign_key_sql(&sql, &sql_alloc, &sql_offset, table_name, id);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		ret = SUCCEED;
 
 	zbx_free(sql);
@@ -726,17 +726,17 @@ static int	DBcreate_dbversion_table(void)
 			};
 	int		ret;
 
-	DBbegin();
+	zbx_DBbegin();
 	if (SUCCEED == (ret = DBcreate_table(&table)))
 	{
-		if (ZBX_DB_OK > DBexecute("insert into dbversion (mandatory,optional) values (%d,%d)",
+		if (ZBX_DB_OK > zbx_DBexecute("insert into dbversion (mandatory,optional) values (%d,%d)",
 				ZBX_FIRST_DB_VERSION, ZBX_FIRST_DB_VERSION))
 		{
 			ret = FAIL;
 		}
 	}
 
-	return DBend(ret);
+	return zbx_DBend(ret);
 }
 
 static int	DBset_version(int version, unsigned char mandatory)
@@ -749,7 +749,7 @@ static int	DBset_version(int version, unsigned char mandatory)
 		offset += zbx_snprintf(sql + offset, sizeof(sql) - offset, "mandatory=%d,", version);
 	zbx_snprintf(sql + offset, sizeof(sql) - offset, "optional=%d", version);
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		return SUCCEED;
 
 	return FAIL;
@@ -820,9 +820,9 @@ static void	DBget_version(int *mandatory, int *optional)
 	*mandatory = -1;
 	*optional = -1;
 
-	result = DBselect("select mandatory,optional from dbversion");
+	result = zbx_DBselect("select mandatory,optional from dbversion");
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		*mandatory = atoi(row[0]);
 		*optional = atoi(row[1]);
@@ -958,7 +958,7 @@ int	DBcheck_version(void)
 			if (0 > sigprocmask(SIG_BLOCK, &mask, &orig_mask))
 				zabbix_log(LOG_LEVEL_WARNING, "cannot set sigprocmask to block the user signal");
 
-			DBbegin();
+			zbx_DBbegin();
 
 			/* skipping the duplicated patches */
 			if ((0 != patches[i].duplicates && patches[i].duplicates <= db_optional) ||
@@ -967,7 +967,7 @@ int	DBcheck_version(void)
 				ret = DBset_version(patches[i].version, patches[i].mandatory);
 			}
 
-			ret = DBend(ret);
+			ret = zbx_DBend(ret);
 
 			if (0 > sigprocmask(SIG_SETMASK, &orig_mask, NULL))
 				zabbix_log(LOG_LEVEL_WARNING,"cannot restore sigprocmask");
@@ -1032,7 +1032,7 @@ int	DBcheck_double_type(void)
 	goto out;
 #endif
 
-	if (NULL == (result = DBselect("%s"
+	if (NULL == (result = zbx_DBselect("%s"
 			" and ((lower(table_name)='trends'"
 					" and (lower(column_name) in ('value_min', 'value_avg', 'value_max')))"
 			" or (lower(table_name)='history' and lower(column_name)='value'))", sql)))
@@ -1041,7 +1041,7 @@ int	DBcheck_double_type(void)
 		goto out;
 	}
 
-	if (NULL != (row = DBfetch(result)) && total_dbl_cols == atoi(row[0]))
+	if (NULL != (row = zbx_DBfetch(result)) && total_dbl_cols == atoi(row[0]))
 		ret = SUCCEED;
 
 	DBfree_result(result);

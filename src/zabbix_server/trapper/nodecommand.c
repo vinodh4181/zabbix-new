@@ -52,7 +52,7 @@ static int	execute_remote_script(const zbx_script_t *script, const DC_HOST *host
 
 	for (time_start = time(NULL); SEC_PER_MIN > time(NULL) - time_start; sleep(1))
 	{
-		result = DBselect(
+		result = zbx_DBselect(
 				"select tr.status,tr.info"
 				" from task t"
 				" left join task_remote_command_result tr"
@@ -60,7 +60,7 @@ static int	execute_remote_script(const zbx_script_t *script, const DC_HOST *host
 				" where tr.parent_taskid=" ZBX_FS_UI64,
 				taskid);
 
-		if (NULL != (row = DBfetch(result)))
+		if (NULL != (row = zbx_DBfetch(result)))
 		{
 			int	ret;
 
@@ -89,7 +89,7 @@ static int	zbx_get_script_details(zbx_uint64_t scriptid, zbx_script_t *script, i
 	DB_ROW		row;
 	zbx_uint64_t	usrgrpid_l, groupid_l;
 
-	db_result = DBselect("select command,host_access,usrgrpid,groupid,type,execute_on,timeout,scope,port,authtype"
+	db_result = zbx_DBselect("select command,host_access,usrgrpid,groupid,type,execute_on,timeout,scope,port,authtype"
 			",username,password,publickey,privatekey"
 			" from scripts"
 			" where scriptid=" ZBX_FS_UI64, scriptid);
@@ -100,7 +100,7 @@ static int	zbx_get_script_details(zbx_uint64_t scriptid, zbx_script_t *script, i
 		return FAIL;
 	}
 
-	if (NULL == (row = DBfetch(db_result)))
+	if (NULL == (row = zbx_DBfetch(db_result)))
 	{
 		zbx_strlcpy(error, "Script not found.", error_len);
 		goto fail;
@@ -158,7 +158,7 @@ static int	is_user_in_allowed_group(zbx_uint64_t userid, zbx_uint64_t usrgrpid, 
 	DB_RESULT	result;
 	int		ret = FAIL;
 
-	result = DBselect("select null"
+	result = zbx_DBselect("select null"
 			" from users_groups"
 			" where usrgrpid=" ZBX_FS_UI64
 			" and userid=" ZBX_FS_UI64,
@@ -170,7 +170,7 @@ static int	is_user_in_allowed_group(zbx_uint64_t userid, zbx_uint64_t usrgrpid, 
 		goto fail;
 	}
 
-	if (NULL == DBfetch(result))
+	if (NULL == zbx_DBfetch(result))
 		zbx_strlcpy(error, "User has no rights to execute this script.", error_len);
 	else
 		ret = SUCCEED;
@@ -200,13 +200,13 @@ static int	zbx_check_event_end_recovery_event(zbx_uint64_t eventid, zbx_uint64_t
 	DB_RESULT	db_result;
 	DB_ROW		row;
 
-	if (NULL == (db_result = DBselect("select r_eventid from event_recovery where eventid="ZBX_FS_UI64, eventid)))
+	if (NULL == (db_result = zbx_DBselect("select r_eventid from event_recovery where eventid="ZBX_FS_UI64, eventid)))
 	{
 		zbx_strlcpy(error, "Database error, cannot read from 'events' and 'event_recovery' tables.", error_len);
 		return FAIL;
 	}
 
-	if (NULL == (row = DBfetch(db_result)))
+	if (NULL == (row = zbx_DBfetch(db_result)))
 		*r_eventid = 0;
 	else
 		ZBX_DBROW2UINT64(*r_eventid, row[0]);

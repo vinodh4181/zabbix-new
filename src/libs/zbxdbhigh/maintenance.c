@@ -63,13 +63,13 @@ int	zbx_db_lock_maintenanceids(zbx_vector_uint64_t *maintenanceids)
 #else
 	/* For PostgreSQL table level locks are used because row level shared locks have reader preference which */
 	/* could lead to theoretical situation when server blocks out frontend from maintenances updates.        */
-	DBexecute("lock table maintenances in share mode");
+	zbx_DBexecute("lock table maintenances in share mode");
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " order by maintenanceid");
 #endif
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 	zbx_free(sql);
 
-	for (i = 0; NULL != (row = DBfetch(result)); i++)
+	for (i = 0; NULL != (row = zbx_DBfetch(result)); i++)
 	{
 		ZBX_STR2UINT64(maintenanceid, row[0]);
 

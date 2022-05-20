@@ -1887,7 +1887,7 @@ static void	DCsync_interfaces(zbx_dbsync_t *sync)
 				zbx_vector_uint64_append(&interface_snmpaddr->interfaceids, interfaceid);
 			}
 
-			if (FAIL == DBis_null(row[12]))
+			if (FAIL == zbx_DBis_null(row[12]))
 			{
 				snmp = dc_interface_snmp_set(interfaceid, (const char **)row, &bulk_changed);
 
@@ -2374,7 +2374,7 @@ static void	DCsync_items(zbx_dbsync_t *sync, int flags, zbx_synced_new_config_t 
 
 		/* dependent items */
 
-		if (ITEM_TYPE_DEPENDENT == item->type && SUCCEED != DBis_null(row[29]))
+		if (ITEM_TYPE_DEPENDENT == item->type && SUCCEED != zbx_DBis_null(row[29]))
 		{
 			depitem = (ZBX_DC_DEPENDENTITEM *)DCfind_id(&config->dependentitems, itemid,
 					sizeof(ZBX_DC_DEPENDENTITEM), &found);
@@ -5400,9 +5400,9 @@ static void	dc_load_trigger_queue(zbx_hashset_t *trend_functions)
 	DB_RESULT	result;
 	DB_ROW		row;
 
-	result = DBselect("select objectid,type,clock,ns from trigger_queue");
+	result = zbx_DBselect("select objectid,type,clock,ns from trigger_queue");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_trigger_timer_t	timer_local, *timer;
 

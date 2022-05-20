@@ -128,10 +128,10 @@ static int	get_user_info(zbx_uint64_t userid, zbx_uint64_t *roleid, char **user_
 
 	*user_timezone = NULL;
 
-	result = DBselect("select r.type,u.roleid,u.timezone from users u,role r where u.roleid=r.roleid and"
+	result = zbx_DBselect("select r.type,u.roleid,u.timezone from users u,role r where u.roleid=r.roleid and"
 			" userid=" ZBX_FS_UI64, userid);
 
-	if (NULL != (row = DBfetch(result)) && FAIL == DBis_null(row[0]))
+	if (NULL != (row = zbx_DBfetch(result)) && FAIL == zbx_DBis_null(row[0]))
 	{
 		user_type = atoi(row[0]);
 		ZBX_STR2UINT64(*roleid, row[1]);
@@ -173,9 +173,9 @@ static int	get_hostgroups_permission(zbx_uint64_t userid, zbx_vector_uint64_t *h
 				" where ug.userid=" ZBX_FS_UI64 " and", userid);
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "r.id",
 			hostgroupids->values, hostgroupids->values_num);
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	if (NULL != (row = DBfetch(result)) && FAIL == DBis_null(row[0]))
+	if (NULL != (row = zbx_DBfetch(result)) && FAIL == zbx_DBis_null(row[0]))
 		perm = atoi(row[0]);
 
 	DBfree_result(result);
@@ -219,9 +219,9 @@ static int	check_tag_based_permission(zbx_uint64_t userid, zbx_vector_uint64_t *
 			"select tf.groupid,tf.tag,tf.value from tag_filter tf"
 			" join users_groups ug on ug.usrgrpid=tf.usrgrpid"
 				" where ug.userid=" ZBX_FS_UI64, userid);
-	result = DBselect("%s order by tf.groupid", sql);
+	result = zbx_DBselect("%s order by tf.groupid", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		tag_filter = (zbx_tag_filter_t *)zbx_malloc(NULL, sizeof(zbx_tag_filter_t));
 		ZBX_STR2UINT64(tag_filter->hostgroupid, row[0]);
@@ -304,14 +304,14 @@ static int	get_trigger_permission(zbx_uint64_t userid, const ZBX_DB_EVENT *event
 
 	zbx_vector_uint64_create(&hostgroupids);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select distinct hg.groupid from items i"
 			" join functions f on i.itemid=f.itemid"
 			" join hosts_groups hg on hg.hostid = i.hostid"
 				" and f.triggerid=" ZBX_FS_UI64,
 			event->objectid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(hostgroupid, row[0]);
 		zbx_vector_uint64_append(&hostgroupids, hostgroupid);
@@ -360,13 +360,13 @@ static int	get_item_permission(zbx_uint64_t userid, zbx_uint64_t itemid, char **
 		goto out;
 	}
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select hg.groupid from items i"
 			" join hosts_groups hg on hg.hostid=i.hostid"
 			" where i.itemid=" ZBX_FS_UI64,
 			itemid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(hostgroupid, row[0]);
 		zbx_vector_uint64_append(&hostgroupids, hostgroupid);
@@ -434,9 +434,9 @@ static int	check_db_parent_rule_tag_match(zbx_vector_uint64_t *parent_ids, zbx_v
 		zbx_free(tag_esc);
 	}
 
-	result = DBselect("%s) limit 1", sql);
+	result = zbx_DBselect("%s) limit 1", sql);
 
-	if (NULL != DBfetch(result))
+	if (NULL != zbx_DBfetch(result))
 	{
 		perm = PERM_READ;
 	}
@@ -478,10 +478,10 @@ static void	zbx_db_cache_service_role(zbx_service_role_t *role)
 	DB_ROW		row;
 	unsigned char	services_read = 1, services_write = 0;
 
-	result = DBselect("select name,roleid,value_int,value_str,value_serviceid,type from role_rule where roleid="
+	result = zbx_DBselect("select name,roleid,value_int,value_str,value_serviceid,type from role_rule where roleid="
 			ZBX_FS_UI64 " and name like 'services.%%' order by name", role->roleid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		int		type;
 		char		*name;
@@ -527,7 +527,7 @@ static void	zbx_db_cache_service_role(zbx_service_role_t *role)
 			char		*value_serviceid = row[4];
 			zbx_uint64_t	serviceid;
 
-			if (SUCCEED == DBis_null(value_serviceid))
+			if (SUCCEED == zbx_DBis_null(value_serviceid))
 				continue;
 
 			if (0 != strncmp(name, "read.id", ZBX_CONST_STRLEN("read.id")) &&
@@ -726,11 +726,11 @@ static void	add_user_msgs(zbx_uint64_t userid, zbx_uint64_t operationid, zbx_uin
 	else
 		tz = user_timezone;
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select mediatypeid,default_msg,subject,message from opmessage where operationid=" ZBX_FS_UI64,
 			operationid);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		if (0 == mediatypeid)
 		{
@@ -754,7 +754,7 @@ static void	add_user_msgs(zbx_uint64_t userid, zbx_uint64_t operationid, zbx_uin
 
 	if (0 != mediatypeid)
 	{
-		result = DBselect("select mediatype_messageid,subject,message,mediatypeid from media_type_message"
+		result = zbx_DBselect("select mediatype_messageid,subject,message,mediatypeid from media_type_message"
 				" where eventsource=%d and recovery=%d and mediatypeid=" ZBX_FS_UI64,
 				evt_src, op_mode, mediatypeid);
 
@@ -762,7 +762,7 @@ static void	add_user_msgs(zbx_uint64_t userid, zbx_uint64_t operationid, zbx_uin
 	}
 	else
 	{
-		result = DBselect(
+		result = zbx_DBselect(
 				"select mm.mediatype_messageid,mm.subject,mm.message,mt.mediatypeid from media_type mt"
 				" left join (select mediatypeid,subject,message,mediatype_messageid"
 				" from media_type_message where eventsource=%d and recovery=%d) mm"
@@ -772,7 +772,7 @@ static void	add_user_msgs(zbx_uint64_t userid, zbx_uint64_t operationid, zbx_uin
 				evt_src, op_mode, userid);
 	}
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	mtmid;
 
@@ -814,7 +814,7 @@ static void	add_object_msg(zbx_uint64_t actionid, zbx_uint64_t operationid, ZBX_
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select userid"
 			" from opmessage_usr"
 			" where operationid=" ZBX_FS_UI64
@@ -825,7 +825,7 @@ static void	add_object_msg(zbx_uint64_t actionid, zbx_uint64_t operationid, ZBX_
 				" and m.operationid=" ZBX_FS_UI64,
 			operationid, operationid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	userid;
 		char		*user_timezone = NULL;
@@ -922,9 +922,9 @@ static void	add_sentusers_msg(ZBX_USER_MSG **user_msg, zbx_uint64_t actionid, zb
 	if (NULL != ack)
 		message_type = MACRO_TYPE_MESSAGE_UPDATE;
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		char	*user_timezone = NULL;
 
@@ -1010,9 +1010,9 @@ static void	add_sentusers_msg_esc_cancel(ZBX_USER_MSG **user_msg, zbx_uint64_t a
 			" order by userid,mediatypeid,esc_step desc",
 			actionid, ALERT_TYPE_MESSAGE, event->eventid);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		char		*user_timezone = NULL;
 		const char	*tz;
@@ -1092,13 +1092,13 @@ static void	add_sentusers_ack_msg(ZBX_USER_MSG **user_msg, zbx_uint64_t actionid
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select distinct userid"
 			" from acknowledges"
 			" where eventid=" ZBX_FS_UI64,
 			event->eventid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		char	*user_timezone = NULL;
 
@@ -1201,7 +1201,7 @@ static void	get_operation_groupids(zbx_uint64_t operationid, zbx_vector_uint64_t
 	zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset,
 			"select groupid from opcommand_grp where operationid=" ZBX_FS_UI64, operationid);
 
-	DBselect_uint64(sql, &parent_groupids);
+	zbx_DBselect_uint64(sql, &parent_groupids);
 
 	zbx_dc_get_nested_hostgroupids(parent_groupids.values, parent_groupids.values_num, groupids);
 
@@ -1312,14 +1312,14 @@ static void	execute_commands(const ZBX_DB_EVENT *event, const ZBX_DB_EVENT *r_ev
 				" and oh.hostid is null",
 			operationid);
 
-	result = DBselect("%s", buffer);
+	result = zbx_DBselect("%s", buffer);
 
 	zbx_free(buffer);
 	zbx_vector_uint64_create(&executed_on_hosts);
 
 	um_handle = zbx_dc_open_user_macros();
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		int			scope, i, rc = SUCCEED;
 		DC_HOST			host;
@@ -1565,8 +1565,8 @@ static void	get_mediatype_params(const ZBX_DB_EVENT *event, const ZBX_DB_EVENT *
 
 	um_handle = zbx_dc_open_user_macros();
 
-	result = DBselect("select name,value from media_type_param where mediatypeid=" ZBX_FS_UI64, mediatypeid);
-	while (NULL != (row = DBfetch(result)))
+	result = zbx_DBselect("select name,value from media_type_param where mediatypeid=" ZBX_FS_UI64, mediatypeid);
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		name = zbx_strdup(NULL, row[0]);
 		value = zbx_strdup(NULL, row[1]);
@@ -1612,7 +1612,7 @@ static void	add_message_alert(const ZBX_DB_EVENT *event, const ZBX_DB_EVENT *r_e
 
 	if (0 == mediatypeid)
 	{
-		result = DBselect(
+		result = zbx_DBselect(
 				"select m.mediatypeid,m.sendto,m.severity,m.period,mt.status,m.active"
 				" from media m,media_type mt"
 				" where m.mediatypeid=mt.mediatypeid"
@@ -1621,7 +1621,7 @@ static void	add_message_alert(const ZBX_DB_EVENT *event, const ZBX_DB_EVENT *r_e
 	}
 	else
 	{
-		result = DBselect(
+		result = zbx_DBselect(
 				"select m.mediatypeid,m.sendto,m.severity,m.period,mt.status,m.active"
 				" from media m,media_type mt"
 				" where m.mediatypeid=mt.mediatypeid"
@@ -1642,7 +1642,7 @@ static void	add_message_alert(const ZBX_DB_EVENT *event, const ZBX_DB_EVENT *r_e
 	else
 		priority = TRIGGER_SEVERITY_NOT_CLASSIFIED;
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		int		severity, status;
 		const char	*perror;
@@ -1787,13 +1787,13 @@ static int	check_operation_conditions(const ZBX_DB_EVENT *event, zbx_uint64_t op
 	if (EVENT_SOURCE_SERVICE == event->source)
 		goto succeed;
 
-	result = DBselect("select conditiontype,operator,value"
+	result = zbx_DBselect("select conditiontype,operator,value"
 				" from opconditions"
 				" where operationid=" ZBX_FS_UI64
 				" order by conditiontype",
 			operationid);
 
-	while (NULL != (row = DBfetch(result)) && 0 == exit)
+	while (NULL != (row = zbx_DBfetch(result)) && 0 == exit)
 	{
 		memset(&condition, 0, sizeof(condition));
 		condition.conditiontype	= (unsigned char)atoi(row[0]);
@@ -1870,7 +1870,7 @@ static void	escalation_execute_operations(ZBX_DB_ESCALATION *escalation, const Z
 	default_esc_period = 0 == action->esc_period ? SEC_PER_HOUR : action->esc_period;
 	escalation->esc_step++;
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select o.operationid,o.operationtype,o.esc_period,o.evaltype"
 			" from operations o"
 			" where o.actionid=" ZBX_FS_UI64
@@ -1884,7 +1884,7 @@ static void	escalation_execute_operations(ZBX_DB_ESCALATION *escalation, const Z
 			escalation->esc_step,
 			ZBX_OPERATION_MODE_NORMAL);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		char		*tmp;
 		zbx_uint64_t	operationid;
@@ -1945,9 +1945,9 @@ static void	escalation_execute_operations(ZBX_DB_ESCALATION *escalation, const Z
 					" and (esc_step_to>%d or esc_step_to=0)"
 					" and recovery=%d",
 					action->actionid, escalation->esc_step, ZBX_OPERATION_MODE_NORMAL);
-		result = DBselectN(sql, 1);
+		result = zbx_DBselectN(sql, 1);
 
-		if (NULL != DBfetch(result))
+		if (NULL != zbx_DBfetch(result))
 		{
 			next_esc_period = (0 != next_esc_period) ? next_esc_period : default_esc_period;
 			escalation->nextcheck = time(NULL) + next_esc_period;
@@ -1994,7 +1994,7 @@ static void	escalation_execute_recovery_operations(const ZBX_DB_EVENT *event, co
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select o.operationid,o.operationtype"
 			" from operations o"
 			" where o.actionid=" ZBX_FS_UI64
@@ -2004,7 +2004,7 @@ static void	escalation_execute_recovery_operations(const ZBX_DB_EVENT *event, co
 			OPERATION_TYPE_MESSAGE, OPERATION_TYPE_COMMAND, OPERATION_TYPE_RECOVERY_MESSAGE,
 			ZBX_OPERATION_MODE_RECOVERY);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(operationid, row[0]);
 		operationtype = (unsigned char)atoi(row[1]);
@@ -2059,7 +2059,7 @@ static void	escalation_execute_update_operations(const ZBX_DB_EVENT *event, cons
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select o.operationid,o.operationtype"
 			" from operations o"
 			" where o.actionid=" ZBX_FS_UI64
@@ -2069,7 +2069,7 @@ static void	escalation_execute_update_operations(const ZBX_DB_EVENT *event, cons
 			OPERATION_TYPE_MESSAGE, OPERATION_TYPE_COMMAND, OPERATION_TYPE_UPDATE_MESSAGE,
 			ZBX_OPERATION_MODE_UPDATE);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(operationid, row[0]);
 		operationtype = (unsigned char)atoi(row[1]);
@@ -2256,10 +2256,10 @@ static int	check_unfinished_alerts(const ZBX_DB_ESCALATION *escalation)
 	sql = zbx_dsprintf(NULL, "select eventid from alerts where eventid=" ZBX_FS_UI64 " and actionid=" ZBX_FS_UI64
 			" and status in (0,3)", escalation->eventid, escalation->actionid);
 
-	result = DBselectN(sql, 1);
+	result = zbx_DBselectN(sql, 1);
 	zbx_free(sql);
 
-	if (NULL != DBfetch(result))
+	if (NULL != zbx_DBfetch(result))
 		ret = FAIL;
 	else
 		ret = SUCCEED;
@@ -2496,12 +2496,12 @@ static void	escalation_acknowledge(ZBX_DB_ESCALATION *escalation, const ZBX_DB_A
 			__func__, escalation->escalationid, escalation->acknowledgeid,
 			zbx_escalation_status_string(escalation->status));
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select message,userid,clock,action,old_severity,new_severity from acknowledges"
 			" where acknowledgeid=" ZBX_FS_UI64,
 			escalation->acknowledgeid);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_DB_ACKNOWLEDGE	ack;
 
@@ -2703,13 +2703,13 @@ static void	db_get_services(const zbx_vector_ptr_t *escalations, zbx_vector_serv
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "s.serviceid", serviceids.values,
 			serviceids.values_num);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select s.serviceid,s.name,s.description,st.tag,st.value"
 			" from services s left join service_tag st on s.serviceid=st.serviceid"
 			" where%s order by s.serviceid",
 			sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_DB_SERVICE	*service;
 		zbx_uint64_t	serviceid;
@@ -2738,7 +2738,7 @@ static void	db_get_services(const zbx_vector_ptr_t *escalations, zbx_vector_serv
 		zbx_vector_ptr_create(&service->events);
 		zbx_vector_tags_create(&service->service_tags);
 
-		if (FAIL == DBis_null(row[3]))
+		if (FAIL == zbx_DBis_null(row[3]))
 		{
 			zbx_tag_t	*tag = zbx_malloc(NULL, sizeof(zbx_tag_t));
 
@@ -2805,12 +2805,12 @@ static void	db_get_service_alarms(zbx_vector_service_alarm_t *service_alarms,
 	DBadd_condition_alloc(&filter, &filter_alloc, &filter_offset, "servicealarmid", service_alarmids->values,
 			service_alarmids->values_num);
 
-	result = DBselect("select servicealarmid,clock,value"
+	result = zbx_DBselect("select servicealarmid,clock,value"
 			" from service_alarms"
 			" where%s order by servicealarmid",
 			filter);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_service_alarm_t	service_alarm;
 
@@ -3111,7 +3111,7 @@ static int	process_db_escalations(int now, int *nextcheck, zbx_vector_ptr_t *esc
 	if (0 == diffs.values_num && 0 == escalationids.values_num)
 		goto out;
 
-	DBbegin();
+	zbx_DBbegin();
 
 	/* 2. Update escalations in the DB. */
 	if (0 != diffs.values_num)
@@ -3177,7 +3177,7 @@ static int	process_db_escalations(int now, int *nextcheck, zbx_vector_ptr_t *esc
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 		if (16 < sql_offset)	/* in ORACLE always present begin..end; */
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 
 		zbx_free(sql);
 	}
@@ -3189,7 +3189,7 @@ static int	process_db_escalations(int now, int *nextcheck, zbx_vector_ptr_t *esc
 		DBexecute_multiple_query("delete from escalations where", "escalationid", &escalationids);
 	}
 
-	DBcommit();
+	zbx_DBcommit();
 out:
 	zbx_dc_close_user_macros(um_handle);
 
@@ -3312,7 +3312,7 @@ static int	process_escalations(int now, int *nextcheck, unsigned int escalation_
 			break;
 	}
 
-	result = DBselect("select escalationid,actionid,triggerid,eventid,r_eventid,nextcheck,esc_step,status,itemid,"
+	result = zbx_DBselect("select escalationid,actionid,triggerid,eventid,r_eventid,nextcheck,esc_step,status,itemid,"
 					"acknowledgeid,servicealarmid,serviceid"
 				" from escalations"
 				" where %s and nextcheck<=%d"
@@ -3320,7 +3320,7 @@ static int	process_escalations(int now, int *nextcheck, unsigned int escalation_
 				now + CONFIG_ESCALATOR_FREQUENCY);
 	zbx_free(filter);
 
-	while (NULL != (row = DBfetch(result)) && ZBX_IS_RUNNING())
+	while (NULL != (row = zbx_DBfetch(result)) && ZBX_IS_RUNNING())
 	{
 		int	esc_nextcheck;
 

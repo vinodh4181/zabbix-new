@@ -273,12 +273,12 @@ static int	DBpatch_3010021_update_event_recovery(zbx_hashset_t *events, zbx_uint
 			*eventid);
 
 	/* process events by 10k large batches */
-	if (NULL == (result = DBselectN(sql, 10000)))
+	if (NULL == (result = zbx_DBselectN(sql, 10000)))
 		goto out;
 
 	zbx_db_insert_prepare(&db_insert, "event_recovery", "eventid", "r_eventid", NULL);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		object_events_local.source = atoi(row[0]);
 		object_events_local.object = atoi(row[1]);
@@ -399,8 +399,8 @@ static int	DBpatch_3010023(void)
 	int		ret, actions_num;
 	zbx_uint64_t	actionid, operationid;
 
-	result = DBselect("select count(*) from actions where recovery_msg=1");
-	if (NULL == (row = DBfetch(result)) || 0 == (actions_num = atoi(row[0])))
+	result = zbx_DBselect("select count(*) from actions where recovery_msg=1");
+	if (NULL == (row = zbx_DBfetch(result)) || 0 == (actions_num = atoi(row[0])))
 	{
 		ret = SUCCEED;
 		goto out;
@@ -412,9 +412,9 @@ static int	DBpatch_3010023(void)
 	zbx_db_insert_prepare(&db_insert_msg, "opmessage", "operationid", "default_msg", "subject", "message", NULL);
 
 	DBfree_result(result);
-	result = DBselect("select actionid,r_shortdata,r_longdata from actions where recovery_msg=1");
+	result = zbx_DBselect("select actionid,r_shortdata,r_longdata from actions where recovery_msg=1");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(actionid, row[0]);
 		/* operationtype: 11 - OPERATION_TYPE_RECOVERY_MESSAGE */
@@ -467,9 +467,9 @@ static int	DBpatch_3010024_validate_action(zbx_uint64_t actionid, int eventsourc
 	if (evaltype != 0 && evaltype != 1)
 		return ret;
 
-	result = DBselect("select conditiontype,value from conditions where actionid=" ZBX_FS_UI64, actionid);
+	result = zbx_DBselect("select conditiontype,value from conditions where actionid=" ZBX_FS_UI64, actionid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		conditiontype = atoi(row[0]);
 
@@ -536,7 +536,7 @@ static int	DBpatch_3010024_validate_action(zbx_uint64_t actionid, int eventsourc
 
 	if (ZBX_3010024_ACTION_CONVERT == ret)
 	{
-		result = DBselect("select o.operationtype,o.esc_step_from,o.esc_step_to,count(oc.opconditionid)"
+		result = zbx_DBselect("select o.operationtype,o.esc_step_from,o.esc_step_to,count(oc.opconditionid)"
 					" from operations o"
 					" left join opconditions oc"
 						" on oc.operationid=o.operationid"
@@ -544,7 +544,7 @@ static int	DBpatch_3010024_validate_action(zbx_uint64_t actionid, int eventsourc
 					" group by o.operationid,o.operationtype,o.esc_step_from,o.esc_step_to",
 					actionid);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			/* cannot convert action if:                                                    */
 			/*   there are escalation steps that aren't executed at the escalation start    */
@@ -575,10 +575,10 @@ static int	DBpatch_3010024(void)
 	zbx_vector_uint64_create(&actionids_convert);
 
 	/* eventsource: 0 - EVENT_SOURCE_TRIGGERS, 3 - EVENT_SOURCE_INTERNAL */
-	result = DBselect("select actionid,name,eventsource,evaltype,recovery_msg from actions"
+	result = zbx_DBselect("select actionid,name,eventsource,evaltype,recovery_msg from actions"
 			" where eventsource in (0,3)");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(actionid, row[0]);
 		eventsource = atoi(row[2]);
@@ -640,7 +640,7 @@ static int	DBpatch_3010024(void)
 
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			ret = FAIL;
 
 		zbx_free(sql);
@@ -694,7 +694,7 @@ static void	DBpatch_3010026_get_conditionids(zbx_uint64_t actionid, const char *
 	if (0 == eventsource)
 	{
 		/* conditiontype: 5 - CONDITION_TYPE_TRIGGER_VALUE */
-		result = DBselect("select conditionid,value from conditions"
+		result = zbx_DBselect("select conditionid,value from conditions"
 				" where actionid=" ZBX_FS_UI64
 					" and conditiontype=5",
 				actionid);
@@ -702,7 +702,7 @@ static void	DBpatch_3010026_get_conditionids(zbx_uint64_t actionid, const char *
 	else if (3 == eventsource)
 	{
 		/* conditiontype: 23 -  CONDITION_TYPE_EVENT_TYPE */
-		result = DBselect("select conditionid,value from conditions"
+		result = zbx_DBselect("select conditionid,value from conditions"
 				" where actionid=" ZBX_FS_UI64
 					" and conditiontype=23"
 					" and value in ('1', '3', '5')",
@@ -711,7 +711,7 @@ static void	DBpatch_3010026_get_conditionids(zbx_uint64_t actionid, const char *
 	else
 		return;
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(conditionid, row[0]);
 		zbx_vector_uint64_append(conditionids, conditionid);
@@ -1032,9 +1032,9 @@ static int	DBpatch_3010026(void)
 	zbx_vector_str_create(&filter);
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	result = DBselect("select actionid,eventsource,evaltype,formula,name from actions");
+	result = zbx_DBselect("select actionid,eventsource,evaltype,formula,name from actions");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(actionid, row[0]);
 		eventsource = atoi(row[1]);
@@ -1073,7 +1073,7 @@ static int	DBpatch_3010026(void)
 
 	if (16 < sql_offset)	/* in ORACLE always present begin..end; */
 	{
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			goto out;
 	}
 
@@ -1084,20 +1084,20 @@ static int	DBpatch_3010026(void)
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "conditionid", conditionids.values,
 				conditionids.values_num);
 
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			goto out;
 	}
 
 	/* reset action evaltype to AND/OR if it has no more conditions left */
 
 	DBfree_result(result);
-	result = DBselect("select a.actionid,a.name,a.evaltype,count(c.conditionid)"
+	result = zbx_DBselect("select a.actionid,a.name,a.evaltype,count(c.conditionid)"
 			" from actions a"
 			" left join conditions c"
 				" on a.actionid=c.actionid"
 			" group by a.actionid,a.name,a.evaltype");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		/* reset evaltype to AND/OR (0) if action has no more conditions and it's evaltype is not AND/OR */
 		if (0 == atoi(row[3]) && 0 != atoi(row[2]))
@@ -1118,7 +1118,7 @@ static int	DBpatch_3010026(void)
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "actionid", actionids.values,
 				actionids.values_num);
 
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			goto out;
 	}
 
@@ -1231,7 +1231,7 @@ static int	DBpatch_3010039(void)
 
 static int	DBpatch_3010042(void)
 {
-	if (ZBX_DB_OK <= DBexecute("update config set ok_period=%d where ok_period>%d", SEC_PER_DAY, SEC_PER_DAY))
+	if (ZBX_DB_OK <= zbx_DBexecute("update config set ok_period=%d where ok_period>%d", SEC_PER_DAY, SEC_PER_DAY))
 		return SUCCEED;
 
 	return FAIL;
@@ -1239,7 +1239,7 @@ static int	DBpatch_3010042(void)
 
 static int	DBpatch_3010043(void)
 {
-	if (ZBX_DB_OK <= DBexecute("update config set blink_period=%d where blink_period>%d", SEC_PER_DAY, SEC_PER_DAY))
+	if (ZBX_DB_OK <= zbx_DBexecute("update config set blink_period=%d where blink_period>%d", SEC_PER_DAY, SEC_PER_DAY))
 		return SUCCEED;
 
 	return FAIL;
@@ -1475,7 +1475,7 @@ static int	DBpatch_3010068(void)
 {
 	/* state: 0 - TRIGGER_STATE_NORMAL */
 	/* flags: 2 - ZBX_FLAG_DISCOVERY_PROTOTYPE */
-	if (ZBX_DB_OK <= DBexecute("update triggers set error='',state=0 where flags=2"))
+	if (ZBX_DB_OK <= zbx_DBexecute("update triggers set error='',state=0 where flags=2"))
 		return SUCCEED;
 
 	return FAIL;
@@ -1557,7 +1557,7 @@ static int	DBpatch_3010076(void)
 			"'web.events.trigger.period'"
 		")";
 
-	if (ZBX_DB_OK <= DBexecute("%s", sql))
+	if (ZBX_DB_OK <= zbx_DBexecute("%s", sql))
 		return SUCCEED;
 
 	return FAIL;
@@ -1587,12 +1587,12 @@ static int	DBpatch_3010079(void)
 
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	result = DBselect("select p.eventid,e.clock,e.ns"
+	result = zbx_DBselect("select p.eventid,e.clock,e.ns"
 			" from problem p,events e"
 			" where p.eventid=e.eventid"
 				" and p.clock=0");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset,
 				"update problem set clock=%s,ns=%s where eventid=%s;\n",
@@ -1606,7 +1606,7 @@ static int	DBpatch_3010079(void)
 
 	if (16 < sql_offset)
 	{
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			goto out;
 	}
 

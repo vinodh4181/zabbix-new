@@ -98,9 +98,9 @@ int	get_host_from_event(const ZBX_DB_EVENT *event, DC_HOST *host, char *error, s
 
 	host->hostid = 0;
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		if (0 != host->hostid)
 		{

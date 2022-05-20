@@ -263,7 +263,7 @@ static void	DBtxn_operation(int (*txn_operation)(void))
  * Comments: do nothing if DB does not support transactions                   *
  *                                                                            *
  ******************************************************************************/
-void	DBbegin(void)
+void	zbx_DBbegin(void)
 {
 	DBtxn_operation(zbx_db_begin);
 }
@@ -275,12 +275,12 @@ void	DBbegin(void)
  * Comments: do nothing if DB does not support transactions                   *
  *                                                                            *
  ******************************************************************************/
-int	DBcommit(void)
+int	zbx_DBcommit(void)
 {
 	if (ZBX_DB_OK > zbx_db_commit())
 	{
 		zabbix_log(LOG_LEVEL_DEBUG, "commit called on failed transaction, doing a rollback instead");
-		DBrollback();
+		zbx_DBrollback();
 	}
 
 	return zbx_db_txn_end_error();
@@ -293,7 +293,7 @@ int	DBcommit(void)
  * Comments: do nothing if DB does not support transactions                   *
  *                                                                            *
  ******************************************************************************/
-void	DBrollback(void)
+void	zbx_DBrollback(void)
 {
 	if (ZBX_DB_OK > zbx_db_rollback())
 	{
@@ -311,12 +311,12 @@ void	DBrollback(void)
  * Comments: do nothing if DB does not support transactions                   *
  *                                                                            *
  ******************************************************************************/
-int	DBend(int ret)
+int	zbx_DBend(int ret)
 {
 	if (SUCCEED == ret)
-		return ZBX_DB_OK == DBcommit() ? SUCCEED : FAIL;
+		return ZBX_DB_OK == zbx_DBcommit() ? SUCCEED : FAIL;
 
-	DBrollback();
+	zbx_DBrollback();
 
 	return FAIL;
 }
@@ -357,7 +357,7 @@ void	zbx_DBstatement_prepare(const char *sql)
  * Comments: retry until DB is up                                             *
  *                                                                            *
  ******************************************************************************/
-int	DBexecute(const char *fmt, ...)
+int	zbx_DBexecute(const char *fmt, ...)
 {
 	va_list	args;
 	int	rc;
@@ -391,7 +391,7 @@ int	DBexecute(const char *fmt, ...)
  * Comments: don't retry if DB is down                                        *
  *                                                                            *
  ******************************************************************************/
-int	DBexecute_once(const char *fmt, ...)
+int	zbx_DBexecute_once(const char *fmt, ...)
 {
 	va_list	args;
 	int	rc;
@@ -419,12 +419,12 @@ int	DBexecute_once(const char *fmt, ...)
  *           is not possible to differentiate empty string from NULL string   *
  *                                                                            *
  ******************************************************************************/
-int	DBis_null(const char *field)
+int	zbx_DBis_null(const char *field)
 {
 	return zbx_db_is_null(field);
 }
 
-DB_ROW	DBfetch(DB_RESULT result)
+DB_ROW	zbx_DBfetch(DB_RESULT result)
 {
 	return zbx_db_fetch(result);
 }
@@ -434,7 +434,7 @@ DB_ROW	DBfetch(DB_RESULT result)
  * Purpose: execute a select statement                                        *
  *                                                                            *
  ******************************************************************************/
-DB_RESULT	DBselect_once(const char *fmt, ...)
+DB_RESULT	zbx_DBselect_once(const char *fmt, ...)
 {
 	va_list		args;
 	DB_RESULT	rc;
@@ -455,7 +455,7 @@ DB_RESULT	DBselect_once(const char *fmt, ...)
  * Comments: retry until DB is up                                             *
  *                                                                            *
  ******************************************************************************/
-DB_RESULT	DBselect(const char *fmt, ...)
+DB_RESULT	zbx_DBselect(const char *fmt, ...)
 {
 	va_list		args;
 	DB_RESULT	rc;
@@ -489,7 +489,7 @@ DB_RESULT	DBselect(const char *fmt, ...)
  * Comments: retry until DB is up                                             *
  *                                                                            *
  ******************************************************************************/
-DB_RESULT	DBselectN(const char *query, int n)
+DB_RESULT	zbx_DBselectN(const char *query, int n)
 {
 	DB_RESULT	rc;
 
@@ -659,17 +659,17 @@ static zbx_uint64_t	DBget_nextid(const char *tablename, int num)
 			return 0;
 		}
 
-		result = DBselect("select nextid from ids where table_name='%s' and field_name='%s'",
+		result = zbx_DBselect("select nextid from ids where table_name='%s' and field_name='%s'",
 				table->table, table->recid);
 
-		if (NULL == (row = DBfetch(result)))
+		if (NULL == (row = zbx_DBfetch(result)))
 		{
 			DBfree_result(result);
 
-			result = DBselect("select max(%s) from %s where %s between " ZBX_FS_UI64 " and " ZBX_FS_UI64,
+			result = zbx_DBselect("select max(%s) from %s where %s between " ZBX_FS_UI64 " and " ZBX_FS_UI64,
 					table->recid, table->table, table->recid, min, max);
 
-			if (NULL == (row = DBfetch(result)) || SUCCEED == DBis_null(row[0]))
+			if (NULL == (row = zbx_DBfetch(result)) || SUCCEED == zbx_DBis_null(row[0]))
 			{
 				ret1 = min;
 			}
@@ -687,14 +687,14 @@ static zbx_uint64_t	DBget_nextid(const char *tablename, int num)
 
 			DBfree_result(result);
 
-			dbres = DBexecute("insert into ids (table_name,field_name,nextid)"
+			dbres = zbx_DBexecute("insert into ids (table_name,field_name,nextid)"
 					" values ('%s','%s'," ZBX_FS_UI64 ")",
 					table->table, table->recid, ret1);
 
 			if (ZBX_DB_OK > dbres)
 			{
 				/* solving the problem of an invisible record created in a parallel transaction */
-				DBexecute("update ids set nextid=nextid+1 where table_name='%s' and field_name='%s'",
+				zbx_DBexecute("update ids set nextid=nextid+1 where table_name='%s' and field_name='%s'",
 						table->table, table->recid);
 			}
 
@@ -707,18 +707,18 @@ static zbx_uint64_t	DBget_nextid(const char *tablename, int num)
 
 			if (ret1 < min || ret1 >= max)
 			{
-				DBexecute("delete from ids where table_name='%s' and field_name='%s'",
+				zbx_DBexecute("delete from ids where table_name='%s' and field_name='%s'",
 						table->table, table->recid);
 				continue;
 			}
 
-			DBexecute("update ids set nextid=nextid+%d where table_name='%s' and field_name='%s'",
+			zbx_DBexecute("update ids set nextid=nextid+%d where table_name='%s' and field_name='%s'",
 					num, table->table, table->recid);
 
-			result = DBselect("select nextid from ids where table_name='%s' and field_name='%s'",
+			result = zbx_DBselect("select nextid from ids where table_name='%s' and field_name='%s'",
 					table->table, table->recid);
 
-			if (NULL != (row = DBfetch(result)) && SUCCEED != DBis_null(row[0]))
+			if (NULL != (row = zbx_DBfetch(result)) && SUCCEED != zbx_DBis_null(row[0]))
 			{
 				ZBX_STR2UINT64(ret2, row[0]);
 
@@ -778,7 +778,7 @@ void	DBflush_version_requirements(const char *version)
 {
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	if (ZBX_DB_OK > DBexecute("update config set dbversion_status='%s'", version))
+	if (ZBX_DB_OK > zbx_DBexecute("update config set dbversion_status='%s'", version))
 		zabbix_log(LOG_LEVEL_CRIT, "Failed to set dbversion_status");
 
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);
@@ -810,10 +810,10 @@ int	DBcheck_capabilities(zbx_uint32_t db_version)
 	if (FAIL == DBfield_exists("config", "db_extension"))
 		goto out;
 
-	if (NULL == (result = DBselect("select db_extension from config")))
+	if (NULL == (result = zbx_DBselect("select db_extension from config")))
 		goto out;
 
-	if (NULL == (row = DBfetch(result)))
+	if (NULL == (row = zbx_DBfetch(result)))
 		goto clean;
 
 	if (0 != zbx_strcmp_null(row[0], ZBX_CONFIG_DB_EXTENSION_TIMESCALE))
@@ -1201,13 +1201,13 @@ const char	*zbx_host_string(zbx_uint64_t hostid)
 	DB_RESULT	result;
 	DB_ROW		row;
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select host"
 			" from hosts"
 			" where hostid=" ZBX_FS_UI64,
 			hostid);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 		zbx_snprintf(buf_string, sizeof(buf_string), "%s", row[0]);
 	else
 		zbx_snprintf(buf_string, sizeof(buf_string), "???");
@@ -1227,14 +1227,14 @@ const char	*zbx_host_key_string(zbx_uint64_t itemid)
 	DB_RESULT	result;
 	DB_ROW		row;
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select h.host,i.key_"
 			" from hosts h,items i"
 			" where h.hostid=i.hostid"
 				" and i.itemid=" ZBX_FS_UI64,
 			itemid);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 		zbx_snprintf(buf_string, sizeof(buf_string), "%s:%s", row[0], row[1]);
 	else
 		zbx_snprintf(buf_string, sizeof(buf_string), "???");
@@ -1273,10 +1273,10 @@ int	zbx_check_user_permissions(const zbx_uint64_t *userid, const zbx_uint64_t *r
 	if (NULL == recipient_userid || *userid == *recipient_userid)
 		goto out;
 
-	result = DBselect("select r.type from users u,role r where u.roleid=r.roleid and"
+	result = zbx_DBselect("select r.type from users u,role r where u.roleid=r.roleid and"
 			" userid=" ZBX_FS_UI64, *recipient_userid);
 
-	if (NULL != (row = DBfetch(result)) && FAIL == DBis_null(row[0]))
+	if (NULL != (row = zbx_DBfetch(result)) && FAIL == zbx_DBis_null(row[0]))
 		user_type = atoi(row[0]);
 	DBfree_result(result);
 
@@ -1290,7 +1290,7 @@ int	zbx_check_user_permissions(const zbx_uint64_t *userid, const zbx_uint64_t *r
 	if (USER_TYPE_SUPER_ADMIN != user_type)
 	{
 		/* check if users are from the same user group */
-		result = DBselect(
+		result = zbx_DBselect(
 				"select null"
 				" from users_groups ug1"
 				" where ug1.userid=" ZBX_FS_UI64
@@ -1301,7 +1301,7 @@ int	zbx_check_user_permissions(const zbx_uint64_t *userid, const zbx_uint64_t *r
 					")",
 				*userid, *recipient_userid);
 
-		if (NULL == DBfetch(result))
+		if (NULL == zbx_DBfetch(result))
 			ret = FAIL;
 		DBfree_result(result);
 	}
@@ -1321,9 +1321,9 @@ const char	*zbx_user_string(zbx_uint64_t userid)
 	DB_RESULT	result;
 	DB_ROW		row;
 
-	result = DBselect("select name,surname,username from users where userid=" ZBX_FS_UI64, userid);
+	result = zbx_DBselect("select name,surname,username from users where userid=" ZBX_FS_UI64, userid);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 		zbx_snprintf(buf_string, sizeof(buf_string), "%s %s (%s)", row[0], row[1], row[2]);
 	else
 		zbx_snprintf(buf_string, sizeof(buf_string), "unknown");
@@ -1351,7 +1351,7 @@ int	DBget_user_names(zbx_uint64_t userid, char **username, char **name, char **s
 	DB_RESULT	result;
 	DB_ROW		row;
 
-	if (NULL == (result = DBselect(
+	if (NULL == (result = zbx_DBselect(
 			"select username,name,surname"
 			" from users"
 			" where userid=" ZBX_FS_UI64, userid)))
@@ -1359,7 +1359,7 @@ int	DBget_user_names(zbx_uint64_t userid, char **username, char **name, char **s
 		goto out;
 	}
 
-	if (NULL == (row = DBfetch(result)))
+	if (NULL == (row = zbx_DBfetch(result)))
 		goto out;
 
 	*username = zbx_strdup(NULL, row[0]);
@@ -1425,7 +1425,7 @@ static int	DBregister_host_active(void)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select null"
 			" from actions"
 			" where eventsource=%d"
@@ -1433,7 +1433,7 @@ static int	DBregister_host_active(void)
 			EVENT_SOURCE_AUTOREGISTRATION,
 			ACTION_STATUS_ACTIVE);
 
-	if (NULL == DBfetch(result))
+	if (NULL == zbx_DBfetch(result))
 		ret = FAIL;
 
 	DBfree_result(result);
@@ -1527,9 +1527,9 @@ static void	process_autoreg_hosts(zbx_vector_ptr_t *autoreg_hosts, zbx_uint64_t 
 		DBadd_str_condition_alloc(&sql, &sql_alloc, &sql_offset, "h.host",
 				(const char **)hosts.values, hosts.values_num);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			for (i = 0; i < autoreg_hosts->values_num; i++)
 			{
@@ -1541,7 +1541,7 @@ static void	process_autoreg_hosts(zbx_vector_ptr_t *autoreg_hosts, zbx_uint64_t 
 				ZBX_STR2UINT64(autoreg_host->hostid, row[1]);
 				ZBX_DBROW2UINT64(current_proxy_hostid, row[2]);
 
-				if (current_proxy_hostid != proxy_hostid || SUCCEED == DBis_null(row[8]) ||
+				if (current_proxy_hostid != proxy_hostid || SUCCEED == zbx_DBis_null(row[8]) ||
 						0 != strcmp(autoreg_host->host_metadata, row[3]) ||
 						autoreg_host->flag != atoi(row[7]))
 				{
@@ -1589,9 +1589,9 @@ static void	process_autoreg_hosts(zbx_vector_ptr_t *autoreg_hosts, zbx_uint64_t 
 		DBadd_str_condition_alloc(&sql, &sql_alloc, &sql_offset, "host",
 				(const char **)hosts.values, hosts.values_num);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			for (i = 0; i < autoreg_hosts->values_num; i++)
 			{
@@ -1711,7 +1711,7 @@ void	DBregister_host_flush(zbx_vector_ptr_t *autoreg_hosts, zbx_uint64_t proxy_h
 	if (0 != update)
 	{
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 		zbx_free(sql);
 	}
 
@@ -1754,7 +1754,7 @@ void	DBproxy_register_host(const char *host, const char *ip, const char *dns, un
 	dns_esc = DBdyn_escape_field("proxy_autoreg_host", "listen_dns", dns);
 	host_metadata_esc = DBdyn_escape_field("proxy_autoreg_host", "host_metadata", host_metadata);
 
-	DBexecute("insert into proxy_autoreg_host"
+	zbx_DBexecute("insert into proxy_autoreg_host"
 			" (clock,host,listen_ip,listen_dns,listen_port,tls_accepted,host_metadata,flags)"
 			" values"
 			" (%d,'%s','%s','%s',%d,%u,'%s',%d)",
@@ -1801,7 +1801,7 @@ int	DBexecute_overflowed_sql(char **sql, size_t *sql_alloc, size_t *sql_offset)
 #endif
 		/* For Oracle with max_overflow_sql_size == 0, jump over "begin\n" */
 		/* before execution. ZBX_SQL_EXEC_FROM is 0 for all other cases. */
-		if (ZBX_DB_OK > DBexecute("%s", *sql + ZBX_SQL_EXEC_FROM))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", *sql + ZBX_SQL_EXEC_FROM))
 			ret = FAIL;
 
 		*sql_offset = 0;
@@ -1847,7 +1847,7 @@ char	*DBget_unique_hostname_by_sample(const char *host_name_sample, const char *
 	sz = strlen(host_name_sample);
 	host_name_sample_esc = DBdyn_escape_like_pattern(host_name_sample);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select %s"
 			" from hosts"
 			" where %s like '%s%%' escape '%c'"
@@ -1859,7 +1859,7 @@ char	*DBget_unique_hostname_by_sample(const char *host_name_sample, const char *
 
 	zbx_free(host_name_sample_esc);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	n;
 		const char	*p;
@@ -1985,23 +1985,23 @@ int	DBtable_exists(const char *table_name)
 	table_name_esc = DBdyn_escape_string(table_name);
 
 #if defined(HAVE_MYSQL)
-	result = DBselect("show tables like '%s'", table_name_esc);
+	result = zbx_DBselect("show tables like '%s'", table_name_esc);
 #elif defined(HAVE_ORACLE)
-	result = DBselect(
+	result = zbx_DBselect(
 			"select 1"
 			" from tab"
 			" where tabtype='TABLE'"
 				" and lower(tname)='%s'",
 			table_name_esc);
 #elif defined(HAVE_POSTGRESQL)
-	result = DBselect(
+	result = zbx_DBselect(
 			"select 1"
 			" from information_schema.tables"
 			" where table_name='%s'"
 				" and table_schema='%s'",
 			table_name_esc, zbx_db_get_schema_esc());
 #elif defined(HAVE_SQLITE3)
-	result = DBselect(
+	result = zbx_DBselect(
 			"select 1"
 			" from sqlite_master"
 			" where tbl_name='%s'"
@@ -2011,7 +2011,7 @@ int	DBtable_exists(const char *table_name)
 
 	zbx_free(table_name_esc);
 
-	ret = (NULL == DBfetch(result) ? FAIL : SUCCEED);
+	ret = (NULL == zbx_DBfetch(result) ? FAIL : SUCCEED);
 
 	DBfree_result(result);
 
@@ -2039,19 +2039,19 @@ int	DBfield_exists(const char *table_name, const char *field_name)
 #if defined(HAVE_MYSQL)
 	field_name_esc = DBdyn_escape_string(field_name);
 
-	result = DBselect("show columns from %s like '%s'",
+	result = zbx_DBselect("show columns from %s like '%s'",
 			table_name, field_name_esc);
 
 	zbx_free(field_name_esc);
 
-	ret = (NULL == DBfetch(result) ? FAIL : SUCCEED);
+	ret = (NULL == zbx_DBfetch(result) ? FAIL : SUCCEED);
 
 	DBfree_result(result);
 #elif defined(HAVE_ORACLE)
 	table_name_esc = DBdyn_escape_string(table_name);
 	field_name_esc = DBdyn_escape_string(field_name);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select 1"
 			" from col"
 			" where lower(tname)='%s'"
@@ -2061,14 +2061,14 @@ int	DBfield_exists(const char *table_name, const char *field_name)
 	zbx_free(field_name_esc);
 	zbx_free(table_name_esc);
 
-	ret = (NULL == DBfetch(result) ? FAIL : SUCCEED);
+	ret = (NULL == zbx_DBfetch(result) ? FAIL : SUCCEED);
 
 	DBfree_result(result);
 #elif defined(HAVE_POSTGRESQL)
 	table_name_esc = DBdyn_escape_string(table_name);
 	field_name_esc = DBdyn_escape_string(field_name);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select 1"
 			" from information_schema.columns"
 			" where table_name='%s'"
@@ -2079,17 +2079,17 @@ int	DBfield_exists(const char *table_name, const char *field_name)
 	zbx_free(field_name_esc);
 	zbx_free(table_name_esc);
 
-	ret = (NULL == DBfetch(result) ? FAIL : SUCCEED);
+	ret = (NULL == zbx_DBfetch(result) ? FAIL : SUCCEED);
 
 	DBfree_result(result);
 #elif defined(HAVE_SQLITE3)
 	table_name_esc = DBdyn_escape_string(table_name);
 
-	result = DBselect("PRAGMA table_info('%s')", table_name_esc);
+	result = zbx_DBselect("PRAGMA table_info('%s')", table_name_esc);
 
 	zbx_free(table_name_esc);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		if (0 != strcmp(field_name, row[1]))
 			continue;
@@ -2114,19 +2114,19 @@ int	DBindex_exists(const char *table_name, const char *index_name)
 	index_name_esc = DBdyn_escape_string(index_name);
 
 #if defined(HAVE_MYSQL)
-	result = DBselect(
+	result = zbx_DBselect(
 			"show index from %s"
 			" where key_name='%s'",
 			table_name_esc, index_name_esc);
 #elif defined(HAVE_ORACLE)
-	result = DBselect(
+	result = zbx_DBselect(
 			"select 1"
 			" from user_indexes"
 			" where lower(table_name)='%s'"
 				" and lower(index_name)='%s'",
 			table_name_esc, index_name_esc);
 #elif defined(HAVE_POSTGRESQL)
-	result = DBselect(
+	result = zbx_DBselect(
 			"select 1"
 			" from pg_indexes"
 			" where tablename='%s'"
@@ -2135,7 +2135,7 @@ int	DBindex_exists(const char *table_name, const char *index_name)
 			table_name_esc, index_name_esc, zbx_db_get_schema_esc());
 #endif
 
-	ret = (NULL == DBfetch(result) ? FAIL : SUCCEED);
+	ret = (NULL == zbx_DBfetch(result) ? FAIL : SUCCEED);
 
 	DBfree_result(result);
 
@@ -2151,7 +2151,7 @@ int	DBpk_exists(const char *table_name)
 	int		ret;
 
 #if defined(HAVE_MYSQL)
-	result = DBselect(
+	result = zbx_DBselect(
 			"show index from %s"
 			" where key_name='PRIMARY'",
 			table_name);
@@ -2160,7 +2160,7 @@ int	DBpk_exists(const char *table_name)
 
 	name_u = zbx_strdup(NULL, table_name);
 	zbx_strupper(name_u);
-	result = DBselect(
+	result = zbx_DBselect(
 			"select 1"
 			" from user_constraints"
 			" where constraint_type='P'"
@@ -2168,7 +2168,7 @@ int	DBpk_exists(const char *table_name)
 			name_u);
 	zbx_free(name_u);
 #elif defined(HAVE_POSTGRESQL)
-	result = DBselect(
+	result = zbx_DBselect(
 			"select 1"
 			" from information_schema.table_constraints"
 			" where table_name='%s'"
@@ -2176,7 +2176,7 @@ int	DBpk_exists(const char *table_name)
 				" and constraint_schema='%s'",
 			table_name, zbx_db_get_schema_esc());
 #endif
-	ret = (NULL == DBfetch(result) ? FAIL : SUCCEED);
+	ret = (NULL == zbx_DBfetch(result) ? FAIL : SUCCEED);
 
 	DBfree_result(result);
 
@@ -2191,15 +2191,15 @@ int	DBpk_exists(const char *table_name)
  *             ids - [OUT] sorted list of selected uint64 values              *
  *                                                                            *
  ******************************************************************************/
-void	DBselect_uint64(const char *sql, zbx_vector_uint64_t *ids)
+void	zbx_DBselect_uint64(const char *sql, zbx_vector_uint64_t *ids)
 {
 	DB_RESULT	result;
 	DB_ROW		row;
 	zbx_uint64_t	id;
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(id, row[0]);
 
@@ -2246,7 +2246,7 @@ int	DBexecute_multiple_query(const char *query, const char *field_name, zbx_vect
 	{
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			ret = FAIL;
 	}
 
@@ -2299,12 +2299,12 @@ void	DBcheck_character_set(void)
 	database_name_esc = DBdyn_escape_string(CONFIG_DBNAME);
 	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select default_character_set_name,default_collation_name"
 			" from information_schema.SCHEMATA"
 			" where schema_name='%s'", database_name_esc);
 
-	if (NULL == result || NULL == (row = DBfetch(result)))
+	if (NULL == result || NULL == (row = zbx_DBfetch(result)))
 	{
 		zbx_warn_no_charset_info(CONFIG_DBNAME);
 	}
@@ -2340,7 +2340,7 @@ void	DBcheck_character_set(void)
 	charset_list = db_strlist_quote(ZBX_SUPPORTED_DB_CHARACTER_SET, ZBX_DB_STRLIST_DELIM);
 	collation_list = db_strlist_quote(ZBX_SUPPORTED_DB_COLLATION, ZBX_DB_STRLIST_DELIM);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select count(*)"
 			" from information_schema.`COLUMNS`"
 			" where table_schema='%s'"
@@ -2351,7 +2351,7 @@ void	DBcheck_character_set(void)
 	zbx_free(collation_list);
 	zbx_free(charset_list);
 
-	if (NULL == result || NULL == (row = DBfetch(result)))
+	if (NULL == result || NULL == (row = zbx_DBfetch(result)))
 	{
 		zabbix_log(LOG_LEVEL_WARNING, "cannot get character set of database \"%s\" tables", CONFIG_DBNAME);
 	}
@@ -2372,7 +2372,7 @@ void	DBcheck_character_set(void)
 	DB_ROW		row;
 
 	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
-	result = DBselect(
+	result = zbx_DBselect(
 			"select parameter,value"
 			" from NLS_DATABASE_PARAMETERS"
 			" where parameter in ('NLS_CHARACTERSET','NLS_NCHAR_CHARACTERSET')");
@@ -2383,7 +2383,7 @@ void	DBcheck_character_set(void)
 	}
 	else
 	{
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			const char	*parameter = row[0];
 			const char	*value = row[1];
@@ -2419,13 +2419,13 @@ void	DBcheck_character_set(void)
 	database_name_esc = DBdyn_escape_string(CONFIG_DBNAME);
 
 	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
-	result = DBselect(
+	result = zbx_DBselect(
 			"select pg_encoding_to_char(encoding)"
 			" from pg_database"
 			" where datname='%s'",
 			database_name_esc);
 
-	if (NULL == result || NULL == (row = DBfetch(result)))
+	if (NULL == result || NULL == (row = zbx_DBfetch(result)))
 	{
 		zbx_warn_no_charset_info(CONFIG_DBNAME);
 		goto out;
@@ -2439,13 +2439,13 @@ void	DBcheck_character_set(void)
 
 	DBfree_result(result);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select oid"
 			" from pg_namespace"
 			" where nspname='%s'",
 			zbx_db_get_schema_esc());
 
-	if (NULL == result || NULL == (row = DBfetch(result)) || '\0' == **row)
+	if (NULL == result || NULL == (row = zbx_DBfetch(result)) || '\0' == **row)
 	{
 		zabbix_log(LOG_LEVEL_WARNING, "cannot get character set of database \"%s\" fields", CONFIG_DBNAME);
 		goto out;
@@ -2455,7 +2455,7 @@ void	DBcheck_character_set(void)
 
 	DBfree_result(result);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select count(*)"
 			" from pg_attribute as a"
 				" left join pg_class as c"
@@ -2468,7 +2468,7 @@ void	DBcheck_character_set(void)
 				" and l.collname<>'default'",
 			oid);
 
-	if (NULL == result || NULL == (row = DBfetch(result)))
+	if (NULL == result || NULL == (row = zbx_DBfetch(result)))
 	{
 		zabbix_log(LOG_LEVEL_WARNING, "cannot get character set of database \"%s\" fields", CONFIG_DBNAME);
 	}
@@ -2480,9 +2480,9 @@ void	DBcheck_character_set(void)
 
 	DBfree_result(result);
 
-	result = DBselect("show client_encoding");
+	result = zbx_DBselect("show client_encoding");
 
-	if (NULL == result || NULL == (row = DBfetch(result)))
+	if (NULL == result || NULL == (row = zbx_DBfetch(result)))
 	{
 		zabbix_log(LOG_LEVEL_WARNING, "cannot get info about database \"%s\" client encoding", CONFIG_DBNAME);
 	}
@@ -2494,9 +2494,9 @@ void	DBcheck_character_set(void)
 
 	DBfree_result(result);
 
-	result = DBselect("show server_encoding");
+	result = zbx_DBselect("show server_encoding");
 
-	if (NULL == result || NULL == (row = DBfetch(result)))
+	if (NULL == result || NULL == (row = zbx_DBfetch(result)))
 	{
 		zabbix_log(LOG_LEVEL_WARNING, "cannot get info about database \"%s\" server encoding", CONFIG_DBNAME);
 	}
@@ -3048,7 +3048,7 @@ retry_oracle:
 #	endif
 		zbx_DBend_multiple_update(sql, sql_alloc, sql_offset);
 
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			ret = FAIL;
 	}
 #endif
@@ -3113,13 +3113,13 @@ int	zbx_db_get_database_type(void)
 
 	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
-	if (NULL == (result = DBselectN("select userid from users", 1)))
+	if (NULL == (result = zbx_DBselectN("select userid from users", 1)))
 	{
 		zabbix_log(LOG_LEVEL_DEBUG, "cannot select records from \"users\" table");
 		goto out;
 	}
 
-	if (NULL != DBfetch(result))
+	if (NULL != zbx_DBfetch(result))
 	{
 		zabbix_log(LOG_LEVEL_DEBUG, "there is at least 1 record in \"users\" table");
 		ret = ZBX_DB_SERVER;
@@ -3181,15 +3181,15 @@ int	DBlock_record(const char *table, zbx_uint64_t id, const char *add_field, zbx
 
 	if (NULL == add_field)
 	{
-		result = DBselect("select null from %s where %s=" ZBX_FS_UI64 ZBX_FOR_UPDATE, table, t->recid, id);
+		result = zbx_DBselect("select null from %s where %s=" ZBX_FS_UI64 ZBX_FOR_UPDATE, table, t->recid, id);
 	}
 	else
 	{
-		result = DBselect("select null from %s where %s=" ZBX_FS_UI64 " and %s=" ZBX_FS_UI64 ZBX_FOR_UPDATE,
+		result = zbx_DBselect("select null from %s where %s=" ZBX_FS_UI64 " and %s=" ZBX_FS_UI64 ZBX_FOR_UPDATE,
 				table, t->recid, id, add_field, add_id);
 	}
 
-	if (NULL == DBfetch(result))
+	if (NULL == zbx_DBfetch(result))
 		ret = FAIL;
 	else
 		ret = SUCCEED;
@@ -3232,11 +3232,11 @@ int	DBlock_records(const char *table, const zbx_vector_uint64_t *ids)
 	zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "select null from %s where", table);
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, t->recid, ids->values, ids->values_num);
 
-	result = DBselect("%s" ZBX_FOR_UPDATE, sql);
+	result = zbx_DBselect("%s" ZBX_FOR_UPDATE, sql);
 
 	zbx_free(sql);
 
-	if (NULL == DBfetch(result))
+	if (NULL == zbx_DBfetch(result))
 		ret = FAIL;
 	else
 		ret = SUCCEED;
@@ -3277,10 +3277,10 @@ int	DBlock_ids(const char *table_name, const char *field_name, zbx_vector_uint64
 	zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "select %s from %s where", field_name, table_name);
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, field_name, ids->values, ids->values_num);
 	zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, " order by %s" ZBX_FOR_UPDATE, field_name);
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 	zbx_free(sql);
 
-	for (i = 0; NULL != (row = DBfetch(result)); i++)
+	for (i = 0; NULL != (row = zbx_DBfetch(result)); i++)
 	{
 		ZBX_STR2UINT64(id, row[0]);
 
@@ -3317,7 +3317,7 @@ int	DBget_user_by_active_session(const char *sessionid, zbx_user_t *user)
 
 	sessionid_esc = DBdyn_escape_string(sessionid);
 
-	if (NULL == (result = DBselect(
+	if (NULL == (result = zbx_DBselect(
 			"select u.userid,u.roleid,u.username,r.type"
 				" from sessions s,users u,role r"
 			" where s.userid=u.userid"
@@ -3329,7 +3329,7 @@ int	DBget_user_by_active_session(const char *sessionid, zbx_user_t *user)
 		goto out;
 	}
 
-	if (NULL == (row = DBfetch(result)))
+	if (NULL == (row = zbx_DBfetch(result)))
 		goto out;
 
 	ZBX_STR2UINT64(user->userid, row[0]);
@@ -3376,7 +3376,7 @@ int	DBget_user_by_auth_token(const char *formatted_auth_token_hash, zbx_user_t *
 		goto out;
 	}
 
-	if (NULL == (result = DBselect(
+	if (NULL == (result = zbx_DBselect(
 			"select u.userid,u.roleid,u.username,r.type"
 				" from token t,users u,role r"
 			" where t.userid=u.userid"
@@ -3390,7 +3390,7 @@ int	DBget_user_by_auth_token(const char *formatted_auth_token_hash, zbx_user_t *
 		goto out;
 	}
 
-	if (NULL == (row = DBfetch(result)))
+	if (NULL == (row = zbx_DBfetch(result)))
 		goto out;
 
 	ZBX_STR2UINT64(user->userid, row[0]);
@@ -3504,15 +3504,15 @@ int	zbx_db_check_instanceid(void)
 
 	zbx_DBconnect(ZBX_DB_CONNECT_NORMAL);
 
-	result = DBselect("select configid,instanceid from config order by configid");
-	if (NULL != (row = DBfetch(result)))
+	result = zbx_DBselect("select configid,instanceid from config order by configid");
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
-		if (SUCCEED == DBis_null(row[1]) || '\0' == *row[1])
+		if (SUCCEED == zbx_DBis_null(row[1]) || '\0' == *row[1])
 		{
 			char	*token;
 
 			token = zbx_create_token(0);
-			if (ZBX_DB_OK > DBexecute("update config set instanceid='%s' where configid=%s", token, row[0]))
+			if (ZBX_DB_OK > zbx_DBexecute("update config set instanceid='%s' where configid=%s", token, row[0]))
 			{
 				zabbix_log(LOG_LEVEL_ERR, "cannot update instance id in database");
 				ret = FAIL;

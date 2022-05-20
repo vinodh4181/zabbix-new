@@ -372,7 +372,7 @@ static int	ha_db_update_config(zbx_ha_info_t *info)
 	if (NULL == (result = ha_db_select(info, "select ha_failover_delay,auditlog_enabled from config")))
 		return FAIL;
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		if (SUCCEED != is_time_suffix(row[0], &info->failover_delay, ZBX_LENGTH_UNLIMITED))
 			THIS_SHOULD_NEVER_HAPPEN;
@@ -407,7 +407,7 @@ static int	ha_db_get_nodes(zbx_ha_info_t *info, zbx_vector_ha_node_t *nodes, int
 		return FAIL;
 	}
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_ha_node_t	*node;
 
@@ -599,7 +599,7 @@ static int	ha_db_get_time(zbx_ha_info_t *info, int *db_time)
 	if (NULL == (result = ha_db_select(info, "select " ZBX_DB_TIMESTAMP() " from config")))
 		goto out;
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 		*db_time = atoi(row[0]);
 	else
 		*db_time = 0;
@@ -1345,7 +1345,7 @@ static void	ha_set_failover_delay(zbx_ha_info_t *info, zbx_ipc_client_t *client,
 
 	memcpy(&delay, message->data, sizeof(delay));
 
-	if (NULL != (row = DBfetch(result)) &&
+	if (NULL != (row = zbx_DBfetch(result)) &&
 		SUCCEED == ha_db_execute(info, "update config set ha_failover_delay=%d", delay))
 	{
 		zbx_uint64_t	configid;

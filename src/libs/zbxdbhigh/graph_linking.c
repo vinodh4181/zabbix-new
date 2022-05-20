@@ -381,13 +381,13 @@ static int	get_templates_graphs_data(const zbx_vector_uint64_t *templateids,
 
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "i.hostid", templateids->values, templateids->values_num);
 
-	if (NULL == (result = DBselect("%s", sql)))
+	if (NULL == (result = zbx_DBselect("%s", sql)))
 	{
 		res = FAIL;
 		goto clean;
 	}
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t		graphid, ymin_itemid, ymax_itemid;
 		zbx_graph_copy_t	*graph_copy;
@@ -453,13 +453,13 @@ static int	update_same_itemids(zbx_uint64_t hostid, zbx_vector_graphs_copies_t *
 
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "ti.itemid", y_data_ids.values, y_data_ids.values_num);
 
-	if (NULL == (result = DBselect("%s", sql)))
+	if (NULL == (result = zbx_DBselect("%s", sql)))
 	{
 		res = FAIL;
 		goto clean;
 	}
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		itemids_map_entry_t	itemids_map_entry;
 
@@ -545,13 +545,13 @@ static int	get_graphs_items(zbx_uint64_t hostid, const zbx_vector_uint64_t *grap
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "gi.graphid", graphs_ids->values, graphs_ids->values_num);
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " order by i.key_");
 
-	if (NULL == (result = DBselect("%s", sql)))
+	if (NULL == (result = zbx_DBselect("%s", sql)))
 	{
 		res = FAIL;
 		goto clean;
 	}
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		graphs_items_entry_t	*found, temp_t;
 		graph_item_entry	*gitem;
@@ -627,13 +627,13 @@ static int	get_target_host_main_data(zbx_uint64_t hostid, zbx_vector_str_t *temp
 	DBadd_str_condition_alloc(&sql, &sql_alloc, &sql_offset, "g.name",
 			(const char**)templates_graphs_names->values, templates_graphs_names->values_num);
 
-	if (NULL == (result = DBselect("%s", sql)))
+	if (NULL == (result = zbx_DBselect("%s", sql)))
 	{
 		res = FAIL;
 		goto clean;
 	}
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t		graphid, ymin_itemid, ymax_itemid, templateid_orig;
 		zbx_graph_copy_t	graph_copy;
@@ -1341,7 +1341,7 @@ static int	execute_graphs_updates(zbx_hashset_t *host_graphs_main_data, zbx_hash
 
 	zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	if (SUCCEED == res && 16 < sql_offset && ZBX_DB_OK > DBexecute("%s", sql))
+	if (SUCCEED == res && 16 < sql_offset && ZBX_DB_OK > zbx_DBexecute("%s", sql))
 	{
 		zabbix_log(LOG_LEVEL_WARNING, "failed to execute graphs updates");
 		res = FAIL;
@@ -1353,7 +1353,7 @@ static int	execute_graphs_updates(zbx_hashset_t *host_graphs_main_data, zbx_hash
 	{
 		zbx_DBend_multiple_update(&sql2, &sql_alloc2, &sql_offset2);
 
-		if (16 < sql_offset2 && (ZBX_DB_OK > DBexecute("%s", sql2)))
+		if (16 < sql_offset2 && (ZBX_DB_OK > zbx_DBexecute("%s", sql2)))
 		{
 			zabbix_log(LOG_LEVEL_WARNING, "failed to execute graphs items updates");
 			res = FAIL;

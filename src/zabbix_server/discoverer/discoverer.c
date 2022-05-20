@@ -72,7 +72,7 @@ static void	proxy_update_service(zbx_uint64_t druleid, zbx_uint64_t dcheckid, co
 	dns_esc = DBdyn_escape_field("proxy_dhistory", "dns", dns);
 	value_esc = DBdyn_escape_field("proxy_dhistory", "value", value);
 
-	DBexecute("insert into proxy_dhistory (clock,druleid,dcheckid,ip,dns,port,value,status)"
+	zbx_DBexecute("insert into proxy_dhistory (clock,druleid,dcheckid,ip,dns,port,value,status)"
 			" values (%d," ZBX_FS_UI64 "," ZBX_FS_UI64 ",'%s','%s',%d,'%s',%d)",
 			now, druleid, dcheckid, ip_esc, dns_esc, port, value_esc, status);
 
@@ -95,7 +95,7 @@ static void	proxy_update_host(zbx_uint64_t druleid, const char *ip, const char *
 	ip_esc = DBdyn_escape_field("proxy_dhistory", "ip", ip);
 	dns_esc = DBdyn_escape_field("proxy_dhistory", "dns", dns);
 
-	DBexecute("insert into proxy_dhistory (clock,druleid,ip,dns,status)"
+	zbx_DBexecute("insert into proxy_dhistory (clock,druleid,ip,dns,status)"
 			" values (%d," ZBX_FS_UI64 ",'%s','%s',%d)",
 			now, druleid, ip_esc, dns_esc, status);
 
@@ -433,9 +433,9 @@ static void	process_checks(const ZBX_DB_DRULE *drule, int *host_status, char *ip
 
 	zbx_snprintf(sql + offset, sizeof(sql) - offset, " order by dcheckid");
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		memset(&dcheck, 0, sizeof(dcheck));
 
@@ -580,11 +580,11 @@ static void	process_rule(ZBX_DB_DRULE *drule)
 				process_checks(drule, &host_status, ip, 1, now, &services, &dcheckids);
 			process_checks(drule, &host_status, ip, 0, now, &services, &dcheckids);
 
-			DBbegin();
+			zbx_DBbegin();
 
 			if (SUCCEED != DBlock_druleid(drule->druleid))
 			{
-				DBrollback();
+				zbx_DBrollback();
 
 				zabbix_log(LOG_LEVEL_DEBUG, "discovery rule '%s' was deleted during processing,"
 						" stopping", drule->name);
@@ -594,7 +594,7 @@ static void	process_rule(ZBX_DB_DRULE *drule)
 
 			if (SUCCEED != process_services(drule, &dhost, ip, dns, now, &services, &dcheckids))
 			{
-				DBrollback();
+				zbx_DBrollback();
 
 				zabbix_log(LOG_LEVEL_DEBUG, "all checks where deleted for discovery rule '%s'"
 						" during processing, stopping", drule->name);
@@ -614,7 +614,7 @@ static void	process_rule(ZBX_DB_DRULE *drule)
 			else if (0 != (program_type & ZBX_PROGRAM_TYPE_PROXY))
 				proxy_update_host(drule->druleid, ip, dns, host_status, now);
 
-			DBcommit();
+			zbx_DBcommit();
 		}
 		while (SUCCEED == iprange_next(&iprange, ipaddress));
 next:
@@ -650,9 +650,9 @@ static void	discovery_clean_services(zbx_uint64_t druleid)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect("select iprange from drules where druleid=" ZBX_FS_UI64, druleid);
+	result = zbx_DBselect("select iprange from drules where druleid=" ZBX_FS_UI64, druleid);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 		iprange = zbx_strdup(iprange, row[0]);
 
 	DBfree_result(result);
@@ -664,7 +664,7 @@ static void	discovery_clean_services(zbx_uint64_t druleid)
 	zbx_vector_uint64_create(&del_dhostids);
 	zbx_vector_uint64_create(&del_dserviceids);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select dh.dhostid,ds.dserviceid,ds.ip"
 			" from dhosts dh"
 				" left join dservices ds"
@@ -672,11 +672,11 @@ static void	discovery_clean_services(zbx_uint64_t druleid)
 			" where dh.druleid=" ZBX_FS_UI64,
 			druleid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(dhostid, row[0]);
 
-		if (SUCCEED == DBis_null(row[1]))
+		if (SUCCEED == zbx_DBis_null(row[1]))
 		{
 			zbx_vector_uint64_append(&del_dhostids, dhostid);
 		}
@@ -707,7 +707,7 @@ static void	discovery_clean_services(zbx_uint64_t druleid)
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "dserviceid",
 				del_dserviceids.values, del_dserviceids.values_num);
 
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
 		/* remove dhosts */
 
@@ -735,7 +735,7 @@ static void	discovery_clean_services(zbx_uint64_t druleid)
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "dhostid",
 				del_dhostids.values, del_dhostids.values_num);
 
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 	}
 
 	zbx_free(sql);
@@ -755,7 +755,7 @@ static int	process_discovery(void)
 	char			*delay_str = NULL;
 	zbx_dc_um_handle_t	*um_handle;
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select distinct r.druleid,r.iprange,r.name,c.dcheckid,r.proxy_hostid,r.delay"
 			" from drules r"
 				" left join dchecks c"
@@ -771,7 +771,7 @@ static int	process_discovery(void)
 
 	um_handle = zbx_dc_open_user_macros();
 
-	while (ZBX_IS_RUNNING() && NULL != (row = DBfetch(result)))
+	while (ZBX_IS_RUNNING() && NULL != (row = zbx_DBfetch(result)))
 	{
 		int		now, delay;
 		zbx_uint64_t	druleid;
@@ -791,13 +791,13 @@ static int	process_discovery(void)
 
 			now = (int)time(NULL);
 
-			DBexecute("update drules set nextcheck=%d where druleid=" ZBX_FS_UI64,
+			zbx_DBexecute("update drules set nextcheck=%d where druleid=" ZBX_FS_UI64,
 					0 > now ? ZBX_JAN_2038 : now, druleid);
 
 			continue;
 		}
 
-		if (SUCCEED == DBis_null(row[4]))
+		if (SUCCEED == zbx_DBis_null(row[4]))
 		{
 			ZBX_DB_DRULE	drule;
 
@@ -819,10 +819,10 @@ static int	process_discovery(void)
 		{
 			zabbix_log(LOG_LEVEL_WARNING, "discovery rule \"%s\": nextcheck update causes overflow",
 					row[2]);
-			DBexecute("update drules set nextcheck=%d where druleid=" ZBX_FS_UI64, ZBX_JAN_2038, druleid);
+			zbx_DBexecute("update drules set nextcheck=%d where druleid=" ZBX_FS_UI64, ZBX_JAN_2038, druleid);
 		}
 		else
-			DBexecute("update drules set nextcheck=%d where druleid=" ZBX_FS_UI64, now + delay, druleid);
+			zbx_DBexecute("update drules set nextcheck=%d where druleid=" ZBX_FS_UI64, now + delay, druleid);
 	}
 	DBfree_result(result);
 
@@ -839,16 +839,16 @@ static int	get_minnextcheck(void)
 	DB_ROW		row;
 	int		res = FAIL;
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select count(*),min(nextcheck)"
 			" from drules"
 			" where status=%d"
 				" and " ZBX_SQL_MOD(druleid,%d) "=%d",
 			DRULE_STATUS_MONITORED, CONFIG_DISCOVERER_FORKS, process_num - 1);
 
-	row = DBfetch(result);
+	row = zbx_DBfetch(result);
 
-	if (NULL == row || DBis_null(row[0]) == SUCCEED || DBis_null(row[1]) == SUCCEED)
+	if (NULL == row || zbx_DBis_null(row[0]) == SUCCEED || zbx_DBis_null(row[1]) == SUCCEED)
 		zabbix_log(LOG_LEVEL_DEBUG, "get_minnextcheck(): no items to update");
 	else if (0 != atoi(row[0]))
 		res = atoi(row[1]);

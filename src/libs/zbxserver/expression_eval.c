@@ -503,9 +503,9 @@ static void	expression_get_item_candidates(zbx_expression_eval_t *eval, const zb
 			zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, filter_template + last_pos);
 	}
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_pair_t	pair;
 

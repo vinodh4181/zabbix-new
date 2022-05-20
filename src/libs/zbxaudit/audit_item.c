@@ -417,10 +417,10 @@ int	zbx_audit_DBselect_delete_for_item(const char *sql, zbx_vector_uint64_t *ids
 	DB_ROW		row;
 	zbx_uint64_t	id;
 
-	if (NULL == (result = DBselect("%s", sql)))
+	if (NULL == (result = zbx_DBselect("%s", sql)))
 		goto out;
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(id, row[0]);
 		zbx_vector_uint64_append(ids, id);

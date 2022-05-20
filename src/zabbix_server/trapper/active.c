@@ -76,7 +76,7 @@ static void	db_register_host(const char *host, const char *ip, unsigned short po
 	}
 	zbx_alarm_off();
 
-	DBbegin();
+	zbx_DBbegin();
 
 	if (0 != (program_type & ZBX_PROGRAM_TYPE_SERVER))
 	{
@@ -86,7 +86,7 @@ static void	db_register_host(const char *host, const char *ip, unsigned short po
 	else if (0 != (program_type & ZBX_PROGRAM_TYPE_PROXY))
 		DBproxy_register_host(host, p_ip, p_dns, port, connection_type, host_metadata, (unsigned short)flag);
 
-	DBcommit();
+	zbx_DBcommit();
 }
 
 static int	zbx_autoreg_check_permissions(const char *host, const char *ip, unsigned short port,
@@ -179,7 +179,7 @@ static int	get_hostid_by_host(const zbx_socket_t *sock, const char *host, const 
 
 	result =
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
-		DBselect(
+		zbx_DBselect(
 			"select h.hostid,h.status,h.tls_accept,h.tls_issuer,h.tls_subject,h.tls_psk_identity,"
 			"a.host_metadata,a.listen_ip,a.listen_dns,a.listen_port,a.flags"
 			" from hosts h"
@@ -191,7 +191,7 @@ static int	get_hostid_by_host(const zbx_socket_t *sock, const char *host, const 
 				" and h.proxy_hostid is null",
 			host_esc, HOST_STATUS_MONITORED, HOST_STATUS_NOT_MONITORED, ZBX_FLAG_DISCOVERY_PROTOTYPE);
 #else
-		DBselect(
+		zbx_DBselect(
 			"select h.hostid,h.status,h.tls_accept,a.host_metadata,a.listen_ip,a.listen_dns,a.listen_port,"
 			"a.flags"
 			" from hosts h"
@@ -203,7 +203,7 @@ static int	get_hostid_by_host(const zbx_socket_t *sock, const char *host, const 
 				" and h.proxy_hostid is null",
 			host_esc, HOST_STATUS_MONITORED, HOST_STATUS_NOT_MONITORED, ZBX_FLAG_DISCOVERY_PROTOTYPE);
 #endif
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		if (0 == ((unsigned int)atoi(row[2]) & sock->connection_type))
 		{
@@ -271,10 +271,10 @@ static int	get_hostid_by_host(const zbx_socket_t *sock, const char *host, const 
 		old_dns = row[5 + tls_offset];
 		old_port = row[6 + tls_offset];
 		old_flag = row[7 + tls_offset];
-		old_port_v = (unsigned short)(SUCCEED == DBis_null(old_port)) ? 0 : atoi(old_port);
-		old_flag_v = (zbx_conn_flags_t)(SUCCEED == DBis_null(old_flag)) ? ZBX_CONN_DEFAULT : atoi(old_flag);
+		old_port_v = (unsigned short)(SUCCEED == zbx_DBis_null(old_port)) ? 0 : atoi(old_port);
+		old_flag_v = (zbx_conn_flags_t)(SUCCEED == zbx_DBis_null(old_flag)) ? ZBX_CONN_DEFAULT : atoi(old_flag);
 		/* metadata is available only on Zabbix server */
-		if (SUCCEED == DBis_null(old_flag) || 0 != strcmp(old_metadata, host_metadata) ||
+		if (SUCCEED == zbx_DBis_null(old_flag) || 0 != strcmp(old_metadata, host_metadata) ||
 				(ZBX_CONN_IP  == flag && ( 0 != strcmp(old_ip, interface)  || old_port_v != port)) ||
 				(ZBX_CONN_DNS == flag && ( 0 != strcmp(old_dns, interface) || old_port_v != port)) ||
 				(old_flag_v != flag))
@@ -314,7 +314,7 @@ static void	get_list_of_active_checks(zbx_uint64_t hostid, zbx_vector_uint64_t *
 	DB_ROW		row;
 	zbx_uint64_t	itemid;
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select itemid"
 			" from items"
 			" where type=%d"
@@ -322,7 +322,7 @@ static void	get_list_of_active_checks(zbx_uint64_t hostid, zbx_vector_uint64_t *
 				" and hostid=" ZBX_FS_UI64,
 			ITEM_TYPE_ZABBIX_ACTIVE, ZBX_FLAG_DISCOVERY_PROTOTYPE, hostid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(itemid, row[0]);
 		zbx_vector_uint64_append(itemids, itemid);

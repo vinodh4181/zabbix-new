@@ -128,7 +128,7 @@ int	db_rename_macro(DB_RESULT result, const char *table, const char *pkey, zbx_f
 
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		old_offset = sql_offset;
 
@@ -170,7 +170,7 @@ int	db_rename_macro(DB_RESULT result, const char *table, const char *pkey, zbx_f
 
 	zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	if (16 < sql_offset && ZBX_DB_OK > DBexecute("%s", sql))
+	if (16 < sql_offset && ZBX_DB_OK > zbx_DBexecute("%s", sql))
 		ret = FAIL;
 out:
 	zbx_free(value);

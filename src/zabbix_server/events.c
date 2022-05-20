@@ -607,7 +607,7 @@ static void	save_event_recovery(void)
 	zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 	if (16 < sql_offset)	/* in ORACLE always present begin..end; */
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
 	zbx_free(sql);
 }
@@ -674,9 +674,9 @@ static int	correlation_match_event_hostgroup(const ZBX_DB_EVENT *event, zbx_uint
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "hg.groupid", groupids.values,
 			groupids.values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	if (NULL != DBfetch(result))
+	if (NULL != zbx_DBfetch(result))
 		ret = SUCCEED;
 
 	DBfree_result(result);
@@ -1211,11 +1211,11 @@ static void	correlate_event_by_global_rules(ZBX_DB_EVENT *event, zbx_problem_sta
 			{
 				DB_RESULT	result;
 
-				result = DBselectN("select eventid from problem"
+				result = zbx_DBselectN("select eventid from problem"
 						" where r_eventid is null and source="
 						ZBX_STR(EVENT_SOURCE_TRIGGERS), 1);
 
-				if (NULL == DBfetch(result))
+				if (NULL == zbx_DBfetch(result))
 					*problem_state = ZBX_PROBLEM_STATE_RESOLVED;
 				else
 					*problem_state = ZBX_PROBLEM_STATE_OPEN;
@@ -1269,9 +1269,9 @@ static void	correlate_event_by_global_rules(ZBX_DB_EVENT *event, zbx_problem_sta
 		}
 
 		zbx_chrcpy_alloc(&sql, &sql_alloc, &sql_offset, ')');
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			ZBX_STR2UINT64(eventid, row[0]);
 
@@ -1467,7 +1467,7 @@ static void	flush_correlation_queue(zbx_vector_ptr_t *trigger_diff, zbx_vector_u
 								" where r_eventid is null and");
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "eventid", eventids.values, eventids.values_num);
 		zbx_vector_uint64_clear(&eventids);
-		DBselect_uint64(sql, &eventids);
+		zbx_DBselect_uint64(sql, &eventids);
 		zbx_free(sql);
 
 		/* generate OK events and add event_recovery data for closed events */
@@ -1562,9 +1562,9 @@ static void	update_trigger_problem_count(zbx_vector_ptr_t *trigger_diff)
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "objectid", triggerids.values, triggerids.values_num);
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " group by objectid");
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(triggerid, row[0]);
 
@@ -1814,11 +1814,11 @@ void	zbx_export_events(void)
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "hg.hostid", hostids.values,
 				hostids.values_num);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
 		zbx_json_addarray(&json, ZBX_PROTO_TAG_GROUPS);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 			zbx_json_addstring(&json, NULL, row[0], ZBX_JSON_TYPE_STRING);
 		DBfree_result(result);
 
@@ -2205,9 +2205,9 @@ static void	process_internal_ok_events(zbx_vector_ptr_t *ok_events)
 	}
 
 	zbx_chrcpy_alloc(&sql, &sql_alloc, &sql_offset, ')');
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(eventid, row[0]);
 		object = atoi(row[1]);
@@ -2284,9 +2284,9 @@ static void	get_open_problems(const zbx_vector_uint64_t *triggerids, zbx_vector_
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "objectid", triggerids->values, triggerids->values_num);
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " and r_eventid is null");
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		problem = (zbx_event_problem_t *)zbx_malloc(NULL, sizeof(zbx_event_problem_t));
 
@@ -2308,9 +2308,9 @@ static void	get_open_problems(const zbx_vector_uint64_t *triggerids, zbx_vector_
 		zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, "select eventid,tag,value from problem_tag where");
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "eventid", eventids.values, eventids.values_num);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			ZBX_STR2UINT64(eventid, row[0]);
 			if (FAIL == (index = zbx_vector_ptr_bsearch(problems, &eventid,
@@ -2819,7 +2819,7 @@ int	zbx_close_problem(zbx_uint64_t triggerid, zbx_uint64_t eventid, zbx_uint64_t
 
 		zbx_timespec(&ts);
 
-		DBbegin();
+		zbx_DBbegin();
 
 		r_event = close_trigger_event(eventid, triggerid, &ts, userid, 0, 0, trigger.description,
 				trigger.expression, trigger.recovery_expression, trigger.priority,
@@ -2831,7 +2831,7 @@ int	zbx_close_problem(zbx_uint64_t triggerid, zbx_uint64_t eventid, zbx_uint64_t
 		update_trigger_changes(&trigger_diff);
 		zbx_db_save_trigger_changes(&trigger_diff);
 
-		if (ZBX_DB_OK == DBcommit())
+		if (ZBX_DB_OK == zbx_DBcommit())
 		{
 			DCconfig_triggers_apply_changes(&trigger_diff);
 

@@ -27,23 +27,23 @@
 #include "log.h"
 #include "zbxdbhigh.h"
 
-int	__wrap_DBis_null(const char *field);
-DB_ROW	__wrap_DBfetch(DB_RESULT result);
-DB_RESULT	__wrap_DBselect(const char *fmt, ...);
+int	__wrap_zbx_DBis_null(const char *field);
+DB_ROW	__wrap_zbx_DBfetch(DB_RESULT result);
+DB_RESULT	__wrap_zbx_DBselect(const char *fmt, ...);
 
-int	__wrap_DBis_null(const char *field)
+int	__wrap_zbx_DBis_null(const char *field)
 {
 	ZBX_UNUSED(field);
 	return SUCCEED;
 }
 
-DB_ROW	__wrap_DBfetch(DB_RESULT result)
+DB_ROW	__wrap_zbx_DBfetch(DB_RESULT result)
 {
 	ZBX_UNUSED(result);
 	return NULL;
 }
 
-DB_RESULT	__wrap_DBselect(const char *fmt, ...)
+DB_RESULT	__wrap_zbx_DBselect(const char *fmt, ...)
 {
 	ZBX_UNUSED(fmt);
 	return NULL;

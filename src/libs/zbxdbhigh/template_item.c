@@ -167,7 +167,7 @@ static void	DBget_interfaces_by_hostid(zbx_uint64_t hostid, zbx_uint64_t *interf
 	DB_ROW		row;
 	unsigned char	type;
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select type,interfaceid"
 			" from interface"
 			" where hostid=" ZBX_FS_UI64
@@ -175,7 +175,7 @@ static void	DBget_interfaces_by_hostid(zbx_uint64_t hostid, zbx_uint64_t *interf
 				" and main=1",
 			hostid, INTERFACE_TYPE_AGENT, INTERFACE_TYPE_SNMP, INTERFACE_TYPE_IPMI, INTERFACE_TYPE_JMX);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UCHAR(type, row[0]);
 		ZBX_STR2UINT64(interfaceids[type - 1], row[1]);
@@ -238,9 +238,9 @@ static void	get_template_items(zbx_uint64_t hostid, const zbx_vector_uint64_t *t
 			hostid);
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "ti.hostid", templateids->values, templateids->values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		item = (zbx_template_item_t *)zbx_malloc(NULL, sizeof(zbx_template_item_t));
 
@@ -406,7 +406,7 @@ static void	get_template_items(zbx_uint64_t hostid, const zbx_vector_uint64_t *t
 
 		item->upd_flags = ZBX_FLAG_TEMPLATE_ITEM_UPDATE_RESET_FLAG;
 
-		if (SUCCEED != DBis_null(row[26]))
+		if (SUCCEED != zbx_DBis_null(row[26]))
 		{
 			unsigned char	uchar_orig;
 			zbx_uint64_t	uint64_orig;
@@ -434,7 +434,7 @@ static void	get_template_items(zbx_uint64_t hostid, const zbx_vector_uint64_t *t
 #define SET_FLAG_UINT64(r, i, f)			\
 							\
 {							\
-	if (SUCCEED == DBis_null(r))			\
+	if (SUCCEED == zbx_DBis_null(r))			\
 		uint64_orig = 0;			\
 	else						\
 		ZBX_STR2UINT64(uint64_orig, (r));	\
@@ -575,9 +575,9 @@ static void	get_template_lld_rule_map(const zbx_vector_ptr_t *items, zbx_vector_
 				"select item_conditionid,itemid,operator,macro,value from item_condition where");
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "itemid", itemids.values, itemids.values_num);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			ZBX_STR2UINT64(itemid, row[1]);
 
@@ -1043,7 +1043,7 @@ static void	save_template_items(zbx_uint64_t hostid, zbx_vector_ptr_t *items)
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 		if (16 < sql_offset)
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 
 		zbx_free(sql);
 	}
@@ -1217,7 +1217,7 @@ static void	save_template_lld_rules(zbx_vector_ptr_t *items, zbx_vector_ptr_t *r
 	zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 	if (16 < sql_offset)
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
 	if (0 != new_conditions)
 	{
@@ -1287,9 +1287,9 @@ static void	save_template_discovery_prototypes(zbx_uint64_t hostid, zbx_vector_p
 			hostid);
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "i.itemid", itemids.values, itemids.values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		proto = (zbx_proto_t *)zbx_malloc(NULL, sizeof(zbx_proto_t));
 
@@ -1659,7 +1659,7 @@ static void	copy_template_items_preproc(const zbx_vector_ptr_t *items)
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 		if (16 < sql_offset)	/* in ORACLE always present begin..end; */
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 	}
 
 	if (0 != new_preproc_num)
@@ -1674,7 +1674,7 @@ static void	copy_template_items_preproc(const zbx_vector_ptr_t *items)
 		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "delete from item_preproc where");
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "item_preprocid", deleteids.values,
 				deleteids.values_num);
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
 		delete_preproc_num = deleteids.values_num;
 	}
@@ -1809,7 +1809,7 @@ static void	copy_template_item_tags(const zbx_vector_ptr_t *items)
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 		if (16 < sql_offset)	/* in ORACLE always present begin..end; */
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 	}
 
 	if (0 != new_tag_num)
@@ -1824,7 +1824,7 @@ static void	copy_template_item_tags(const zbx_vector_ptr_t *items)
 		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "delete from item_tag where");
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "itemtagid", deleteids.values,
 				deleteids.values_num);
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
 		delete_tag_num = deleteids.values_num;
 	}
@@ -1962,7 +1962,7 @@ static void	copy_template_item_script_params(const zbx_vector_ptr_t *items)
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 		if (16 < sql_offset)	/* in ORACLE always present begin..end; */
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 	}
 
 	if (0 != new_param_num)
@@ -1977,7 +1977,7 @@ static void	copy_template_item_script_params(const zbx_vector_ptr_t *items)
 		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "delete from item_parameter where");
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "item_parameterid", deleteids.values,
 				deleteids.values_num);
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
 		delete_param_num = deleteids.values_num;
 	}
@@ -2044,7 +2044,7 @@ static void	copy_template_lld_macro_paths(const zbx_vector_ptr_t *items)
 		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "delete from lld_macro_path where");
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "lld_macro_pathid", deleteids.values,
 				deleteids.values_num);
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
 		delete_lld_macro_num = deleteids.values_num;
 		sql_offset = 0;
@@ -2131,7 +2131,7 @@ static void	copy_template_lld_macro_paths(const zbx_vector_ptr_t *items)
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 		if (16 < sql_offset)	/* in ORACLE always present begin..end; */
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 	}
 
 	if (0 != new_lld_macro_num)
@@ -2183,8 +2183,8 @@ static void	lld_override_conditions_load(zbx_vector_ptr_t *overrides, const zbx_
 	DBadd_condition_alloc(sql, sql_alloc, &sql_offset, "lld_overrideid", overrideids->values,
 			overrideids->values_num);
 
-	result = DBselect("%s", *sql);
-	while (NULL != (row = DBfetch(result)))
+	result = zbx_DBselect("%s", *sql);
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(overrideid, row[0]);
 
@@ -2531,9 +2531,9 @@ static void	copy_template_lld_overrides(const zbx_vector_uint64_t *templateids,
 		zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, "select lld_overrideid,itemid from lld_override where");
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "itemid", lld_itemids->values,
 				lld_itemids->values_num);
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	delete_lld_overrideid, delete_itemid;
 
@@ -2549,7 +2549,7 @@ static void	copy_template_lld_overrides(const zbx_vector_uint64_t *templateids,
 		zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, "delete from lld_override where");
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "itemid", lld_itemids->values,
 				lld_itemids->values_num);
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 		sql_offset = 0;
 	}
 
@@ -2562,8 +2562,8 @@ static void	copy_template_lld_overrides(const zbx_vector_uint64_t *templateids,
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "i.hostid", templateids->values, templateids->values_num);
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " order by l.lld_overrideid");
 
-	result = DBselect("%s", sql);
-	while (NULL != (row = DBfetch(result)))
+	result = zbx_DBselect("%s", sql);
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		override = (lld_override_t *)zbx_malloc(NULL, sizeof(lld_override_t));
 		ZBX_STR2UINT64(override->overrideid, row[0]);
@@ -2735,8 +2735,8 @@ static void	link_template_items_preproc(const zbx_vector_uint64_t *templateids, 
 
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "itemid", itemids.values, itemids.values_num);
 
-		result = DBselect("%s", sql);
-		while (NULL != (row = DBfetch(result)))
+		result = zbx_DBselect("%s", sql);
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			ZBX_STR2UINT64(itemid, row[1]);
 
@@ -2769,8 +2769,8 @@ static void	link_template_items_preproc(const zbx_vector_uint64_t *templateids, 
 
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "ti.hostid", templateids->values, templateids->values_num);
 
-	result = DBselect("%s", sql);
-	while (NULL != (row = DBfetch(result)))
+	result = zbx_DBselect("%s", sql);
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_template_item_t		item_local, *pitem_local = &item_local, **pitem;
 
@@ -2912,8 +2912,8 @@ static void	link_template_items_tag(const zbx_vector_uint64_t *templateids, zbx_
 
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "itemid", itemids.values, itemids.values_num);
 
-		result = DBselect("%s", sql);
-		while (NULL != (row = DBfetch(result)))
+		result = zbx_DBselect("%s", sql);
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			ZBX_STR2UINT64(itemid, row[1]);
 
@@ -2944,8 +2944,8 @@ static void	link_template_items_tag(const zbx_vector_uint64_t *templateids, zbx_
 
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "ti.hostid", templateids->values, templateids->values_num);
 
-	result = DBselect("%s", sql);
-	while (NULL != (row = DBfetch(result)))
+	result = zbx_DBselect("%s", sql);
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_template_item_t		item_local, *pitem_local = &item_local, **pitem;
 
@@ -3073,8 +3073,8 @@ static void	link_template_items_param(const zbx_vector_uint64_t *templateids, zb
 
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "itemid", itemids.values, itemids.values_num);
 
-		result = DBselect("%s", sql);
-		while (NULL != (row = DBfetch(result)))
+		result = zbx_DBselect("%s", sql);
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			ZBX_STR2UINT64(itemid, row[1]);
 
@@ -3110,8 +3110,8 @@ static void	link_template_items_param(const zbx_vector_uint64_t *templateids, zb
 
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "ti.hostid", templateids->values, templateids->values_num);
 
-	result = DBselect("%s", sql);
-	while (NULL != (row = DBfetch(result)))
+	result = zbx_DBselect("%s", sql);
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_template_item_t		item_local, *pitem_local = &item_local, **pitem;
 
@@ -3238,8 +3238,8 @@ static void	link_template_lld_macro_paths(const zbx_vector_uint64_t *templateids
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "itemid", lld_itemids->values,
 				lld_itemids->values_num);
 
-		result = DBselect("%s", sql);
-		while (NULL != (row = DBfetch(result)))
+		result = zbx_DBselect("%s", sql);
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			ZBX_STR2UINT64(itemid, row[1]);
 
@@ -3275,8 +3275,8 @@ static void	link_template_lld_macro_paths(const zbx_vector_uint64_t *templateids
 
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "i.hostid", templateids->values, templateids->values_num);
 
-	result = DBselect("%s", sql);
-	while (NULL != (row = DBfetch(result)))
+	result = zbx_DBselect("%s", sql);
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_template_item_t		item_local, *pitem_local = &item_local, **pitem;
 

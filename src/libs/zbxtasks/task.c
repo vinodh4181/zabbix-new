@@ -659,7 +659,7 @@ void	zbx_tm_update_task_status(zbx_vector_ptr_t *tasks, int status)
 
 	zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, "update task set status=%d where", status);
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "taskid", taskids.values, taskids.values_num);
-	DBexecute("%s", sql);
+	zbx_DBexecute("%s", sql);
 	zbx_free(sql);
 
 	zbx_vector_uint64_destroy(&taskids);
@@ -1164,12 +1164,12 @@ static zbx_uint64_t	zbx_create_task_data(const char *data, size_t len, zbx_uint6
 
 	task->data = zbx_tm_data_create(task->taskid, data, len, ZBX_TM_DATA_TYPE_TEST_ITEM);
 
-	DBbegin();
+	zbx_DBbegin();
 
 	if (FAIL == zbx_tm_save_task(task))
 		taskid = 0;
 
-	DBcommit();
+	zbx_DBcommit();
 
 	zbx_tm_task_free(task);
 
@@ -1195,12 +1195,12 @@ static int	zbx_tm_task_result_wait(zbx_uint64_t taskid, char **info)
 
 	for (time_start = time(NULL); ZBX_DATA_TTL > time(NULL) - time_start; sleep(1))
 	{
-		result = DBselect("select status,info"
+		result = zbx_DBselect("select status,info"
 				" from task_result"
 				" where parent_taskid=" ZBX_FS_UI64,
 				taskid);
 
-		if (NULL != (row = DBfetch(result)))
+		if (NULL != (row = zbx_DBfetch(result)))
 		{
 			*info = zbx_strdup(NULL, row[1]);
 

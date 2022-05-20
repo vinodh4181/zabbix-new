@@ -197,13 +197,13 @@ static int	DBget_host_value(zbx_uint64_t hostid, char **replace_to, const char *
 	DB_ROW		row;
 	int		ret = FAIL;
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select %s"
 			" from hosts"
 			" where hostid=" ZBX_FS_UI64,
 			field_name, hostid);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		*replace_to = zbx_strdup(*replace_to, row[0]);
 		ret = SUCCEED;
@@ -227,13 +227,13 @@ static int	DBget_templateid_by_triggerid(zbx_uint64_t triggerid, zbx_uint64_t *t
 	DB_ROW		row;
 	int		ret = FAIL;
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select templateid"
 			" from triggers"
 			" where triggerid=" ZBX_FS_UI64,
 			triggerid);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_DBROW2UINT64(*templateid, row[0]);
 		ret = SUCCEED;
@@ -269,10 +269,10 @@ static int	DBget_trigger_template_name(zbx_uint64_t triggerid, const zbx_uint64_
 
 	if (NULL != userid)
 	{
-		result = DBselect("select r.type from users u,role r where u.roleid=r.roleid and"
+		result = zbx_DBselect("select r.type from users u,role r where u.roleid=r.roleid and"
 				" userid=" ZBX_FS_UI64, *userid);
 
-		if (NULL != (row = DBfetch(result)) && FAIL == DBis_null(row[0]))
+		if (NULL != (row = zbx_DBfetch(result)) && FAIL == zbx_DBis_null(row[0]))
 			user_type = atoi(row[0]);
 		DBfree_result(result);
 
@@ -284,13 +284,13 @@ static int	DBget_trigger_template_name(zbx_uint64_t triggerid, const zbx_uint64_
 	}
 
 	/* use parent trigger ID for lld generated triggers */
-	result = DBselect(
+	result = zbx_DBselect(
 			"select parent_triggerid"
 			" from trigger_discovery"
 			" where triggerid=" ZBX_FS_UI64,
 			triggerid);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 		ZBX_STR2UINT64(triggerid, row[0]);
 	DBfree_result(result);
 
@@ -341,11 +341,11 @@ static int	DBget_trigger_template_name(zbx_uint64_t triggerid, const zbx_uint64_
 	}
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " order by h.name");
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
 	zbx_free(sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		if (0 != replace_to_offset)
 			zbx_strcpy_alloc(replace_to, &replace_to_alloc, &replace_to_offset, ", ");
@@ -381,10 +381,10 @@ static int	DBget_trigger_hostgroup_name(zbx_uint64_t triggerid, const zbx_uint64
 
 	if (NULL != userid)
 	{
-		result = DBselect("select r.type from users u,role r where u.roleid=r.roleid and"
+		result = zbx_DBselect("select r.type from users u,role r where u.roleid=r.roleid and"
 				" userid=" ZBX_FS_UI64, *userid);
 
-		if (NULL != (row = DBfetch(result)) && FAIL == DBis_null(row[0]))
+		if (NULL != (row = zbx_DBfetch(result)) && FAIL == zbx_DBis_null(row[0]))
 			user_type = atoi(row[0]);
 		DBfree_result(result);
 
@@ -424,11 +424,11 @@ static int	DBget_trigger_hostgroup_name(zbx_uint64_t triggerid, const zbx_uint64
 	}
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " order by g.name");
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
 	zbx_free(sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		if (0 != replace_to_offset)
 			zbx_strcpy_alloc(replace_to, &replace_to_alloc, &replace_to_offset, ", ");
@@ -557,14 +557,14 @@ static int	DBget_item_value(zbx_uint64_t itemid, char **replace_to, int request)
 			return get_host_value(itemid, replace_to, request);
 	}
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select h.proxy_hostid,h.description,i.itemid,i.name,i.key_,i.description,i.value_type,ir.error"
 			" from items i"
 				" join hosts h on h.hostid=i.hostid"
 				" left join item_rtdata ir on ir.itemid=i.itemid"
 			" where i.itemid=" ZBX_FS_UI64, itemid);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		switch (request)
 		{
@@ -649,7 +649,7 @@ static int	DBget_item_value(zbx_uint64_t itemid, char **replace_to, int request)
 				ret = SUCCEED;
 				break;
 			case ZBX_REQUEST_ITEM_ERROR:
-				*replace_to = zbx_strdup(*replace_to, FAIL == DBis_null(row[7]) ? row[7] : "");
+				*replace_to = zbx_strdup(*replace_to, FAIL == zbx_DBis_null(row[7]) ? row[7] : "");
 				ret = SUCCEED;
 				break;
 		}
@@ -669,14 +669,14 @@ static int	DBget_trigger_error(const ZBX_DB_TRIGGER *trigger, char **replace_to)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	if (NULL == (result = DBselect("select error from triggers where triggerid=" ZBX_FS_UI64,
+	if (NULL == (result = zbx_DBselect("select error from triggers where triggerid=" ZBX_FS_UI64,
 			trigger->triggerid)))
 	{
 		ret = FAIL;
 		goto out;
 	}
 
-	*replace_to = zbx_strdup(*replace_to, (NULL == (row = DBfetch(result))) ?  "" : row[0]);
+	*replace_to = zbx_strdup(*replace_to, (NULL == (row = zbx_DBfetch(result))) ?  "" : row[0]);
 
 	DBfree_result(result);
 out:
@@ -737,7 +737,7 @@ static int	DBget_trigger_event_count(zbx_uint64_t triggerid, char **replace_to, 
 	else
 		zbx_snprintf(value, sizeof(value), "%d,%d", TRIGGER_VALUE_PROBLEM, TRIGGER_VALUE_OK);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select count(*)"
 			" from events"
 			" where source=%d"
@@ -751,7 +751,7 @@ static int	DBget_trigger_event_count(zbx_uint64_t triggerid, char **replace_to, 
 			value,
 			acknowledged);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		*replace_to = zbx_strdup(*replace_to, row[0]);
 		ret = SUCCEED;
@@ -805,9 +805,9 @@ static int	DBget_dhost_value_by_event(const ZBX_DB_EVENT *event, char **replace_
 			return ret;
 	}
 
-	result = DBselectN(sql, 1);
+	result = zbx_DBselectN(sql, 1);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		*replace_to = zbx_strdup(*replace_to, ZBX_NULL2STR(row[0]));
 		ret = SUCCEED;
@@ -834,7 +834,7 @@ static int	DBget_dchecks_value_by_event(const ZBX_DB_EVENT *event, char **replac
 	switch (event->object)
 	{
 		case EVENT_OBJECT_DSERVICE:
-			result = DBselect("select %s from dchecks c,dservices s"
+			result = zbx_DBselect("select %s from dchecks c,dservices s"
 					" where c.dcheckid=s.dcheckid and s.dserviceid=" ZBX_FS_UI64,
 					fieldname, event->objectid);
 			break;
@@ -842,7 +842,7 @@ static int	DBget_dchecks_value_by_event(const ZBX_DB_EVENT *event, char **replac
 			return ret;
 	}
 
-	if (NULL != (row = DBfetch(result)) && SUCCEED != DBis_null(row[0]))
+	if (NULL != (row = zbx_DBfetch(result)) && SUCCEED != zbx_DBis_null(row[0]))
 	{
 		*replace_to = zbx_strdup(*replace_to, row[0]);
 		ret = SUCCEED;
@@ -869,14 +869,14 @@ static int	DBget_dservice_value_by_event(const ZBX_DB_EVENT *event, char **repla
 	switch (event->object)
 	{
 		case EVENT_OBJECT_DSERVICE:
-			result = DBselect("select %s from dservices s where s.dserviceid=" ZBX_FS_UI64,
+			result = zbx_DBselect("select %s from dservices s where s.dserviceid=" ZBX_FS_UI64,
 					fieldname, event->objectid);
 			break;
 		default:
 			return ret;
 	}
 
-	if (NULL != (row = DBfetch(result)) && SUCCEED != DBis_null(row[0]))
+	if (NULL != (row = zbx_DBfetch(result)) && SUCCEED != zbx_DBis_null(row[0]))
 	{
 		*replace_to = zbx_strdup(*replace_to, row[0]);
 		ret = SUCCEED;
@@ -906,12 +906,12 @@ static int	DBget_drule_value_by_event(const ZBX_DB_EVENT *event, char **replace_
 	switch (event->object)
 	{
 		case EVENT_OBJECT_DHOST:
-			result = DBselect("select r.%s from drules r,dhosts h"
+			result = zbx_DBselect("select r.%s from drules r,dhosts h"
 					" where r.druleid=h.druleid and h.dhostid=" ZBX_FS_UI64,
 					fieldname, event->objectid);
 			break;
 		case EVENT_OBJECT_DSERVICE:
-			result = DBselect("select r.%s from drules r,dhosts h,dservices s"
+			result = zbx_DBselect("select r.%s from drules r,dhosts h,dservices s"
 					" where r.druleid=h.druleid and h.dhostid=s.dhostid and s.dserviceid=" ZBX_FS_UI64,
 					fieldname, event->objectid);
 			break;
@@ -919,7 +919,7 @@ static int	DBget_drule_value_by_event(const ZBX_DB_EVENT *event, char **replace_
 			return ret;
 	}
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		*replace_to = zbx_strdup(*replace_to, ZBX_NULL2STR(row[0]));
 		ret = SUCCEED;
@@ -1019,13 +1019,13 @@ static int	DBitem_get_value(zbx_uint64_t itemid, char **lastvalue, int raw, zbx_
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select value_type,valuemapid,units"
 			" from items"
 			" where itemid=" ZBX_FS_UI64,
 			itemid);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		unsigned char		value_type;
 		zbx_uint64_t		valuemapid;
@@ -1168,7 +1168,7 @@ static void	get_escalation_history(zbx_uint64_t actionid, const ZBX_DB_EVENT *ev
 			zbx_date2str(event->clock, tz), zbx_time2str(event->clock, tz),
 			zbx_age2str(time(NULL) - event->clock));
 
-	result = DBselect("select a.clock,a.alerttype,a.status,mt.name,a.sendto,a.error,a.esc_step,a.userid,a.message"
+	result = zbx_DBselect("select a.clock,a.alerttype,a.status,mt.name,a.sendto,a.error,a.esc_step,a.userid,a.message"
 			" from alerts a"
 			" left join media_type mt"
 				" on mt.mediatypeid=a.mediatypeid"
@@ -1177,7 +1177,7 @@ static void	get_escalation_history(zbx_uint64_t actionid, const ZBX_DB_EVENT *ev
 			" order by a.clock",
 			event->eventid, actionid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		int	user_permit;
 
@@ -1209,7 +1209,7 @@ static void	get_escalation_history(zbx_uint64_t actionid, const ZBX_DB_EVENT *ev
 		{
 			const char	*media_type_name, *send_to, *user_name;
 
-			media_type_name = (SUCCEED == DBis_null(row[3]) ? "" : row[3]);
+			media_type_name = (SUCCEED == zbx_DBis_null(row[3]) ? "" : row[3]);
 
 			if (SUCCEED == user_permit)
 			{
@@ -1269,12 +1269,12 @@ static void	get_event_update_history(const ZBX_DB_EVENT *event, char **replace_t
 	buf = (char *)zbx_malloc(buf, buf_alloc);
 	*buf = '\0';
 
-	result = DBselect("select clock,userid,message,action,old_severity,new_severity"
+	result = zbx_DBselect("select clock,userid,message,action,old_severity,new_severity"
 			" from acknowledges"
 			" where eventid=" ZBX_FS_UI64 " order by clock",
 			event->eventid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		const char	*user_name;
 		char		*actions = NULL;
@@ -1337,12 +1337,12 @@ static int	get_autoreg_value_by_event(const ZBX_DB_EVENT *event, char **replace_
 	DB_ROW		row;
 	int		ret = FAIL;
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select %s"
 			" from autoreg_host"
 			" where autoreg_hostid=" ZBX_FS_UI64, fieldname, event->objectid);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		*replace_to = zbx_strdup(*replace_to, ZBX_NULL2STR(row[0]));
 		ret = SUCCEED;
@@ -1767,9 +1767,9 @@ static int	get_action_value(const char *macro, zbx_uint64_t actionid, char **rep
 		DB_RESULT	result;
 		DB_ROW		row;
 
-		result = DBselect("select name from actions where actionid=" ZBX_FS_UI64, actionid);
+		result = zbx_DBselect("select name from actions where actionid=" ZBX_FS_UI64, actionid);
 
-		if (NULL != (row = DBfetch(result)))
+		if (NULL != (row = zbx_DBfetch(result)))
 			*replace_to = zbx_strdup(*replace_to, row[0]);
 		else
 			ret = FAIL;

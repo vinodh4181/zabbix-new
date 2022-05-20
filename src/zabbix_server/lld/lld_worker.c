@@ -148,7 +148,7 @@ static void	lld_process_task(zbx_ipc_message_t *message)
 		zbx_db_save_item_changes(&sql, &sql_alloc, &sql_offset, &diffs, ZBX_FLAGS_ITEM_DIFF_UPDATE_DB);
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 		if (16 < sql_offset)
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 
 		DCconfig_items_apply_changes(&diffs);
 

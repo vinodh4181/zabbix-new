@@ -43,8 +43,8 @@ static int	get_trigger_count(void)
 	DB_ROW		row;
 	int		triggers_num;
 
-	result = DBselect("select count(*) from triggers");
-	if (NULL != (row = DBfetch(result)))
+	result = zbx_DBselect("select count(*) from triggers");
+	if (NULL != (row = zbx_DBfetch(result)))
 		triggers_num = atoi(row[0]);
 	else
 		triggers_num = 0;
@@ -283,7 +283,7 @@ static int	process_event_update(const ZBX_DB_TRIGGER *trigger, char **sql, size_
 
 	memset(&event, 0, sizeof(ZBX_DB_EVENT));
 
-	result = DBselect("select eventid,source,object,objectid,clock,value,acknowledged,ns,name"
+	result = zbx_DBselect("select eventid,source,object,objectid,clock,value,acknowledged,ns,name"
 			" from events"
 			" where source=%d"
 				" and object=%d"
@@ -291,7 +291,7 @@ static int	process_event_update(const ZBX_DB_TRIGGER *trigger, char **sql, size_
 			" order by eventid",
 			EVENT_SOURCE_TRIGGERS, EVENT_OBJECT_TRIGGER, trigger->triggerid);
 
-	while (SUCCEED == ret && NULL != (row = DBfetch(result)))
+	while (SUCCEED == ret && NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(event.eventid, row[0]);
 		event.source = atoi(row[1]);
@@ -367,7 +367,7 @@ static int	update_event_names(void)
 	sql = (char *)zbx_malloc(NULL, sql_alloc);
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select triggerid,description,expression,priority,comments,url,recovery_expression,"
 				"recovery_mode,value"
 			" from triggers"
@@ -375,7 +375,7 @@ static int	update_event_names(void)
 
 	um_handle = zbx_dc_open_user_macros();
 
-	while (SUCCEED == ret && NULL != (row = DBfetch(result)))
+	while (SUCCEED == ret && NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(trigger.triggerid, row[0]);
 		trigger.description = zbx_strdup(NULL, row[1]);
@@ -411,7 +411,7 @@ static int	update_event_names(void)
 
 	if (SUCCEED == ret && 16 < sql_offset) /* in ORACLE always present begin..end; */
 	{
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			ret = FAIL;
 	}
 
@@ -441,20 +441,20 @@ int	zbx_check_postinit_tasks(char **error)
 	DB_ROW		row;
 	int		ret = SUCCEED;
 
-	result = DBselect("select taskid from task where type=%d and status=%d", ZBX_TM_TASK_UPDATE_EVENTNAMES,
+	result = zbx_DBselect("select taskid from task where type=%d and status=%d", ZBX_TM_TASK_UPDATE_EVENTNAMES,
 			ZBX_TM_STATUS_NEW);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
-		DBbegin();
+		zbx_DBbegin();
 
 		if (SUCCEED == (ret = update_event_names()))
 		{
-			DBexecute("delete from task where taskid=%s", row[0]);
-			DBcommit();
+			zbx_DBexecute("delete from task where taskid=%s", row[0]);
+			zbx_DBcommit();
 		}
 		else
-			DBrollback();
+			zbx_DBrollback();
 	}
 
 	DBfree_result(result);

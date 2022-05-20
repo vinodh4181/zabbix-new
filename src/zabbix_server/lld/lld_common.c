@@ -130,7 +130,7 @@ void	lld_remove_lost_objects(const char *table, const char *id_name, const zbx_v
 
 	/* update discovery table */
 
-	DBbegin();
+	zbx_DBbegin();
 
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
@@ -170,7 +170,7 @@ void	lld_remove_lost_objects(const char *table, const char *id_name, const zbx_v
 	zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 	if (16 < sql_offset)	/* in ORACLE always present begin..end; */
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
 	zbx_free(sql);
 
@@ -182,7 +182,7 @@ void	lld_remove_lost_objects(const char *table, const char *id_name, const zbx_v
 		cb(&del_ids);
 	}
 
-	DBcommit();
+	zbx_DBcommit();
 clean:
 	zbx_vector_uint64_pair_destroy(&discovery_ts);
 	zbx_vector_uint64_destroy(&ts_ids);

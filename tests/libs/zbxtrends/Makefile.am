@@ -37,9 +37,9 @@ zbx_trends_parse_range_LDADD = \
 zbx_trends_parse_range_LDADD += @SERVER_LIBS@
 
 zbx_trends_parse_range_LDFLAGS = @SERVER_LDFLAGS@ \
-	-Wl,--wrap=DBfetch \
-	-Wl,--wrap=DBselect \
-	-Wl,--wrap=DBis_null
+	-Wl,--wrap=zbx_DBfetch \
+	-Wl,--wrap=zbx_DBselect \
+	-Wl,--wrap=zbx_DBis_null
 
 zbx_trends_parse_range_CFLAGS = $(COMMON_COMPILER_FLAGS)
 
@@ -56,9 +56,9 @@ zbx_baseline_get_data_LDADD = \
 zbx_baseline_get_data_LDADD += @SERVER_LIBS@
 
 zbx_baseline_get_data_LDFLAGS = @SERVER_LDFLAGS@ \
-	-Wl,--wrap=DBfetch \
-	-Wl,--wrap=DBselect \
-	-Wl,--wrap=DBis_null \
+	-Wl,--wrap=zbx_DBfetch \
+	-Wl,--wrap=zbx_DBselect \
+	-Wl,--wrap=zbx_DBis_null \
 	-Wl,--wrap=zbx_trends_get_avg
 
 zbx_baseline_get_data_CFLAGS = $(COMMON_COMPILER_FLAGS)

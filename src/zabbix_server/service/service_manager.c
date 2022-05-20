@@ -233,7 +233,7 @@ static void	db_get_events(zbx_hashset_t *problem_events)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect("select p.eventid,p.clock,p.severity,t.tag,t.value,p.ns"
+	result = zbx_DBselect("select p.eventid,p.clock,p.severity,t.tag,t.value,p.ns"
 			" from problem p"
 			" left join problem_tag t"
 				" on p.eventid=t.eventid"
@@ -243,7 +243,7 @@ static void	db_get_events(zbx_hashset_t *problem_events)
 			" order by p.eventid",
 			EVENT_SOURCE_TRIGGERS, EVENT_OBJECT_TRIGGER);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(eventid, row[0]);
 
@@ -260,7 +260,7 @@ static void	db_get_events(zbx_hashset_t *problem_events)
 			zbx_hashset_insert(problem_events, &event, sizeof(zbx_event_t *));
 		}
 
-		if (FAIL == DBis_null(row[3]))
+		if (FAIL == zbx_DBis_null(row[3]))
 		{
 			zbx_tag_t	*tag;
 
@@ -450,11 +450,11 @@ static void	sync_service_problem_tags(zbx_service_manager_t *service_manager, in
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect("select service_problem_tagid,serviceid,tag,operator,value"
+	result = zbx_DBselect("select service_problem_tagid,serviceid,tag,operator,value"
 			" from service_problem_tag"
 			" order by serviceid");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	serviceid;
 		unsigned char	op;
@@ -548,10 +548,10 @@ static void	sync_services(zbx_service_manager_t *service_manager, int *updated, 
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect("select serviceid,status,algorithm,name,weight,propagation_rule,propagation_value"
+	result = zbx_DBselect("select serviceid,status,algorithm,name,weight,propagation_rule,propagation_value"
 			" from services");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		int	update = 0;
 
@@ -663,11 +663,11 @@ static void	sync_service_rules(zbx_service_manager_t *service_manager, int *upda
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect("select service_status_ruleid,serviceid,type,limit_value,limit_status,new_status"
+	result = zbx_DBselect("select service_status_ruleid,serviceid,type,limit_value,limit_status,new_status"
 			" from service_status_rule"
 			" order by serviceid");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		int	update = 0;
 
@@ -750,9 +750,9 @@ static void	sync_service_tags(zbx_service_manager_t *service_manager, int revisi
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect("select servicetagid,serviceid,tag,value from service_tag");
+	result = zbx_DBselect("select servicetagid,serviceid,tag,value from service_tag");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(service_local.serviceid, row[1]);
 
@@ -806,9 +806,9 @@ static void	sync_services_links(zbx_service_manager_t *service_manager, int *upd
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect("select linkid,serviceupid,servicedownid from services_links");
+	result = zbx_DBselect("select linkid,serviceupid,servicedownid from services_links");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_service_t	*parent, *child;
 		zbx_uint64_t	serviceupid;
@@ -864,9 +864,9 @@ static void	sync_service_problems(zbx_hashset_t *services, zbx_hashset_t *servic
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect("select service_problemid,eventid,serviceid,severity from service_problem");
+	result = zbx_DBselect("select service_problemid,eventid,serviceid,severity from service_problem");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_service_problem_t	*service_problem;
 
@@ -902,12 +902,12 @@ static void	sync_actions(zbx_service_manager_t *service_manager, int revision)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect("select actionid,evaltype,formula from actions "
+	result = zbx_DBselect("select actionid,evaltype,formula from actions "
 				"where eventsource=%d"
 					" and status=%d",
 			EVENT_SOURCE_SERVICE, ACTION_STATUS_ACTIVE);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(action_local.actionid, row[0]);
 
@@ -1020,14 +1020,14 @@ static void	sync_action_conditions(zbx_service_manager_t *service_manager, int r
 
 	zbx_vector_ptr_create(&actions);
 
-	result = DBselect("select c.conditionid,c.actionid,c.conditiontype,c.operator,c.value,c.value2"
+	result = zbx_DBselect("select c.conditionid,c.actionid,c.conditiontype,c.operator,c.value,c.value2"
 				" from conditions c,actions a"
 				" where c.actionid=a.actionid"
 					" and a.eventsource=%d"
 					" and a.status=%d",
 			EVENT_SOURCE_SERVICE, ACTION_STATUS_ACTIVE);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(action_local.actionid, row[1]);
 
@@ -1105,10 +1105,10 @@ static void	sync_config(zbx_service_manager_t *service_manager)
 	DB_RESULT	result;
 	int		i;
 
-	result = DBselect("select severity_name_0,severity_name_1,severity_name_2,severity_name_3,severity_name_4,"
+	result = zbx_DBselect("select severity_name_0,severity_name_1,severity_name_2,severity_name_3,severity_name_4,"
 				"severity_name_5 from config");
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		for (i = 0; i < TRIGGER_SEVERITY_COUNT; i++)
 			service_manager->severities[i] = zbx_strdup(service_manager->severities[i], row[i]);
@@ -1384,7 +1384,7 @@ static int	its_write_status_and_alarms(zbx_vector_ptr_t *alarms, zbx_hashset_t *
 
 	if (16 < sql_offset)
 	{
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			goto out;
 	}
 
@@ -2148,9 +2148,9 @@ static void	db_get_service_problems(zbx_vector_uint64_t *serviceids, zbx_vector_
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "objectid", serviceids->values, serviceids->values_num);
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " and r_eventid is null");
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_pair_t	pair;
 
@@ -2295,7 +2295,7 @@ static void	db_resolve_service_events(zbx_service_manager_t *manager, const zbx_
 	zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 	if (16 < sql_offset)	/* in ORACLE always present begin..end; */
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
 	zbx_db_insert_execute(&db_insert_recovery);
 	zbx_db_insert_clean(&db_insert_recovery);
@@ -2601,13 +2601,13 @@ static void	db_update_services(zbx_service_manager_t *manager)
 
 	do
 	{
-		DBbegin();
+		zbx_DBbegin();
 		its_write_status_and_alarms(&alarms, &service_updates, &service_problems_new, &service_problemids);
 
 		if (0 != manager->actions.num_data)
 			db_manage_service_events(manager, &service_updates);
 	}
-	while (ZBX_DB_DOWN == DBcommit());
+	while (ZBX_DB_DOWN == zbx_DBcommit());
 
 	zbx_vector_uint64_destroy(&service_problemids);
 	zbx_vector_ptr_destroy(&service_problems_new);
@@ -2935,7 +2935,7 @@ static int	db_update_service_problems(const zbx_vector_ptr_t *event_severities)
 	{
 		size_t	sql_offset = 0;
 
-		DBbegin();
+		zbx_DBbegin();
 		zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 		for (i = 0; i < event_severities->values_num; i++)
@@ -2951,9 +2951,9 @@ static int	db_update_service_problems(const zbx_vector_ptr_t *event_severities)
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 		if (16 < sql_offset)
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 	}
-	while (ZBX_DB_DOWN == (txn_rc = DBcommit()));
+	while (ZBX_DB_DOWN == (txn_rc = zbx_DBcommit()));
 
 	zbx_free(sql);
 
@@ -3330,7 +3330,7 @@ ZBX_THREAD_ENTRY(service_manager_thread, args)
 			do
 			{
 				revision = (int)time(NULL);
-				DBbegin();
+				zbx_DBbegin();
 				sync_services(&service_manager, &updated, revision);
 				sync_service_rules(&service_manager, &updated, revision);
 				sync_service_tags(&service_manager, revision);
@@ -3347,7 +3347,7 @@ ZBX_THREAD_ENTRY(service_manager_thread, args)
 							&service_manager.service_problems_index);
 				}
 			}
-			while (ZBX_DB_DOWN == DBcommit());
+			while (ZBX_DB_DOWN == zbx_DBcommit());
 
 			if (0 != updated)
 				recalculate_services(&service_manager);

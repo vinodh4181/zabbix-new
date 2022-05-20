@@ -163,9 +163,9 @@ static int	check_host_group_condition(const zbx_vector_ptr_t *esc_events, zbx_co
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " and");
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "hg.groupid", groupids.values, groupids.values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	objectid;
 
@@ -308,9 +308,9 @@ static void	check_object_hierarchy(int object, const zbx_vector_ptr_t *esc_event
 
 		zbx_vector_uint64_clear(&objectids_tmp);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	objectid, parent_objectid, value;
 
@@ -418,9 +418,9 @@ static int	check_host_template_condition(const zbx_vector_ptr_t *esc_events, zbx
 
 	trigger_parents_sql_alloc(&sql, &sql_alloc, &objectids);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_pair_t	pair;
 		int			i;
@@ -492,9 +492,9 @@ static int	check_host_condition(const zbx_vector_ptr_t *esc_events, zbx_conditio
 
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "f.triggerid", objectids.values, objectids.values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	objectid;
 
@@ -767,8 +767,8 @@ static int	check_acknowledged_condition(const zbx_vector_ptr_t *esc_events, zbx_
 
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "eventid", eventids.values, eventids.values_num);
 
-	result = DBselect("%s", sql);
-	while (NULL != (row = DBfetch(result)))
+	result = zbx_DBselect("%s", sql);
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	eventid;
 
@@ -1039,9 +1039,9 @@ static int	check_drule_condition(const zbx_vector_ptr_t *esc_events, zbx_conditi
 					objectids[i].values, objectids[i].values_num);
 		}
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	objectid;
 
@@ -1113,9 +1113,9 @@ static int	check_dcheck_condition(const zbx_vector_ptr_t *esc_events, zbx_condit
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "dserviceid", objectids.values,
 				objectids.values_num);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	objectid;
 
@@ -1234,9 +1234,9 @@ static int	check_proxy_condition(const zbx_vector_ptr_t *esc_events, zbx_conditi
 					objectids[i].values, objectids[i].values_num);
 		}
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	objectid;
 
@@ -1309,9 +1309,9 @@ static int	check_dvalue_condition(const zbx_vector_ptr_t *esc_events, zbx_condit
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "dserviceid", objectids.values,
 				objectids.values_num);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	objectid;
 
@@ -1414,9 +1414,9 @@ static int	check_dhost_ip_condition(const zbx_vector_ptr_t *esc_events, zbx_cond
 					objectids[i].values, objectids[i].values_num);
 		}
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	objectid;
 
@@ -1492,9 +1492,9 @@ static int	check_dservice_type_condition(const zbx_vector_ptr_t *esc_events, zbx
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "ds.dserviceid", objectids.values,
 				objectids.values_num);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	objectid;
 			int		tmp_int;
@@ -1621,9 +1621,9 @@ static int	check_duptime_condition(const zbx_vector_ptr_t *esc_events, zbx_condi
 					objectids[i].values, objectids[i].values_num);
 		}
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	objectid;
 			int		now, tmp_int;
@@ -1701,9 +1701,9 @@ static int	check_dservice_port_condition(const zbx_vector_ptr_t *esc_events, zbx
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "dserviceid", objectids.values,
 				objectids.values_num);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	objectid;
 
@@ -1842,9 +1842,9 @@ static int	check_hostname_metadata_condition(const zbx_vector_ptr_t *esc_events,
 
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "autoreg_hostid", objectids.values, objectids.values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	objectid;
 
@@ -1916,9 +1916,9 @@ static int	check_areg_proxy_condition(const zbx_vector_ptr_t *esc_events, zbx_co
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "autoreg_hostid",
 			objectids.values, objectids.values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	id;
 		zbx_uint64_t	objectid;
@@ -2167,9 +2167,9 @@ static int	check_intern_host_group_condition(const zbx_vector_ptr_t *esc_events,
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "hg.groupid", groupids.values,
 				groupids.values_num);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	objectid;
 
@@ -2287,9 +2287,9 @@ static int	check_intern_host_template_condition(const zbx_vector_ptr_t *esc_even
 		else	/* EVENT_OBJECT_ITEM, EVENT_OBJECT_LLDRULE */
 			item_parents_sql_alloc(&sql, &sql_alloc, objectids_ptr);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_pair_t	pair;
 
@@ -2405,9 +2405,9 @@ static int	check_intern_host_condition(const zbx_vector_ptr_t *esc_events, zbx_c
 					objectids[i].values, objectids[i].values_num);
 		}
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	objectid;
 
@@ -2686,7 +2686,7 @@ static void	execute_operations(const ZBX_DB_EVENT *event, zbx_uint64_t actionid)
 	zbx_vector_uint64_create(&new_groupids);
 	zbx_vector_uint64_create(&del_groupids);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select o.operationtype,g.groupid,t.templateid,oi.inventory_mode"
 			" from operations o"
 				" left join opgroup g on g.operationid=o.operationid"
@@ -2700,7 +2700,7 @@ static void	execute_operations(const ZBX_DB_EVENT *event, zbx_uint64_t actionid)
 			ZBX_CONFIG_FLAGS_AUDITLOG_ENABLED);
 	zbx_audit_init(cfg.auditlog_enabled);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		int		inventory_mode;
 		unsigned char	operationtype;
@@ -2708,7 +2708,7 @@ static void	execute_operations(const ZBX_DB_EVENT *event, zbx_uint64_t actionid)
 		operationtype = (unsigned char)atoi(row[0]);
 		ZBX_DBROW2UINT64(groupid, row[1]);
 		ZBX_DBROW2UINT64(templateid, row[2]);
-		inventory_mode = (SUCCEED == DBis_null(row[3]) ? 0 : atoi(row[3]));
+		inventory_mode = (SUCCEED == zbx_DBis_null(row[3]) ? 0 : atoi(row[3]));
 
 		switch (operationtype)
 		{
@@ -3190,12 +3190,12 @@ void	process_actions(const zbx_vector_ptr_t *events, const zbx_vector_uint64_pai
 				" where");
 
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "eventid", eventids.values, eventids.values_num);
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
 		zbx_vector_uint64_pair_reserve(&rec_escalations, eventids.values_num);
 
 		/* 3.3. Store the escalationids corresponding to the OK events in 'rec_escalations'. */
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_pair_t	pair;
 
@@ -3281,7 +3281,7 @@ void	process_actions(const zbx_vector_ptr_t *events, const zbx_vector_uint64_pai
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 		if (16 < sql_offset)	/* in ORACLE always present begin..end; */
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 
 		zbx_free(sql);
 	}
@@ -3482,11 +3482,11 @@ void	get_db_actions_info(zbx_vector_uint64_t *actionids, zbx_vector_ptr_t *actio
 	DBadd_condition_alloc(&filter, &filter_alloc, &filter_offset, "actionid", actionids->values,
 			actionids->values_num);
 
-	result = DBselect("select actionid,name,status,eventsource,esc_period,pause_suppressed,notify_if_canceled"
+	result = zbx_DBselect("select actionid,name,status,eventsource,esc_period,pause_suppressed,notify_if_canceled"
 				" from actions"
 				" where%s order by actionid", filter);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		char	*tmp;
 
@@ -3515,10 +3515,10 @@ void	get_db_actions_info(zbx_vector_uint64_t *actionids, zbx_vector_ptr_t *actio
 	}
 	DBfree_result(result);
 
-	result = DBselect("select actionid from operations where recovery=%d and%s",
+	result = zbx_DBselect("select actionid from operations where recovery=%d and%s",
 			ZBX_OPERATION_MODE_RECOVERY, filter);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	actionid;
 		int		index;

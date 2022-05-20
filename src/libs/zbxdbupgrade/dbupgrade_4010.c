@@ -41,7 +41,7 @@ static int	DBpatch_4010002(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > DBexecute("update media_type set content_type=0"))
+	if (ZBX_DB_OK > zbx_DBexecute("update media_type set content_type=0"))
 		return FAIL;
 
 	return SUCCEED;
@@ -138,7 +138,7 @@ static int	DBpatch_4010013(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > DBexecute("update profiles set idx='web.items.filter_groupids'"
+	if (ZBX_DB_OK > zbx_DBexecute("update profiles set idx='web.items.filter_groupids'"
 				" where idx='web.items.filter_groupid'"))
 		return FAIL;
 
@@ -150,7 +150,7 @@ static int	DBpatch_4010014(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > DBexecute("update profiles set idx='web.items.filter_hostids'"
+	if (ZBX_DB_OK > zbx_DBexecute("update profiles set idx='web.items.filter_hostids'"
 				" where idx='web.items.filter_hostid'"))
 		return FAIL;
 
@@ -162,7 +162,7 @@ static int	DBpatch_4010015(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > DBexecute("update profiles set idx='web.items.filter_inherited'"
+	if (ZBX_DB_OK > zbx_DBexecute("update profiles set idx='web.items.filter_inherited'"
 				" where idx='web.items.filter_templated_items'"))
 		return FAIL;
 
@@ -174,7 +174,7 @@ static int	DBpatch_4010016(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > DBexecute("delete from profiles where idx='web.triggers.filter_priority' and value_int='-1'"))
+	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx='web.triggers.filter_priority' and value_int='-1'"))
 		return FAIL;
 
 	return SUCCEED;
@@ -237,19 +237,19 @@ static int	DBpatch_4010025(void)
 	if (0 != (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > DBexecute("delete from ids where table_name='proxy_history'"))
+	if (ZBX_DB_OK > zbx_DBexecute("delete from ids where table_name='proxy_history'"))
 		return FAIL;
 
-	result = DBselect("select max(id) from proxy_history");
+	result = zbx_DBselect("select max(id) from proxy_history");
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 		ZBX_DBROW2UINT64(nextid, row[0]);
 	else
 		nextid = 0;
 
 	DBfree_result(result);
 
-	if (0 != nextid && ZBX_DB_OK > DBexecute("insert into ids values ('proxy_history','history_lastid'," ZBX_FS_UI64
+	if (0 != nextid && ZBX_DB_OK > zbx_DBexecute("insert into ids values ('proxy_history','history_lastid'," ZBX_FS_UI64
 			")", nextid))
 	{
 		return FAIL;
@@ -263,7 +263,7 @@ static int	DBpatch_4010026(void)
 	if (0 != (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > DBexecute("update hosts set status=1"))
+	if (ZBX_DB_OK > zbx_DBexecute("update hosts set status=1"))
 		return FAIL;
 
 	return SUCCEED;

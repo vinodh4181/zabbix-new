@@ -40,7 +40,7 @@ void	zbx_tm_get_remote_tasks(zbx_vector_ptr_t *tasks, zbx_uint64_t proxy_hostid)
 	DB_ROW		row;
 
 	/* skip tasks past expiry data - task manager will handle them */
-	result = DBselect(
+	result = zbx_DBselect(
 			"select t.taskid,t.type,t.clock,t.ttl,"
 				"c.command_type,c.execute_on,c.port,c.authtype,c.username,c.password,c.publickey,"
 				"c.privatekey,c.command,c.alertid,c.parent_taskid,c.hostid,"
@@ -59,7 +59,7 @@ void	zbx_tm_get_remote_tasks(zbx_vector_ptr_t *tasks, zbx_uint64_t proxy_hostid)
 			" order by t.taskid",
 			ZBX_TM_STATUS_NEW, proxy_hostid, (zbx_fs_time_t)time(NULL));
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	taskid, alertid, parent_taskid, hostid, itemid;
 		zbx_tm_task_t	*task;
@@ -71,7 +71,7 @@ void	zbx_tm_get_remote_tasks(zbx_vector_ptr_t *tasks, zbx_uint64_t proxy_hostid)
 		switch (task->type)
 		{
 			case ZBX_TM_TASK_REMOTE_COMMAND:
-				if (SUCCEED == DBis_null(row[4]))
+				if (SUCCEED == zbx_DBis_null(row[4]))
 				{
 					zbx_free(task);
 					continue;
@@ -85,7 +85,7 @@ void	zbx_tm_get_remote_tasks(zbx_vector_ptr_t *tasks, zbx_uint64_t proxy_hostid)
 						parent_taskid, hostid, alertid);
 				break;
 			case ZBX_TM_TASK_CHECK_NOW:
-				if (SUCCEED == DBis_null(row[16]))
+				if (SUCCEED == zbx_DBis_null(row[16]))
 				{
 					zbx_free(task);
 					continue;
@@ -95,7 +95,7 @@ void	zbx_tm_get_remote_tasks(zbx_vector_ptr_t *tasks, zbx_uint64_t proxy_hostid)
 				task->data = (void *)zbx_tm_check_now_create(itemid);
 				break;
 			case ZBX_TM_TASK_DATA:
-				if (SUCCEED == DBis_null(row[17]))
+				if (SUCCEED == zbx_DBis_null(row[17]))
 				{
 					zbx_free(task);
 					continue;

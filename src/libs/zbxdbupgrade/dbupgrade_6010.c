@@ -37,7 +37,7 @@ static int	DBpatch_6010000(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > DBexecute("update users set passwd='' where length(passwd)=%d", ZBX_MD5_SIZE))
+	if (ZBX_DB_OK > zbx_DBexecute("update users set passwd='' where length(passwd)=%d", ZBX_MD5_SIZE))
 		return FAIL;
 
 	return SUCCEED;
@@ -59,14 +59,14 @@ static int	DBpatch_6010002(void)
 	char		*sql = NULL, *descripton_esc;
 	size_t		sql_alloc = 0, sql_offset = 0;
 
-	result = DBselect(
+	result = zbx_DBselect(
 		"select triggerid,description"
 		" from triggers"
 		" where " ZBX_DB_CHAR_LENGTH(description) ">%d", 255);
 
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		row[1][zbx_strlen_utf8_nchars(row[1], 255)] = '\0';
 
@@ -81,7 +81,7 @@ static int	DBpatch_6010002(void)
 
 	zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	if (16 < sql_offset && ZBX_DB_OK > DBexecute("%s", sql))
+	if (16 < sql_offset && ZBX_DB_OK > zbx_DBexecute("%s", sql))
 		ret = FAIL;
 out:
 	DBfree_result(result);
@@ -113,14 +113,14 @@ static int	DBpatch_6010005(void)
 	char		*sql = NULL;
 	size_t		sql_alloc = 0, sql_offset = 0;
 
-	result = DBselect(
+	result = zbx_DBselect(
 		"select ht.hosttemplateid"
 		" from hosts_templates ht, hosts h"
 		" where ht.hostid=h.hostid and h.flags=4"); /* ZBX_FLAG_DISCOVERY_CREATED */
 
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		/* set ZBX_TEMPLATE_LINK_LLD as link_type */
 		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset,
@@ -132,7 +132,7 @@ static int	DBpatch_6010005(void)
 
 	zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	if (16 < sql_offset && ZBX_DB_OK > DBexecute("%s", sql))
+	if (16 < sql_offset && ZBX_DB_OK > zbx_DBexecute("%s", sql))
 		ret = FAIL;
 out:
 	DBfree_result(result);
@@ -209,14 +209,14 @@ static int	DBpatch_6010013(void)
 	DB_RESULT	result;
 	DB_ROW		row;
 
-	if (NULL == (result = DBselect("select ldap_host,ldap_port,ldap_base_dn,ldap_bind_dn,"
+	if (NULL == (result = zbx_DBselect("select ldap_host,ldap_port,ldap_base_dn,ldap_bind_dn,"
 			"ldap_bind_password,ldap_search_attribute"
 			" from config where ldap_configured=1")))
 	{
 		return FAIL;
 	}
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		char	*base_dn_esc, *bind_dn_esc, *password_esc, *search_esc;
 
@@ -225,7 +225,7 @@ static int	DBpatch_6010013(void)
 		password_esc = DBdyn_escape_string(row[4]);
 		search_esc = DBdyn_escape_string(row[5]);
 
-		rc = DBexecute("insert into userdirectory (userdirectoryid,name,description,host,port,"
+		rc = zbx_DBexecute("insert into userdirectory (userdirectoryid,name,description,host,port,"
 				"base_dn,bind_dn,bind_password,search_attribute,start_tls) values "
 				"(1,'Default LDAP server','','%s',%s,'%s','%s','%s','%s',%d)",
 				row[0], row[1], base_dn_esc, bind_dn_esc, password_esc, search_esc, 0);
@@ -246,7 +246,7 @@ static int	DBpatch_6010013(void)
 
 static int	DBpatch_6010014(void)
 {
-	if (ZBX_DB_OK > DBexecute("update config set ldap_userdirectoryid=1 where ldap_configured=1"))
+	if (ZBX_DB_OK > zbx_DBexecute("update config set ldap_userdirectoryid=1 where ldap_configured=1"))
 		return FAIL;
 
 	return SUCCEED;
@@ -314,10 +314,10 @@ static int	DBpatch_6010023(void)
 
 	zbx_db_insert_prepare(&insert, "host_rtdata", "hostid", "active_available", NULL);
 
-	result = DBselect("select hostid from hosts where flags!=%i and status in (%i,%i)",
+	result = zbx_DBselect("select hostid from hosts where flags!=%i and status in (%i,%i)",
 			ZBX_FLAG_DISCOVERY_PROTOTYPE, HOST_STATUS_MONITORED, HOST_STATUS_NOT_MONITORED);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(hostid, row[0]);
 		zbx_db_insert_add_values(&insert, hostid, INTERFACE_AVAILABLE_UNKNOWN);
@@ -354,12 +354,12 @@ static int	DBpatch_6010024(void)
 
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select hi.itemid,hi.type,ht.name"
 			" from httptestitem hi,httptest ht"
 			" where hi.httptestid=ht.httptestid");
 
-	while (SUCCEED == ret && NULL != (row = DBfetch(result)))
+	while (SUCCEED == ret && NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	itemid;
 		char		*esc;
@@ -397,7 +397,7 @@ static int	DBpatch_6010024(void)
 
 	if (SUCCEED == ret && 16 < sql_offset)
 	{
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			ret = FAIL;
 	}
 
@@ -421,13 +421,13 @@ static int	DBpatch_6010025(void)
 
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select hi.itemid,hi.type,hs.name,ht.name"
 			" from httpstepitem hi,httpstep hs,httptest ht"
 			" where hi.httpstepid=hs.httpstepid"
 				" and hs.httptestid=ht.httptestid");
 
-	while (SUCCEED == ret && NULL != (row = DBfetch(result)))
+	while (SUCCEED == ret && NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	itemid;
 		char		*esc;
@@ -465,7 +465,7 @@ static int	DBpatch_6010025(void)
 
 	if (SUCCEED == ret && 16 < sql_offset)
 	{
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			ret = FAIL;
 	}
 

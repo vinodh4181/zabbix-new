@@ -179,7 +179,7 @@ zbx_host_template_link_type;
 
 #define ZBX_SQL_NULLCMP(f1, f2)	"((" f1 " is null and " f2 " is null) or " f1 "=" f2 ")"
 
-#define ZBX_DBROW2UINT64(uint, row)	if (SUCCEED == DBis_null(row))		\
+#define ZBX_DBROW2UINT64(uint, row)	if (SUCCEED == zbx_DBis_null(row))		\
 						uint = 0;			\
 					else					\
 						is_uint64(row, &uint)
@@ -409,17 +409,17 @@ void	zbx_db_validate_config(void);
 #ifdef HAVE_ORACLE
 void	zbx_DBstatement_prepare(const char *sql);
 #endif
-int		DBexecute(const char *fmt, ...) __zbx_attr_format_printf(1, 2);
-int		DBexecute_once(const char *fmt, ...) __zbx_attr_format_printf(1, 2);
-DB_RESULT	DBselect_once(const char *fmt, ...) __zbx_attr_format_printf(1, 2);
-DB_RESULT	DBselect(const char *fmt, ...) __zbx_attr_format_printf(1, 2);
-DB_RESULT	DBselectN(const char *query, int n);
-DB_ROW		DBfetch(DB_RESULT result);
-int		DBis_null(const char *field);
-void		DBbegin(void);
-int		DBcommit(void);
-void		DBrollback(void);
-int		DBend(int ret);
+int		zbx_DBexecute(const char *fmt, ...) __zbx_attr_format_printf(1, 2);
+int		zbx_DBexecute_once(const char *fmt, ...) __zbx_attr_format_printf(1, 2);
+DB_RESULT	zbx_DBselect_once(const char *fmt, ...) __zbx_attr_format_printf(1, 2);
+DB_RESULT	zbx_DBselect(const char *fmt, ...) __zbx_attr_format_printf(1, 2);
+DB_RESULT	zbx_DBselectN(const char *query, int n);
+DB_ROW		zbx_DBfetch(DB_RESULT result);
+int		zbx_DBis_null(const char *field);
+void		zbx_DBbegin(void);
+int		zbx_DBcommit(void);
+void		zbx_DBrollback(void);
+int		zbx_DBend(int ret);
 
 const ZBX_TABLE	*DBget_table(const char *tablename);
 const ZBX_FIELD	*DBget_field(const ZBX_TABLE *table, const char *fieldname);
@@ -590,7 +590,7 @@ int	DBlock_ids(const char *table_name, const char *field_name, zbx_vector_uint64
 
 void	DBdelete_groups(zbx_vector_uint64_t *groupids);
 
-void	DBselect_uint64(const char *sql, zbx_vector_uint64_t *ids);
+void	zbx_DBselect_uint64(const char *sql, zbx_vector_uint64_t *ids);
 
 void	DBcheck_character_set(void);
 

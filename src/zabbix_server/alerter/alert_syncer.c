@@ -145,12 +145,12 @@ static int	am_db_get_alerts(zbx_vector_ptr_t *alerts)
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "a.status", status_filter, status_limit);
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " order by a.alertid");
 
-	DBbegin();
-	result = DBselect("%s", sql);
+	zbx_DBbegin();
+	result = zbx_DBselect("%s", sql);
 	sql_offset = 0;
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(alertid, row[0]);
 		ZBX_STR2UINT64(mediatypeid, row[1]);
@@ -159,7 +159,7 @@ static int	am_db_get_alerts(zbx_vector_ptr_t *alerts)
 		status = atoi(row[5]);
 		attempts = atoi(row[6]);
 
-		if (SUCCEED == DBis_null(row[7]))
+		if (SUCCEED == zbx_DBis_null(row[7]))
 		{
 			zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset,
 					"update alerts set status=%d,retries=0,error='Related event was removed.';\n",
@@ -195,15 +195,15 @@ static int	am_db_get_alerts(zbx_vector_ptr_t *alerts)
 
 		}
 		if (16 < sql_offset)
-			ret = (ZBX_DB_OK <= DBexecute("%s", sql) ? SUCCEED : FAIL);
+			ret = (ZBX_DB_OK <= zbx_DBexecute("%s", sql) ? SUCCEED : FAIL);
 	}
 	if (SUCCEED == ret)
 	{
-		if (ZBX_DB_OK != DBcommit())
+		if (ZBX_DB_OK != zbx_DBcommit())
 			ret = FAIL;
 	}
 	else
-		DBrollback();
+		zbx_DBrollback();
 
 	zbx_vector_uint64_destroy(&alertids);
 	zbx_free(sql);
@@ -327,11 +327,11 @@ static void	am_db_update_mediatypes(zbx_am_db_t *amdb, const zbx_uint64_t *media
 
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "mediatypeid", mediatypeids, mediatypeids_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 	zbx_free(sql);
 
 	now = time(NULL);
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		if (FAIL == is_ushort(row[9], &smtp_port))
 		{
@@ -500,18 +500,18 @@ static void	am_db_update_event_tags(zbx_uint64_t eventid, const char *params, zb
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() eventid:" ZBX_FS_UI64 " tags:%s", __func__, eventid, params);
 
-	result = DBselect("select p.eventid"
+	result = zbx_DBselect("select p.eventid"
 			" from events e left join problem p"
 				" on p.eventid=e.eventid"
 			" where e.eventid=" ZBX_FS_UI64, eventid);
 
-	if (NULL == (row = DBfetch(result)))
+	if (NULL == (row = zbx_DBfetch(result)))
 	{
 		zabbix_log(LOG_LEVEL_DEBUG, "cannot add event tags: event " ZBX_FS_UI64 " was removed", eventid);
 		goto out;
 	}
 
-	if (SUCCEED != DBis_null(row[0]))
+	if (SUCCEED != zbx_DBis_null(row[0]))
 		need_to_add_problem_tag = 1;
 
 	if (FAIL == zbx_json_open(params, &jp))
@@ -603,10 +603,10 @@ static void	am_db_validate_tags_for_update(zbx_vector_events_tags_t *update_even
 		/* remove duplicate tags */
 		if (0 != local_event_tags->tags.values_num)
 		{
-			result = DBselect("select tag,value from event_tag where eventid=" ZBX_FS_UI64,
+			result = zbx_DBselect("select tag,value from event_tag where eventid=" ZBX_FS_UI64,
 					local_event_tags->eventid);
 
-			while (NULL != (row = DBfetch(result)))
+			while (NULL != (row = zbx_DBfetch(result)))
 			{
 				tag_local.tag = row[0];
 				tag_local.value = row[1];
@@ -702,7 +702,7 @@ static int	am_db_flush_results(zbx_am_db_t *amdb)
 			zbx_vector_events_tags_clear_ext(&update_events_tags, event_tags_free);
 			sql_offset = 0;
 
-			DBbegin();
+			zbx_DBbegin();
 			zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 			zbx_db_insert_prepare(&db_event, "event_tag", "eventtagid", "eventid", "tag", "value", NULL);
 			zbx_db_insert_prepare(&db_problem, "problem_tag", "problemtagid", "eventid", "tag", "value",
@@ -746,7 +746,7 @@ static int	am_db_flush_results(zbx_am_db_t *amdb)
 
 			zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 			if (16 < sql_offset)
-				DBexecute("%s", sql);
+				zbx_DBexecute("%s", sql);
 
 			zbx_db_insert_autoincrement(&db_event, "eventtagid");
 			zbx_db_insert_execute(&db_event);
@@ -756,7 +756,7 @@ static int	am_db_flush_results(zbx_am_db_t *amdb)
 			zbx_db_insert_execute(&db_problem);
 			zbx_db_insert_clean(&db_problem);
 		}
-		while (ZBX_DB_DOWN == (ret = DBcommit()));
+		while (ZBX_DB_DOWN == (ret = zbx_DBcommit()));
 
 		if (ZBX_DB_OK == ret)
 			am_service_add_event_tags(&update_events_tags);
@@ -848,7 +848,7 @@ static void	am_db_update_watchdog(zbx_am_db_t *amdb)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select m.mediaid,m.mediatypeid,m.sendto"
 			" from media m,users_groups u,config c,media_type mt"
 			" where m.userid=u.userid"
@@ -866,7 +866,7 @@ static void	am_db_update_watchdog(zbx_am_db_t *amdb)
 	zbx_vector_ptr_create(&mediatypes);
 
 	/* read watchdog alert recipients */
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		media = (zbx_am_media_t *)zbx_malloc(NULL, sizeof(zbx_am_media_t));
 		ZBX_STR2UINT64(media->mediaid, row[0]);

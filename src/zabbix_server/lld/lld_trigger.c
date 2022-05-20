@@ -314,7 +314,7 @@ static void	lld_trigger_prototypes_get(zbx_uint64_t lld_ruleid, zbx_vector_ptr_t
 	zbx_lld_trigger_prototype_t	*trigger_prototype;
 	char				*errmsg = NULL;
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select t.triggerid,t.description,t.expression,t.status,t.type,t.priority,t.comments,"
 				"t.url,t.recovery_expression,t.recovery_mode,t.correlation_mode,t.correlation_tag,"
 				"t.manual_close,t.opdata,t.discover,t.event_name"
@@ -328,7 +328,7 @@ static void	lld_trigger_prototypes_get(zbx_uint64_t lld_ruleid, zbx_vector_ptr_t
 			lld_ruleid);
 
 	/* run through trigger prototypes */
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		trigger_prototype = (zbx_lld_trigger_prototype_t *)zbx_malloc(NULL, sizeof(zbx_lld_trigger_prototype_t));
 
@@ -430,11 +430,11 @@ static void	lld_triggers_get(const zbx_vector_ptr_t *trigger_prototypes, zbx_vec
 
 	zbx_vector_uint64_destroy(&parent_triggerids);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
 	zbx_free(sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t				parent_triggerid;
 		const zbx_lld_trigger_prototype_t	*trigger_prototype;
@@ -580,11 +580,11 @@ static void	lld_functions_get(zbx_vector_ptr_t *trigger_prototypes, zbx_vector_p
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "triggerid",
 				triggerids.values, triggerids.values_num);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
 		zbx_free(sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			function = (zbx_lld_function_t *)zbx_malloc(NULL, sizeof(zbx_lld_function_t));
 
@@ -693,11 +693,11 @@ static void	lld_dependencies_get(zbx_vector_ptr_t *trigger_prototypes, zbx_vecto
 
 	zbx_vector_uint64_destroy(&triggerids);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
 	zbx_free(sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		dependency = (zbx_lld_dependency_t *)zbx_malloc(NULL, sizeof(zbx_lld_dependency_t));
 
@@ -791,11 +791,11 @@ static void	lld_tags_get(const zbx_vector_ptr_t *trigger_prototypes, zbx_vector_
 
 	zbx_vector_uint64_destroy(&triggerids);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
 	zbx_free(sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		int		index;
 		zbx_uint64_t	triggerid;
@@ -893,11 +893,11 @@ static void	lld_items_get(zbx_vector_ptr_t *trigger_prototypes, zbx_vector_ptr_t
 
 	zbx_vector_uint64_destroy(&parent_triggerids);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
 	zbx_free(sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		item = (zbx_lld_item_t *)zbx_malloc(NULL, sizeof(zbx_lld_item_t));
 
@@ -2253,9 +2253,9 @@ static void	lld_triggers_validate(zbx_uint64_t hostid, zbx_vector_ptr_t *trigger
 
 		zbx_chrcpy_alloc(&sql, &sql_alloc, &sql_offset, ')');
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			db_trigger = (zbx_lld_trigger_t *)zbx_malloc(NULL, sizeof(zbx_lld_trigger_t));
 
@@ -2654,7 +2654,7 @@ static int	lld_triggers_save(zbx_uint64_t hostid, const zbx_vector_ptr_t *trigge
 		goto out;
 	}
 
-	DBbegin();
+	zbx_DBbegin();
 
 	for (i = 0; i < trigger_prototypes->values_num; i++)
 	{
@@ -2665,7 +2665,7 @@ static int	lld_triggers_save(zbx_uint64_t hostid, const zbx_vector_ptr_t *trigge
 	if (SUCCEED != DBlock_hostid(hostid) || SUCCEED != DBlock_triggerids(&trigger_protoids))
 	{
 		/* the host or trigger prototype was removed while processing lld rule */
-		DBrollback();
+		zbx_DBrollback();
 		ret = FAIL;
 		goto out;
 	}
@@ -3098,7 +3098,7 @@ static int	lld_triggers_save(zbx_uint64_t hostid, const zbx_vector_ptr_t *trigge
 			0 != del_triggerdepids.values_num || 0 != upd_tags || 0 != del_triggertagids.values_num)
 	{
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 	}
 cleanup:
 	zbx_free(sql);
@@ -3136,9 +3136,9 @@ cleanup:
 	}
 
 	if (ret == SUCCEED)
-		DBcommit();
+		zbx_DBcommit();
 	else
-		DBrollback();
+		zbx_DBrollback();
 out:
 	zbx_vector_uint64_destroy(&trigger_protoids);
 	zbx_vector_uint64_destroy(&del_triggertagids);
@@ -3385,9 +3385,9 @@ static void	lld_trigger_cache_init(zbx_hashset_t *cache, zbx_vector_ptr_t *trigg
 
 			zbx_vector_uint64_clear(&triggerids_down);
 
-			result = DBselect("%s", sql);
+			result = zbx_DBselect("%s", sql);
 
-			while (NULL != (row = DBfetch(result)))
+			while (NULL != (row = zbx_DBfetch(result)))
 			{
 				int			new_node = 0;
 				zbx_lld_trigger_node_t	*trigger_node_up;
@@ -3466,9 +3466,9 @@ static void	lld_trigger_cache_init(zbx_hashset_t *cache, zbx_vector_ptr_t *trigg
 
 			zbx_vector_uint64_clear(&triggerids_up);
 
-			result = DBselect("%s", sql);
+			result = zbx_DBselect("%s", sql);
 
-			while (NULL != (row = DBfetch(result)))
+			while (NULL != (row = zbx_DBfetch(result)))
 			{
 				ZBX_STR2UINT64(trigger_node_local.trigger_ref.triggerid, row[0]);
 

@@ -336,13 +336,13 @@ static int	DBcopy_template_trigger_tags(const zbx_vector_uint64_t *new_triggerid
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "t.triggerid", cur_triggerids->values,
 				cur_triggerids->values_num);
 
-		if (NULL == (result = DBselect("%s", sql)))
+		if (NULL == (result = zbx_DBselect("%s", sql)))
 		{
 			ret = FAIL;
 			goto clean;
 		}
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t audit_del_triggerid, audit_del_triggertagid;
 
@@ -361,7 +361,7 @@ static int	DBcopy_template_trigger_tags(const zbx_vector_uint64_t *new_triggerid
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "triggerid", cur_triggerids->values,
 				cur_triggerids->values_num);
 
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 		{
 			ret = FAIL;
 			goto clean;
@@ -386,13 +386,13 @@ static int	DBcopy_template_trigger_tags(const zbx_vector_uint64_t *new_triggerid
 
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "t.triggerid", triggerids.values, triggerids.values_num);
 
-	if (NULL == (result = DBselect("%s", sql)))
+	if (NULL == (result = zbx_DBselect("%s", sql)))
 	{
 		ret = FAIL;
 		goto clean;
 	}
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_trigger_tag_insert_temp_t	*zbx_trigger_tag_insert_temp;
 
@@ -472,13 +472,13 @@ static int	get_trigger_funcs(zbx_vector_uint64_t *triggerids, zbx_hashset_t *fun
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "f.triggerid", triggerids->values,
 			triggerids->values_num);
 
-	if (NULL == (result = DBselect("%s", sql)))
+	if (NULL == (result = zbx_DBselect("%s", sql)))
 	{
 		res = FAIL;
 		goto clean;
 	}
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_trigger_functions_entry_t	*found, temp_t;
 		zbx_uint64_t			itemid_temp_var;
@@ -550,13 +550,13 @@ static int	get_templates_triggers_data(zbx_uint64_t hostid, const zbx_vector_uin
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "i.hostid", templateids->values, templateids->values_num);
 	zbx_chrcpy_alloc(&sql, &sql_alloc, &sql_offset, ')');
 
-	if (NULL == (result = DBselect("%s", sql)))
+	if (NULL == (result = zbx_DBselect("%s", sql)))
 	{
 		res = FAIL;
 		goto clean;
 	}
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		trigger_copy = (zbx_trigger_copy_t *)zbx_malloc(NULL, sizeof(zbx_trigger_copy_t));
 		trigger_copy->hostid = hostid;
@@ -626,13 +626,13 @@ static int	get_target_host_main_data(zbx_uint64_t hostid, zbx_vector_str_t *temp
 			templates_triggers_descriptions->values_num);
 	zbx_chrcpy_alloc(&sql, &sql_alloc, &sql_offset, ')');
 
-	if (NULL == (result = DBselect("%s", sql)))
+	if (NULL == (result = zbx_DBselect("%s", sql)))
 	{
 		res = FAIL;
 		goto clean;
 	}
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_target_host_trigger_entry_t		target_host_trigger_entry;
 		zbx_trigger_descriptions_entry_t	*found, temp_t;
@@ -1022,7 +1022,7 @@ static int	execute_triggers_updates(zbx_hashset_t *zbx_host_triggers_main_data)
 
 	if (16 < sql_offset)
 	{
-		if (ZBX_DB_OK > DBexecute("%s", sql))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql))
 			res = FAIL;
 	}
 clean:
@@ -1060,17 +1060,17 @@ static int	get_funcs_for_insert(zbx_uint64_t hostid, zbx_vector_uint64_t *insert
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "tf.triggerid", insert_templateid_triggerids->values,
 			insert_templateid_triggerids->values_num);
 
-	if (NULL == (result = DBselect("%s", sql)))
+	if (NULL == (result = zbx_DBselect("%s", sql)))
 	{
 		res = FAIL;
 		goto clean;
 	}
 
-	while (SUCCEED == res && NULL != (row = DBfetch(result)))
+	while (SUCCEED == res && NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_trigger_functions_entry_t	*found, temp_t;
 
-		if (SUCCEED != DBis_null(row[0]))
+		if (SUCCEED != zbx_DBis_null(row[0]))
 		{
 			ZBX_STR2UINT64(itemid, row[0]);
 			ZBX_STR2UINT64(temp_t.triggerid, row[5]);
@@ -1293,7 +1293,7 @@ func_out:
 
 	if (SUCCEED == res && 16 < sql_update_triggers_expr_offset)	/* In ORACLE always present begin..end; */
 	{
-		if (ZBX_DB_OK > DBexecute("%s", sql_update_triggers_expr))
+		if (ZBX_DB_OK > zbx_DBexecute("%s", sql_update_triggers_expr))
 			res = FAIL;
 	}
 

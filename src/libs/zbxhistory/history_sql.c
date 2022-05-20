@@ -161,7 +161,7 @@ static int	sql_writer_flush(void)
 
 	do
 	{
-		DBbegin();
+		zbx_DBbegin();
 
 		for (i = 0; i < writer.dbinserts.values_num; i++)
 		{
@@ -169,7 +169,7 @@ static int	sql_writer_flush(void)
 			zbx_db_insert_execute(db_insert);
 		}
 	}
-	while (ZBX_DB_DOWN == (txn_error = DBcommit()));
+	while (ZBX_DB_DOWN == (txn_error = zbx_DBcommit()));
 
 	sql_writer_release();
 
@@ -354,14 +354,14 @@ static int	db_read_values_by_time(zbx_uint64_t itemid, int value_type, zbx_vecto
 				end_timestamp - seconds, end_timestamp);
 	}
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
 	zbx_free(sql);
 
 	if (NULL == result)
 		goto out;
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_history_record_t	value;
 
@@ -433,12 +433,12 @@ static int	db_read_values_by_count(zbx_uint64_t itemid, int value_type, zbx_vect
 
 		zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " order by clock desc");
 
-		result = DBselectN(sql, count);
+		result = zbx_DBselectN(sql, count);
 
 		if (NULL == result)
 			goto out;
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_history_record_t	value;
 
@@ -525,14 +525,14 @@ static int	db_read_values_by_time_and_count(zbx_uint64_t itemid, int value_type,
 				end_timestamp - seconds, end_timestamp);
 	}
 
-	result = DBselectN(sql, count);
+	result = zbx_DBselectN(sql, count);
 
 	zbx_free(sql);
 
 	if (NULL == result)
 		goto out;
 
-	while (NULL != (row = DBfetch(result)) && 0 < count--)
+	while (NULL != (row = zbx_DBfetch(result)) && 0 < count--)
 	{
 		zbx_history_record_t	value;
 
@@ -553,7 +553,7 @@ static int	db_read_values_by_time_and_count(zbx_uint64_t itemid, int value_type,
 
 	/* Drop data from the last second and read the whole second again     */
 	/* to ensure that data is cached by seconds.                          */
-	/* Because the initial select has limit option (DBselectN()) we have  */
+	/* Because the initial select has limit option (zbx_DBselectN()) we have  */
 	/* to perform another select to read the last second data.            */
 	end_timestamp = values->values[values->values_num - 1].timestamp.sec;
 

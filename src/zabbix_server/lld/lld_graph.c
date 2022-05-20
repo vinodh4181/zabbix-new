@@ -182,7 +182,7 @@ static void	lld_graphs_get(zbx_uint64_t parent_graphid, zbx_vector_ptr_t *graphs
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select g.graphid,g.name,g.width,g.height,g.yaxismin,g.yaxismax,g.show_work_period,"
 				"g.show_triggers,g.graphtype,g.show_legend,g.show_3d,g.percent_left,g.percent_right,"
 				"g.ymin_type,g.ymin_itemid,g.ymax_type,g.ymax_itemid,gd.lastcheck,gd.ts_delete"
@@ -191,7 +191,7 @@ static void	lld_graphs_get(zbx_uint64_t parent_graphid, zbx_vector_ptr_t *graphs
 				" and gd.parent_graphid=" ZBX_FS_UI64,
 			parent_graphid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_lld_graph_t	*graph = (zbx_lld_graph_t *)zbx_malloc(NULL, sizeof(zbx_lld_graph_t));
 
@@ -313,11 +313,11 @@ static void	lld_gitems_get(zbx_uint64_t parent_graphid, zbx_vector_ptr_t *gitems
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "graphid",
 			graphids.values, graphids.values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
 	zbx_free(sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		int			index;
 		zbx_uint64_t		graphid;
@@ -427,11 +427,11 @@ static void	lld_items_get(const zbx_vector_ptr_t *gitems_proto, zbx_uint64_t ymi
 				" where");
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "itemid", itemids.values, itemids.values_num);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
 		zbx_free(sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_lld_item_t	*item = (zbx_lld_item_t *)zbx_malloc(NULL, sizeof(zbx_lld_item_t));
 
@@ -921,9 +921,9 @@ static void	lld_graphs_validate(zbx_uint64_t hostid, zbx_vector_ptr_t *graphs, c
 					graphids.values, graphids.values_num);
 		}
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			for (i = 0; i < graphs->values_num; i++)
 			{
@@ -1038,13 +1038,13 @@ static int	lld_graphs_save(zbx_uint64_t hostid, zbx_uint64_t parent_graphid, zbx
 		goto out;
 	}
 
-	DBbegin();
+	zbx_DBbegin();
 
 	if (SUCCEED != (ret = DBlock_hostid(hostid)) ||
 			SUCCEED != (ret = DBlock_graphid(parent_graphid)))
 	{
 		/* the host or graph prototype was removed while processing lld rule */
-		DBrollback();
+		zbx_DBrollback();
 		goto out;
 	}
 
@@ -1402,7 +1402,7 @@ static int	lld_graphs_save(zbx_uint64_t hostid, zbx_uint64_t parent_graphid, zbx
 	if (0 != upd_graphs || 0 != upd_gitems.values_num || 0 != del_gitemids.values_num)
 	{
 		zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 		zbx_free(sql);
 	}
 
@@ -1421,7 +1421,7 @@ static int	lld_graphs_save(zbx_uint64_t hostid, zbx_uint64_t parent_graphid, zbx
 		zbx_db_insert_clean(&db_insert_gitems);
 	}
 
-	DBcommit();
+	zbx_DBcommit();
 out:
 	zbx_vector_uint64_destroy(&del_gitemids);
 	zbx_vector_ptr_destroy(&upd_gitems);
@@ -1475,7 +1475,7 @@ int	lld_update_graphs(zbx_uint64_t hostid, zbx_uint64_t lld_ruleid, const zbx_ve
 	zbx_vector_ptr_create(&gitems_proto);	/* list of graphs_items which are used by the graph prototype */
 	zbx_vector_ptr_create(&items);		/* list of items which are related to the graph prototype */
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select distinct g.graphid,g.name,g.width,g.height,g.yaxismin,g.yaxismax,g.show_work_period,"
 				"g.show_triggers,g.graphtype,g.show_legend,g.show_3d,g.percent_left,g.percent_right,"
 				"g.ymin_type,g.ymin_itemid,g.ymax_type,g.ymax_itemid,g.discover"
@@ -1486,7 +1486,7 @@ int	lld_update_graphs(zbx_uint64_t hostid, zbx_uint64_t lld_ruleid, const zbx_ve
 				" and id.parent_itemid=" ZBX_FS_UI64,
 			lld_ruleid);
 
-	while (SUCCEED == ret && NULL != (row = DBfetch(result)))
+	while (SUCCEED == ret && NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	parent_graphid, ymin_itemid_proto, ymax_itemid_proto;
 		const char	*name_proto;

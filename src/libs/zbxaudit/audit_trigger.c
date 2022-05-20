@@ -232,9 +232,9 @@ void	zbx_audit_DBselect_delete_for_trigger(const char *sql, zbx_vector_uint64_t 
 	DB_RESULT	result;
 	DB_ROW		row;
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	id;
 

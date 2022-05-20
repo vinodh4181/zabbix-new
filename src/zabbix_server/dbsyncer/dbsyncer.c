@@ -70,7 +70,7 @@ static void	zbx_db_flush_timer_queue(void)
 
 static void	db_trigger_queue_cleanup(void)
 {
-	DBexecute("delete from trigger_queue");
+	zbx_DBexecute("delete from trigger_queue");
 	zbx_db_trigger_queue_unlock();
 }
 

@@ -56,7 +56,7 @@ static zbx_uint64_t	select_discovered_host(const ZBX_DB_EVENT *event, char **hos
 	{
 		case EVENT_OBJECT_DHOST:
 		case EVENT_OBJECT_DSERVICE:
-			result = DBselect(
+			result = zbx_DBselect(
 					"select dr.proxy_hostid,ds.ip"
 					" from drules dr,dchecks dc,dservices ds"
 					" where dc.druleid=dr.druleid"
@@ -65,7 +65,7 @@ static zbx_uint64_t	select_discovered_host(const ZBX_DB_EVENT *event, char **hos
 					EVENT_OBJECT_DSERVICE == event->object ? "dserviceid" : "dhostid",
 					event->objectid);
 
-			if (NULL == (row = DBfetch(result)))
+			if (NULL == (row = zbx_DBfetch(result)))
 			{
 				DBfree_result(result);
 				goto exit;
@@ -104,11 +104,11 @@ static zbx_uint64_t	select_discovered_host(const ZBX_DB_EVENT *event, char **hos
 			goto exit;
 	}
 
-	result = DBselectN(sql, 1);
+	result = zbx_DBselectN(sql, 1);
 
 	zbx_free(sql);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		size_t	out_alloc = 0, out_offset = 0;
 
@@ -151,11 +151,11 @@ static void	add_discovered_host_groups(zbx_uint64_t hostid, zbx_vector_uint64_t 
 			hostid);
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "groupid", groupids->values, groupids->values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
 	zbx_free(sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(groupid, row[0]);
 
@@ -234,7 +234,7 @@ static zbx_uint64_t	add_discovered_host(const ZBX_DB_EVENT *event, int *status, 
 	{
 		if (EVENT_OBJECT_DHOST == event->object)
 		{
-			result = DBselect(
+			result = zbx_DBselect(
 					"select ds.dhostid,dr.proxy_hostid,ds.ip,ds.dns,ds.port,dc.type,"
 						"dc.host_source,dc.name_source,dr.druleid,"
 						"dc.snmp_community,dc.snmpv3_securityname,dc.snmpv3_securitylevel,"
@@ -249,7 +249,7 @@ static zbx_uint64_t	add_discovered_host(const ZBX_DB_EVENT *event, int *status, 
 		}
 		else
 		{
-			result = DBselect(
+			result = zbx_DBselect(
 					"select ds.dhostid,dr.proxy_hostid,ds.ip,ds.dns,ds.port,dc.type,"
 						"dc.host_source,dc.name_source,dr.druleid,"
 						"dc.snmp_community,dc.snmpv3_securityname,dc.snmpv3_securitylevel,"
@@ -264,7 +264,7 @@ static zbx_uint64_t	add_discovered_host(const ZBX_DB_EVENT *event, int *status, 
 					event->objectid);
 		}
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	interfaceid;
 
@@ -292,7 +292,7 @@ static zbx_uint64_t	add_discovered_host(const ZBX_DB_EVENT *event, int *status, 
 
 			if (0 == hostid)
 			{
-				result2 = DBselect(
+				result2 = zbx_DBselect(
 						"select distinct h.hostid,h.name,h.status"
 						" from hosts h,interface i,dservices ds"
 						" where h.hostid=i.hostid"
@@ -305,7 +305,7 @@ static zbx_uint64_t	add_discovered_host(const ZBX_DB_EVENT *event, int *status, 
 						HOST_STATUS_MONITORED, HOST_STATUS_NOT_MONITORED,
 						DBsql_id_cmp(proxy_hostid), dhostid, ZBX_FLAG_DISCOVERY_PROTOTYPE);
 
-				if (NULL != (row2 = DBfetch(result2)))
+				if (NULL != (row2 = zbx_DBfetch(result2)))
 				{
 					ZBX_STR2UINT64(hostid, row2[0]);
 					hostname = zbx_strdup(NULL, row2[1]);
@@ -334,9 +334,9 @@ static zbx_uint64_t	add_discovered_host(const ZBX_DB_EVENT *event, int *status, 
 						" order by ds.dserviceid",
 							dhostid, druleid, ZBX_DISCOVERY_VALUE);
 
-				result3 = DBselectN(sql, 1);
+				result3 = zbx_DBselectN(sql, 1);
 
-				if (NULL != (row3 = DBfetch(result3)))
+				if (NULL != (row3 = zbx_DBfetch(result3)))
 				{
 					if (SUCCEED == zbx_db_is_null(row3[0]) || '\0' == *row3[0])
 					{
@@ -385,9 +385,9 @@ static zbx_uint64_t	add_discovered_host(const ZBX_DB_EVENT *event, int *status, 
 							dhostid, druleid, ZBX_DISCOVERY_UNSPEC, ZBX_DISCOVERY_DNS,
 							ZBX_DISCOVERY_IP, ZBX_DISCOVERY_VALUE, ZBX_DISCOVERY_VALUE);
 
-				result3 = DBselectN(sql, 1);
+				result3 = zbx_DBselectN(sql, 1);
 
-				if (NULL != (row3 = DBfetch(result3)))
+				if (NULL != (row3 = zbx_DBfetch(result3)))
 				{
 					if (SUCCEED == zbx_db_is_null(row3[0]) || '\0' == *row3[0])
 					{
@@ -489,13 +489,13 @@ static zbx_uint64_t	add_discovered_host(const ZBX_DB_EVENT *event, int *status, 
 	}
 	else if (EVENT_OBJECT_ZABBIX_ACTIVE == event->object)
 	{
-		result = DBselect(
+		result = zbx_DBselect(
 				"select proxy_hostid,host,listen_ip,listen_dns,listen_port,flags,tls_accepted"
 				" from autoreg_host"
 				" where autoreg_hostid=" ZBX_FS_UI64,
 				event->objectid);
 
-		if (NULL != (row = DBfetch(result)))
+		if (NULL != (row = zbx_DBfetch(result)))
 		{
 			char			*sql = NULL;
 			zbx_uint64_t		host_proxy_hostid;
@@ -526,14 +526,14 @@ static zbx_uint64_t	add_discovered_host(const ZBX_DB_EVENT *event, int *status, 
 
 			tls_accepted = atoi(row[6]);
 
-			result2 = DBselect(
+			result2 = zbx_DBselect(
 					"select null"
 					" from hosts"
 					" where host='%s'"
 						" and status=%d",
 					host_esc, HOST_STATUS_TEMPLATE);
 
-			if (NULL != DBfetch(result2))
+			if (NULL != zbx_DBfetch(result2))
 			{
 				zabbix_log(LOG_LEVEL_WARNING, "cannot add discovered host \"%s\":"
 						" template with the same name already exists", row[1]);
@@ -552,11 +552,11 @@ static zbx_uint64_t	add_discovered_host(const ZBX_DB_EVENT *event, int *status, 
 					host_esc, ZBX_FLAG_DISCOVERY_PROTOTYPE,
 					HOST_STATUS_MONITORED, HOST_STATUS_NOT_MONITORED);
 
-			result2 = DBselectN(sql, 1);
+			result2 = zbx_DBselectN(sql, 1);
 
 			zbx_free(sql);
 
-			if (NULL == (row2 = DBfetch(result2)))
+			if (NULL == (row2 = zbx_DBfetch(result2)))
 			{
 				hostid = DBget_maxid("hosts");
 				hostname = zbx_strdup(hostname, row[1]);
@@ -620,7 +620,7 @@ static zbx_uint64_t	add_discovered_host(const ZBX_DB_EVENT *event, int *status, 
 
 				if (host_proxy_hostid != proxy_hostid)
 				{
-					DBexecute("update hosts"
+					zbx_DBexecute("update hosts"
 							" set proxy_hostid=%s"
 							" where hostid=" ZBX_FS_UI64,
 							DBsql_id_ins(proxy_hostid), hostid);
@@ -755,7 +755,7 @@ void	op_host_enable(const ZBX_DB_EVENT *event, zbx_config_t *cfg)
 
 	if (HOST_STATUS_MONITORED != status)
 	{
-		DBexecute("update hosts"
+		zbx_DBexecute("update hosts"
 				" set status=%d"
 				" where hostid=" ZBX_FS_UI64,
 				HOST_STATUS_MONITORED, hostid);
@@ -789,7 +789,7 @@ void	op_host_disable(const ZBX_DB_EVENT *event, zbx_config_t *cfg)
 
 	if (HOST_STATUS_NOT_MONITORED != status)
 	{
-		DBexecute(
+		zbx_DBexecute(
 				"update hosts"
 				" set status=%d"
 				" where hostid=" ZBX_FS_UI64,
@@ -892,9 +892,9 @@ void	op_groups_del(const ZBX_DB_EVENT *event, zbx_vector_uint64_t *groupids)
 			hostid);
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "groupid", groupids->values, groupids->values_num);
 
-	result = DBselectN(sql, 1);
+	result = zbx_DBselectN(sql, 1);
 
-	if (NULL == DBfetch(result))
+	if (NULL == zbx_DBfetch(result))
 	{
 		DBfree_result(result);
 
@@ -921,9 +921,9 @@ void	op_groups_del(const ZBX_DB_EVENT *event, zbx_vector_uint64_t *groupids)
 				hostid);
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "groupid", groupids->values, groupids->values_num);
 
-		result2 = DBselect("%s", sql);
+		result2 = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result2)))
+		while (NULL != (row = zbx_DBfetch(result2)))
 		{
 			zbx_uint64_t	hostgroupid, groupid;
 
@@ -947,7 +947,7 @@ void	op_groups_del(const ZBX_DB_EVENT *event, zbx_vector_uint64_t *groupids)
 			DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "groupid", groupids->values,
 					groupids->values_num);
 
-			DBexecute("%s", sql);
+			zbx_DBexecute("%s", sql);
 
 			zbx_audit_host_hostgroup_delete(hostid, hostname, &hostgroupids, &found_groupids);
 		}

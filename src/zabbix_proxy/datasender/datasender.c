@@ -228,7 +228,7 @@ static int	proxy_data_sender(int *more, int now, int *hist_upload_state, time_t 
 
 			if (0 != (flags & ZBX_DATASENDER_DB_UPDATE))
 			{
-				DBbegin();
+				zbx_DBbegin();
 
 				if (0 != (flags & ZBX_DATASENDER_TASKS))
 				{
@@ -248,9 +248,9 @@ static int	proxy_data_sender(int *more, int now, int *hist_upload_state, time_t 
 					DB_RESULT	result;
 					DB_ROW		row;
 
-					result = DBselect("select max(id) from proxy_history");
+					result = zbx_DBselect("select max(id) from proxy_history");
 
-					if (NULL == (row = DBfetch(result)) || SUCCEED == DBis_null(row[0]))
+					if (NULL == (row = zbx_DBfetch(result)) || SUCCEED == zbx_DBis_null(row[0]))
 						history_maxid = history_lastid;
 					else
 						ZBX_STR2UINT64(history_maxid, row[0]);
@@ -267,7 +267,7 @@ static int	proxy_data_sender(int *more, int now, int *hist_upload_state, time_t 
 				if (0 != (flags & ZBX_DATASENDER_AUTOREGISTRATION))
 					proxy_set_areg_lastid(areg_lastid);
 
-				DBcommit();
+				zbx_DBcommit();
 			}
 		}
 

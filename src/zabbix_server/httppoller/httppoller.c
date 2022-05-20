@@ -44,7 +44,7 @@ static int	get_minnextcheck(void)
 	DB_ROW		row;
 	int		res;
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select min(t.nextcheck)"
 			" from httptest t,hosts h"
 			" where t.hostid=h.hostid"
@@ -58,7 +58,7 @@ static int	get_minnextcheck(void)
 			HOST_STATUS_MONITORED,
 			HOST_MAINTENANCE_STATUS_OFF, MAINTENANCE_TYPE_NORMAL);
 
-	if (NULL == (row = DBfetch(result)) || SUCCEED == DBis_null(row[0]))
+	if (NULL == (row = zbx_DBfetch(result)) || SUCCEED == zbx_DBis_null(row[0]))
 	{
 		zabbix_log(LOG_LEVEL_DEBUG, "No httptests to process in get_minnextcheck.");
 		res = FAIL;

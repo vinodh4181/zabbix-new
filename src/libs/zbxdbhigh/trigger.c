@@ -204,7 +204,7 @@ void	zbx_db_save_trigger_changes(const zbx_vector_ptr_t *trigger_diff)
 	zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 	if (sql_offset > 16)	/* in ORACLE always present begin..end; */
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
 	zbx_free(sql);
 

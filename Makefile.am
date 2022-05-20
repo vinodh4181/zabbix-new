@@ -126,10 +126,10 @@ WRAP_DB_FUNCS = \
 	-Wl,--wrap=zbx_db_vselect \
 	-Wl,--wrap=zbx_db_select_n \
 	-Wl,--wrap=zbx_db_fetch \
-	-Wl,--wrap=__zbx_DBexecute \
-	-Wl,--wrap=DBbegin \
-	-Wl,--wrap=DBcommit \
-	-Wl,--wrap=DBexecute_multiple_query \
+	-Wl,--wrap=__zbx_zbx_DBexecute \
+	-Wl,--wrap=zbx_DBbegin \
+	-Wl,--wrap=zbx_DBcommit \
+	-Wl,--wrap=zbx_DBexecute_multiple_query \
 	-Wl,--wrap=DBfree_result
 
 WRAP_IO_FUNCS = \

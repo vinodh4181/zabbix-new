@@ -447,8 +447,8 @@ static	zbx_rm_session_t	*rm_get_session(zbx_rm_t *manager, zbx_uint64_t userid)
 	{
 		DB_RESULT	result;
 
-		result = DBselect("select NULL from sessions where sessionid='%s'", session->sid);
-		if (NULL == DBfetch(result))
+		result = zbx_DBselect("select NULL from sessions where sessionid='%s'", session->sid);
+		if (NULL == zbx_DBfetch(result))
 		{
 			zbx_hashset_remove_direct(&manager->sessions, session);
 			session = NULL;
@@ -496,7 +496,7 @@ static void	rm_db_flush_sessions(zbx_rm_t *manager)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	DBbegin();
+	zbx_DBbegin();
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 	zbx_hashset_iter_reset(&manager->sessions, &iter);
@@ -514,9 +514,9 @@ static void	rm_db_flush_sessions(zbx_rm_t *manager)
 	zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 	if (16 < sql_offset)
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
-	DBcommit();
+	zbx_DBcommit();
 	zbx_free(sql);
 
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);
@@ -543,7 +543,7 @@ static void	rm_db_flush_reports(zbx_rm_t *manager)
 	zbx_vector_uint64_sort(&manager->flush_queue, ZBX_DEFAULT_UINT64_COMPARE_FUNC);
 	zbx_vector_uint64_uniq(&manager->flush_queue, ZBX_DEFAULT_UINT64_COMPARE_FUNC);
 
-	DBbegin();
+	zbx_DBbegin();
 	zbx_DBbegin_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 	for (i = 0; i < manager->flush_queue.values_num; i++)
@@ -598,9 +598,9 @@ static void	rm_db_flush_reports(zbx_rm_t *manager)
 	zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
 	if (16 < sql_offset)	/* in ORACLE always present begin..end; */
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 
-	DBcommit();
+	zbx_DBcommit();
 
 	/* recreate flush queue to release memory */
 	zbx_vector_uint64_destroy(&manager->flush_queue);
@@ -951,9 +951,9 @@ static void	rm_update_cache_settings(zbx_rm_t *manager)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect("select session_key,url from config");
+	result = zbx_DBselect("select session_key,url from config");
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_DBfetch(result)))
 	{
 		manager->session_key = zbx_strdup(manager->session_key, row[0]);
 		manager->zabbix_url = zbx_strdup(manager->zabbix_url, row[1]);
@@ -1032,12 +1032,12 @@ static void	rm_update_cache_reports(zbx_rm_t *manager, int now)
 
 	zbx_vector_uint64_create(&reportids);
 
-	result = DBselect("select r.reportid,r.userid,r.name,r.dashboardid,r.period,r.cycle,r.weekdays,r.start_time,"
+	result = zbx_DBselect("select r.reportid,r.userid,r.name,r.dashboardid,r.period,r.cycle,r.weekdays,r.start_time,"
 				"r.active_since,r.active_till,u.timezone,r.state,r.info,r.lastsent,r.status"
 			" from report r,users u"
 			" where r.userid=u.userid");
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	reportid;
 		int		nextcheck, start_time, active_since, active_till, reschedule = 0;
@@ -1191,14 +1191,14 @@ static void	rm_update_cache_reports_params(zbx_rm_t *manager)
 
 	zbx_vector_ptr_pair_create(&params);
 
-	result = DBselect("select rp.reportid,rp.name,rp.value"
+	result = zbx_DBselect("select rp.reportid,rp.name,rp.value"
 			" from report_param rp,report r"
 			" where rp.reportid=r.reportid"
 				" and r.status=%d"
 			" order by r.reportid",
 				ZBX_REPORT_STATUS_ENABLED);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	reportid;
 		zbx_ptr_pair_t	pair;
@@ -1254,14 +1254,14 @@ static void	rm_update_cache_reports_users(zbx_rm_t *manager)
 	zbx_vector_recipient_create(&users);
 	zbx_vector_uint64_create(&users_excl);
 
-	result = DBselect("select ru.reportid,ru.userid,ru.exclude,ru.access_userid"
+	result = zbx_DBselect("select ru.reportid,ru.userid,ru.exclude,ru.access_userid"
 			" from report_user ru,report r"
 			" where ru.reportid=r.reportid"
 				" and r.status=%d"
 			" order by r.reportid",
 				ZBX_REPORT_STATUS_ENABLED);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	reportid, userid;
 
@@ -1324,14 +1324,14 @@ static void	rm_update_cache_reports_usergroups(zbx_rm_t *manager)
 
 	zbx_vector_recipient_create(&usergroups);
 
-	result = DBselect("select rg.reportid,rg.usrgrpid,rg.access_userid"
+	result = zbx_DBselect("select rg.reportid,rg.usrgrpid,rg.access_userid"
 			" from report_usrgrp rg,report r"
 			" where rg.reportid=r.reportid"
 				" and r.status=%d"
 			" order by r.reportid",
 				ZBX_REPORT_STATUS_ENABLED);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t		reportid;
 		zbx_rm_recipient_t	usergroup;
@@ -1515,13 +1515,13 @@ static void	rm_get_report_dimensions(zbx_uint64_t dashboardid, int *width, int *
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() dashboardid:" ZBX_FS_UI64, __func__, dashboardid);
 
-	result = DBselect("select w.y,w.height"
+	result = zbx_DBselect("select w.y,w.height"
 			" from widget w,dashboard_page p"
 			" where w.dashboard_pageid=p.dashboard_pageid"
 				" and p.dashboardid=" ZBX_FS_UI64
 				" and p.sortorder=0", dashboardid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		int	bottom;
 
@@ -1580,9 +1580,9 @@ static int	rm_writer_process_job(zbx_rm_writer_t *writer, zbx_rm_job_t *job, cha
 				" and mt.status=%d",
 			MEDIA_STATUS_ACTIVE, MEDIA_TYPE_EMAIL, MEDIA_TYPE_STATUS_ACTIVE);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		dst = (zbx_report_dst_t *)zbx_malloc(NULL, sizeof(zbx_report_dst_t));
 		ZBX_STR2UINT64(dst->mediatypeid, row[1]);
@@ -1636,9 +1636,9 @@ static int	rm_writer_process_job(zbx_rm_writer_t *writer, zbx_rm_job_t *job, cha
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "mediatypeid", mediatypeids.values,
 				mediatypeids.values_num);
 
-		result = DBselect("%s", sql);
+		result = zbx_DBselect("%s", sql);
 
-		while (NULL != (row = DBfetch(result)) && SUCCEED == ret)
+		while (NULL != (row = zbx_DBfetch(result)) && SUCCEED == ret)
 		{
 			ZBX_DB_MEDIATYPE	mt;
 
@@ -1797,8 +1797,8 @@ static int	rm_report_create_usergroup_jobs(zbx_rm_t *manager, zbx_rm_report_t *r
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, "select userid,usrgrpid from users_groups where");
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "usrgrpid", ids.values, ids.values_num);
 
-	result = DBselect("%s", sql);
-	while (NULL != (row = DBfetch(result)))
+	result = zbx_DBselect("%s", sql);
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		access_userid = 0;
 
@@ -1883,7 +1883,7 @@ static int	rm_report_create_jobs(zbx_rm_t *manager, zbx_rm_report_t *report, int
 
 	zbx_dc_close_user_macros(um_handle);
 
-	DBbegin();
+	zbx_DBbegin();
 
 	for (i = 0; i < report->users.values_num; i++)
 	{
@@ -1934,12 +1934,12 @@ static int	rm_report_create_jobs(zbx_rm_t *manager, zbx_rm_report_t *report, int
 out:
 	if (SUCCEED == ret)
 	{
-		DBcommit();
+		zbx_DBcommit();
 		jobs_num = jobs.values_num;
 	}
 	else
 	{
-		DBrollback();
+		zbx_DBrollback();
 		jobs_num = 0;
 	}
 

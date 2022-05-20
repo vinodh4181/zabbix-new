@@ -126,7 +126,7 @@ static void	db_update_active_check_status(zbx_vector_uint64_t *hostids, int stat
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "hostid", hostids->values, hostids->values_num);
 	zbx_DBend_multiple_update(&sql, &sql_alloc, &sql_offset);
 
-	DBexecute("%s", sql);
+	zbx_DBexecute("%s", sql);
 	zbx_free(sql);
 }
 
@@ -145,7 +145,7 @@ static void	flush_active_hb_queue(zbx_avail_active_hb_cache_t *cache)
 
 	zbx_hashset_iter_reset(&cache->queue, &iter);
 
-	DBbegin();
+	zbx_DBbegin();
 
 	while (NULL != (host = (zbx_host_active_avail_t *)zbx_hashset_iter_next(&iter)))
 	{
@@ -165,7 +165,7 @@ static void	flush_active_hb_queue(zbx_avail_active_hb_cache_t *cache)
 	db_update_active_check_status(&status_available, INTERFACE_AVAILABLE_TRUE);
 	db_update_active_check_status(&status_unavailable, INTERFACE_AVAILABLE_FALSE);
 
-	if (ZBX_DB_OK == DBcommit())
+	if (ZBX_DB_OK == zbx_DBcommit())
 		zbx_hashset_clear(&cache->queue);
 
 	zbx_vector_uint64_destroy(&status_unknown);
@@ -258,7 +258,7 @@ static void	init_active_availability(zbx_avail_active_hb_cache_t *cache)
 {
 	if (0 != (program_type & ZBX_PROGRAM_TYPE_SERVER))
 	{
-		if (ZBX_DB_OK > DBexecute("update host_rtdata hr set active_available=%i where exists (select null "
+		if (ZBX_DB_OK > zbx_DBexecute("update host_rtdata hr set active_available=%i where exists (select null "
 				"from hosts h where h.hostid=hr.hostid and proxy_hostid is null)", INTERFACE_AVAILABLE_UNKNOWN))
 		{
 			zabbix_log(LOG_LEVEL_WARNING, "Failed to reset availability status for active checks");
@@ -269,9 +269,9 @@ static void	init_active_availability(zbx_avail_active_hb_cache_t *cache)
 		DB_RESULT	result;
 		DB_ROW		row;
 
-		result = DBselect("select hostid from hosts");
+		result = zbx_DBselect("select hostid from hosts");
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_host_active_avail_t avail_local;
 
@@ -318,14 +318,14 @@ static void	flush_proxy_hostdata(zbx_avail_active_hb_cache_t *cache, zbx_ipc_mes
 			zbx_vector_uint64_append(&status_unavailable, host->hostid);
 	}
 
-	DBbegin();
+	zbx_DBbegin();
 
 	db_update_active_check_status(&status_unknown, INTERFACE_AVAILABLE_UNKNOWN);
 	db_update_active_check_status(&status_available, INTERFACE_AVAILABLE_TRUE);
 	db_update_active_check_status(&status_unavailable, INTERFACE_AVAILABLE_FALSE);
 
 
-	if (ZBX_DB_OK == DBcommit())
+	if (ZBX_DB_OK == zbx_DBcommit())
 		zbx_hashset_clear(&cache->queue);
 
 	if (NULL == (proxy_avail = zbx_hashset_search(&cache->proxy_avail, &proxy_hostid)))
@@ -382,7 +382,7 @@ static void	active_checks_calculate_proxy_availability(zbx_avail_active_hb_cache
 	{
 		if (proxy_avail->lastaccess + ZBX_AVAILABILITY_MANAGER_PROXY_ACTIVE_AVAIL_DELAY_SEC <= now)
 		{
-			if (ZBX_DB_OK > DBexecute("update host_rtdata set active_available=%i"
+			if (ZBX_DB_OK > zbx_DBexecute("update host_rtdata set active_available=%i"
 					" where hostid in (select hostid from hosts where proxy_hostid=" ZBX_FS_UI64 ")",
 					INTERFACE_AVAILABLE_UNKNOWN, proxy_avail->hostid))
 			{

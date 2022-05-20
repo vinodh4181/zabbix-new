@@ -221,7 +221,7 @@ int	zbx_auditlog_global_script(unsigned char script_type, unsigned char script_e
 
 	details_esc = DBdyn_escape_string(details_json.buffer);
 
-	if (ZBX_DB_OK > DBexecute("insert into auditlog (auditid,userid,username,clock,action,ip,resourceid,"
+	if (ZBX_DB_OK > zbx_DBexecute("insert into auditlog (auditid,userid,username,clock,action,ip,resourceid,"
 			"resourcename,resourcetype,recordsetid,details) values ('%s'," ZBX_FS_UI64 ",'%s',%d,'%d','%s',"
 			ZBX_FS_UI64 ",'%s',%d,'%s','%s')", auditid_cuid, userid, username, (int)time(NULL),
 			ZBX_AUDIT_ACTION_EXECUTE, clientip, hostid, hostname, AUDIT_RESOURCE_SCRIPT, auditid_cuid,
@@ -387,7 +387,7 @@ int	zbx_audit_flush_once(void)
 		name_esc = DBdyn_escape_string((*audit_entry)->name);
 		details_esc = DBdyn_escape_string((*audit_entry)->details_json.buffer);
 
-		ret = DBexecute_once("insert into auditlog (auditid,userid,username,"
+		ret = zbx_DBexecute_once("insert into auditlog (auditid,userid,username,"
 				"clock,action,ip,%s,resourcename,resourcetype,recordsetid,details) values"
 				" ('%s'," AUDIT_USERID_SQL ",'%s','%d','%d','%s','%s','%s',%d,'%s','%s')",
 				pfield, (*audit_entry)->audit_cuid, AUDIT_USERNAME, (int)time(NULL),

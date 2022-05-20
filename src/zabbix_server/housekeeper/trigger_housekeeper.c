@@ -56,14 +56,14 @@ static int	housekeep_problems_without_triggers(void)
 
 	zbx_vector_uint64_create(&ids);
 
-	result = DBselect("select eventid"
+	result = zbx_DBselect("select eventid"
 			" from problem"
 			" where source=%d"
 				" and object=%d"
 				" and not exists (select NULL from triggers where triggerid=objectid)",
 				EVENT_SOURCE_TRIGGERS, EVENT_OBJECT_TRIGGER);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t	id;
 

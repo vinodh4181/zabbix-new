@@ -268,9 +268,9 @@ static void	hk_history_prepare(zbx_hk_history_rule_t *rule)
 	zbx_vector_ptr_create(&rule->delete_queue);
 	zbx_vector_ptr_reserve(&rule->delete_queue, HK_INITIAL_DELETE_QUEUE_SIZE);
 
-	result = DBselect("select itemid,min(clock) from %s group by itemid", rule->table);
+	result = zbx_DBselect("select itemid,min(clock) from %s group by itemid", rule->table);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t		itemid;
 		int			min_clock;
@@ -367,7 +367,7 @@ static void	hk_history_update(zbx_hk_history_rule_t *rules, int now)
 	char			*tmp = NULL;
 	zbx_dc_um_handle_t	*um_handle;
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select i.itemid,i.value_type,i.history,i.trends,h.hostid"
 			" from items i,hosts h"
 			" where i.flags in (%d,%d)"
@@ -378,7 +378,7 @@ static void	hk_history_update(zbx_hk_history_rule_t *rules, int now)
 
 	um_handle = zbx_dc_open_user_macros();
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_t		itemid, hostid;
 		int			history, trends, value_type;
@@ -529,7 +529,7 @@ static void	hk_drop_partition_for_rule(zbx_hk_history_rule_t *rule, int now)
 	{
 		zabbix_log(LOG_LEVEL_TRACE, "%s: table=%s delete all", __func__, rule->table);
 
-		result = DBselect(1 == ZBX_DB_TSDB_V1 ?
+		result = zbx_DBselect(1 == ZBX_DB_TSDB_V1 ?
 				"select drop_chunks(table_name=>'%s',newer_than=>0)" :
 				"select drop_chunks(relation=>'%s',newer_than=>0)",
 				rule->table);
@@ -548,7 +548,7 @@ static void	hk_drop_partition_for_rule(zbx_hk_history_rule_t *rule, int now)
 
 		zabbix_log(LOG_LEVEL_TRACE, "%s: table=%s keep_from=%d", __func__, rule->table, keep_from);
 
-		result = DBselect(1 == ZBX_DB_TSDB_V1 ?
+		result = zbx_DBselect(1 == ZBX_DB_TSDB_V1 ?
 				"select drop_chunks(table_name=>'%s',older_than=>%d)" :
 				"select drop_chunks(relation=>'%s',older_than=>%d)",
 				rule->table, keep_from);
@@ -610,7 +610,7 @@ static int	housekeeping_history_and_trends(int now)
 		{
 			zbx_hk_delete_queue_t	*item_record = (zbx_hk_delete_queue_t *)rule->delete_queue.values[i];
 
-			rc = DBexecute("delete from %s where itemid=" ZBX_FS_UI64 " and clock<%d",
+			rc = zbx_DBexecute("delete from %s where itemid=" ZBX_FS_UI64 " and clock<%d",
 					rule->table, item_record->itemid, item_record->min_clock);
 			if (ZBX_DB_OK < rc)
 				deleted += rc;
@@ -654,9 +654,9 @@ static int	housekeeping_process_rule(int now, zbx_hk_rule_t *rule)
 	/* initialize min_clock with the oldest record timestamp from database */
 	if (0 == rule->min_clock)
 	{
-		result = DBselect("select min(clock) from %s%s%s", rule->table,
+		result = zbx_DBselect("select min(clock) from %s%s%s", rule->table,
 				('\0' != *rule->filter ? " where " : ""), rule->filter);
-		if (NULL != (row = DBfetch(result)) && SUCCEED != DBis_null(row[0]))
+		if (NULL != (row = zbx_DBfetch(result)) && SUCCEED != zbx_DBis_null(row[0]))
 			rule->min_clock = atoi(row[0]);
 		else
 			rule->min_clock = now;
@@ -696,11 +696,11 @@ static int	housekeeping_process_rule(int now, zbx_hk_rule_t *rule)
 			/* Select IDs of records that must be deleted, this allows to avoid locking for every   */
 			/* record the search encounters when using delete statement, thus eliminates deadlocks. */
 			if (0 == CONFIG_MAX_HOUSEKEEPER_DELETE)
-				result = DBselect("%s", buffer);
+				result = zbx_DBselect("%s", buffer);
 			else
-				result = DBselectN(buffer, CONFIG_MAX_HOUSEKEEPER_DELETE);
+				result = zbx_DBselectN(buffer, CONFIG_MAX_HOUSEKEEPER_DELETE);
 
-			while (NULL != (row = DBfetch(result)))
+			while (NULL != (row = zbx_DBfetch(result)))
 			{
 				if (0 == id_field_str_type)
 				{
@@ -740,7 +740,7 @@ static int	housekeeping_process_rule(int now, zbx_hk_rule_t *rule)
 						(const char**)ids_str.values, ids_str.values_num);
 			}
 
-			ret = DBexecute("%s", sql);
+			ret = zbx_DBexecute("%s", sql);
 
 			if (0 == id_field_str_type)
 				zbx_vector_uint64_clear(&ids_uint64);
@@ -777,7 +777,7 @@ static int	DBdelete_from_table(const char *tablename, const char *filter, int li
 {
 	if (0 == limit)
 	{
-		return DBexecute(
+		return zbx_DBexecute(
 				"delete from %s"
 				" where %s",
 				tablename,
@@ -786,7 +786,7 @@ static int	DBdelete_from_table(const char *tablename, const char *filter, int li
 	else
 	{
 #if defined(HAVE_ORACLE)
-		return DBexecute(
+		return zbx_DBexecute(
 				"delete from %s"
 				" where %s"
 					" and rownum<=%d",
@@ -794,14 +794,14 @@ static int	DBdelete_from_table(const char *tablename, const char *filter, int li
 				filter,
 				limit);
 #elif defined(HAVE_MYSQL)
-		return DBexecute(
+		return zbx_DBexecute(
 				"delete from %s"
 				" where %s limit %d",
 				tablename,
 				filter,
 				limit);
 #elif defined(HAVE_POSTGRESQL)
-		return DBexecute(
+		return zbx_DBexecute(
 				"delete from %s"
 				" where %s and ctid = any(array(select ctid from %s"
 					" where %s limit %d))",
@@ -811,7 +811,7 @@ static int	DBdelete_from_table(const char *tablename, const char *filter, int li
 				filter,
 				limit);
 #elif defined(HAVE_SQLITE3)
-		return DBexecute(
+		return zbx_DBexecute(
 				"delete from %s"
 				" where %s",
 				tablename,
@@ -928,9 +928,9 @@ static int	housekeeping_cleanup(void)
 	/* order by tablename to effectively use DB cache */
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, ") order by tablename");
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		int	more = 0;
 
@@ -1078,7 +1078,7 @@ static int	housekeeping_problems(int now)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() now:%d", __func__, now);
 
-	rc = DBexecute("delete from problem where r_clock<>0 and r_clock<%d", now - SEC_PER_DAY);
+	rc = zbx_DBexecute("delete from problem where r_clock<>0 and r_clock<%d", now - SEC_PER_DAY);
 
 	if (ZBX_DB_OK <= rc)
 		deleted = rc;
@@ -1094,7 +1094,7 @@ static int	housekeeping_proxy_dhistory(int now)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() now:%d", __func__, now);
 
-	rc = DBexecute("delete from proxy_dhistory where clock<%d", now - SEC_PER_DAY);
+	rc = zbx_DBexecute("delete from proxy_dhistory where clock<%d", now - SEC_PER_DAY);
 
 	if (ZBX_DB_OK <= rc)
 		deleted = rc;

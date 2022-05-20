@@ -66,13 +66,13 @@ static int	tm_execute_remote_command(zbx_uint64_t taskid, int clock, int ttl, in
 	char		*info = NULL, error[MAX_STRING_LEN];
 	DC_HOST		host;
 
-	result = DBselect("select command_type,execute_on,port,authtype,username,password,publickey,privatekey,"
+	result = zbx_DBselect("select command_type,execute_on,port,authtype,username,password,publickey,privatekey,"
 					"command,parent_taskid,hostid,alertid"
 				" from task_remote_command"
 				" where taskid=" ZBX_FS_UI64,
 				taskid);
 
-	if (NULL == (row = DBfetch(result)))
+	if (NULL == (row = zbx_DBfetch(result)))
 		goto finish;
 
 	task = zbx_tm_task_create(0, ZBX_TM_TASK_REMOTE_COMMAND_RESULT, ZBX_TM_STATUS_NEW, time(NULL), 0, 0);
@@ -144,7 +144,7 @@ static int	tm_execute_remote_command(zbx_uint64_t taskid, int clock, int ttl, in
 finish:
 	DBfree_result(result);
 
-	DBbegin();
+	zbx_DBbegin();
 
 	if (NULL != task)
 	{
@@ -152,9 +152,9 @@ finish:
 		zbx_tm_task_free(task);
 	}
 
-	DBexecute("update task set status=%d where taskid=" ZBX_FS_UI64, ZBX_TM_STATUS_DONE, taskid);
+	zbx_DBexecute("update task set status=%d where taskid=" ZBX_FS_UI64, ZBX_TM_STATUS_DONE, taskid);
 
-	DBcommit();
+	zbx_DBcommit();
 
 	return ret;
 }
@@ -182,9 +182,9 @@ static int	tm_process_check_now(zbx_vector_uint64_t *taskids)
 
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, "select itemid from task_check_now where");
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "taskid", taskids->values, taskids->values_num);
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(itemid, row[0]);
 		zbx_vector_uint64_append(&itemids, itemid);
@@ -201,7 +201,7 @@ static int	tm_process_check_now(zbx_vector_uint64_t *taskids)
 				ZBX_TM_STATUS_DONE);
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "taskid", taskids->values, taskids->values_num);
 
-		DBexecute("%s", sql);
+		zbx_DBexecute("%s", sql);
 	}
 
 	zbx_free(sql);
@@ -261,12 +261,12 @@ static int	tm_execute_data(zbx_ipc_async_socket_t *rtc, zbx_uint64_t taskid, int
 	char			*info = NULL;
 	zbx_uint64_t		parent_taskid;
 
-	result = DBselect("select parent_taskid,data,type"
+	result = zbx_DBselect("select parent_taskid,data,type"
 				" from task_data"
 				" where taskid=" ZBX_FS_UI64,
 				taskid);
 
-	if (NULL == (row = DBfetch(result)))
+	if (NULL == (row = zbx_DBfetch(result)))
 		goto finish;
 
 	task = zbx_tm_task_create(0, ZBX_TM_TASK_DATA_RESULT, ZBX_TM_STATUS_NEW, time(NULL), 0, 0);
@@ -299,7 +299,7 @@ static int	tm_execute_data(zbx_ipc_async_socket_t *rtc, zbx_uint64_t taskid, int
 finish:
 	DBfree_result(result);
 
-	DBbegin();
+	zbx_DBbegin();
 
 	if (NULL != task)
 	{
@@ -307,9 +307,9 @@ finish:
 		zbx_tm_task_free(task);
 	}
 
-	DBexecute("update task set status=%d where taskid=" ZBX_FS_UI64, ZBX_TM_STATUS_DONE, taskid);
+	zbx_DBexecute("update task set status=%d where taskid=" ZBX_FS_UI64, ZBX_TM_STATUS_DONE, taskid);
 
-	DBcommit();
+	zbx_DBcommit();
 
 	return ret;
 }
@@ -332,14 +332,14 @@ static int	tm_process_tasks(zbx_ipc_async_socket_t *rtc, int now)
 
 	zbx_vector_uint64_create(&check_now_taskids);
 
-	result = DBselect("select taskid,type,clock,ttl"
+	result = zbx_DBselect("select taskid,type,clock,ttl"
 				" from task"
 				" where status=%d"
 					" and type in (%d, %d, %d)"
 				" order by taskid",
 			ZBX_TM_STATUS_NEW, ZBX_TM_TASK_REMOTE_COMMAND, ZBX_TM_TASK_CHECK_NOW, ZBX_TM_TASK_DATA);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_STR2UINT64(taskid, row[0]);
 		ZBX_STR2UCHAR(type, row[1]);
@@ -381,10 +381,10 @@ static int	tm_process_tasks(zbx_ipc_async_socket_t *rtc, int now)
  ******************************************************************************/
 static void	tm_remove_old_tasks(int now)
 {
-	DBbegin();
-	DBexecute("delete from task where status in (%d,%d) and clock<=%d",
+	zbx_DBbegin();
+	zbx_DBexecute("delete from task where status in (%d,%d) and clock<=%d",
 			ZBX_TM_STATUS_DONE, ZBX_TM_STATUS_EXPIRED, now - ZBX_TM_CLEANUP_TASK_AGE);
-	DBcommit();
+	zbx_DBcommit();
 }
 
 /******************************************************************************
@@ -401,7 +401,7 @@ static void	force_config_sync(void)
 
 	taskid = DBget_maxid("task");
 
-	DBbegin();
+	zbx_DBbegin();
 
 	task = zbx_tm_task_create(taskid, ZBX_TM_PROXYDATA, ZBX_TM_STATUS_NEW, (int)time(NULL), 0, 0);
 
@@ -413,7 +413,7 @@ static void	force_config_sync(void)
 
 	zbx_tm_save_task(task);
 
-	DBcommit();
+	zbx_DBcommit();
 
 	zbx_tm_task_free(task);
 	zbx_json_free(&j);

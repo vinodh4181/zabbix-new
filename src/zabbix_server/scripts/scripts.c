@@ -216,12 +216,12 @@ int	zbx_check_script_permissions(zbx_uint64_t groupid, zbx_uint64_t hostid)
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "groupid", groupids.values,
 			groupids.values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
 	zbx_free(sql);
 	zbx_vector_uint64_destroy(&groupids);
 
-	if (NULL == DBfetch(result))
+	if (NULL == zbx_DBfetch(result))
 		ret = FAIL;
 
 	DBfree_result(result);
@@ -239,7 +239,7 @@ int	zbx_check_script_user_permissions(zbx_uint64_t userid, zbx_uint64_t hostid, 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() userid:" ZBX_FS_UI64 " hostid:" ZBX_FS_UI64 " scriptid:" ZBX_FS_UI64,
 			__func__, userid, hostid, script->scriptid);
 
-	result = DBselect(
+	result = zbx_DBselect(
 		"select null"
 			" from hosts_groups hg,rights r,users_groups ug"
 		" where hg.groupid=r.id"
@@ -254,7 +254,7 @@ int	zbx_check_script_user_permissions(zbx_uint64_t userid, zbx_uint64_t hostid, 
 		PERM_DENY,
 		script->host_access);
 
-	if (NULL == DBfetch(result))
+	if (NULL == zbx_DBfetch(result))
 		ret = FAIL;
 
 	DBfree_result(result);
@@ -399,7 +399,7 @@ int	DBfetch_webhook_params(zbx_uint64_t scriptid, zbx_vector_ptr_pair_t *params,
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() scriptid:" ZBX_FS_UI64, __func__, scriptid);
 
-	result = DBselect("select name,value from script_param where scriptid=" ZBX_FS_UI64, scriptid);
+	result = zbx_DBselect("select name,value from script_param where scriptid=" ZBX_FS_UI64, scriptid);
 
 	if (NULL == result)
 	{
@@ -408,7 +408,7 @@ int	DBfetch_webhook_params(zbx_uint64_t scriptid, zbx_vector_ptr_pair_t *params,
 		goto out;
 	}
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		pair.first = zbx_strdup(NULL, row[0]);
 		pair.second = zbx_strdup(NULL, row[1]);
@@ -531,7 +531,7 @@ zbx_uint64_t	zbx_script_create_task(const zbx_script_t *script, const DC_HOST *h
 	else
 		port = 0;
 
-	DBbegin();
+	zbx_DBbegin();
 
 	taskid = DBget_maxid("task");
 
@@ -545,7 +545,7 @@ zbx_uint64_t	zbx_script_create_task(const zbx_script_t *script, const DC_HOST *h
 	if (FAIL == zbx_tm_save_task(task))
 		taskid = 0;
 
-	DBcommit();
+	zbx_DBcommit();
 
 	zbx_tm_task_free(task);
 

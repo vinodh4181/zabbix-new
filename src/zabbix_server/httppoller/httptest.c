@@ -114,9 +114,9 @@ static void	process_test_data(zbx_uint64_t httptestid, int lastfailedstep, doubl
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect("select type,itemid from httptestitem where httptestid=" ZBX_FS_UI64, httptestid);
+	result = zbx_DBselect("select type,itemid from httptestitem where httptestid=" ZBX_FS_UI64, httptestid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		if (3 == num)
 		{
@@ -260,9 +260,9 @@ static void	process_step_data(zbx_uint64_t httpstepid, zbx_httpstat_t *stat, zbx
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() rspcode:%ld time:" ZBX_FS_DBL " speed:" ZBX_FS_DBL,
 			__func__, stat->rspcode, stat->total_time, stat->speed_download);
 
-	result = DBselect("select type,itemid from httpstepitem where httpstepid=" ZBX_FS_UI64, httpstepid);
+	result = zbx_DBselect("select type,itemid from httpstepitem where httpstepid=" ZBX_FS_UI64, httpstepid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		if (3 == num)
 		{
@@ -361,14 +361,14 @@ static int	httpstep_load_pairs(DC_HOST *host, zbx_httpstep_t *httpstep)
 	zbx_vector_ptr_pair_create(&post_fields);
 	zbx_vector_ptr_pair_create(&httpstep->variables);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select name,value,type"
 			" from httpstep_field"
 			" where httpstepid=" ZBX_FS_UI64
 			" order by httpstep_fieldid",
 			httpstep->httpstep->httpstepid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		type = atoi(row[2]);
 
@@ -539,14 +539,14 @@ static int	httptest_load_pairs(DC_HOST *host, zbx_httptest_t *httptest)
 	zbx_vector_ptr_pair_create(&httptest->variables);
 
 	httptest->headers = NULL;
-	result = DBselect(
+	result = zbx_DBselect(
 			"select name,value,type"
 			" from httptest_field"
 			" where httptestid=" ZBX_FS_UI64
 			" order by httptest_fieldid",
 			httptest->httptest.httptestid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		type = atoi(row[2]);
 		value = zbx_strdup(NULL, row[1]);
@@ -628,7 +628,7 @@ static void	process_httptest(DC_HOST *host, zbx_httptest_t *httptest)
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() httptestid:" ZBX_FS_UI64 " name:'%s'",
 			__func__, httptest->httptest.httptestid, httptest->httptest.name);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select httpstepid,no,name,url,timeout,posts,required,status_codes,post_type,follow_redirects,"
 				"retrieve_mode"
 			" from httpstep"
@@ -679,7 +679,7 @@ static void	process_httptest(DC_HOST *host, zbx_httptest_t *httptest)
 	httpstep.httptest = httptest;
 	httpstep.httpstep = &db_httpstep;
 
-	while (NULL != (row = DBfetch(result)) && ZBX_IS_RUNNING())
+	while (NULL != (row = zbx_DBfetch(result)) && ZBX_IS_RUNNING())
 	{
 		struct curl_slist	*headers_slist = NULL;
 		char			*header_cookie = NULL;
@@ -977,19 +977,19 @@ httptest_error:
 
 	if (0 > lastfailedstep)	/* update interval is invalid, delay is uninitialized */
 	{
-		DBexecute("update httptest set nextcheck=%d where httptestid=" ZBX_FS_UI64,
+		zbx_DBexecute("update httptest set nextcheck=%d where httptestid=" ZBX_FS_UI64,
 				0 > ts.sec ? ZBX_JAN_2038 : ts.sec, httptest->httptest.httptestid);
 	}
 	else if (0 > ts.sec + delay)
 	{
 		zabbix_log(LOG_LEVEL_WARNING, "nextcheck update causes overflow for web scenario \"%s\" on host \"%s\"",
 				httptest->httptest.name, host->name);
-		DBexecute("update httptest set nextcheck=%d where httptestid=" ZBX_FS_UI64,
+		zbx_DBexecute("update httptest set nextcheck=%d where httptestid=" ZBX_FS_UI64,
 				ZBX_JAN_2038, httptest->httptest.httptestid);
 	}
 	else
 	{
-		DBexecute("update httptest set nextcheck=%d where httptestid=" ZBX_FS_UI64,
+		zbx_DBexecute("update httptest set nextcheck=%d where httptestid=" ZBX_FS_UI64,
 				ts.sec + delay, httptest->httptest.httptestid);
 	}
 
@@ -1050,7 +1050,7 @@ int	process_httptests(int httppoller_num, int now)
 	/* create macro cache to use in http tests */
 	zbx_vector_ptr_pair_create(&httptest.macros);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select h.hostid,h.host,h.name,t.httptestid,t.name,t.agent,"
 				"t.authentication,t.http_user,t.http_password,t.http_proxy,t.retries,t.ssl_cert_file,"
 				"t.ssl_key_file,t.ssl_key_password,t.verify_peer,t.verify_host,t.delay"
@@ -1068,7 +1068,7 @@ int	process_httptests(int httppoller_num, int now)
 			HOST_STATUS_MONITORED,
 			HOST_MAINTENANCE_STATUS_OFF, MAINTENANCE_TYPE_NORMAL);
 
-	while (NULL != (row = DBfetch(result)) && ZBX_IS_RUNNING())
+	while (NULL != (row = zbx_DBfetch(result)) && ZBX_IS_RUNNING())
 	{
 		ZBX_STR2UINT64(host.hostid, row[0]);
 		strscpy(host.host, row[1]);

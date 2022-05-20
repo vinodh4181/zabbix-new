@@ -53,40 +53,40 @@ static int	delete_history(const char *table, const char *fieldname, int now)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() table:'%s' now:%d", __func__, table, now);
 
-	DBbegin();
+	zbx_DBbegin();
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select nextid"
 			" from ids"
 			" where table_name='%s'"
 				" and field_name='%s'",
 			table, fieldname);
 
-	if (NULL == (row = DBfetch(result)))
+	if (NULL == (row = zbx_DBfetch(result)))
 		goto rollback;
 
 	ZBX_STR2UINT64(lastid, row[0]);
 	DBfree_result(result);
 
-	result = DBselect("select min(clock) from %s",
+	result = zbx_DBselect("select min(clock) from %s",
 			table);
 
-	if (NULL == (row = DBfetch(result)) || SUCCEED == DBis_null(row[0]))
+	if (NULL == (row = zbx_DBfetch(result)) || SUCCEED == zbx_DBis_null(row[0]))
 		goto rollback;
 
 	minclock = atoi(row[0]);
 	DBfree_result(result);
 
-	result = DBselect("select max(id) from %s",
+	result = zbx_DBselect("select max(id) from %s",
 			table);
 
-	if (NULL == (row = DBfetch(result)) || SUCCEED == DBis_null(row[0]))
+	if (NULL == (row = zbx_DBfetch(result)) || SUCCEED == zbx_DBis_null(row[0]))
 		goto rollback;
 
 	ZBX_STR2UINT64(maxid, row[0]);
 	DBfree_result(result);
 
-	records = DBexecute(
+	records = zbx_DBexecute(
 			"delete from %s"
 			" where id<" ZBX_FS_UI64
 				" and (clock<%d"
@@ -97,13 +97,13 @@ static int	delete_history(const char *table, const char *fieldname, int now)
 			MIN(now - CONFIG_PROXY_LOCAL_BUFFER * SEC_PER_HOUR,
 					minclock + HK_MAX_DELETE_PERIODS * hk_period));
 
-	DBcommit();
+	zbx_DBcommit();
 
 	return records;
 rollback:
 	DBfree_result(result);
 
-	DBrollback();
+	zbx_DBrollback();
 
 	return 0;
 }

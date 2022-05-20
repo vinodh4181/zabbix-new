@@ -43,13 +43,13 @@ static void	DBget_lastsize(void)
 	DB_RESULT	result;
 	DB_ROW		row;
 
-	DBbegin();
+	zbx_DBbegin();
 
-	result = DBselect("select snmp_lastsize from globalvars");
+	result = zbx_DBselect("select snmp_lastsize from globalvars");
 
-	if (NULL == (row = DBfetch(result)))
+	if (NULL == (row = zbx_DBfetch(result)))
 	{
-		DBexecute("insert into globalvars (globalvarid,snmp_lastsize) values (1,0)");
+		zbx_DBexecute("insert into globalvars (globalvarid,snmp_lastsize) values (1,0)");
 		trap_lastsize = 0;
 	}
 	else
@@ -57,14 +57,14 @@ static void	DBget_lastsize(void)
 
 	DBfree_result(result);
 
-	DBcommit();
+	zbx_DBcommit();
 }
 
 static void	DBupdate_lastsize(void)
 {
-	DBbegin();
-	DBexecute("update globalvars set snmp_lastsize=%lld", (long long int)trap_lastsize);
-	DBcommit();
+	zbx_DBbegin();
+	zbx_DBexecute("update globalvars set snmp_lastsize=%lld", (long long int)trap_lastsize);
+	zbx_DBcommit();
 }
 
 /******************************************************************************

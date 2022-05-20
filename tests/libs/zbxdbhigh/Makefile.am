@@ -1,6 +1,6 @@
 if SERVER
 noinst_PROGRAMS = \
-	DBselect_uint64 \
+	zbx_DBselect_uint64 \
 	DBadd_condition_alloc
 else
 if PROXY
@@ -105,18 +105,18 @@ SERVER_COMMON_LIB = \
 	$(top_srcdir)/src/libs/zbxtrends/libzbxtrends.a \
 	$(COMMON_LIB)
 
-DBselect_uint64_SOURCES = \
-	DBselect_uint64.c \
+zbx_DBselect_uint64_SOURCES = \
+	zbx_DBselect_uint64.c \
 	$(COMMON_SRC)
 
-DBselect_uint64_LDADD = \
+zbx_DBselect_uint64_LDADD = \
 	$(SERVER_COMMON_LIB)
 
-DBselect_uint64_LDADD += @SERVER_LIBS@
+zbx_DBselect_uint64_LDADD += @SERVER_LIBS@
 
-DBselect_uint64_LDFLAGS = @SERVER_LDFLAGS@
+zbx_DBselect_uint64_LDFLAGS = @SERVER_LDFLAGS@
 
-DBselect_uint64_CFLAGS = $(COMMON_FLAGS)
+zbx_DBselect_uint64_CFLAGS = $(COMMON_FLAGS)
 
 
 DBadd_condition_alloc_SOURCES = \

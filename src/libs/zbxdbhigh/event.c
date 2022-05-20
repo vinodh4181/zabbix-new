@@ -56,9 +56,9 @@ void	zbx_db_get_events_by_eventids(zbx_vector_uint64_t *eventids, zbx_vector_ptr
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "eventid", eventids->values, eventids->values_num);
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " order by eventid");
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_DB_EVENT	*event = NULL;
 
@@ -99,9 +99,9 @@ void	zbx_db_get_events_by_eventids(zbx_vector_uint64_t *eventids, zbx_vector_ptr
 	zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, "select distinct eventid from event_suppress where");
 	DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "eventid", eventids->values, eventids->values_num);
 
-	result = DBselect("%s", sql);
+	result = zbx_DBselect("%s", sql);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		ZBX_DB_EVENT	*event;
 		zbx_uint64_t	eventid;
@@ -127,9 +127,9 @@ void	zbx_db_get_events_by_eventids(zbx_vector_uint64_t *eventids, zbx_vector_ptr
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "eventid", tagged_eventids.values,
 				tagged_eventids.values_num);
 
-		result = DBselect("select eventid,tag,value from event_tag where%s order by eventid", sql);
+		result = zbx_DBselect("select eventid,tag,value from event_tag where%s order by eventid", sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	eventid;
 			zbx_tag_t	*tag;
@@ -165,14 +165,14 @@ void	zbx_db_get_events_by_eventids(zbx_vector_uint64_t *eventids, zbx_vector_ptr
 		DBadd_condition_alloc(&sql, &sql_alloc, &sql_offset, "triggerid", triggerids.values,
 				triggerids.values_num);
 
-		result = DBselect(
+		result = zbx_DBselect(
 				"select triggerid,description,expression,priority,comments,url,recovery_expression,"
 					"recovery_mode,value,opdata,event_name"
 				" from triggers"
 				" where%s",
 				sql);
 
-		while (NULL != (row = DBfetch(result)))
+		while (NULL != (row = zbx_DBfetch(result)))
 		{
 			zbx_uint64_t	triggerid;
 
@@ -257,12 +257,12 @@ void	zbx_db_get_eventid_r_eventid_pairs(zbx_vector_uint64_t *eventids, zbx_vecto
 	DBadd_condition_alloc(&filter, &filter_alloc, &filter_offset, "eventid", eventids->values,
 			eventids->values_num);
 
-	result = DBselect("select eventid,r_eventid"
+	result = zbx_DBselect("select eventid,r_eventid"
 			" from event_recovery"
 			" where%s order by eventid",
 			filter);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		zbx_uint64_pair_t	r_event;
 

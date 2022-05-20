@@ -533,14 +533,14 @@ static int	replace_value_by_map(char *value, size_t max_len, zbx_uint64_t valuem
 
 	zbx_vector_valuemaps_ptr_create(&valuemaps);
 
-	result = DBselect(
+	result = zbx_DBselect(
 			"select value,newvalue,type"
 			" from valuemap_mapping"
 			" where valuemapid=" ZBX_FS_UI64
 			" order by sortorder asc",
 			valuemapid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_DBfetch(result)))
 	{
 		del_zeros(row[1]);
 
