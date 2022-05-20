@@ -329,7 +329,7 @@ int	DBend(int ret)
  * Comments: retry until DB is up                                             *
  *                                                                            *
  ******************************************************************************/
-void	DBstatement_prepare(const char *sql)
+void	zbx_DBstatement_prepare(const char *sql)
 {
 	int	rc;
 
@@ -2924,7 +2924,7 @@ int	zbx_db_insert_execute(zbx_db_insert_t *self)
 	contexts = (zbx_db_bind_context_t *)zbx_malloc(NULL, sizeof(zbx_db_bind_context_t) * self->fields.values_num);
 
 retry_oracle:
-	DBstatement_prepare(sql_command);
+	zbx_DBstatement_prepare(sql_command);
 
 	for (j = 0; j < self->fields.values_num; j++)
 	{
