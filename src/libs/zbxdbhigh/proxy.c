@@ -28,8 +28,7 @@
 #include "zbxdiscovery.h"
 #include "zbxalgo.h"
 #include "preproc.h"
-#include "zbxhash.h"
-#include "../zbxcrypto/tls_tcp_active.h"
+#include "zbxcrypto.h"
 #include "../zbxkvs/kvs.h"
 #include "zbxlld.h"
 #include "events.h"
@@ -815,7 +814,7 @@ static int	get_proxyconfig_table(zbx_uint64_t proxy_hostid, struct zbx_json *j, 
 
 	zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, " from %s t", table->table);
 
-	if (SUCCEED == str_in_list("hosts,interface,hosts_templates,hostmacro", table->table, ','))
+	if (SUCCEED == str_in_list("hosts,interface,host_inventory,hosts_templates,hostmacro", table->table, ','))
 	{
 		if (0 == hosts->values_num)
 			goto skip_data;
@@ -1094,6 +1093,7 @@ int	get_proxyconfig_data(zbx_uint64_t proxy_hostid, struct zbx_json *j, char **e
 		"hosts",
 		"interface",
 		"interface_snmp",
+		"host_inventory",
 		"hosts_templates",
 		"hostmacro",
 		"items",
