@@ -481,7 +481,7 @@ static int	DBpatch_6010026(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > DBexecute("delete from profiles where idx='web.auditlog.filter.action' and value_int=-1"))
+	if (ZBX_DB_OK > zbx_DBexecute("delete from profiles where idx='web.auditlog.filter.action' and value_int=-1"))
 		return FAIL;
 
 	return SUCCEED;
@@ -492,7 +492,7 @@ static int	DBpatch_6010027(void)
 	if (0 == (program_type & ZBX_PROGRAM_TYPE_SERVER))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > DBexecute(
+	if (ZBX_DB_OK > zbx_DBexecute(
 			"update profiles"
 			" set idx='web.auditlog.filter.actions'"
 			" where idx='web.auditlog.filter.action'"))
@@ -508,7 +508,7 @@ static int	DBpatch_6010028(void)
 	if (0 == (ZBX_PROGRAM_TYPE_SERVER & program_type))
 		return SUCCEED;
 
-	if (ZBX_DB_OK > DBexecute(
+	if (ZBX_DB_OK > zbx_DBexecute(
 			"delete from role_rule where value_str='trigger.adddependencies' or "
 			"value_str='trigger.deletedependencies'"))
 	{
