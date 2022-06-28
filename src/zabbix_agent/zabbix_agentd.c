@@ -280,7 +280,11 @@ int	CONFIG_HISTSYNCER_FORKS		= 0;
 int	CONFIG_CONFSYNCER_FORKS		= 0;
 int	CONFIG_VMWARE_FORKS		= 0;
 int	CONFIG_COLLECTOR_FORKS		= 1;
+#ifdef HAVE_SECURE_ACTIVE_ONLY
+int	CONFIG_PASSIVE_FORKS		= 0;	/* no listeners for processing passive checks */
+#else
 int	CONFIG_PASSIVE_FORKS		= 3;	/* number of listeners for processing passive checks */
+#endif
 int	CONFIG_ACTIVE_FORKS		= 0;
 int	CONFIG_TASKMANAGER_FORKS	= 0;
 int	CONFIG_IPMIMANAGER_FORKS	= 0;
@@ -751,11 +755,11 @@ static int	load_enable_remote_commands(const char *value, const struct cfg_line 
 		rule_type = ZBX_KEY_ACCESS_DENY;
 	else
 		return FAIL;
-
+#ifndef HAVE_SECURE_ACTIVE_ONLY
 	zabbix_log(LOG_LEVEL_WARNING, "EnableRemoteCommands parameter is deprecated,"
 				" use AllowKey=system.run[*] or DenyKey=system.run[*] instead");
-
-	return add_key_access_rule(cfg->parameter, sysrun, rule_type);
+#endif
+	return add_key_access_rule(NULL == cfg ? "DenyKey" : cfg->parameter, sysrun, rule_type);
 }
 
 /******************************************************************************
@@ -815,14 +819,18 @@ static void	zbx_load_config(int requirement, ZBX_TASK_EX *task)
 			PARM_OPT,	0,			0},
 		{"DebugLevel",			&CONFIG_LOG_LEVEL,			TYPE_INT,
 			PARM_OPT,	0,			5},
+#ifndef HAVE_SECURE_ACTIVE_ONLY
 		{"StartAgents",			&CONFIG_PASSIVE_FORKS,			TYPE_INT,
 			PARM_OPT,	0,			100},
+#endif
 		{"RefreshActiveChecks",		&CONFIG_REFRESH_ACTIVE_CHECKS,		TYPE_INT,
 			PARM_OPT,	SEC_PER_MIN,		SEC_PER_HOUR},
 		{"MaxLinesPerSecond",		&CONFIG_MAX_LINES_PER_SECOND,		TYPE_INT,
 			PARM_OPT,	1,			1000},
+#ifndef HAVE_SECURE_ACTIVE_ONLY
 		{"EnableRemoteCommands",	&load_enable_remote_commands,		TYPE_CUSTOM,
 			PARM_OPT,	0,			1},
+#endif
 		{"LogRemoteCommands",		&CONFIG_LOG_REMOTE_COMMANDS,		TYPE_INT,
 			PARM_OPT,	0,			1},
 		{"UnsafeUserParameters",	&CONFIG_UNSAFE_USER_PARAMETERS,		TYPE_INT,
@@ -897,6 +905,10 @@ static void	zbx_load_config(int requirement, ZBX_TASK_EX *task)
 #ifdef _WINDOWS
 	zbx_strarr_init(&CONFIG_PERF_COUNTERS);
 	zbx_strarr_init(&CONFIG_PERF_COUNTERS_EN);
+#endif
+
+#ifdef HAVE_SECURE_ACTIVE_ONLY
+	load_enable_remote_commands("0", NULL);
 #endif
 	parse_cfg_file(CONFIG_FILE, cfg, requirement, ZBX_CFG_STRICT);
 
