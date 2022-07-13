@@ -61,9 +61,10 @@ class CControllerDiscoveryDisable extends CController {
 
 		$result = API::DRule()->update($drules);
 		$updated = count($drules);
-		$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-			->setArgument('action', 'discovery.list')
-			->setArgument('page', CPagerHelper::loadPage('discovery.list', null))
+		$response = new CControllerResponseRedirect(
+			(new CUrl('zabbix.php'))
+				->setArgument('action', 'discovery.list')
+				->setArgument('page', CPagerHelper::loadPage('discovery.list', null))
 		);
 
 		if ($result) {

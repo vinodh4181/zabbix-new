@@ -422,7 +422,7 @@ elseif (hasRequest('add') || hasRequest('update')) {
 		uncheckTableRows(getRequest('checkbox_hash'));
 
 		if (hasRequest('backurl')) {
-			$response = new CControllerResponseRedirect(getRequest('backurl'));
+			$response = new CControllerResponseRedirect(new CUrl(getRequest('backurl')));
 			$response->redirect();
 		}
 	}
@@ -436,7 +436,7 @@ elseif (isset($_REQUEST['delete']) && isset($_REQUEST['triggerid'])) {
 		uncheckTableRows(getRequest('checkbox_hash'));
 
 		if (hasRequest('backurl')) {
-			$response = new CControllerResponseRedirect(getRequest('backurl'));
+			$response = new CControllerResponseRedirect(new CUrl(getRequest('backurl')));
 			$response->redirect();
 		}
 	}

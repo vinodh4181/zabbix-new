@@ -46,9 +46,8 @@ class CControllerUsergroupCreate extends CController {
 		if (!$ret) {
 			switch ($this->getValidationError()) {
 				case self::VALIDATION_ERROR:
-					$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-						->setArgument('action', 'usergroup.edit')
-						->getUrl()
+					$response = new CControllerResponseRedirect(
+						(new CUrl('zabbix.php'))->setArgument('action', 'usergroup.edit')
 					);
 					$response->setFormData($this->getInputAll());
 					CMessageHelper::setErrorTitle(_('Cannot add user group'));
@@ -104,16 +103,17 @@ class CControllerUsergroupCreate extends CController {
 		$result = (bool) API::UserGroup()->create($user_group);
 
 		if ($result) {
-			$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-				->setArgument('action', 'usergroup.list')
-				->setArgument('page', CPagerHelper::loadPage('usergroup.list', null))
+			$response = new CControllerResponseRedirect(
+				(new CUrl('zabbix.php'))
+					->setArgument('action', 'usergroup.list')
+					->setArgument('page', CPagerHelper::loadPage('usergroup.list', null))
 			);
 			$response->setFormData(['uncheck' => '1']);
 			CMessageHelper::setSuccessTitle(_('User group added'));
 		}
 		else {
-			$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-				->setArgument('action', 'usergroup.edit')
+			$response = new CControllerResponseRedirect(
+				(new CUrl('zabbix.php'))->setArgument('action', 'usergroup.edit')
 			);
 			CMessageHelper::setErrorTitle(_('Cannot add user group'));
 			$response->setFormData($this->getInputAll());

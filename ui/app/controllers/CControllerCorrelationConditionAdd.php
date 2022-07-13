@@ -58,8 +58,8 @@ class CControllerCorrelationConditionAdd extends CController {
 
 		$data['conditions'] = $this->addCondition($data['new_condition'], $data['conditions']);
 
-		$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-			->setArgument('action', 'correlation.edit')
+		$response = new CControllerResponseRedirect(
+			(new CUrl('zabbix.php'))->setArgument('action', 'correlation.edit')
 		);
 		$response->setFormData($data + $this->getInputAll());
 		$this->setResponse($response);

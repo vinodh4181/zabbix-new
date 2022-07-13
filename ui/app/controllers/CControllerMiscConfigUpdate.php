@@ -49,16 +49,14 @@ class CControllerMiscConfigUpdate extends CController {
 		if (!$ret) {
 			switch ($this->getValidationError()) {
 				case self::VALIDATION_ERROR:
-					$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-						->setArgument('action', 'miscconfig.edit')
+					$response = new CControllerResponseRedirect(
+						(new CUrl('zabbix.php'))->setArgument('action', 'miscconfig.edit')
 					);
-
 					$response->setFormData($this->getInputAll() + [
 						'discovery_groupid' => '0',
 						'alert_usrgrpid' => '0'
 					]);
 					CMessageHelper::setErrorTitle(_('Cannot update configuration'));
-
 					$this->setResponse($response);
 					break;
 
@@ -113,8 +111,8 @@ class CControllerMiscConfigUpdate extends CController {
 
 		$result = API::Settings()->update($settings);
 
-		$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-			->setArgument('action', 'miscconfig.edit')
+		$response = new CControllerResponseRedirect(
+			(new CUrl('zabbix.php'))->setArgument('action', 'miscconfig.edit')
 		);
 
 		if ($result) {

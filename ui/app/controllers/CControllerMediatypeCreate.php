@@ -71,7 +71,9 @@ class CControllerMediatypeCreate extends CController {
 		if (!$ret) {
 			switch ($error) {
 				case self::VALIDATION_ERROR:
-					$response = new CControllerResponseRedirect('zabbix.php?action=mediatype.edit');
+					$response = new CControllerResponseRedirect(
+						(new CUrl('zabbix.php'))->setArgument('action', 'mediatype.edit')
+					);
 					$response->setFormData($this->getInputAll());
 					CMessageHelper::setErrorTitle(_('Cannot add media type'));
 					$this->setResponse($response);
@@ -150,9 +152,10 @@ class CControllerMediatypeCreate extends CController {
 		$result = API::Mediatype()->create($mediatype);
 
 		if ($result) {
-			$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-				->setArgument('action', 'mediatype.list')
-				->setArgument('page', CPagerHelper::loadPage('mediatype.list', null))
+			$response = new CControllerResponseRedirect(
+				(new CUrl('zabbix.php'))
+					->setArgument('action', 'mediatype.list')
+					->setArgument('page', CPagerHelper::loadPage('mediatype.list', null))
 			);
 			$response->setFormData(['uncheck' => '1']);
 			CMessageHelper::setSuccessTitle(_('Media type added'));

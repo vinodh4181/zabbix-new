@@ -56,7 +56,9 @@ class CControllerScriptUpdate extends CController {
 		if (!$ret) {
 			switch ($this->GetValidationError()) {
 				case self::VALIDATION_ERROR:
-					$response = new CControllerResponseRedirect('zabbix.php?action=script.edit');
+					$response = new CControllerResponseRedirect(
+						(new CUrl('zabbix.php'))->setArgument('action', 'script.edit')
+					);
 					$response->setFormData($this->getInputAll());
 					CMessageHelper::setErrorTitle(_('Cannot update script'));
 					$this->setResponse($response);
@@ -154,17 +156,19 @@ class CControllerScriptUpdate extends CController {
 		$result = (bool) API::Script()->update($script);
 
 		if ($result) {
-			$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-				->setArgument('action', 'script.list')
-				->setArgument('page', CPagerHelper::loadPage('script.list', null))
+			$response = new CControllerResponseRedirect(
+				(new CUrl('zabbix.php'))
+					->setArgument('action', 'script.list')
+					->setArgument('page', CPagerHelper::loadPage('script.list', null))
 			);
 			$response->setFormData(['uncheck' => '1']);
 			CMessageHelper::setSuccessTitle(_('Script updated'));
 		}
 		else {
-			$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-				->setArgument('action', 'script.edit')
-				->setArgument('scriptid', $this->getInput('scriptid'))
+			$response = new CControllerResponseRedirect(
+				(new CUrl('zabbix.php'))
+					->setArgument('action', 'script.edit')
+					->setArgument('scriptid', $this->getInput('scriptid'))
 			);
 			$response->setFormData($this->getInputAll());
 			CMessageHelper::setErrorTitle(_('Cannot update script'));

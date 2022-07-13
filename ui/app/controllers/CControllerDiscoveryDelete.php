@@ -56,9 +56,10 @@ class CControllerDiscoveryDelete extends CController {
 
 		$deleted = count($druleids);
 
-		$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-			->setArgument('action', 'discovery.list')
-			->setArgument('page', CPagerHelper::loadPage('discovery.list', null))
+		$response = new CControllerResponseRedirect(
+			(new CUrl('zabbix.php'))
+				->setArgument('action', 'discovery.list')
+				->setArgument('page', CPagerHelper::loadPage('discovery.list', null))
 		);
 
 		if ($result) {

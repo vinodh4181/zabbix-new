@@ -76,7 +76,9 @@ class CControllerRegExUpdate extends CController {
 		]);
 
 		if ($result) {
-			$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))->setArgument('action', 'regex.list'));
+			$response = new CControllerResponseRedirect(
+				(new CUrl('zabbix.php'))->setArgument('action', 'regex.list')
+			);
 			CMessageHelper::setSuccessTitle(_('Regular expression updated'));
 		}
 		else {

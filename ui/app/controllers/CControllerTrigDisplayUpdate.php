@@ -51,13 +51,11 @@ class CControllerTrigDisplayUpdate extends CController {
 		$ret = $this->validateInput($fields);
 
 		if (!$ret) {
-			$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-				->setArgument('action', 'trigdisplay.edit')
+			$response = new CControllerResponseRedirect(
+				(new CUrl('zabbix.php'))->setArgument('action', 'trigdisplay.edit')
 			);
-
 			$response->setFormData($this->getInputAll());
 			CMessageHelper::setErrorTitle(_('Cannot update configuration'));
-
 			$this->setResponse($response);
 		}
 
@@ -100,8 +98,8 @@ class CControllerTrigDisplayUpdate extends CController {
 
 		$result = API::Settings()->update($settings);
 
-		$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-			->setArgument('action', 'trigdisplay.edit')
+		$response = new CControllerResponseRedirect(
+			(new CUrl('zabbix.php'))->setArgument('action', 'trigdisplay.edit')
 		);
 
 		if ($result) {

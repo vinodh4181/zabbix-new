@@ -62,9 +62,10 @@ class CControllerCorrelationDisable extends CController {
 		$result = API::Correlation()->update($correlations);
 		$updated = count($correlations);
 
-		$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-			->setArgument('action', 'correlation.list')
-			->setArgument('page', CPagerHelper::loadPage('correlation.list', null))
+		$response = new CControllerResponseRedirect(
+			(new CUrl('zabbix.php'))
+				->setArgument('action', 'correlation.list')
+				->setArgument('page', CPagerHelper::loadPage('correlation.list', null))
 		);
 
 		if ($result) {

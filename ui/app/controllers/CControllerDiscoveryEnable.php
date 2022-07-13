@@ -62,9 +62,10 @@ class CControllerDiscoveryEnable extends CController {
 
 		$updated = count($drules);
 
-		$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-			->setArgument('action', 'discovery.list')
-			->setArgument('page', CPagerHelper::loadPage('discovery.list', null))
+		$response = new CControllerResponseRedirect(
+			(new CUrl('zabbix.php'))
+				->setArgument('action', 'discovery.list')
+				->setArgument('page', CPagerHelper::loadPage('discovery.list', null))
 		);
 
 		if ($result) {

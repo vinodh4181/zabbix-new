@@ -53,9 +53,10 @@ class CControllerCorrelationDelete extends CController {
 		$correlationids = $this->getInput('correlationids');
 
 		$result = API::Correlation()->delete($correlationids);
-		$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-			->setArgument('action', 'correlation.list')
-			->setArgument('page', CPagerHelper::loadPage('correlation.list', null))
+		$response = new CControllerResponseRedirect(
+			(new CUrl('zabbix.php'))
+				->setArgument('action', 'correlation.list')
+				->setArgument('page', CPagerHelper::loadPage('correlation.list', null))
 		);
 
 		$deleted = count($correlationids);
