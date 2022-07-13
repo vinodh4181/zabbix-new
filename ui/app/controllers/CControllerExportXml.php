@@ -39,6 +39,10 @@ class CControllerExportXml extends CController {
 			$this->setResponse(new CControllerResponseFatal());
 		}
 
+		if (!CHtmlUrlValidator::validateSameSite($this->getInput('backurl'))) {
+			access_deny();
+		}
+
 		return $ret;
 	}
 
@@ -104,8 +108,8 @@ class CControllerExportXml extends CController {
 			// Access denied.
 
 			$response = new CControllerResponseRedirect(
-				$this->getInput('backurl', 'zabbix.php?action=dashboard.view'));
-
+				new CUrl($this->getInput('backurl', 'zabbix.php?action=dashboard.view'))
+			);
 			$response->setMessageError(_('No permissions to referred object or it does not exist!'));
 		}
 		else {

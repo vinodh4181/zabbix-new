@@ -29,9 +29,8 @@ class CControllerWorkingTimeUpdate extends CController {
 		$ret = $this->validateInput($fields);
 
 		if (!$ret) {
-			$response = new CControllerResponseRedirect((new CUrl('zabbix.php'))
-				->setArgument('action', 'workingtime.edit')
-				->getUrl()
+			$response = new CControllerResponseRedirect(
+				(new CUrl('zabbix.php'))->setArgument('action', 'workingtime.edit')
 			);
 			$response->setFormData($this->getInputAll());
 			$response->setMessageError(_('Cannot update configuration'));

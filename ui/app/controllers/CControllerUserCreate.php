@@ -56,7 +56,9 @@ class CControllerUserCreate extends CControllerUserUpdateGeneral {
 		if (!$ret) {
 			switch ($error) {
 				case self::VALIDATION_ERROR:
-					$response = new CControllerResponseRedirect('zabbix.php?action=user.edit');
+					$response = new CControllerResponseRedirect(
+						(new CUrl('zabbix.php'))->setArgument('action', 'user.edit')
+					);
 					$response->setFormData($this->getInputAll());
 					$response->setMessageError(_('Cannot add user'));
 					$this->setResponse($response);

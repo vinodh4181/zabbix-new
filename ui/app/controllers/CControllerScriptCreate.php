@@ -42,7 +42,9 @@ class CControllerScriptCreate extends CController {
 		if (!$ret) {
 			switch ($this->GetValidationError()) {
 				case self::VALIDATION_ERROR:
-					$response = new CControllerResponseRedirect('zabbix.php?action=script.edit');
+					$response = new CControllerResponseRedirect(
+						(new CUrl('zabbix.php'))->setArgument('action', 'script.edit')
+					);
 					$response->setFormData($this->getInputAll());
 					$response->setMessageError(_('Cannot add script'));
 					$this->setResponse($response);

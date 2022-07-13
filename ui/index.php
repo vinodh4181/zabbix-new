@@ -56,20 +56,13 @@ if (hasRequest('reconnect') && CWebUser::isLoggedIn()) {
 $autologin = hasRequest('enter') ? getRequest('autologin', 0) : getRequest('autologin', 1);
 $request = getRequest('request', '');
 
-if ($request) {
-	$test_request = [];
-	preg_match('/^\/?(?<filename>[a-z0-9\_\.]+\.php)(?<request>\?.*)?$/i', $request, $test_request);
-
-	$request = (array_key_exists('filename', $test_request) && file_exists('./'.$test_request['filename']))
-		? $test_request['filename'].(array_key_exists('request', $test_request) ? $test_request['request'] : '')
-		: '';
+if ($request !== '' && !CHtmlUrlValidator::validateSameSite($request)) {
+	$request = '';
 }
 
 if (!hasRequest('form') && $config['http_auth_enabled'] == ZBX_AUTH_HTTP_ENABLED
 		&& $config['http_login_form'] == ZBX_AUTH_FORM_HTTP && !hasRequest('enter')) {
 	redirect('index_http.php');
-
-	exit;
 }
 
 // login via form
@@ -83,8 +76,6 @@ if (hasRequest('enter') && CWebUser::login(getRequest('name', ZBX_GUEST_USER), g
 
 	$redirect = array_filter([CWebUser::isGuest() ? '' : $request, CWebUser::$data['url'], ZBX_DEFAULT_URL]);
 	redirect(reset($redirect));
-
-	exit;
 }
 
 if (CWebUser::isLoggedIn() && !CWebUser::isGuest()) {

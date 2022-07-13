@@ -103,12 +103,24 @@ class CHtmlUrlValidator {
 			if (array_key_exists('host', $url_parts)) {
 				return true;
 			}
-			else {
-				return (array_key_exists('path', $url_parts) && $url_parts['path'] !== '/');
-			}
+
+			return array_key_exists('path', $url_parts) && $url_parts['path'] !== '/';
 		}
-		else {
-			return (array_key_exists('path', $url_parts) && $url_parts['path'] !== '');
-		}
+
+		return array_key_exists('path', $url_parts) && $url_parts['path'] !== '';
+	}
+
+	/**
+	 * Verifies that URL will not lead to third party pages.
+	 *
+	 * @param string $url
+	 *
+	 * @return bool
+	 */
+	public static function validateSameSite(string $url): bool {
+		$root_path = __DIR__.'/../../../';
+		preg_match('/^\/?(?<filename>[a-z0-9_.]+\.php)(\?.*)?$/i', $url, $url_parts);
+
+		return array_key_exists('filename', $url_parts) && file_exists($root_path.$url_parts['filename']);
 	}
 }
