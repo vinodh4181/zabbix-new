@@ -42,6 +42,8 @@ class CSetupWizard extends CForm {
 
 	private $step_failed = false;
 
+	private $cconfigfile;
+
 	public function __construct() {
 		parent::__construct();
 
@@ -77,6 +79,8 @@ class CSetupWizard extends CForm {
 		];
 
 		$this->doAction();
+
+		$this->cconfigfile = new CConfigFile();
 	}
 
 	private function doAction(): void {
@@ -270,9 +274,9 @@ class CSetupWizard extends CForm {
 
 				// make zabbix.conf.php downloadable
 				header('Content-Type: application/x-httpd-php');
-				header('Content-Disposition: attachment; filename="'.basename(CConfigFile::CONFIG_FILE_PATH).'"');
-				$config = new CConfigFile(APP::getInstance()->getRootDir().CConfigFile::CONFIG_FILE_PATH);
-				$config->config = [
+				header('Content-Disposition: attachment; filename="'.basename($this->cconfigfile->configFileFullPath()).'"');
+
+				$this->cconfigfile->config = [
 					'DB' => [
 						'TYPE' => $this->getConfig('DB_TYPE'),
 						'SERVER' => $this->getConfig('DB_SERVER'),
@@ -289,7 +293,7 @@ class CSetupWizard extends CForm {
 					] + $db_creds_config + $vault_config,
 					'ZBX_SERVER_NAME' => $this->getConfig('ZBX_SERVER_NAME')
 				];
-				die($config->getString());
+				die($this->cconfigfile->getString());
 			}
 		}
 
@@ -821,9 +825,7 @@ class CSetupWizard extends CForm {
 
 		$this->setConfig('ZBX_CONFIG_FILE_CORRECT', true);
 
-		$config_file_name = APP::getInstance()->getRootDir().CConfigFile::CONFIG_FILE_PATH;
-		$config = new CConfigFile($config_file_name);
-		$config->config = [
+		$this->cconfigfile->config = [
 			'DB' => [
 				'TYPE' => $this->getConfig('DB_TYPE'),
 				'SERVER' => $this->getConfig('DB_SERVER'),
@@ -862,11 +864,11 @@ class CSetupWizard extends CForm {
 
 		$this->dbClose();
 
-		if (!$config->save()) {
+		if (!$this->cconfigfile->save()) {
 			$error = true;
 			$messages[] = [
 				'type' => 'error',
-				'message' => $config->error
+				'message' => $this->cconfigfile->error
 			];
 		}
 
@@ -882,7 +884,7 @@ class CSetupWizard extends CForm {
 				new CTag('p', true, _('Alternatively, you can install it manually:')),
 				new CTag('ol', true, [
 					new CTag('li', true, new CLink(_('Download the configuration file'), 'setup.php?save_config=1')),
-					new CTag('li', true, _s('Save it as "%1$s"', $config_file_name))
+					new CTag('li', true, _s('Save it as "%1$s"', $this->cconfigfile->configFileDisplayName()))
 				])
 			];
 
@@ -906,7 +908,7 @@ class CSetupWizard extends CForm {
 		$message = [
 			(new CTag('h1', true, _('Congratulations! You have successfully installed Zabbix frontend.')))
 				->addClass(ZBX_STYLE_GREEN),
-			new CTag('p', true, _s('Configuration file "%1$s" created.', ltrim(CConfigFile::CONFIG_FILE_PATH, '/')))
+			new CTag('p', true, _s('Configuration file "%1$s" created.', $this->cconfigfile->configFileDisplayName()))
 		];
 
 		return [

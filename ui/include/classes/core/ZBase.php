@@ -50,6 +50,11 @@ class ZBase {
 	protected $config = [];
 
 	/**
+	 * @var CConfigFile
+	 */
+	protected $cconfigfile;
+
+	/**
 	 * @var CAutoloader
 	 */
 	protected $autoloader;
@@ -153,6 +158,9 @@ class ZBase {
 		require_once 'include/media.inc.php';
 		require_once 'include/sounds.inc.php';
 		require_once 'include/triggers.inc.php';
+
+		// uses defines so must be created after includes are loaded
+		$this->cconfigfile = new CConfigFile();
 	}
 
 	/**
@@ -368,7 +376,15 @@ class ZBase {
 	 * @throws Exception
 	 */
 	protected function setMaintenanceMode() {
-		require_once 'conf/maintenance.inc.php';
+		if (!file_exists($this->cconfigfile->maintenanceConfigFile())) {
+			throw new Exception(_s('Maintenance configuration file %1$s does not exist.', $this->cconfigfile->maintenanceConfigFile()));
+		}
+
+		if (!is_readable($this->cconfigfile->maintenanceConfigFile())) {
+			throw new Exception(_s('No read rights on maintenance configuration file %1$s.', $this->cconfigfile->maintenanceConfigFile()));
+		}
+
+		require_once $this->cconfigfile->maintenanceConfigFile();
 
 		if (defined('ZBX_DENY_GUI_ACCESS')) {
 			if (!isset($ZBX_GUI_ACCESS_IP_RANGE) || !in_array(CWebUser::getIp(), $ZBX_GUI_ACCESS_IP_RANGE)) {
@@ -381,9 +397,7 @@ class ZBase {
 	 * Load zabbix config file.
 	 */
 	protected function loadConfigFile() {
-		$configFile = $this->getRootDir().CConfigFile::CONFIG_FILE_PATH;
-		$config = new CConfigFile($configFile);
-		$this->config = $config->load();
+		$this->config = $this->cconfigfile->load();
 	}
 
 	/**

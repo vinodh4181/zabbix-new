@@ -25,7 +25,11 @@ class CConfigFile {
 	const CONFIG_ERROR = 2;
 	const CONFIG_VAULT_ERROR = 3;
 
-	const CONFIG_FILE_PATH = '/conf/zabbix.conf.php';
+	private const DEFAULT_CONFIG_FILE = 'conf/zabbix.conf.php';
+	private const DEFAULT_MAINTENANCE_CONFIG_FILE = 'conf/maintenance.inc.php';
+
+	// this file can be used to override the above paths
+	private const OVERRIDES_FILE = 'conf/overrides.conf.php';
 
 	private static $supported_db_types = [
 		ZBX_DB_MYSQL => true,
@@ -33,7 +37,12 @@ class CConfigFile {
 		ZBX_DB_POSTGRESQL => true
 	];
 
-	public $configFile = null;
+	private $configFileFullPath = null;
+	private $maintenanceConfigFile = null;
+
+	// the way config file will be displayed in Wizard
+	private $configFileDisplayName = null;
+
 	public $config = [];
 	public $error = '';
 
@@ -41,29 +50,87 @@ class CConfigFile {
 		throw new ConfigFileException($error, $code);
 	}
 
-	public function __construct($file = null) {
+	public function __construct() {
 		$this->setDefaults();
 
-		if (!is_null($file)) {
-			$this->setFile($file);
+		// do not change these variable names, they may be used in overrides file
+		$configFile = $this->getRootDir() . '/' . self::DEFAULT_CONFIG_FILE;
+		$maintenanceConfigFile = self::DEFAULT_MAINTENANCE_CONFIG_FILE;
+
+		$configFileDisplayName = self::DEFAULT_CONFIG_FILE;
+
+		if (file_exists(self::OVERRIDES_FILE)) {
+			if (!is_readable(self::OVERRIDES_FILE))
+				self::exception('Cannot access overrides file ' . self::OVERRIDES_FILE .  '.');
+
+			ob_start();
+			include(self::OVERRIDES_FILE);
+			ob_end_clean();
+
+			$configFileDisplayName = $configFile;
 		}
+
+		$this->setFiles($configFile, $configFileDisplayName, $maintenanceConfigFile);
 	}
 
-	public function setFile($file) {
-		$this->configFile = $file;
+	/**
+	 * Returns the full path to the config file.
+	 *
+	 * @return string
+	 */
+	public function configFileFullPath() {
+		return $this->configFileFullPath;
+	}
+
+	/**
+	 * Returns the config file to be displayed in Wizard. Relative to the web server
+	 * Document root by default and full path in case it was specified in the overrides file.
+	 *
+	 * @return string
+	 */
+	public function configFileDisplayName() {
+		return $this->configFileDisplayName;
+	}
+
+	/**
+	 * Returns the path to the maintenance config file. Relative to the web server
+	 * Document root by default and full path in case it was specified in the overrides file.
+	 *
+	 * @return string
+	 */
+	public function maintenanceConfigFile() {
+		return $this->maintenanceConfigFile;
+	}
+
+	/**
+	 * Sets the full path to the configuration file and display name for Wizard.
+	 */
+	private function setFiles($configFileFullPath, $configFileDisplayName, $maintenanceConfigFile) {
+		$this->configFileFullPath = $configFileFullPath;
+		$this->configFileDisplayName = $configFileDisplayName;
+		$this->maintenanceConfigFile = $maintenanceConfigFile;
+	}
+
+	/**
+	 * Returns the path to the frontend's root directory.
+	 *
+	 * @return string
+	 */
+	private function getRootDir() {
+		return realpath(dirname(__FILE__).'/../../..');
 	}
 
 	public function load() {
-		if (!file_exists($this->configFile)) {
+		if (!file_exists($this->configFileFullPath)) {
 			self::exception('Config file does not exist.', self::CONFIG_NOT_FOUND);
 		}
 
-		if (!is_readable($this->configFile)) {
+		if (!is_readable($this->configFileFullPath)) {
 			self::exception('Permission denied.');
 		}
 
 		ob_start();
-		include($this->configFile);
+		include($this->configFileFullPath);
 		ob_end_clean();
 
 		if (!isset($DB['TYPE'])) {
@@ -233,7 +300,7 @@ class CConfigFile {
 
 	public function save() {
 		try {
-			$file = $this->configFile;
+			$file = $this->configFileFullPath;
 
 			if (is_null($file)) {
 				self::exception('Cannot save, config file is not set.');
