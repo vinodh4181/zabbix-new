@@ -952,7 +952,7 @@ class testInitialConfSync extends CIntegrationTest
 
 		$sync_lines1 = preg_replace(
 			[
-				"/^[0-9]+:[0-9]+:[0-9]+\.[0-9]+\s*DCsync_configuration\(\) /",
+				"/^[0-9]+:[0-9]+:[0-9]+\.[0-9]+ DCsync_configuration\(\) /",
 				"/\s+/",
 				"/:sql:[0-9]+\.[0-9]+sync:[0-9]+\.[0-9]+sec/",
 				"/:sql:[0-9]+\.[0-9]+sec/",
@@ -981,6 +981,10 @@ class testInitialConfSync extends CIntegrationTest
 			$subject = $o[0];
 			$operations = explode("/", $o[1]);
 
+			if (count($operations) < 3) {
+				continue;
+			}
+
 			$pair = [
 				$subject => [
 					'insert' => $operations[0],
@@ -993,6 +997,30 @@ class testInitialConfSync extends CIntegrationTest
 		}
 
 		return $results;
+	}
+
+	private function getStringPoolCount() {
+		$log = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
+		$data = explode("\n", $log);
+
+		$stringpool_lines = preg_grep('/DCsync_configuration\(\)\s+strings/', $data);
+		$stringpool_lines1 = preg_replace(
+			[
+				"/^[0-9]+:[0-9]+:[0-9]+\.[0-9]+\s*DCsync_configuration\(\) /",
+				"/\s+/",
+				'/\([0-9]+slots\)/'
+			],
+			"",
+			$stringpool_lines
+		);
+
+		$stringpool_lines1 = explode(":", array_key_first($stringpool_lines1));
+
+		if (is_null($stringpool_lines1) || count($stringpool_lines1) < 1) {
+			throw new Exception('Failed to retrieve stringpool data from the log file');
+		}
+
+		return $stringpool_lines1[0];
 	}
 
 	private function purgeHostGroups()
@@ -1362,6 +1390,17 @@ class testInitialConfSync extends CIntegrationTest
 		$got = $this->parseSyncResults();
 		$this->assertEquals($this->expected_initial, $got);
 
+		$stringpool_old = $this->getStringPoolCount();
+
+		self::stopComponent(self::COMPONENT_SERVER);
+		self::clearLog(self::COMPONENT_SERVER);
+		self::startComponent(self::COMPONENT_SERVER);
+
+		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
+
+		$stringpool_new = $this->getStringPoolCount();
+		$this->assertEquals($stringpool_old, $stringpool_new);
+
 		return true;
 	}
 
@@ -1443,6 +1482,10 @@ class testInitialConfSync extends CIntegrationTest
 
 		$got = $this->parseSyncResults();
 		$this->assertEquals($this->expected_delete, $got);
+
+		self::stopComponent(self::COMPONENT_SERVER);
+		self::clearLog(self::COMPONENT_SERVER);
+		self::startComponent(self::COMPONENT_SERVER);
 
 		return true;
 	}
