@@ -294,7 +294,7 @@
 		<exec executable="./bootstrap.sh" failonerror="on">
 			<arg line="tests"/>
 		</exec>
-		<make-tests conf="CFLAGS='--coverage' -q --enable-server --enable-agent --enable-proxy --enable-ipv6 --with-mysql" conf-name="gen-test-coverage-report"/>
+		<make-tests conf="CFLAGS='--coverage' -q -CFLAGS='${ZBX_BASE_FLAGS} -enable-server --enable-agent --enable-proxy --enable-ipv6 --with-mysql" conf-name="gen-test-coverage-report"/>
 		<exec executable="lcov" failonerror="on">
 			<arg line="--directory"/>
 			<arg line="src"/>
