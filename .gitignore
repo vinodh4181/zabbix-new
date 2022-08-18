@@ -240,6 +240,7 @@ ui/.htpasswd
 ui/.idea
 ui/.project
 ui/conf/zabbix.conf.php
+ui/conf/overrides.conf.php
 ui/images/general/*.db
 ui/images/general/tree/*.db
 ui/js/jsDump.js

@@ -55,6 +55,7 @@ dist-hook:
 	rm -f $(top_distdir)/include/config.h
 	rm -f $(top_distdir)/include/config.h.in~
 	rm -f $(top_distdir)/ui/conf/zabbix.conf.php
+	rm -f $(top_distdir)/ui/conf/overrides.conf.php
 	rm -rf $(top_distdir)/ui/tests
 	rm -rf $(top_distdir)/sass/img_source
 
