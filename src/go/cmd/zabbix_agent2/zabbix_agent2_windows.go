@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"zabbix.com/pkg/pdh"
+	"zabbix.com/pkg/win32"
 )
 
 func loadOSDependentItems() error {
@@ -32,9 +33,10 @@ func loadOSDependentItems() error {
 }
 
 func init() {
-
 	if path, err := os.Executable(); err == nil {
 		dir, name := filepath.Split(path)
 		confDefault = dir + strings.TrimSuffix(name, filepath.Ext(name)) + ".win.conf"
 	}
+
+	win32.AddExceptionHandler()
 }
