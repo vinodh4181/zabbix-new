@@ -2223,7 +2223,7 @@ class CAction extends CApiService {
 					['if' => ['field' => 'conditiontype', 'in' => CONDITION_TYPE_TRIGGER_SEVERITY], 'type' => API_INT32, 'flags' => API_REQUIRED, 'in' => implode(',', range(TRIGGER_SEVERITY_NOT_CLASSIFIED, TRIGGER_SEVERITY_COUNT - 1))],
 					['if' => ['field' => 'conditiontype', 'in' => CONDITION_TYPE_TIME_PERIOD], 'type' => API_TIME_PERIOD, 'flags' => API_REQUIRED | API_NOT_EMPTY | API_ALLOW_USER_MACRO, 'length' => DB::getFieldLength('conditions', 'value')],
 					['if' => ['field' => 'conditiontype', 'in' => CONDITION_TYPE_EVENT_TAG_VALUE], 'type' => API_STRING_UTF8, 'length' => DB::getFieldLength('conditions', 'value')],
-					['else' => true, 'type' => API_UNEXPECTED]
+					['else' => true, 'type' => API_STRING_UTF8, 'in' => DB::getDefault('conditions', 'value')]
 				];
 				$operator_rules = [
 					['if' => ['field' => 'conditiontype', 'in' => CONDITION_TYPE_HOST_GROUP], 'type' => API_INT32, 'in' => implode(',', get_operators_by_conditiontype(CONDITION_TYPE_HOST_GROUP))],
@@ -2314,7 +2314,7 @@ class CAction extends CApiService {
 			'value' =>			['type' => API_MULTIPLE, 'rules' => $value_rules],
 			'value2' =>			['type' => API_MULTIPLE, 'rules' => [
 									['if' => ['field' => 'conditiontype', 'in' => CONDITION_TYPE_EVENT_TAG_VALUE], 'type' => API_STRING_UTF8, 'flags' => API_REQUIRED | API_NOT_EMPTY, 'length' => DB::getFieldLength('conditions', 'value2')],
-									['else' => true, 'type' => API_UNEXPECTED]
+									['else' => true, 'type' => API_STRING_UTF8, 'in' => DB::getDefault('conditions', 'value2')]
 			]]
 		];
 
@@ -2322,7 +2322,7 @@ class CAction extends CApiService {
 			'evaltype' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => implode(',', [CONDITION_EVAL_TYPE_AND_OR, CONDITION_EVAL_TYPE_AND, CONDITION_EVAL_TYPE_OR, CONDITION_EVAL_TYPE_EXPRESSION])],
 			'formula' =>	['type' => API_MULTIPLE, 'rules' => [
 								['if' => ['field' => 'evaltype', 'in' => CONDITION_EVAL_TYPE_EXPRESSION], 'type' => API_COND_FORMULA, 'flags' => API_REQUIRED, 'length' => DB::getFieldLength('actions', 'formula')],
-								['else' => true, 'type' => API_UNEXPECTED]
+								['else' => true, 'type' => API_COND_FORMULA, 'in' => DB::getDefault('actions', 'formula')]
 			]],
 			'conditions' =>	['type' => API_MULTIPLE, 'rules' => [
 								['if' => ['field' => 'evaltype', 'in' => CONDITION_EVAL_TYPE_EXPRESSION], 'type' => API_OBJECTS, 'flags' => API_REQUIRED, 'uniq' => [['formulaid']], 'fields' => [
@@ -2354,11 +2354,11 @@ class CAction extends CApiService {
 			'default_msg' =>	['type' => API_INT32, 'in' => implode(',', [0, 1]), 'default' => DB::getDefault('opmessage', 'default_msg')],
 			'subject' =>		['type' => API_MULTIPLE, 'rules' => [
 									['if' => ['field' => 'default_msg', 'in' => 0], 'type' => API_STRING_UTF8, 'length' => DB::getFieldLength('opmessage', 'subject')],
-									['else' => true, 'type' => API_UNEXPECTED]
+									['else' => true, 'type' => API_STRING_UTF8, 'in' => DB::getDefault('opmessage', 'subject')]
 			]],
 			'message' =>		['type' => API_MULTIPLE, 'rules' => [
 									['if' => ['field' => 'default_msg', 'in' => 0], 'type' => API_STRING_UTF8, 'length' => DB::getFieldLength('opmessage', 'message')],
-									['else' => true, 'type' => API_UNEXPECTED]
+									['else' => true, 'type' => API_STRING_UTF8, 'in' => DB::getDefault('opmessage', 'message')]
 			]]
 		];
 		$all_opmessage_fields = [
@@ -2367,19 +2367,19 @@ class CAction extends CApiService {
 										'mediatypeid' =>	['type' => API_ID]
 									]],
 									['if' => ['field' => 'operationtype', 'in' => OPERATION_TYPE_RECOVERY_MESSAGE], 'type' => API_OBJECT, 'flags' => API_REQUIRED, 'fields' => $opmessage_fields],
-									['else' => true, 'type' => API_UNEXPECTED]
+									['else' => true, 'type' => API_OBJECT, 'length' => 0]
 			]],
 			'opmessage_grp' =>	['type' => API_MULTIPLE, 'rules' => [
 									['if' => ['field' => 'operationtype', 'in' => OPERATION_TYPE_MESSAGE], 'type' => API_OBJECTS, 'uniq' => [['usrgrpid']], 'fields' => [
 										'usrgrpid' =>		['type' => API_ID, 'flags' => API_REQUIRED]
 									]],
-									['else' => true, 'type' => API_UNEXPECTED]
+									['else' => true, 'type' => API_OBJECT, 'length' => 0]
 			]],
 			'opmessage_usr' =>	['type' => API_MULTIPLE, 'rules' => [
 									['if' => ['field' => 'operationtype', 'in' => OPERATION_TYPE_MESSAGE], 'type' => API_OBJECTS, 'uniq' => [['userid']], 'fields' => [
 										'userid' =>		['type' => API_ID, 'flags' => API_REQUIRED]
 									]],
-									['else' => true, 'type' => API_UNEXPECTED]
+									['else' => true, 'type' => API_OBJECT, 'length' => 0]
 			]]
 		];
 		$opcommand_fields = [
@@ -2387,7 +2387,7 @@ class CAction extends CApiService {
 									['if' => ['field' => 'operationtype', 'in' => OPERATION_TYPE_COMMAND], 'type' => API_OBJECT, 'flags' => API_REQUIRED, 'fields' => [
 										'scriptid' =>	['type' => API_ID, 'flags' => API_REQUIRED]
 									]],
-									['else' => true, 'type' => API_UNEXPECTED]
+									['else' => true, 'type' => API_OBJECT, 'length' => 0]
 			]]
 		];
 		$common_fields = $all_opmessage_fields + $opcommand_fields + [
@@ -2395,13 +2395,13 @@ class CAction extends CApiService {
 									['if' => ['field' => 'operationtype', 'in' => OPERATION_TYPE_COMMAND], 'type' => API_OBJECTS, 'uniq' => [['groupid']], 'fields' => [
 										'groupid' =>	['type' => API_ID, 'flags' => API_REQUIRED]
 									]],
-									['else' => true, 'type' => API_UNEXPECTED]
+									['else' => true, 'type' => API_OBJECT, 'length' => 0]
 			]],
 			'opcommand_hst' =>	['type' => API_MULTIPLE, 'rules' => [
 									['if' => ['field' => 'operationtype', 'in' => OPERATION_TYPE_COMMAND], 'type' => API_OBJECTS, 'uniq' => [['hostid']], 'fields' => [
 										'hostid' =>	['type' => API_ID, 'flags' => API_REQUIRED]
 									]],
-									['else' => true, 'type' => API_UNEXPECTED]
+									['else' => true, 'type' => API_OBJECT, 'length' => 0]
 			]]
 		];
 
@@ -2429,19 +2429,19 @@ class CAction extends CApiService {
 													['if' => ['field' => 'operationtype', 'in' => implode(',', [OPERATION_TYPE_GROUP_ADD, OPERATION_TYPE_GROUP_REMOVE])], 'type' => API_OBJECTS, 'flags' => API_REQUIRED | API_NOT_EMPTY, 'uniq' => [['groupid']], 'fields' => [
 														'groupid' =>		['type' => API_ID, 'flags' => API_REQUIRED]
 													]],
-													['else' => true, 'type' => API_UNEXPECTED]
+													['else' => true, 'type' => API_OBJECT, 'length' => 0]
 							]],
 							'optemplate' =>		['type' => API_MULTIPLE, 'rules' => [
 													['if' => ['field' => 'operationtype', 'in' => implode(',', [OPERATION_TYPE_TEMPLATE_ADD, OPERATION_TYPE_TEMPLATE_REMOVE])], 'type' => API_OBJECTS, 'flags' => API_REQUIRED | API_NOT_EMPTY, 'uniq' => [['templateid']], 'fields' => [
 														'templateid' =>		['type' => API_ID, 'flags' => API_REQUIRED]
 													]],
-													['else' => true, 'type' => API_UNEXPECTED]
+													['else' => true, 'type' => API_OBJECT, 'length' => 0]
 							]],
 							'opinventory' =>	['type' => API_MULTIPLE, 'rules' => [
 													['if' => ['field' => 'operationtype', 'in' => OPERATION_TYPE_HOST_INVENTORY], 'type' => API_OBJECT, 'flags' => API_REQUIRED, 'fields' => [
 														'inventory_mode' =>	['type' => API_INT32, 'in' => implode(',', [HOST_INVENTORY_MANUAL, HOST_INVENTORY_AUTOMATIC])]
 													]],
-													['else' => true, 'type' => API_UNEXPECTED]
+													['else' => true, 'type' => API_OBJECT, 'length' => 0]
 							]]
 						];
 
@@ -2490,11 +2490,11 @@ class CAction extends CApiService {
 			'status' =>					['type' => API_INT32, 'in' => implode(',', [ACTION_STATUS_ENABLED, ACTION_STATUS_DISABLED])],
 			'esc_period' =>				['type' => API_MULTIPLE, 'rules' => [
 											['if' => ['field' => 'eventsource', 'in' => implode(',', [EVENT_SOURCE_TRIGGERS, EVENT_SOURCE_INTERNAL, EVENT_SOURCE_SERVICE])], 'type' => API_TIME_UNIT, 'flags' => API_ALLOW_USER_MACRO, 'in' => SEC_PER_MIN.':'.SEC_PER_WEEK, 'length' => DB::getFieldLength('actions', 'esc_period')],
-											['else' => true, 'type' => API_UNEXPECTED]
+											['else' => true, 'type' => API_TIME_UNIT, 'in' => DB::getDefault('actions', 'esc_period')]
 			]],
 			'pause_suppressed' =>		['type' => API_MULTIPLE, 'rules' => [
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_TRIGGERS], 'type' => API_INT32, 'in' => implode(',', [ACTION_PAUSE_SUPPRESSED_FALSE, ACTION_PAUSE_SUPPRESSED_TRUE])],
-											['else' => true, 'type' => API_UNEXPECTED]
+											['else' => true, 'type' => API_INT32, 'in' => DB::getDefault('actions', 'pause_suppressed')]
 			]],
 			'filter' =>					['type' => API_MULTIPLE, 'rules' => [
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_TRIGGERS], 'type' => API_OBJECT, 'fields' => self::getFilterValidationRules(EVENT_SOURCE_TRIGGERS)],
@@ -2514,16 +2514,16 @@ class CAction extends CApiService {
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_TRIGGERS], 'type' => API_OBJECTS, 'fields' => self::getOperationValidationRules(ACTION_RECOVERY_OPERATION, EVENT_SOURCE_TRIGGERS)],
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_INTERNAL], 'type' => API_OBJECTS, 'fields' => self::getOperationValidationRules(ACTION_RECOVERY_OPERATION, EVENT_SOURCE_INTERNAL)],
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_SERVICE], 'type' => API_OBJECTS, 'fields' => self::getOperationValidationRules(ACTION_RECOVERY_OPERATION, EVENT_SOURCE_SERVICE)],
-											['else' => true, 'type' => API_UNEXPECTED]
+											['else' => true, 'type' => API_OBJECT, 'length' => 0]
 			]],
 			'update_operations' =>		['type' => API_MULTIPLE, 'rules' => [
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_TRIGGERS], 'type' => API_OBJECTS, 'fields' => self::getOperationValidationRules(ACTION_UPDATE_OPERATION, EVENT_SOURCE_TRIGGERS)],
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_SERVICE], 'type' => API_OBJECTS, 'fields' => self::getOperationValidationRules(ACTION_UPDATE_OPERATION, EVENT_SOURCE_SERVICE)],
-											['else' => true, 'type' => API_UNEXPECTED]
+											['else' => true, 'type' => API_OBJECT, 'length' => 0]
 			]],
 			'notify_if_canceled' =>		['type' => API_MULTIPLE, 'rules' => [
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_TRIGGERS], 'type' => API_INT32, 'in' => implode(',', [ACTION_NOTIFY_IF_CANCELED_FALSE, ACTION_NOTIFY_IF_CANCELED_TRUE])],
-											['else' => true, 'type' => API_UNEXPECTED]
+											['else' => true, 'type' => API_OBJECT, 'length' => 0]
 			]]
 		]];
 
@@ -2587,11 +2587,11 @@ class CAction extends CApiService {
 			'status' =>					['type' => API_INT32, 'in' => implode(',', [ACTION_STATUS_ENABLED, ACTION_STATUS_DISABLED])],
 			'esc_period' =>				['type' => API_MULTIPLE, 'rules' => [
 											['if' => ['field' => 'eventsource', 'in' => implode(',', [EVENT_SOURCE_TRIGGERS, EVENT_SOURCE_INTERNAL, EVENT_SOURCE_SERVICE])], 'type' => API_TIME_UNIT, 'flags' => API_ALLOW_USER_MACRO, 'in' => SEC_PER_MIN.':'.SEC_PER_WEEK, 'length' => DB::getFieldLength('actions', 'esc_period')],
-											['else' => true, 'type' => API_UNEXPECTED]
+											['else' => true, 'type' => API_TIME_UNIT, 'in' => DB::getDefault('actions', 'esc_period')]
 			]],
 			'pause_suppressed' =>		['type' => API_MULTIPLE, 'rules' => [
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_TRIGGERS], 'type' => API_INT32, 'in' => implode(',', [ACTION_PAUSE_SUPPRESSED_FALSE, ACTION_PAUSE_SUPPRESSED_TRUE])],
-											['else' => true, 'type' => API_UNEXPECTED]
+											['else' => true, 'type' => API_INT32, 'in' => DB::getDefault('actions', 'pause_suppressed')]
 			]],
 			'filter' =>					['type' => API_MULTIPLE, 'rules' => [
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_TRIGGERS], 'type' => API_OBJECT, 'fields' => self::getFilterValidationRules(EVENT_SOURCE_TRIGGERS)],
@@ -2611,16 +2611,16 @@ class CAction extends CApiService {
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_TRIGGERS], 'type' => API_OBJECTS, 'fields' => self::getOperationValidationRules(ACTION_RECOVERY_OPERATION, EVENT_SOURCE_TRIGGERS)],
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_INTERNAL], 'type' => API_OBJECTS, 'fields' => self::getOperationValidationRules(ACTION_RECOVERY_OPERATION, EVENT_SOURCE_INTERNAL)],
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_SERVICE], 'type' => API_OBJECTS, 'fields' => self::getOperationValidationRules(ACTION_RECOVERY_OPERATION, EVENT_SOURCE_SERVICE)],
-											['else' => true, 'type' => API_UNEXPECTED]
+											['else' => true, 'type' => API_OBJECT, 'length' => 0]
 			]],
 			'update_operations' =>		['type' => API_MULTIPLE, 'rules' => [
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_TRIGGERS], 'type' => API_OBJECTS, 'fields' => self::getOperationValidationRules(ACTION_UPDATE_OPERATION, EVENT_SOURCE_TRIGGERS)],
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_SERVICE], 'type' => API_OBJECTS, 'fields' => self::getOperationValidationRules(ACTION_UPDATE_OPERATION, EVENT_SOURCE_SERVICE)],
-											['else' => true, 'type' => API_UNEXPECTED]
+											['else' => true, 'type' => API_OBJECT, 'length' => 0]
 			]],
 			'notify_if_canceled' =>		['type' => API_MULTIPLE, 'rules' => [
 											['if' => ['field' => 'eventsource', 'in' => EVENT_SOURCE_TRIGGERS], 'type' => API_INT32, 'in' => implode(',', [ACTION_NOTIFY_IF_CANCELED_FALSE, ACTION_NOTIFY_IF_CANCELED_TRUE])],
-											['else' => true, 'type' => API_UNEXPECTED]
+											['else' => true, 'type' => API_INT32, 'in' => DB::getDefault('actions', 'notify_if_canceled')]
 			]]
 		]];
 

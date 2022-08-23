@@ -1205,10 +1205,6 @@ class CApiInputValidator {
 								&& self::isInRange($data[$multiple_rule['if']['field']], $multiple_rule['if']['in']))
 							|| ($multiple_rule['if'] instanceof Closure
 								&& call_user_func($multiple_rule['if'], $data))) {
-						if ($multiple_rule['type'] == API_UNEXPECTED
-								&& !self::validateUnexpected($field_name, $multiple_rule, $data, $path, $error)) {
-							return false;
-						}
 
 						$field_rule += ['flags' => 0x00];
 						$multiple_rule += ['flags' => 0x00];
@@ -1227,6 +1223,10 @@ class CApiInputValidator {
 			elseif ($field_rule['type'] === API_UNEXPECTED
 					&& !self::validateUnexpected($field_name, $field_rule, $data, $path, $error)) {
 				return false;
+			}
+
+			if ($field_rule['type'] === API_UNEXPECTED) {
+				continue;
 			}
 
 			$flags = array_key_exists('flags', $field_rule) ? $field_rule['flags'] : 0x00;
@@ -3010,6 +3010,10 @@ class CApiInputValidator {
 	private static function validateUnexpected(string $field_name, array $field_rule, array $object, string $path,
 			string &$error): bool {
 		if (!array_key_exists($field_name, $object)) {
+			return true;
+		}
+
+		if (array_key_exists('default', $field_rule) && $field_rule['default'] === $object[$field_name]) {
 			return true;
 		}
 
