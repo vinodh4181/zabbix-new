@@ -136,10 +136,10 @@ static void	DCdump_hosts(void)
 					host->httptests.values[j]->httptestid);
 		}
 
-		zabbix_log(LOG_LEVEL_TRACE, "  active items:");
-		for (j = 0; j < host->active_items.values_num; j++)
+		zabbix_log(LOG_LEVEL_TRACE, "  items:");
+		for (j = 0; j < host->items.values_num; j++)
 		{
-			ZBX_DC_ITEM	*item = host->active_items.values[j];
+			ZBX_DC_ITEM	*item = host->items.values[j];
 
 			zabbix_log(LOG_LEVEL_TRACE, "    itemid:" ZBX_FS_UI64, item->itemid);
 		}
