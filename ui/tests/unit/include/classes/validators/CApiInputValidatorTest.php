@@ -1609,13 +1609,14 @@ class CApiInputValidatorTest extends TestCase {
 				]],
 				[
 					'hostid' => '10428',
-					'custom_interface' => 0,
-					'interface_ip' => ''
+					'custom_interface' => '1',
+					'interface_ip' => '127.0.0.1'
 				],
+				'/',
 				[
 					'hostid' => '10428',
-					'custom_interface' => '1',
-					'interface_ip' => ''
+					'custom_interface' => 1,
+					'interface_ip' => '127.0.0.1'
 				]
 			],
 			[
@@ -1630,10 +1631,10 @@ class CApiInputValidatorTest extends TestCase {
 				[
 					'hostid' => '10428',
 					'custom_interface' => 0,
-					'interface_ip' => ''
+					'interface_ip' => '127.0.0.1'
 				],
 				'/',
-				'Invalid parameter "/": unexpected parameter "interface_ip".'
+				'Invalid parameter "/interface_ip": value must be empty.'
 			],
 			[
 				['type' => API_OBJECT, 'fields' => [
@@ -1647,23 +1648,10 @@ class CApiInputValidatorTest extends TestCase {
 				[
 					'hostid' => '10428',
 					'custom_interface' => 0,
-					'interface_ip' => ''
+					'interface_ip' => '127.0.0.1'
 				],
-			],
-			[
-				['type' => API_OBJECT, 'fields' => [
-					'hostid' =>				['type' => API_ID],
-					'custom_interface' =>	['type'=> API_INT32, 'flags' => API_REQUIRED, 'in' => '0,1'],
-					'interface_ip' =>		['type' => API_MULTIPLE, 'rules' => [
-												['if' => ['field' => 'custom_interface', 'in' => '1'], 'type' => API_IP],
-												['else' => true, 'type' => API_STRING_UTF8, 'in' => '']
-					]]
-				]],
-				[
-					'hostid' => '10428',
-					'custom_interface' => 0,
-					'interface_ip' => ''
-				],
+				'/',
+				'Invalid parameter "/interface_ip": value must be empty.'
 			],
 			[
 				['type' => API_IDS],
@@ -2122,11 +2110,11 @@ class CApiInputValidatorTest extends TestCase {
 				]
 			],
 			[
-				['type' => API_OBJECTS, 'fields' => [
+			['type' => API_OBJECTS, 'fields' => [
 					'type' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1:9'],
 					'value' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => ['field' => 'type', 'in' => '1,2'], 'flags' => API_REQUIRED, 'type' => API_INT32],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => true, 'type' => API_INT32, 'in' => 0]
 					]]
 				]],
 				[
@@ -2135,14 +2123,14 @@ class CApiInputValidatorTest extends TestCase {
 					['type' => '7', 'value' => '123']
 				],
 				'/',
-				'Invalid parameter "/3": unexpected parameter "value".'
+				'Invalid parameter "/3/value": value must be 0.'
 			],
 			[
 				['type' => API_OBJECTS, 'fields' => [
 					'type' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1:9'],
 					'value' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => ['field' => 'type', 'in' => '1,2'], 'flags' => API_REQUIRED, 'type' => API_INT32],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => true, 'type' => API_INT32, 'in' => 0]
 					]]
 				]],
 				[
@@ -2158,7 +2146,7 @@ class CApiInputValidatorTest extends TestCase {
 					'type' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1:9'],
 					'value' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => ['field' => 'type', 'in' => '1,2'], 'flags' => API_REQUIRED, 'type' => API_INT32],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => true, 'type' => API_INT32, 'in' => 0]
 					]]
 				]],
 				[
@@ -2410,13 +2398,13 @@ class CApiInputValidatorTest extends TestCase {
 					'type' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
 					'level' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => ['field' => 'type', 'in' => '3'], 'type' => API_INT32, 'in' => '1:3', 'flags' => API_REQUIRED],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => true, 'type' => API_INT32, 'in' => 0]
 					]],
 					'value' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => function (array $data): bool {
 							return $data['type'] == 3 && in_array($data['level'], [2, 3]);
 						}, 'type' => API_INT32, 'in' => '1,2'],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => true, 'type' => API_INT32, 'in' => 0]
 					]]
 				]],
 				[
@@ -2424,20 +2412,20 @@ class CApiInputValidatorTest extends TestCase {
 					['type' => '1', 'level' => '1', 'value' => '1']
 				],
 				'/',
-				'Invalid parameter "/2": unexpected parameter "level".'
+				'Invalid parameter "/2/level": value must be 0.'
 			],
 			[
 				['type' => API_OBJECTS, 'fields' => [
 					'type' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
 					'level' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => ['field' => 'type', 'in' => '3'], 'type' => API_INT32, 'in' => '1:3', 'flags' => API_REQUIRED],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => true, 'type' => API_INT32, 'in' => 0]
 					]],
 					'value' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => function (array $data): bool {
 							return $data['type'] == 3 && in_array($data['level'], [2, 3]);
 						}, 'type' => API_INT32, 'in' => '1,2'],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => true, 'type' => API_INT32, 'in' => 0]
 					]]
 				]],
 				[
@@ -2445,20 +2433,20 @@ class CApiInputValidatorTest extends TestCase {
 					['type' => '3', 'level' => '1', 'value' => '1']
 				],
 				'/',
-				'Invalid parameter "/2": unexpected parameter "value".'
+				'Invalid parameter "/2/value": value must be 0.'
 			],
 			[
 				['type' => API_OBJECTS, 'fields' => [
 					'type' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
 					'level' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => ['field' => 'type', 'in' => '3'], 'type' => API_INT32, 'in' => '1:3', 'flags' => API_REQUIRED],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => true, 'type' => API_INT32, 'in' => 0]
 					]],
 					'value' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => function (array $data): bool {
 							return $data['type'] == 3 && in_array($data['level'], [2, 3]);
 						}, 'type' => API_INT32, 'in' => '1,2'],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => true, 'type' => API_INT32, 'in' => 0]
 					]]
 				]],
 				[
@@ -5915,7 +5903,7 @@ class CApiInputValidatorTest extends TestCase {
 					'type' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
 					'levels' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => ['field' => 'type', 'in' => '3'], 'type' => API_INTS32, 'flags' => API_REQUIRED, 'in' => '1,2,3', 'uniq' => true],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => false]
 					]]
 				]],
 				['type' => '2'],
@@ -5928,7 +5916,7 @@ class CApiInputValidatorTest extends TestCase {
 					'type' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
 					'levels' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => ['field' => 'type', 'in' => '3'], 'type' => API_INTS32, 'flags' => API_REQUIRED, 'in' => '1,2,3', 'uniq' => true],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => false]
 					]]
 				]],
 				['type' => '3', 'levels' => ['1', '2']],
@@ -5941,7 +5929,7 @@ class CApiInputValidatorTest extends TestCase {
 					'type' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
 					'levels' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => ['field' => 'type', 'in' => '3'], 'type' => API_INTS32, 'flags' => API_REQUIRED, 'in' => '1,2,3', 'uniq' => true],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => false]
 					]]
 				]],
 				['type' => '3', 'levels' => ['1', '2', '1']],
@@ -5954,7 +5942,7 @@ class CApiInputValidatorTest extends TestCase {
 					'type' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
 					'levels' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => ['field' => 'type', 'in' => '3'], 'type' => API_INTS32, 'flags' => API_REQUIRED, 'in' => '1,2,3', 'uniq' => true],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => false]
 					]]
 				]],
 				[
@@ -5971,13 +5959,13 @@ class CApiInputValidatorTest extends TestCase {
 					'type' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
 					'level' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => ['field' => 'type', 'in' => '3'], 'type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => false]
 					]],
 					'value' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => function (array $data): bool {
 							return $data['type'] == 3 && in_array($data['level'], [2, 3]);
 						}, 'type' => API_INTS32, 'in' => '1,2,3,4', 'uniq' => true],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => false]
 					]]
 				]],
 				['type' => '3', 'level' => '1'],
@@ -5990,13 +5978,13 @@ class CApiInputValidatorTest extends TestCase {
 					'type' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
 					'level' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => ['field' => 'type', 'in' => '3'], 'type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => false]
 					]],
 					'value' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => function (array $data): bool {
 							return $data['type'] == 3 && in_array($data['level'], [2, 3]);
 						}, 'type' => API_INTS32, 'in' => '1,2,3,4', 'uniq' => true],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => false]
 					]]
 				]],
 				['type' => '3', 'level' => '2', 'value' => ['1', '2', '3']],
@@ -6009,13 +5997,13 @@ class CApiInputValidatorTest extends TestCase {
 					'type' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
 					'level' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => ['field' => 'type', 'in' => '3'], 'type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => false]
 					]],
 					'value' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => function (array $data): bool {
 							return $data['type'] == 3 && in_array($data['level'], [2, 3]);
 						}, 'type' => API_INTS32, 'in' => '1,2,3,4', 'uniq' => true],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => false]
 					]]
 				]],
 				['type' => '3', 'level' => '2', 'value' => ['1', '2', '3', '4', '1']],
@@ -6028,13 +6016,13 @@ class CApiInputValidatorTest extends TestCase {
 					'type' =>	['type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
 					'level' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => ['field' => 'type', 'in' => '3'], 'type' => API_INT32, 'flags' => API_REQUIRED, 'in' => '1,2,3'],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => false]
 					]],
 					'value' =>	['type' => API_MULTIPLE, 'rules' => [
 						['if' => function (array $data): bool {
 							return $data['type'] == 3 && in_array($data['level'], [2, 3]);
 						}, 'type' => API_INTS32, 'in' => '1,2,3,4', 'uniq' => true],
-						['else' => true, 'type' => API_UNEXPECTED]
+						['else' => false]
 					]]
 				]],
 				[
