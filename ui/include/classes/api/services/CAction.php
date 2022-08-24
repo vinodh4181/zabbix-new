@@ -2429,19 +2429,19 @@ class CAction extends CApiService {
 													['if' => ['field' => 'operationtype', 'in' => implode(',', [OPERATION_TYPE_GROUP_ADD, OPERATION_TYPE_GROUP_REMOVE])], 'type' => API_OBJECTS, 'flags' => API_REQUIRED | API_NOT_EMPTY, 'uniq' => [['groupid']], 'fields' => [
 														'groupid' =>		['type' => API_ID, 'flags' => API_REQUIRED]
 													]],
-													['else' => true, 'type' => API_OBJECT, 'length' => 0]
+													['else' => true, 'type' => API_OBJECTS, 'length' => 0]
 							]],
 							'optemplate' =>		['type' => API_MULTIPLE, 'rules' => [
 													['if' => ['field' => 'operationtype', 'in' => implode(',', [OPERATION_TYPE_TEMPLATE_ADD, OPERATION_TYPE_TEMPLATE_REMOVE])], 'type' => API_OBJECTS, 'flags' => API_REQUIRED | API_NOT_EMPTY, 'uniq' => [['templateid']], 'fields' => [
 														'templateid' =>		['type' => API_ID, 'flags' => API_REQUIRED]
 													]],
-													['else' => true, 'type' => API_OBJECT, 'length' => 0]
+													['else' => true, 'type' => API_OBJECTS, 'length' => 0]
 							]],
 							'opinventory' =>	['type' => API_MULTIPLE, 'rules' => [
 													['if' => ['field' => 'operationtype', 'in' => OPERATION_TYPE_HOST_INVENTORY], 'type' => API_OBJECT, 'flags' => API_REQUIRED, 'fields' => [
 														'inventory_mode' =>	['type' => API_INT32, 'in' => implode(',', [HOST_INVENTORY_MANUAL, HOST_INVENTORY_AUTOMATIC])]
 													]],
-													['else' => true, 'type' => API_OBJECT, 'length' => 0]
+													['else' => true, 'type' => API_OBJECTS, 'length' => 0]
 							]]
 						];
 

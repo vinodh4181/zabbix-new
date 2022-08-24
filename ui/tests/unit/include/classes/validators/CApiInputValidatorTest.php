@@ -1604,19 +1604,18 @@ class CApiInputValidatorTest extends TestCase {
 					'custom_interface' =>	['type'=> API_INT32, 'flags' => API_REQUIRED, 'in' => '0,1'],
 					'interface_ip' =>		['type' => API_MULTIPLE, 'rules' => [
 												['if' => ['field' => 'custom_interface', 'in' => '1'], 'type' => API_IP],
-												['else' => true, 'type' => API_UNEXPECTED]
+												['else' => true, 'type' => API_STRING_UTF8, 'in' => '']
 					]]
 				]],
 				[
 					'hostid' => '10428',
-					'custom_interface' => '1',
-					'interface_ip' => '127.0.0.1'
+					'custom_interface' => 0,
+					'interface_ip' => ''
 				],
-				'/',
 				[
 					'hostid' => '10428',
-					'custom_interface' => 1,
-					'interface_ip' => '127.0.0.1'
+					'custom_interface' => '1',
+					'interface_ip' => ''
 				]
 			],
 			[
@@ -1625,13 +1624,13 @@ class CApiInputValidatorTest extends TestCase {
 					'custom_interface' =>	['type'=> API_INT32, 'flags' => API_REQUIRED, 'in' => '0,1'],
 					'interface_ip' =>		['type' => API_MULTIPLE, 'rules' => [
 												['if' => ['field' => 'custom_interface', 'in' => '1'], 'type' => API_IP],
-												['else' => true, 'type' => API_UNEXPECTED]
+												['else' => true, 'type' => API_STRING_UTF8,	'in' => '']
 					]]
 				]],
 				[
 					'hostid' => '10428',
-					'custom_interface' => '0',
-					'interface_ip' => '127.0.0.1'
+					'custom_interface' => 0,
+					'interface_ip' => ''
 				],
 				'/',
 				'Invalid parameter "/": unexpected parameter "interface_ip".'
@@ -1642,16 +1641,14 @@ class CApiInputValidatorTest extends TestCase {
 					'custom_interface' =>	['type'=> API_INT32, 'flags' => API_REQUIRED, 'in' => '0,1'],
 					'interface_ip' =>		['type' => API_MULTIPLE, 'rules' => [
 												['if' => ['field' => 'custom_interface', 'in' => '1'], 'type' => API_IP],
-												['else' => true, 'type' => API_UNEXPECTED, 'error_type' => API_ERR_INHERITED]
+												['else' => true, 'type' => API_STRING_UTF8, 'in' => '']
 					]]
 				]],
 				[
 					'hostid' => '10428',
-					'custom_interface' => '0',
-					'interface_ip' => '127.0.0.1'
+					'custom_interface' => 0,
+					'interface_ip' => ''
 				],
-				'/',
-				'Invalid parameter "/": cannot update readonly parameter "interface_ip" of inherited object.'
 			],
 			[
 				['type' => API_OBJECT, 'fields' => [
@@ -1659,16 +1656,14 @@ class CApiInputValidatorTest extends TestCase {
 					'custom_interface' =>	['type'=> API_INT32, 'flags' => API_REQUIRED, 'in' => '0,1'],
 					'interface_ip' =>		['type' => API_MULTIPLE, 'rules' => [
 												['if' => ['field' => 'custom_interface', 'in' => '1'], 'type' => API_IP],
-												['else' => true, 'type' => API_UNEXPECTED, 'error_type' => API_ERR_DISCOVERED]
+												['else' => true, 'type' => API_STRING_UTF8, 'in' => '']
 					]]
 				]],
 				[
 					'hostid' => '10428',
-					'custom_interface' => '0',
-					'interface_ip' => '127.0.0.1'
+					'custom_interface' => 0,
+					'interface_ip' => ''
 				],
-				'/',
-				'Invalid parameter "/": cannot update readonly parameter "interface_ip" of discovered object.'
 			],
 			[
 				['type' => API_IDS],

@@ -1225,10 +1225,6 @@ class CApiInputValidator {
 				return false;
 			}
 
-			if ($field_rule['type'] === API_UNEXPECTED) {
-				continue;
-			}
-
 			$flags = array_key_exists('flags', $field_rule) ? $field_rule['flags'] : 0x00;
 
 			if (array_key_exists('default', $field_rule) && !array_key_exists($field_name, $data)) {
@@ -3010,10 +3006,6 @@ class CApiInputValidator {
 	private static function validateUnexpected(string $field_name, array $field_rule, array $object, string $path,
 			string &$error): bool {
 		if (!array_key_exists($field_name, $object)) {
-			return true;
-		}
-
-		if (array_key_exists('default', $field_rule) && $field_rule['default'] === $object[$field_name]) {
 			return true;
 		}
 

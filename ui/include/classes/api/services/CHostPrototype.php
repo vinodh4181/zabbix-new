@@ -713,15 +713,15 @@ class CHostPrototype extends CHostBase {
 						'bulk' =>			['type' => API_INT32, 'in' => implode(',', [SNMP_BULK_DISABLED, SNMP_BULK_ENABLED])],
 						'community' =>		['type' => API_MULTIPLE, 'rules' => [
 												['if' => ['field' => 'version', 'in' => implode(',', [SNMP_V1, SNMP_V2C])], 'type' => API_STRING_UTF8, 'flags' => API_REQUIRED | API_NOT_EMPTY, 'length' => DB::getFieldLength('interface_snmp', 'community')],
-												['else' => true, 'type' => API_STRING_UTF8, 'length' => 0]
+												['else' => true, 'type' => API_STRING_UTF8, 'in' => 0]
 						]],
 						'contextname' =>	['type' => API_MULTIPLE, 'rules' => [
 												['if' => ['field' => 'version', 'in' => SNMP_V3], 'type' => API_STRING_UTF8, 'length' => DB::getFieldLength('interface_snmp', 'contextname')],
-												['else' => true, 'type' => API_STRING_UTF8, 'length' => 0]
+												['else' => true, 'type' => API_STRING_UTF8, 'in' => 0]
 						]],
 						'securityname' =>	['type' => API_MULTIPLE, 'rules' => [
 												['if' => ['field' => 'version', 'in' => SNMP_V3], 'type' => API_STRING_UTF8, 'length' => DB::getFieldLength('interface_snmp', 'securityname')],
-												['else' => true, 'type' => API_STRING_UTF8, 'length' => 0]
+												['else' => true, 'type' => API_STRING_UTF8, 'in' => 0]
 						]],
 						'securitylevel' =>	['type' => API_MULTIPLE, 'rules' => [
 												['if' => ['field' => 'version', 'in' => SNMP_V3], 'type' => API_INT32, 'in' => implode(',', [ITEM_SNMPV3_SECURITYLEVEL_NOAUTHNOPRIV, ITEM_SNMPV3_SECURITYLEVEL_AUTHNOPRIV, ITEM_SNMPV3_SECURITYLEVEL_AUTHPRIV]), 'default' => DB::getDefault('interface_snmp', 'securitylevel')],
@@ -739,7 +739,7 @@ class CHostPrototype extends CHostBase {
 													return $data['version'] == SNMP_V3
 														&& in_array($data['securitylevel'], [ITEM_SNMPV3_SECURITYLEVEL_AUTHNOPRIV, ITEM_SNMPV3_SECURITYLEVEL_AUTHPRIV]);
 												}, 'type' => API_STRING_UTF8, 'length' => DB::getFieldLength('interface_snmp', 'authpassphrase')],
-												['else' => true, 'type' => API_STRING_UTF8, 'length' => 0]
+												['else' => true, 'type' => API_STRING_UTF8, 'in' => 0]
 						]],
 						'privprotocol' =>	['type' => API_MULTIPLE, 'rules' => [
 												['if' => function (array $data): bool {
@@ -753,13 +753,13 @@ class CHostPrototype extends CHostBase {
 													return $data['version'] == SNMP_V3
 														&& $data['securitylevel'] == ITEM_SNMPV3_SECURITYLEVEL_AUTHPRIV;
 												}, 'type' => API_STRING_UTF8, 'length' => DB::getFieldLength('interface_snmp', 'privpassphrase')],
-												['else' => true, 'type' => API_STRING_UTF8, 'length' => 0]
+												['else' => true, 'type' => API_STRING_UTF8, 'in' => 0]
 						]]
 					]],
-					['else' => true, 'type' => API_OBJECT, 'length' => 0]
+					['else' => true, 'type' => API_OBJECTS, 'length' => 0]
 				]]
 			]],
-			['else' => true, 'type' => API_OBJECT, 'length' => 0]
+			['else' => true, 'type' => API_OBJECTS, 'length' => 0]
 		]];
 	}
 
