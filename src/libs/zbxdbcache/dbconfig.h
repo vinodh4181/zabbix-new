@@ -264,6 +264,8 @@ typedef struct
 }
 ZBX_DC_MASTERITEM;
 
+ZBX_PTR_VECTOR_DECL(dc_masteritem_ptr, ZBX_DC_MASTERITEM *)
+
 typedef struct
 {
 	zbx_uint64_t		itemid;
@@ -271,6 +273,17 @@ typedef struct
 	zbx_vector_ptr_t	preproc_ops;
 }
 ZBX_DC_PREPROCITEM;
+
+ZBX_PTR_VECTOR_DECL(dc_preprocitem_ptr, ZBX_DC_PREPROCITEM *)
+
+typedef struct
+{
+	zbx_uint64_t			hostid;
+	zbx_vector_dc_preprocitem_ptr_t	preprocitems;
+	zbx_vector_dc_masteritem_ptr_t	masteritems;
+	zbx_vector_uint64_t		internal_itemids;
+}
+zbx_dc_host_preproc_t;
 
 typedef struct
 {
@@ -933,6 +946,7 @@ typedef struct
 	zbx_hashset_t		httptest_fields;
 	zbx_hashset_t		httpsteps;
 	zbx_hashset_t		httpstep_fields;
+	zbx_hashset_t		host_preproc;
 	zbx_hashset_t		sessions[ZBX_SESSION_TYPE_COUNT];
 	zbx_binary_heap_t	queues[ZBX_POLLER_TYPE_COUNT];
 	zbx_binary_heap_t	pqueue;

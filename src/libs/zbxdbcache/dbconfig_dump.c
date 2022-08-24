@@ -1440,6 +1440,29 @@ static void	DCdump_httpstep_fields(void)
 	zabbix_log(LOG_LEVEL_TRACE, "End of %s()", __func__);
 }
 
+static void	DCdump_host_preproc(void)
+{
+	zbx_hashset_iter_t	iter;
+	zbx_dc_host_preproc_t	*host_preproc;
+	int			i;
+
+	zabbix_log(LOG_LEVEL_TRACE, "In %s()", __func__);
+
+	zbx_hashset_iter_reset(&config->host_preproc, &iter);
+	while (NULL != (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_iter_next(&iter)))
+	{
+		zabbix_log(LOG_LEVEL_TRACE, "hostid:" ZBX_FS_UI64, host_preproc->hostid);
+
+		for (i = 0; i < host_preproc->preprocitems.values_num; i++)
+		{
+			zabbix_log(LOG_LEVEL_TRACE, "  itemid:" ZBX_FS_UI64,
+					host_preproc->preprocitems.values[i]->itemid);
+		}
+	}
+
+	zabbix_log(LOG_LEVEL_TRACE, "End of %s()", __func__);
+}
+
 void	DCdump_configuration(void)
 {
 	zabbix_log(LOG_LEVEL_TRACE, "=== Configuration cache contents (revision:" ZBX_FS_UI64 ") ===",
@@ -1478,4 +1501,5 @@ void	DCdump_configuration(void)
 	DCdump_httpsteps();
 	DCdump_httpstep_fields();
 	DCdump_autoreg_hosts();
+	DCdump_host_preproc();
 }
