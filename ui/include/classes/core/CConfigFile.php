@@ -21,56 +21,66 @@
 
 class CConfigFile {
 
-	const CONFIG_NOT_FOUND = 1;
-	const CONFIG_ERROR = 2;
-	const CONFIG_VAULT_ERROR = 3;
+	public const CONFIG_NOT_FOUND = 1;
+	public const CONFIG_ERROR = 2;
+	public const CONFIG_VAULT_ERROR = 3;
 
 	private const DEFAULT_CONFIG_FILE = 'conf/zabbix.conf.php';
 	private const DEFAULT_MAINTENANCE_CONFIG_FILE = 'conf/maintenance.inc.php';
 
-	// this file can be used to override the above paths
+	// This file can be used to override the above paths.
 	private const OVERRIDES_FILE = 'conf/overrides.conf.php';
 
-	private static $supported_db_types = [
+	private const SUPPORTED_DB_TYPES = [
 		ZBX_DB_MYSQL => true,
 		ZBX_DB_ORACLE => true,
 		ZBX_DB_POSTGRESQL => true
 	];
 
-	private $configFileFullPath = null;
-	private $maintenanceConfigFile = null;
+	private $config_file;
+	private $maintenance_config_file;
 
-	// the way config file will be displayed in Wizard
-	private $configFileDisplayName = null;
+	// The way config file will be displayed in Wizard.
+	private $config_file_display_name;
 
 	public $config = [];
 	public $error = '';
 
-	private static function exception($error, $code = self::CONFIG_ERROR) {
+	/**
+	 * @param string $error Error message.
+	 * @param int    $code  Error code.
+	 *
+	 * @throws ConfigFileException
+	 */
+	private static function exception(string $error, int $code = self::CONFIG_ERROR): void {
 		throw new ConfigFileException($error, $code);
 	}
 
+	/**
+	 * @throws ConfigFileException
+	 */
 	public function __construct() {
 		$this->setDefaults();
 
-		// do not change these variable names, they may be used in overrides file
-		$configFile = $this->getRootDir() . '/' . self::DEFAULT_CONFIG_FILE;
-		$maintenanceConfigFile = self::DEFAULT_MAINTENANCE_CONFIG_FILE;
+		// Do not change these variable names, they may be used in overrides file.
+		$CONFIG_FILE = APP::getRootDir().'/'.self::DEFAULT_CONFIG_FILE;
+		$MAINTENANCE_CONFIG_FILE = self::DEFAULT_MAINTENANCE_CONFIG_FILE;
 
-		$configFileDisplayName = self::DEFAULT_CONFIG_FILE;
+		$config_file_display_name = self::DEFAULT_CONFIG_FILE;
 
 		if (file_exists(self::OVERRIDES_FILE)) {
-			if (!is_readable(self::OVERRIDES_FILE))
-				self::exception('Cannot access overrides file ' . self::OVERRIDES_FILE .  '.');
+			if (!is_readable(self::OVERRIDES_FILE)) {
+				self::exception('Cannot access overrides file.');
+			}
 
 			ob_start();
 			include(self::OVERRIDES_FILE);
 			ob_end_clean();
 
-			$configFileDisplayName = $configFile;
+			$config_file_display_name = $CONFIG_FILE;
 		}
 
-		$this->setFiles($configFile, $configFileDisplayName, $maintenanceConfigFile);
+		$this->setFiles($CONFIG_FILE, $config_file_display_name, $MAINTENANCE_CONFIG_FILE);
 	}
 
 	/**
@@ -78,8 +88,8 @@ class CConfigFile {
 	 *
 	 * @return string
 	 */
-	public function configFileFullPath() {
-		return $this->configFileFullPath;
+	public function getConfigFile(): string {
+		return $this->config_file;
 	}
 
 	/**
@@ -88,8 +98,8 @@ class CConfigFile {
 	 *
 	 * @return string
 	 */
-	public function configFileDisplayName() {
-		return $this->configFileDisplayName;
+	public function getConfigFileDisplayName(): string {
+		return $this->config_file_display_name;
 	}
 
 	/**
@@ -98,49 +108,50 @@ class CConfigFile {
 	 *
 	 * @return string
 	 */
-	public function maintenanceConfigFile() {
-		return $this->maintenanceConfigFile;
+	public function getMaintenanceConfigFile(): string {
+		return $this->maintenance_config_file;
 	}
 
 	/**
 	 * Sets the full path to the configuration file and display name for Wizard.
+	 *
+	 * @param string $config_file
+	 * @param string $config_file_display_name
+	 * @param string $maintenance_config_file
 	 */
-	private function setFiles($configFileFullPath, $configFileDisplayName, $maintenanceConfigFile) {
-		$this->configFileFullPath = $configFileFullPath;
-		$this->configFileDisplayName = $configFileDisplayName;
-		$this->maintenanceConfigFile = $maintenanceConfigFile;
+	private function setFiles(string $config_file, string $config_file_display_name,
+			string $maintenance_config_file): void {
+		$this->config_file = $config_file;
+		$this->config_file_display_name = $config_file_display_name;
+		$this->maintenance_config_file = $maintenance_config_file;
 	}
 
 	/**
-	 * Returns the path to the frontend's root directory.
+	 * @return array
+	 * @throws ConfigFileException
 	 *
-	 * @return string
 	 */
-	private function getRootDir() {
-		return realpath(dirname(__FILE__).'/../../..');
-	}
-
-	public function load() {
-		if (!file_exists($this->configFileFullPath)) {
+	public function load(): array {
+		if (!file_exists($this->config_file)) {
 			self::exception('Config file does not exist.', self::CONFIG_NOT_FOUND);
 		}
 
-		if (!is_readable($this->configFileFullPath)) {
+		if (!is_readable($this->config_file)) {
 			self::exception('Permission denied.');
 		}
 
 		ob_start();
-		include($this->configFileFullPath);
+		include($this->config_file);
 		ob_end_clean();
 
 		if (!isset($DB['TYPE'])) {
 			self::exception('DB type is not set.');
 		}
 
-		if (!array_key_exists($DB['TYPE'], self::$supported_db_types)) {
+		if (!array_key_exists($DB['TYPE'], self::SUPPORTED_DB_TYPES)) {
 			self::exception(
 				'Incorrect value "'.$DB['TYPE'].'" for DB type. Possible values '.
-				implode(', ', array_keys(self::$supported_db_types)).'.'
+				implode(', ', array_keys(self::SUPPORTED_DB_TYPES)).'.'
 			);
 		}
 
@@ -248,7 +259,7 @@ class CConfigFile {
 		if ($this->config['DB']['VAULT_URL'] !== ''
 				&& $this->config['DB']['VAULT_DB_PATH'] !== ''
 				&& $this->config['DB']['VAULT_TOKEN'] !== '') {
-			list($this->config['DB']['USER'], $this->config['DB']['PASSWORD']) = $this->getCredentialsFromVault();
+			[$this->config['DB']['USER'], $this->config['DB']['PASSWORD']] = $this->getCredentialsFromVault();
 
 			if ($this->config['DB']['USER'] === '' || $this->config['DB']['PASSWORD'] === '') {
 				self::exception(_('Unable to load database credentials from Vault.'), self::CONFIG_VAULT_ERROR);
@@ -286,7 +297,7 @@ class CConfigFile {
 		return [$username, $password];
 	}
 
-	public function makeGlobal() {
+	public function makeGlobal(): void {
 		global $DB, $ZBX_SERVER, $ZBX_SERVER_PORT, $ZBX_SERVER_NAME, $IMAGE_FORMAT_DEFAULT, $HISTORY, $SSO;
 
 		$DB = $this->config['DB'];
@@ -298,9 +309,9 @@ class CConfigFile {
 		$SSO = $this->config['SSO'];
 	}
 
-	public function save() {
+	public function save(): bool {
 		try {
-			$file = $this->configFileFullPath;
+			$file = $this->config_file;
 
 			if (is_null($file)) {
 				self::exception('Cannot save, config file is not set.');
@@ -312,7 +323,7 @@ class CConfigFile {
 				$file = readlink($file);
 			}
 
-			$file_is_writable = ((!file_exists($file) && is_writable(dirname($file))) || is_writable($file));
+			$file_is_writable = (!file_exists($file) && is_writable(dirname($file))) || is_writable($file);
 
 			if ($file_is_writable && file_put_contents($file, $this->getString())) {
 				if (!chmod($file, 0600)) {
@@ -336,7 +347,7 @@ class CConfigFile {
 		}
 	}
 
-	public function getString() {
+	public function getString(): string {
 		return
 '<?php
 // Zabbix GUI configuration file.
@@ -395,7 +406,7 @@ $IMAGE_FORMAT_DEFAULT	= IMAGE_FORMAT_PNG;
 ';
 	}
 
-	protected function setDefaults() {
+	private function setDefaults(): void {
 		$this->config['DB'] = [
 			'TYPE' => null,
 			'SERVER' => 'localhost',
@@ -423,15 +434,18 @@ $IMAGE_FORMAT_DEFAULT	= IMAGE_FORMAT_PNG;
 		$this->config['SSO'] = null;
 	}
 
-	protected function check() {
+	/**
+	 * @throws ConfigFileException
+	 */
+	private function check(): void {
 		if (!isset($this->config['DB']['TYPE'])) {
 			self::exception('DB type is not set.');
 		}
 
-		if (!array_key_exists($this->config['DB']['TYPE'], self::$supported_db_types)) {
+		if (!array_key_exists($this->config['DB']['TYPE'], self::SUPPORTED_DB_TYPES)) {
 			self::exception(
 				'Incorrect value "'.$this->config['DB']['TYPE'].'" for DB type. Possible values '.
-				implode(', ', array_keys(self::$supported_db_types)).'.'
+				implode(', ', array_keys(self::SUPPORTED_DB_TYPES)).'.'
 			);
 		}
 

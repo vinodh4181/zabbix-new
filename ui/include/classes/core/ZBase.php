@@ -52,7 +52,7 @@ class ZBase {
 	/**
 	 * @var CConfigFile
 	 */
-	protected $cconfigfile;
+	protected $config_file;
 
 	/**
 	 * @var CAutoloader
@@ -113,7 +113,7 @@ class ZBase {
 	 * Init modules required to run frontend.
 	 */
 	protected function init() {
-		$this->rootDir = $this->findRootDir();
+		$this->rootDir = self::findRootDir();
 		$this->initAutoloader();
 		$this->component_registry = new CComponentRegistry;
 
@@ -159,8 +159,8 @@ class ZBase {
 		require_once 'include/sounds.inc.php';
 		require_once 'include/triggers.inc.php';
 
-		// uses defines so must be created after includes are loaded
-		$this->cconfigfile = new CConfigFile();
+		// Uses defines, so must be instantiated after includes are loaded.
+		$this->config_file = new CConfigFile();
 	}
 
 	/**
@@ -244,16 +244,15 @@ class ZBase {
 						session_write_close();
 						exit;
 					}
-					else {
-						$session = new CCookieSession();
-						$sessionid = $session->extractSessionId() ?: CEncryptHelper::generateKey();
 
-						if (!$session->session_start($sessionid)) {
-							throw new Exception(_('Session initialization error.'));
-						}
+					$session = new CCookieSession();
+					$sessionid = $session->extractSessionId() ?: CEncryptHelper::generateKey();
 
-						CSessionHelper::set('sessionid', $sessionid);
+					if (!$session->session_start($sessionid)) {
+						throw new Exception(_('Session initialization error.'));
 					}
+
+					CSessionHelper::set('sessionid', $sessionid);
 				}
 				break;
 		}
@@ -273,17 +272,17 @@ class ZBase {
 	 *
 	 * @return string
 	 */
-	public static function getRootDir() {
+	public static function getRootDir(): string {
 		return self::getInstance()->rootDir;
 	}
 
 	/**
-	 * Returns the path to the frontend's root dir.
+	 * Returns the path to the frontend root dir.
 	 *
 	 * @return string
 	 */
-	private function findRootDir() {
-		return realpath(dirname(__FILE__).'/../../..');
+	private static function findRootDir(): string {
+		return realpath(dirname(__DIR__, 3));
 	}
 
 	/**
@@ -375,16 +374,18 @@ class ZBase {
 	 *
 	 * @throws Exception
 	 */
-	protected function setMaintenanceMode() {
-		if (!file_exists($this->cconfigfile->maintenanceConfigFile())) {
-			throw new Exception(_s('Maintenance configuration file %1$s does not exist.', $this->cconfigfile->maintenanceConfigFile()));
+	protected function setMaintenanceMode(): void {
+		$maintenance_config_file = $this->config_file->getMaintenanceConfigFile();
+
+		if (!file_exists($maintenance_config_file)) {
+			throw new Exception('Maintenance configuration file does not exist.');
 		}
 
-		if (!is_readable($this->cconfigfile->maintenanceConfigFile())) {
-			throw new Exception(_s('No read rights on maintenance configuration file %1$s.', $this->cconfigfile->maintenanceConfigFile()));
+		if (!is_readable($maintenance_config_file)) {
+			throw new Exception('Maintenance configuration file is not readable.');
 		}
 
-		require_once $this->cconfigfile->maintenanceConfigFile();
+		require_once $maintenance_config_file;
 
 		if (defined('ZBX_DENY_GUI_ACCESS')) {
 			if (!isset($ZBX_GUI_ACCESS_IP_RANGE) || !in_array(CWebUser::getIp(), $ZBX_GUI_ACCESS_IP_RANGE)) {
@@ -394,10 +395,10 @@ class ZBase {
 	}
 
 	/**
-	 * Load zabbix config file.
+	 * Load Zabbix frontend config file.
 	 */
-	protected function loadConfigFile() {
-		$this->config = $this->cconfigfile->load();
+	protected function loadConfigFile(): void {
+		$this->config = $this->config_file->load();
 	}
 
 	/**
@@ -415,6 +416,7 @@ class ZBase {
 
 	/**
 	 * Check if frontend can connect to DB.
+	 *
 	 * @throws DBException
 	 */
 	protected function initDB() {
@@ -429,14 +431,14 @@ class ZBase {
 	/**
 	 * Initialize translations, set up translated date and time constants.
 	 *
-	 * @param string $lang  Locale variant prefix like en_US, ru_RU etc.
+	 * @param string $language  Locale variant prefix like en_US, ru_RU etc.
 	 */
 	public function initLocales(string $language): void {
 		if (!setupLocale($language, $error) && $error !== '') {
 			error($error);
 		}
 
-		require_once $this->getRootDir().'/include/translateDefines.inc.php';
+		require_once self::getRootDir().'/include/translateDefines.inc.php';
 	}
 
 	/**

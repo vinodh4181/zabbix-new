@@ -1,4 +1,4 @@
 <?php
 
-$configFile = '/etc/zabbix/web/zabbix.conf.php';
-$maintenanceConfigFile = '/etc/zabbix/web/maintenance.inc.php';
+$CONFIG_FILE = '/etc/zabbix/web/zabbix.conf.php';
+$MAINTENANCE_CONFIG_FILE = '/etc/zabbix/web/maintenance.inc.php';

@@ -42,7 +42,7 @@ class CSetupWizard extends CForm {
 
 	private $step_failed = false;
 
-	private $cconfigfile;
+	private $config_file;
 
 	public function __construct() {
 		parent::__construct();
@@ -80,7 +80,7 @@ class CSetupWizard extends CForm {
 
 		$this->doAction();
 
-		$this->cconfigfile = new CConfigFile();
+		$this->config_file = new CConfigFile();
 	}
 
 	private function doAction(): void {
@@ -272,11 +272,11 @@ class CSetupWizard extends CForm {
 					$db_creds_config['PASSWORD'] = $this->getConfig('DB_PASSWORD');
 				}
 
-				// make zabbix.conf.php downloadable
+				// Make zabbix.conf.php downloadable.
 				header('Content-Type: application/x-httpd-php');
-				header('Content-Disposition: attachment; filename="'.basename($this->cconfigfile->configFileFullPath()).'"');
+				header('Content-Disposition: attachment; filename="'.basename($this->config_file->getConfigFile()).'"');
 
-				$this->cconfigfile->config = [
+				$this->config_file->config = [
 					'DB' => [
 						'TYPE' => $this->getConfig('DB_TYPE'),
 						'SERVER' => $this->getConfig('DB_SERVER'),
@@ -293,7 +293,8 @@ class CSetupWizard extends CForm {
 					] + $db_creds_config + $vault_config,
 					'ZBX_SERVER_NAME' => $this->getConfig('ZBX_SERVER_NAME')
 				];
-				die($this->cconfigfile->getString());
+
+				die($this->config_file->getString());
 			}
 		}
 
@@ -825,7 +826,7 @@ class CSetupWizard extends CForm {
 
 		$this->setConfig('ZBX_CONFIG_FILE_CORRECT', true);
 
-		$this->cconfigfile->config = [
+		$this->config_file->config = [
 			'DB' => [
 				'TYPE' => $this->getConfig('DB_TYPE'),
 				'SERVER' => $this->getConfig('DB_SERVER'),
@@ -864,11 +865,11 @@ class CSetupWizard extends CForm {
 
 		$this->dbClose();
 
-		if (!$this->cconfigfile->save()) {
+		if (!$this->config_file->save()) {
 			$error = true;
 			$messages[] = [
 				'type' => 'error',
-				'message' => $this->cconfigfile->error
+				'message' => $this->config_file->error
 			];
 		}
 
@@ -884,7 +885,7 @@ class CSetupWizard extends CForm {
 				new CTag('p', true, _('Alternatively, you can install it manually:')),
 				new CTag('ol', true, [
 					new CTag('li', true, new CLink(_('Download the configuration file'), 'setup.php?save_config=1')),
-					new CTag('li', true, _s('Save it as "%1$s"', $this->cconfigfile->configFileDisplayName()))
+					new CTag('li', true, _s('Save it as "%1$s"', $this->config_file->getConfigFileDisplayName()))
 				])
 			];
 
@@ -900,7 +901,7 @@ class CSetupWizard extends CForm {
 		return $this->stageInstalled();
 	}
 
-	private function stageInstalled() {
+	private function stageInstalled(): array {
 		$this->disable_cancel_button = true;
 		$this->disable_back_button = true;
 
@@ -908,7 +909,9 @@ class CSetupWizard extends CForm {
 		$message = [
 			(new CTag('h1', true, _('Congratulations! You have successfully installed Zabbix frontend.')))
 				->addClass(ZBX_STYLE_GREEN),
-			new CTag('p', true, _s('Configuration file "%1$s" created.', $this->cconfigfile->configFileDisplayName()))
+			new CTag('p', true, _s('Configuration file "%1$s" created.',
+				$this->config_file->getConfigFileDisplayName()
+			))
 		];
 
 		return [
@@ -1006,7 +1009,7 @@ class CSetupWizard extends CForm {
 		$DB = null;
 	}
 
-	private function checkConnection() {
+	private function checkConnection(): bool {
 		global $DB;
 
 		$result = true;
