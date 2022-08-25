@@ -9708,11 +9708,9 @@ static void	dc_preproc_item_sync_preprocitem(zbx_preproc_item_t *item, const ZBX
 		else
 			ops[i].params = NULL;
 
+
 		if (NULL != op->error_handler_params)
-		{
-			ops[i].error_handler_params = dc_expand_user_macros_dyn(op->error_handler_params, &item->hostid,
-					1, ZBX_MACRO_ENV_NONSECURE);
-		}
+			ops[i].error_handler_params = zbx_strdup(NULL, op->error_handler_params);
 		else
 			ops[i].error_handler_params = NULL;
 	}

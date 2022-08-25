@@ -590,7 +590,6 @@ typedef struct
 	unsigned char	type;
 	unsigned char	error_handler;
 	char		*params;
-	char		*params_orig;
 	char		*error_handler_params;
 }
 zbx_preproc_op_t;
