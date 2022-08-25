@@ -133,9 +133,10 @@ typedef struct
 	int				worker_count;	/* preprocessing worker count */
 	zbx_list_t			queue;		/* queue of item values */
 	zbx_hashset_t			item_config;	/* item configuration L2 cache */
+	zbx_hashset_t			host_items;	/* index of item configuration by hosts */
 	zbx_hashset_t			history_cache;	/* item value history cache */
 	zbx_hashset_t			linked_items;	/* linked items placed in queue */
-	int				cache_ts;	/* cache timestamp */
+	zbx_uint64_t			cache_revision;	/* cache revision */
 	zbx_uint64_t			processed_num;	/* processed value counter */
 	zbx_uint64_t			queued_num;	/* queued value counter */
 	zbx_uint64_t			preproc_num;	/* queued values with preprocessing steps */
@@ -153,21 +154,6 @@ static void	preprocessor_update_history(zbx_preprocessing_manager_t *manager, zb
 		zbx_vector_ptr_t *history);
 
 /* cleanup functions */
-
-static void	preproc_item_clear(zbx_preproc_item_t *item)
-{
-	int	i;
-
-	zbx_free(item->dep_itemids);
-
-	for (i = 0; i < item->preproc_ops_num; i++)
-	{
-		zbx_free(item->preproc_ops[i].params);
-		zbx_free(item->preproc_ops[i].error_handler_params);
-	}
-
-	zbx_free(item->preproc_ops);
-}
 
 static void	request_free_steps(zbx_preprocessing_request_t *request)
 {
@@ -191,16 +177,15 @@ static void	request_free_steps(zbx_preprocessing_request_t *request)
 static void	preprocessor_sync_configuration(zbx_preprocessing_manager_t *manager)
 {
 	zbx_hashset_iter_t	iter;
-	int			ts;
+	zbx_uint64_t		revision = manager->cache_revision;
 	zbx_preproc_history_t	*vault;
 	zbx_preproc_item_t	*item;
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	ts = manager->cache_ts;
-	DCconfig_get_preprocessable_items(&manager->item_config, &manager->cache_ts);
+	DCconfig_get_preprocessable_items(&manager->item_config, &manager->host_items, &revision);
 
-	if (ts != manager->cache_ts)
+	if (manager->cache_revision != revision)
 	{
 		/* drop items with removed preprocessing steps from preprocessing history cache */
 		zbx_hashset_iter_reset(&manager->history_cache, &iter);
@@ -218,10 +203,8 @@ static void	preprocessor_sync_configuration(zbx_preprocessing_manager_t *manager
 		zbx_hashset_iter_reset(&manager->item_config, &iter);
 		while (NULL != (item = (zbx_preproc_item_t *)zbx_hashset_iter_next(&iter)))
 		{
-			if (ts >= item->update_time && ZBX_PREPROC_MACRO_UPDATE_FALSE == item->macro_update)
+			if (item->preproc_revision < revision)
 				continue;
-
-			item->macro_update = ZBX_PREPROC_MACRO_UPDATE_FALSE;
 
 			if (NULL == (vault = (zbx_preproc_history_t *)zbx_hashset_search(&manager->history_cache,
 					&item->itemid)))
@@ -233,6 +216,8 @@ static void	preprocessor_sync_configuration(zbx_preprocessing_manager_t *manager
 			zbx_vector_ptr_destroy(&vault->history);
 			zbx_hashset_remove_direct(&manager->history_cache, vault);
 		}
+
+		manager->cache_revision = revision;
 	}
 
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() item config size: %d, history cache size: %d", __func__,
@@ -1870,7 +1855,10 @@ static void	preprocessor_init_manager(zbx_preprocessing_manager_t *manager)
 	zbx_list_create(&manager->queue);
 	zbx_list_create(&manager->direct_queue);
 	zbx_hashset_create_ext(&manager->item_config, 0, ZBX_DEFAULT_UINT64_HASH_FUNC, ZBX_DEFAULT_UINT64_COMPARE_FUNC,
-			(zbx_clean_func_t)preproc_item_clear,
+			(zbx_clean_func_t)zbx_preproc_item_clear,
+			ZBX_DEFAULT_MEM_MALLOC_FUNC, ZBX_DEFAULT_MEM_REALLOC_FUNC, ZBX_DEFAULT_MEM_FREE_FUNC);
+	zbx_hashset_create_ext(&manager->host_items, 0, ZBX_DEFAULT_UINT64_HASH_FUNC, ZBX_DEFAULT_UINT64_COMPARE_FUNC,
+			(zbx_clean_func_t)zbx_preproc_host_item_clear,
 			ZBX_DEFAULT_MEM_MALLOC_FUNC, ZBX_DEFAULT_MEM_REALLOC_FUNC, ZBX_DEFAULT_MEM_FREE_FUNC);
 	zbx_hashset_create(&manager->linked_items, 0, preproc_item_link_hash, preproc_item_link_compare);
 	zbx_hashset_create(&manager->history_cache, 1000, ZBX_DEFAULT_UINT64_HASH_FUNC,

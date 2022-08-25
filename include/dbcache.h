@@ -607,13 +607,26 @@ typedef struct
 
 	int			dep_itemids_num;
 	int			preproc_ops_num;
-	int			update_time;
-	int			macro_update;
+	zbx_uint64_t		preproc_revision;
 
 	zbx_uint64_pair_t	*dep_itemids;
 	zbx_preproc_op_t	*preproc_ops;
 }
 zbx_preproc_item_t;
+
+ZBX_PTR_VECTOR_DECL(preproc_item_ptr, zbx_preproc_item_t *)
+
+void	zbx_preproc_item_clear(zbx_preproc_item_t *item);
+
+typedef struct
+{
+	zbx_uint64_t			hostid;
+	zbx_uint64_t			revision;
+	zbx_vector_preproc_item_ptr_t	preproc_items;
+}
+zbx_preproc_host_item_t;
+
+void	zbx_preproc_host_item_clear(zbx_preproc_host_item_t *host_item);
 
 /* the configuration cache statistics */
 typedef struct
@@ -758,7 +771,7 @@ void	DCconfig_get_items_by_itemids_partial(DC_ITEM *items, const zbx_uint64_t *i
 		unsigned int mode);
 int	DCconfig_get_active_items_count_by_hostid(zbx_uint64_t hostid);
 void	DCconfig_get_active_items_by_hostid(DC_ITEM *items, zbx_uint64_t hostid, int *errcodes, size_t num);
-void	DCconfig_get_preprocessable_items(zbx_hashset_t *items, int *timestamp);
+void	DCconfig_get_preprocessable_items(zbx_hashset_t *items, zbx_hashset_t *host_items, zbx_uint64_t *revision);
 void	DCconfig_get_functions_by_functionids(DC_FUNCTION *functions,
 		zbx_uint64_t *functionids, int *errcodes, size_t num);
 void	DCconfig_clean_functions(DC_FUNCTION *functions, int *errcodes, size_t num);

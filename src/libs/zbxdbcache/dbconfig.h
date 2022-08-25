@@ -274,25 +274,6 @@ ZBX_DC_PREPROCITEM;
 
 typedef struct
 {
-	zbx_uint64_t		itemid;
-	unsigned char		type;
-	unsigned char		value_type;
-	ZBX_DC_PREPROCITEM	*preprocitem;
-	ZBX_DC_MASTERITEM	*masteritem;
-}
-zbx_dc_item_preproc_t;
-
-ZBX_PTR_VECTOR_DECL(dc_item_preproc_ptr, zbx_dc_item_preproc_t *)
-
-typedef struct
-{
-	zbx_uint64_t	hostid;
-	zbx_hashset_t	items;
-}
-zbx_dc_host_preproc_t;
-
-typedef struct
-{
 	zbx_uint64_t	itemid;
 	const char	*timeout;
 	const char	*url;
@@ -414,6 +395,28 @@ typedef struct
 ZBX_DC_HOST;
 
 ZBX_PTR_VECTOR_DECL(dc_host_ptr, ZBX_DC_HOST *)
+
+typedef struct
+{
+	zbx_uint64_t		itemid;
+	unsigned char		type;
+	unsigned char		value_type;
+	ZBX_DC_PREPROCITEM	*preprocitem;
+	ZBX_DC_MASTERITEM	*masteritem;
+}
+zbx_dc_item_preproc_t;
+
+ZBX_PTR_VECTOR_DECL(dc_item_preproc_ptr, zbx_dc_item_preproc_t *)
+
+typedef struct
+{
+	zbx_uint64_t	hostid;
+	ZBX_DC_HOST	*host;
+	zbx_hashset_t	items;
+}
+zbx_dc_host_preproc_t;
+
+ZBX_PTR_VECTOR_DECL(dc_host_preproc_ptr, zbx_dc_host_preproc_t *)
 
 typedef struct
 {
