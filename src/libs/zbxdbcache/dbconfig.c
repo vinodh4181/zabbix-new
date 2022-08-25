@@ -1377,6 +1377,9 @@ static void	dc_host_preproc_deregister_masteritem(ZBX_DC_ITEM *item)
 	if (NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(&config->host_preproc, &item->hostid)))
 		goto out;
 
+	if (NULL == (itempp = (zbx_dc_item_preproc_t *)zbx_hashset_search(&host_preproc->items, &item->itemid)))
+		goto out;
+
 	itempp->preprocitem = NULL;
 
 	if (NULL == itempp->preprocitem && ITEM_TYPE_INTERNAL != itempp->type)
@@ -3061,7 +3064,9 @@ static void	DCsync_items(zbx_dbsync_t *sync, zbx_uint32_t revision, int flags, z
 					master = (ZBX_DC_MASTERITEM *)zbx_hashset_search(&config->masteritems,
 							&item->itemid);
 				}
-				dc_host_preproc_register_item(item, preprocitem, master);
+
+				if (NULL != preprocitem || NULL != master || ITEM_TYPE_INTERNAL == item->type)
+					dc_host_preproc_register_item(item, preprocitem, master);
 			}
 			else
 				dc_host_preproc_deregister_item(item);

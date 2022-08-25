@@ -1457,8 +1457,8 @@ static void	DCdump_host_preproc(void)
 		zbx_hashset_iter_reset(&host_preproc->items, &iter_items);
 		while (NULL != (item = (zbx_dc_item_preproc_t *)zbx_hashset_iter_next(&iter_items)))
 		{
-			zabbix_log(LOG_LEVEL_TRACE, "  itemid:" ZBX_FS_UI64 " type:%u, master:%p preproc:%p",
-					item->itemid, item->type, item->masteritem, item->preprocitem);
+			zabbix_log(LOG_LEVEL_TRACE, "  itemid:" ZBX_FS_UI64 " type:%u value_type:%u master:%p preproc:%p",
+					item->itemid, item->type, item->value_type, item->masteritem, item->preprocitem);
 		}
 	}
 
