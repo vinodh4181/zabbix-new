@@ -1442,21 +1442,23 @@ static void	DCdump_httpstep_fields(void)
 
 static void	DCdump_host_preproc(void)
 {
-	zbx_hashset_iter_t	iter;
+	zbx_hashset_iter_t	iter, iter_items;
 	zbx_dc_host_preproc_t	*host_preproc;
-	int			i;
 
 	zabbix_log(LOG_LEVEL_TRACE, "In %s()", __func__);
 
 	zbx_hashset_iter_reset(&config->host_preproc, &iter);
 	while (NULL != (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_iter_next(&iter)))
 	{
+		zbx_dc_item_preproc_t	*item;
+
 		zabbix_log(LOG_LEVEL_TRACE, "hostid:" ZBX_FS_UI64, host_preproc->hostid);
 
-		for (i = 0; i < host_preproc->preprocitems.values_num; i++)
+		zbx_hashset_iter_reset(&host_preproc->items, &iter_items);
+		while (NULL != (item = (zbx_dc_item_preproc_t *)zbx_hashset_iter_next(&iter_items)))
 		{
-			zabbix_log(LOG_LEVEL_TRACE, "  itemid:" ZBX_FS_UI64,
-					host_preproc->preprocitems.values[i]->itemid);
+			zabbix_log(LOG_LEVEL_TRACE, "  itemid:" ZBX_FS_UI64 " type:%u, master:%p preproc:%p",
+					item->itemid, item->type, item->masteritem, item->preprocitem);
 		}
 	}
 

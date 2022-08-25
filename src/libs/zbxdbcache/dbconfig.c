@@ -79,9 +79,9 @@ ZBX_PTR_VECTOR_IMPL(cached_proxy_ptr, zbx_cached_proxy_t *)
 ZBX_PTR_VECTOR_IMPL(dc_httptest_ptr, zbx_dc_httptest_t *)
 ZBX_PTR_VECTOR_IMPL(dc_host_ptr, ZBX_DC_HOST *)
 ZBX_PTR_VECTOR_IMPL(dc_item_ptr, ZBX_DC_ITEM *)
-ZBX_PTR_VECTOR_IMPL(dc_preprocitem_ptr, ZBX_DC_PREPROCITEM *)
-ZBX_PTR_VECTOR_IMPL(dc_masteritem_ptr, ZBX_DC_MASTERITEM *)
 ZBX_VECTOR_IMPL(host_rev, zbx_host_rev_t)
+
+ZBX_PTR_VECTOR_IMPL(dc_item_preproc_ptr, zbx_dc_item_preproc_t *)
 
 /******************************************************************************
  *                                                                            *
@@ -361,6 +361,7 @@ static zbx_uint64_t	get_item_nextcheck_seed(zbx_uint64_t itemid, zbx_uint64_t in
 #define ZBX_ITEM_TYPE_CHANGED		0x08
 #define ZBX_ITEM_DELAY_CHANGED		0x10
 #define ZBX_ITEM_NEW			0x20
+#define ZBX_ITEM_VALUE_TYPE_CHANGED	0x40
 
 static int	DCget_disable_until(const ZBX_DC_ITEM *item, const ZBX_DC_INTERFACE *interface)
 {
@@ -1164,6 +1165,11 @@ static void	dc_host_register_proxy(ZBX_DC_HOST *host, zbx_uint64_t proxy_hostid,
  * local preprocessing configuration index by hosts
  */
 
+static void	dc_host_preproc_clear(zbx_dc_host_preproc_t *host_preproc)
+{
+	zbx_hashset_destroy(&host_preproc->items);
+}
+
 static zbx_dc_host_preproc_t	*dc_host_preproc_create(zbx_uint64_t hostid)
 {
 	zbx_dc_host_preproc_t	*host_preproc, host_preproc_local;
@@ -1171,14 +1177,9 @@ static zbx_dc_host_preproc_t	*dc_host_preproc_create(zbx_uint64_t hostid)
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64, __func__, hostid);
 
 	host_preproc_local.hostid = hostid;
-	zbx_vector_dc_preprocitem_ptr_create_ext(&host_preproc_local.preprocitems, __config_shmem_malloc_func,
-			__config_shmem_realloc_func, __config_shmem_free_func);
-
-	zbx_vector_dc_masteritem_ptr_create_ext(&host_preproc_local.masteritems, __config_shmem_malloc_func,
-			__config_shmem_realloc_func, __config_shmem_free_func);
-
-	zbx_vector_uint64_create_ext(&host_preproc_local.internal_itemids, __config_shmem_malloc_func,
-			__config_shmem_realloc_func, __config_shmem_free_func);
+	zbx_hashset_create_ext(&host_preproc_local.items, 0, ZBX_DEFAULT_UINT64_HASH_FUNC,
+			ZBX_DEFAULT_UINT64_COMPARE_FUNC, NULL,
+			__config_shmem_malloc_func, __config_shmem_realloc_func, __config_shmem_free_func);
 
 	host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_insert(&config->host_preproc, &host_preproc_local,
 			sizeof(host_preproc_local));
@@ -1188,177 +1189,200 @@ static zbx_dc_host_preproc_t	*dc_host_preproc_create(zbx_uint64_t hostid)
 	return host_preproc;
 }
 
-static void	dc_host_preproc_clear(zbx_dc_host_preproc_t *host_preproc)
+static zbx_dc_item_preproc_t	*dc_host_preproc_acquire_item(zbx_dc_host_preproc_t *host_preproc, ZBX_DC_ITEM *item)
 {
-	zbx_vector_dc_preprocitem_ptr_destroy(&host_preproc->preprocitems);
-	zbx_vector_dc_masteritem_ptr_destroy(&host_preproc->masteritems);
-	zbx_vector_uint64_destroy(&host_preproc->internal_itemids);
+	zbx_dc_item_preproc_t	*itempp;
+
+	if (NULL == (itempp = (zbx_dc_item_preproc_t *)zbx_hashset_search(&host_preproc->items, &item->itemid)))
+	{
+		zbx_dc_item_preproc_t	itempp_local = {.itemid = item->itemid};
+
+		itempp = (zbx_dc_item_preproc_t *)zbx_hashset_insert(&host_preproc->items, &itempp_local,
+				sizeof(itempp_local));
+	}
+
+	itempp->type = item->type;
+	itempp->value_type = item->value_type;
+
+	return itempp;
 }
 
-static zbx_dc_host_preproc_t	*dc_host_preproc_register_preprocitem(zbx_dc_host_preproc_t *host_preproc,
-		zbx_uint64_t hostid, ZBX_DC_PREPROCITEM *preprocitem)
+static void	dc_host_preproc_update_item(ZBX_DC_ITEM *item)
 {
-	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64 " itemid:" ZBX_FS_UI64, __func__, hostid,
-			preprocitem->itemid);
+	zbx_dc_item_preproc_t	*itempp;
+	zbx_dc_host_preproc_t	*host_preproc;
 
-	if (NULL == host_preproc && NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(
-			&config->host_preproc, &hostid)))
-	{
-		host_preproc = dc_host_preproc_create(hostid);
-	}
+	if (NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(&config->host_preproc, &item->hostid)))
+		return;
 
-	zbx_vector_dc_preprocitem_ptr_append(&host_preproc->preprocitems, preprocitem);
+	if (NULL == (itempp = (zbx_dc_item_preproc_t *)zbx_hashset_search(&host_preproc->items, &item->itemid)))
+		return;
 
-	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() preprocitems:%d", __func__, host_preproc->preprocitems.values_num);
-
-	return host_preproc;
+	itempp->type = item->type;
+	itempp->value_type = item->value_type;
 }
 
-static zbx_dc_host_preproc_t	*dc_host_preproc_deregister_preprocitem(zbx_dc_host_preproc_t *host_preproc,
-		zbx_uint64_t hostid, ZBX_DC_PREPROCITEM *preprocitem)
+static zbx_dc_host_preproc_t	*dc_host_preproc_remove_item(zbx_dc_host_preproc_t *host_preproc,
+		zbx_dc_item_preproc_t *itempp)
 {
-	int	i, removed_num = 0;
+	zbx_hashset_remove_direct(&host_preproc->items, itempp);
 
-	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64 " itemid:" ZBX_FS_UI64, __func__, hostid,
-			preprocitem->itemid);
-
-	if (NULL == host_preproc && NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(
-			&config->host_preproc, &hostid)))
+	if (0 == host_preproc->items.num_data)
 	{
-		goto out;
-	}
-
-	if (FAIL != (i = zbx_vector_dc_preprocitem_ptr_search(&host_preproc->preprocitems, preprocitem,
-			ZBX_DEFAULT_PTR_COMPARE_FUNC)))
-	{
-		goto out;
-	}
-
-	zbx_vector_dc_preprocitem_ptr_remove_noorder(&host_preproc->preprocitems, i);
-	removed_num++;
-
-	if (0 == host_preproc->preprocitems.values_num && 0 == host_preproc->masteritems.values_num &&
-				0 == host_preproc->internal_itemids.values_num)
-	{
-		dc_host_preproc_clear(host_preproc);
 		zbx_hashset_remove_direct(&config->host_preproc, host_preproc);
 		host_preproc = NULL;
 	}
+
+	return host_preproc;
+}
+
+static void	dc_host_preproc_register_item(ZBX_DC_ITEM *item, ZBX_DC_PREPROCITEM *preprocitem,
+		ZBX_DC_MASTERITEM *masteritem)
+{
+	zbx_dc_item_preproc_t	*itempp;
+	zbx_dc_host_preproc_t	*host_preproc;
+
+	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64 " itemid:" ZBX_FS_UI64, __func__, item->hostid,
+			item->itemid);
+
+	if (NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(&config->host_preproc, &item->hostid)))
+		host_preproc = dc_host_preproc_create(item->hostid);
+
+	itempp = dc_host_preproc_acquire_item(host_preproc, item);
+	itempp->preprocitem = preprocitem;
+	itempp->masteritem = masteritem;
+
+	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() items:%d", __func__, host_preproc->items.num_data);
+}
+
+static void	dc_host_preproc_deregister_item(ZBX_DC_ITEM *item)
+{
+	zbx_dc_item_preproc_t	*itempp;
+	zbx_dc_host_preproc_t	*host_preproc;
+
+	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64 " itemid:" ZBX_FS_UI64, __func__, item->hostid,
+			item->itemid);
+
+	if (NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(&config->host_preproc, &item->hostid)))
+		goto out;
+
+	if (NULL == (itempp = (zbx_dc_item_preproc_t *)zbx_hashset_search(&host_preproc->items, &item->itemid)))
+		goto out;
+
+	dc_host_preproc_remove_item(host_preproc, itempp);
 out:
-	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() removed:%d host_preproc:%p", __func__, removed_num, host_preproc);
+	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() host_preproc:%p", __func__, host_preproc);
 
-	return host_preproc;
 }
 
-static zbx_dc_host_preproc_t	*dc_host_preproc_register_internal_item(zbx_dc_host_preproc_t *host_preproc,
-		zbx_uint64_t hostid, zbx_uint64_t itemid)
+static void	dc_host_preproc_register_preprocitem(ZBX_DC_ITEM *item, ZBX_DC_PREPROCITEM *preprocitem)
 {
-	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64 " itemid:" ZBX_FS_UI64, __func__, hostid,
-			itemid);
+	zbx_dc_item_preproc_t	*itempp;
+	zbx_dc_host_preproc_t	*host_preproc;
 
-	if (NULL == host_preproc && NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(
-			&config->host_preproc, &hostid)))
-	{
-		host_preproc = dc_host_preproc_create(hostid);
-	}
+	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64 " itemid:" ZBX_FS_UI64, __func__, item->hostid,
+			item->itemid);
 
-	zbx_vector_uint64_append(&host_preproc->internal_itemids, itemid);
+	if (NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(&config->host_preproc, &item->hostid)))
+		host_preproc = dc_host_preproc_create(item->hostid);
 
-	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() internal_items:%d", __func__,
-			host_preproc->internal_itemids.values_num);
+	itempp = dc_host_preproc_acquire_item(host_preproc, item);
+	itempp->preprocitem = preprocitem;
 
-	return host_preproc;
+	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() items:%d", __func__, host_preproc->items.num_data);
 }
 
-static zbx_dc_host_preproc_t	*dc_host_preproc_deregister_internal_item(zbx_dc_host_preproc_t *host_preproc,
-		zbx_uint64_t hostid, zbx_uint64_t itemid)
+static void	dc_host_preproc_deregister_preprocitem(ZBX_DC_ITEM *item)
 {
-	int	i, removed_num = 0;
+	zbx_dc_item_preproc_t	*itempp;
+	zbx_dc_host_preproc_t	*host_preproc;
 
-	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64 " itemid:" ZBX_FS_UI64, __func__, hostid,
-			itemid);
+	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64 " itemid:" ZBX_FS_UI64, __func__, item->hostid,
+			item->itemid);
 
-	if (NULL == host_preproc && NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(
-			&config->host_preproc, &hostid)))
-	{
+	if (NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(&config->host_preproc, &item->hostid)))
 		goto out;
-	}
 
-	if (FAIL != (i = zbx_vector_uint64_search(&host_preproc->internal_itemids, itemid,
-			ZBX_DEFAULT_UINT64_COMPARE_FUNC)))
-	{
+	if (NULL == (itempp = (zbx_dc_item_preproc_t *)zbx_hashset_search(&host_preproc->items, &item->itemid)))
 		goto out;
-	}
 
-	zbx_vector_uint64_remove_noorder(&host_preproc->internal_itemids, i);
-	removed_num++;
+	itempp->preprocitem = NULL;
 
-	if (0 == host_preproc->preprocitems.values_num && 0 == host_preproc->masteritems.values_num &&
-				0 == host_preproc->internal_itemids.values_num)
-	{
-		dc_host_preproc_clear(host_preproc);
-		zbx_hashset_remove_direct(&config->host_preproc, host_preproc);
-		host_preproc = NULL;
-	}
+	if (NULL == itempp->masteritem && ITEM_TYPE_INTERNAL != itempp->type)
+		host_preproc = dc_host_preproc_remove_item(host_preproc, itempp);
 out:
-	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() removed:%d host_preproc:%p", __func__, removed_num, host_preproc);
-
-	return host_preproc;
+	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() host_preproc:%p", __func__, host_preproc);
 }
 
-static zbx_dc_host_preproc_t	*dc_host_preproc_register_masteritem(zbx_dc_host_preproc_t *host_preproc,
-		zbx_uint64_t hostid, ZBX_DC_MASTERITEM *masteritem)
+static void	dc_host_preproc_register_internal_item(ZBX_DC_ITEM *item)
 {
-	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64 " itemid:" ZBX_FS_UI64, __func__, hostid,
-			masteritem->itemid);
+	zbx_dc_host_preproc_t	*host_preproc;
 
-	if (NULL == host_preproc && NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(
-			&config->host_preproc, &hostid)))
-	{
-		host_preproc = dc_host_preproc_create(hostid);
-	}
+	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64 " itemid:" ZBX_FS_UI64, __func__, item->hostid,
+			item->itemid);
 
-	zbx_vector_dc_masteritem_ptr_append(&host_preproc->masteritems, masteritem);
+	if (NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(&config->host_preproc, &item->hostid)))
+		host_preproc = dc_host_preproc_create(item->hostid);
 
-	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() materitems:%d", __func__, host_preproc->masteritems.values_num);
+	(void)dc_host_preproc_acquire_item(host_preproc, item);
 
-	return host_preproc;
+	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() items:%d", __func__, host_preproc->items.num_data);
 }
 
-static zbx_dc_host_preproc_t	*dc_host_preproc_deregister_masteritem(zbx_dc_host_preproc_t *host_preproc,
-		zbx_uint64_t hostid, ZBX_DC_MASTERITEM *masteritem)
+static void	dc_host_preproc_deregister_internal_item(ZBX_DC_ITEM *item)
 {
-	int	i, removed_num = 0;
+	zbx_dc_item_preproc_t	*itempp;
+	zbx_dc_host_preproc_t	*host_preproc;
 
-	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64 " itemid:" ZBX_FS_UI64, __func__, hostid,
-			masteritem->itemid);
+	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64 " itemid:" ZBX_FS_UI64, __func__, item->hostid,
+			item->itemid);
 
-	if (NULL == host_preproc && NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(
-			&config->host_preproc, &hostid)))
-	{
+	if (NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(&config->host_preproc, &item->hostid)))
 		goto out;
-	}
 
-	if (FAIL != (i = zbx_vector_dc_masteritem_ptr_search(&host_preproc->masteritems, masteritem,
-			ZBX_DEFAULT_PTR_COMPARE_FUNC)))
-	{
+	if (NULL == (itempp = (zbx_dc_item_preproc_t *)zbx_hashset_search(&host_preproc->items, &item->itemid)))
 		goto out;
-	}
 
-	zbx_vector_dc_masteritem_ptr_remove_noorder(&host_preproc->masteritems, i);
-	removed_num++;
-
-	if (0 == host_preproc->masteritems.values_num && 0 == host_preproc->masteritems.values_num &&
-				0 == host_preproc->internal_itemids.values_num)
-	{
-		dc_host_preproc_clear(host_preproc);
-		zbx_hashset_remove_direct(&config->host_preproc, host_preproc);
-		host_preproc = NULL;
-	}
+	if (NULL == itempp->masteritem && NULL == itempp->preprocitem)
+		host_preproc = dc_host_preproc_remove_item(host_preproc, itempp);
 out:
-	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() removed:%d host_preproc:%p", __func__, removed_num, host_preproc);
+	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() host_preproc:%p", __func__, host_preproc);
+}
 
-	return host_preproc;
+static void	dc_host_preproc_register_masteritem(ZBX_DC_ITEM *item, ZBX_DC_MASTERITEM *masteritem)
+{
+	zbx_dc_item_preproc_t	*itempp;
+	zbx_dc_host_preproc_t	*host_preproc;
+
+	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64 " itemid:" ZBX_FS_UI64, __func__, item->hostid,
+			item->itemid);
+
+	if (NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(&config->host_preproc, &item->hostid)))
+		host_preproc = dc_host_preproc_create(item->hostid);
+
+	itempp = dc_host_preproc_acquire_item(host_preproc, item);
+	itempp->masteritem = masteritem;
+
+	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() items:%d", __func__, host_preproc->items.num_data);
+}
+
+static void	dc_host_preproc_deregister_masteritem(ZBX_DC_ITEM *item)
+{
+	zbx_dc_item_preproc_t	*itempp;
+	zbx_dc_host_preproc_t	*host_preproc;
+
+	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64 " itemid:" ZBX_FS_UI64, __func__, item->hostid,
+			item->itemid);
+
+	if (NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(&config->host_preproc, &item->hostid)))
+		goto out;
+
+	itempp->preprocitem = NULL;
+
+	if (NULL == itempp->preprocitem && ITEM_TYPE_INTERNAL != itempp->type)
+		host_preproc = dc_host_preproc_remove_item(host_preproc, itempp);
+out:
+	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() host_preproc:%p", __func__, host_preproc);
 }
 
 static void	dc_preprocitem_register_with_host_preproc(ZBX_DC_PREPROCITEM *preprocitem)
@@ -1383,7 +1407,7 @@ static void	dc_preprocitem_register_with_host_preproc(ZBX_DC_PREPROCITEM *prepro
 	if (0 != host->proxy_hostid && SUCCEED != is_item_processed_by_server(item->type, item->key))
 		goto out;
 
-	(void)dc_host_preproc_register_preprocitem(NULL, host->hostid, preprocitem);
+	dc_host_preproc_register_preprocitem(item, preprocitem);
 out:
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);
 }
@@ -1397,7 +1421,7 @@ static void	dc_preprocitem_deregister_from_host_preproc(ZBX_DC_PREPROCITEM *prep
 	if (NULL == (item = (ZBX_DC_ITEM *)zbx_hashset_search(&config->items, &preprocitem->itemid)))
 		goto out;
 
-	(void)dc_host_preproc_deregister_preprocitem(NULL, item->hostid, preprocitem);
+	dc_host_preproc_deregister_preprocitem(item);
 out:
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);
 }
@@ -1424,7 +1448,7 @@ static void	dc_masteritem_register_with_host_preproc(ZBX_DC_MASTERITEM *masterit
 	if (0 != host->proxy_hostid && SUCCEED != is_item_processed_by_server(item->type, item->key))
 		goto out;
 
-	(void)dc_host_preproc_register_masteritem(NULL, host->hostid, masteritem);
+	dc_host_preproc_register_masteritem(item, masteritem);
 out:
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);
 }
@@ -1438,26 +1462,23 @@ static void	dc_masteritem_deregister_from_host_preproc(ZBX_DC_MASTERITEM *master
 	if (NULL == (item = (ZBX_DC_ITEM *)zbx_hashset_search(&config->items, &masteritem->itemid)))
 		goto out;
 
-	(void)dc_host_preproc_deregister_masteritem(NULL, item->hostid, masteritem);
+	dc_host_preproc_deregister_masteritem(item);
 out:
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);
 }
 
 static void	dc_host_update_host_preproc(ZBX_DC_HOST *host, zbx_uint64_t proxy_hostid)
 {
-	zbx_vector_dc_preprocitem_ptr_t	preprocitems;
-	ZBX_DC_PREPROCITEM		*preprocitem;
-	zbx_vector_dc_masteritem_ptr_t	masteritems;
-	ZBX_DC_MASTERITEM		*masteritem;
-	zbx_vector_uint64_t		internal_itemids;
-	zbx_dc_host_preproc_t		*host_preproc = NULL;
-	int				i, preproc_num = 0, master_num = 0, internal_num = 0;
+	ZBX_DC_PREPROCITEM			*preprocitem;
+	ZBX_DC_MASTERITEM			*masteritem;
+	zbx_vector_dc_item_preproc_ptr_t	items;
+	zbx_dc_item_preproc_t			*itempp;
+	zbx_dc_host_preproc_t			*host_preproc = NULL;
+	int					i, items_num;
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s() hostid:" ZBX_FS_UI64, __func__, host->hostid);
 
-	zbx_vector_dc_preprocitem_ptr_create(&preprocitems);
-	zbx_vector_dc_masteritem_ptr_create(&masteritems);
-	zbx_vector_uint64_create(&internal_itemids);
+	zbx_vector_dc_item_preproc_ptr_create(&items);
 
 	for (i = 0; i < host->items.values_num; i++)
 	{
@@ -1469,25 +1490,25 @@ static void	dc_host_update_host_preproc(ZBX_DC_HOST *host, zbx_uint64_t proxy_ho
 		if (0 != proxy_hostid && SUCCEED != is_item_processed_by_server(item->type, item->key))
 			continue;
 
-		if (NULL != (preprocitem = (ZBX_DC_PREPROCITEM *)zbx_hashset_search(&config->preprocitems,
-				&item->itemid)))
-		{
-			zbx_vector_dc_preprocitem_ptr_append(&preprocitems, preprocitem);
-		}
+		preprocitem = (ZBX_DC_PREPROCITEM *)zbx_hashset_search(&config->preprocitems, &item->itemid);
+		masteritem = (ZBX_DC_MASTERITEM *)zbx_hashset_search(&config->masteritems, &item->itemid);
 
-		if (NULL != (masteritem = (ZBX_DC_MASTERITEM *)zbx_hashset_search(&config->masteritems,
-				&item->itemid)))
+		if (NULL != preprocitem || NULL != masteritem || ITEM_TYPE_INTERNAL == item->type)
 		{
-			zbx_vector_dc_masteritem_ptr_append(&masteritems, masteritem);
-		}
+			itempp = (zbx_dc_item_preproc_t *)zbx_malloc(NULL, sizeof(zbx_dc_item_preproc_t));
+			itempp->itemid = item->itemid;
+			itempp->type = item->type;
+			itempp->value_type = item->value_type;
+			itempp->preprocitem = preprocitem;
+			itempp->masteritem = masteritem;
 
-		if (ITEM_TYPE_INTERNAL == item->type)
-			zbx_vector_uint64_append(&internal_itemids, item->itemid);
+			zbx_vector_dc_item_preproc_ptr_append(&items, itempp);
+		}
 	}
 
 	host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(&config->host_preproc, &host->hostid);
 
-	if (0 == preprocitems.values_num && 0 == masteritems.values_num && 0 == internal_itemids.values_num)
+	if (0 == items.values_num)
 	{
 		if (NULL != host_preproc)
 		{
@@ -1500,34 +1521,16 @@ static void	dc_host_update_host_preproc(ZBX_DC_HOST *host, zbx_uint64_t proxy_ho
 
 	if (NULL == host_preproc)
 		host_preproc = dc_host_preproc_create(host->hostid);
+	else
+		zbx_hashset_clear(&host_preproc->items);
 
-	if (0 != (preproc_num = preprocitems.values_num))
-	{
-		zbx_vector_dc_preprocitem_ptr_clear(&host_preproc->preprocitems);
-		zbx_vector_dc_preprocitem_ptr_append_array(&host_preproc->preprocitems, preprocitems.values,
-				preprocitems.values_num);
-	}
-
-	if (0 != (master_num = masteritems.values_num))
-	{
-		zbx_vector_dc_masteritem_ptr_clear(&host_preproc->masteritems);
-		zbx_vector_dc_masteritem_ptr_append_array(&host_preproc->masteritems, masteritems.values,
-				masteritems.values_num);
-	}
-
-	if (0 != (internal_num = internal_itemids.values_num))
-	{
-		zbx_vector_uint64_clear(&host_preproc->internal_itemids);
-		zbx_vector_uint64_append_array(&host_preproc->internal_itemids, internal_itemids.values,
-				internal_itemids.values_num);
-	}
+	for (i = 0; i < items.values_num; i++)
+		zbx_hashset_insert(&host_preproc->items, items.values[i], sizeof(zbx_dc_item_preproc_t));
 out:
-	zbx_vector_uint64_destroy(&internal_itemids);
-	zbx_vector_dc_masteritem_ptr_destroy(&masteritems);
-	zbx_vector_dc_preprocitem_ptr_destroy(&preprocitems);
+	items_num = items.values_num;
+	zbx_vector_dc_item_preproc_ptr_destroy(&items);
 
-	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() master:%d preproc:%d internal:%d", __func__, master_num,
-			preproc_num, internal_num);
+	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() items:%d", __func__, items_num);
 }
 
 static void	dc_host_remove_host_preproc(ZBX_DC_HOST *host)
@@ -1539,7 +1542,6 @@ static void	dc_host_remove_host_preproc(ZBX_DC_HOST *host)
 	if (NULL == (host_preproc = (zbx_dc_host_preproc_t *)zbx_hashset_search(&config->host_preproc, &host->hostid)))
 		return;
 
-	dc_host_preproc_clear(host_preproc);
 	zbx_hashset_remove_direct(&config->host_preproc, host_preproc);
 
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);
@@ -2836,6 +2838,10 @@ static unsigned char	*config_decode_serialized_expression(const char *src)
 #define ZBX_PREPROC_REMOTE	0
 #define ZBX_PREPROC_LOCAL	1
 
+#define ZBX_PREPROC_STEPS	0x0001
+#define ZBX_PREPROC_DEPENDENT	0x0002
+#define ZBX_PREPROC_INTERNAL	0x0004
+
 static void	DCsync_items(zbx_dbsync_t *sync, zbx_uint32_t revision, int flags, zbx_synced_new_config_t synced)
 {
 	char			**row;
@@ -2858,8 +2864,6 @@ static void	DCsync_items(zbx_dbsync_t *sync, zbx_uint32_t revision, int flags, z
 	ZBX_DC_JMXITEM		*jmxitem;
 	ZBX_DC_CALCITEM		*calcitem;
 	ZBX_DC_INTERFACE_ITEM	*interface_snmpitem;
-	ZBX_DC_MASTERITEM	*master;
-	ZBX_DC_PREPROCITEM	*preprocitem;
 	ZBX_DC_HTTPITEM		*httpitem;
 	ZBX_DC_SCRIPTITEM	*scriptitem;
 	ZBX_DC_ITEM_HK		*item_hk, item_hk_local;
@@ -2881,7 +2885,10 @@ static void	DCsync_items(zbx_dbsync_t *sync, zbx_uint32_t revision, int flags, z
 	{
 		int			preproc_loc_old = ZBX_PREPROC_REMOTE, preproc_loc_new = ZBX_PREPROC_REMOTE,
 					preproc_internal_old = 0, preproc_internal_new = 0;
-		zbx_dc_host_preproc_t	*host_preproc = NULL;
+		zbx_uint32_t		preproc_flags = 0;
+		ZBX_DC_PREPROCITEM	*preprocitem = NULL;
+		ZBX_DC_MASTERITEM	*master = NULL;
+		unsigned char		type_old;
 
 		/* removed rows will be always added at the end */
 		if (ZBX_DBSYNC_ROW_REMOVE == tag)
@@ -2984,7 +2991,13 @@ static void	DCsync_items(zbx_dbsync_t *sync, zbx_uint32_t revision, int flags, z
 		else
 		{
 			if (item->type != type)
+			{
 				flags |= ZBX_ITEM_TYPE_CHANGED;
+				type_old = item->type;
+			}
+
+			if (item->value_type != value_type)
+				flags |= ZBX_ITEM_VALUE_TYPE_CHANGED;
 
 			if (ITEM_STATUS_ACTIVE == status && ITEM_STATUS_ACTIVE != item->status)
 				item->data_expected_from = now;
@@ -3018,54 +3031,8 @@ static void	DCsync_items(zbx_dbsync_t *sync, zbx_uint32_t revision, int flags, z
 				preproc_internal_new = 1;
 		}
 
-		if (preproc_loc_old != preproc_loc_new)
-		{
-			/* check only existing items, as new items will not have preprocessing/masteritem synced yet */
-
-			if (0 != found && NULL != (preprocitem = (ZBX_DC_PREPROCITEM *)zbx_hashset_search(
-					&config->preprocitems, &item->itemid)))
-			{
-				if (ZBX_PREPROC_REMOTE == preproc_loc_new)
-				{
-					host_preproc = dc_host_preproc_deregister_preprocitem(host_preproc, item->hostid,
-							preprocitem);
-				}
-				else
-				{
-					host_preproc = dc_host_preproc_register_preprocitem(host_preproc,item->hostid,
-							preprocitem);
-				}
-			}
-
-			if (0 != found && NULL != (master = (ZBX_DC_MASTERITEM *)zbx_hashset_search(
-					&config->masteritems, &item->itemid)))
-			{
-				if (ZBX_PREPROC_REMOTE == preproc_loc_new)
-				{
-					host_preproc = dc_host_preproc_deregister_masteritem(host_preproc, item->hostid,
-							master);
-				}
-				else
-				{
-					host_preproc = dc_host_preproc_register_masteritem(host_preproc,item->hostid,
-							master);
-				}
-			}
-		}
-
 		if (preproc_internal_old != preproc_internal_new)
-		{
-			if (0 == preproc_internal_new)
-			{
-				host_preproc = dc_host_preproc_deregister_internal_item(host_preproc, item->hostid,
-						item->itemid);
-			}
-			else
-			{
-				host_preproc = dc_host_preproc_register_internal_item(host_preproc, item->hostid,
-						item->itemid);
-			}
-		}
+			preproc_flags |= ZBX_PREPROC_INTERNAL;
 
 		item->revision = revision;
 		dc_host_update_revision(host, revision);
@@ -3080,6 +3047,42 @@ static void	DCsync_items(zbx_dbsync_t *sync, zbx_uint32_t revision, int flags, z
 		item->status = status;
 		item->value_type = value_type;
 		item->interfaceid = interfaceid;
+
+		if (preproc_loc_old != preproc_loc_new)
+		{
+			/* handle location change - this includes also new items */
+			if (ZBX_PREPROC_LOCAL == preproc_loc_new)
+			{
+				/* new items will have neither preprocitem nor master item, so skip lookups */
+				if (0 != found)
+				{
+					preprocitem = (ZBX_DC_PREPROCITEM *)zbx_hashset_search(&config->preprocitems,
+							&item->itemid);
+					master = (ZBX_DC_MASTERITEM *)zbx_hashset_search(&config->masteritems,
+							&item->itemid);
+				}
+				dc_host_preproc_register_item(item, preprocitem, master);
+			}
+			else
+				dc_host_preproc_deregister_item(item);
+		}
+		else if (0 != found && ZBX_PREPROC_LOCAL == preproc_loc_new)
+		{
+			/* handle type change to/from internal item */
+			if (0 != (flags & ZBX_ITEM_TYPE_CHANGED) && (ITEM_TYPE_INTERNAL == type_old ||
+					ITEM_TYPE_INTERNAL == item->type))
+			{
+				if (ITEM_TYPE_INTERNAL == type_old)
+					dc_host_preproc_deregister_internal_item(item);
+				else
+					dc_host_preproc_register_internal_item(item);
+			}
+			else if (0 != (flags & (ZBX_ITEM_TYPE_CHANGED | ZBX_ITEM_VALUE_TYPE_CHANGED)))
+			{
+				/* update item type/value_type in host_preproc index */
+				dc_host_preproc_update_item(item);
+			}
+		}
 
 		/* update items_hk index using new data, if not done already */
 
@@ -3488,6 +3491,7 @@ static void	DCsync_items(zbx_dbsync_t *sync, zbx_uint32_t revision, int flags, z
 	for (i = 0; i < dep_items.values_num; i++)
 	{
 		zbx_uint64_pair_t	pair;
+		ZBX_DC_MASTERITEM	*master;
 
 		depitem = (ZBX_DC_DEPENDENTITEM *)dep_items.values[i];
 		dc_masteritem_remove_depitem(depitem->last_master_itemid, depitem->itemid);
@@ -3518,7 +3522,7 @@ static void	DCsync_items(zbx_dbsync_t *sync, zbx_uint32_t revision, int flags, z
 	/* remove deleted items from cache */
 	for (; SUCCEED == ret; ret = zbx_dbsync_next(sync, &rowid, &row, &tag))
 	{
-		zbx_dc_host_preproc_t	*host_preproc = NULL;
+		ZBX_DC_PREPROCITEM	*preprocitem;
 
 		if (NULL == (item = (ZBX_DC_ITEM *)zbx_hashset_search(&config->items, &rowid)))
 			continue;
@@ -3748,16 +3752,14 @@ static void	DCsync_items(zbx_dbsync_t *sync, zbx_uint32_t revision, int flags, z
 
 		zbx_vector_ptr_destroy(&item->tags);
 
-		if (NULL != (preprocitem = (ZBX_DC_PREPROCITEM *)zbx_hashset_search(&config->preprocitems, &item->itemid)))
+		if (NULL != (preprocitem = (ZBX_DC_PREPROCITEM *)zbx_hashset_search(&config->preprocitems,
+				&item->itemid)))
 		{
-			host_preproc = dc_host_preproc_deregister_preprocitem(host_preproc, item->hostid, preprocitem);
-
 			zbx_vector_ptr_destroy(&preprocitem->preproc_ops);
 			zbx_hashset_remove_direct(&config->preprocitems, preprocitem);
 		}
 
-		if (ITEM_TYPE_INTERNAL == item->type)
-			host_preproc = dc_host_preproc_deregister_internal_item(host_preproc, item->hostid, item->itemid);
+		dc_host_preproc_deregister_item(item);
 
 		zbx_hashset_remove_direct(&config->items, item);
 	}
@@ -8294,7 +8296,9 @@ int	init_configuration_cache(char **error)
 	CREATE_HASHSET(config->httpsteps, 0);
 	CREATE_HASHSET(config->httpstep_fields, 0);
 
-	CREATE_HASHSET(config->host_preproc, 0);
+	zbx_hashset_create_ext(&config->host_preproc, 0, ZBX_DEFAULT_UINT64_HASH_FUNC, ZBX_DEFAULT_UINT64_COMPARE_FUNC,
+			(zbx_clean_func_t)dc_host_preproc_clear, __config_shmem_malloc_func, __config_shmem_realloc_func,
+			__config_shmem_free_func);
 
 	for (i = 0; i < ZBX_SESSION_TYPE_COUNT; i++)
 		CREATE_HASHSET_EXT(config->sessions[i], 0, __config_session_hash, __config_session_compare);
