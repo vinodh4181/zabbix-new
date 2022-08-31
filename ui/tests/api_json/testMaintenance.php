@@ -439,7 +439,7 @@ class testMaintenance extends CAPITest {
 						]
 					]
 				] + $def_options,
-				'expected_error' => 'Invalid parameter "/1": unexpected parameter "tags".'
+				'expected_error' => 'Invalid parameter "/1/tags": should be empty.'
 			],
 			// Fail. Active since bigger active till.
 			[
@@ -847,7 +847,7 @@ class testMaintenance extends CAPITest {
 						]
 					]
 				],
-				'expected_error' => 'Invalid parameter "/1/timeperiods/1": unexpected parameter "start_time".'
+				'expected_error' => 'Invalid parameter "/1/timeperiods/1/start_time": value must be 1970-01-01 03:00:00.'
 			],
 			// Fail. One time period.
 			[
@@ -881,7 +881,7 @@ class testMaintenance extends CAPITest {
 						]
 					]
 				],
-				'expected_error' => 'Invalid parameter "/1/timeperiods/1": unexpected parameter "day".'
+				'expected_error' => 'Invalid parameter "/1/timeperiods/1/day": value must be 0.'
 			],
 			// Fail. One time period.
 			[
@@ -898,7 +898,7 @@ class testMaintenance extends CAPITest {
 						]
 					]
 				],
-				'expected_error' => 'Invalid parameter "/1/timeperiods/1": unexpected parameter "dayofweek".'
+				'expected_error' => 'Invalid parameter "/1/timeperiods/1/dayofweek": value must be 0.'
 			],
 			// Fail. One time period.
 			[
@@ -915,7 +915,7 @@ class testMaintenance extends CAPITest {
 						]
 					]
 				],
-				'expected_error' => 'Invalid parameter "/1/timeperiods/1": unexpected parameter "month".'
+				'expected_error' => 'Invalid parameter "/1/timeperiods/1/month": value must be 0.'
 			],
 			// Success. Daily period.
 			[
@@ -1060,7 +1060,7 @@ class testMaintenance extends CAPITest {
 						]
 					]
 				],
-				'expected_error' => 'Invalid parameter "/1/timeperiods/1": unexpected parameter "start_date".'
+				'expected_error' => 'Invalid parameter "/1/timeperiods/1/start_date": value must be 1970-01-01 03:00:00.'
 			],
 			// Fail. Daily period.
 			[
@@ -1078,7 +1078,7 @@ class testMaintenance extends CAPITest {
 						]
 					]
 				],
-				'expected_error' => 'Invalid parameter "/1/timeperiods/1": unexpected parameter "day".'
+				'expected_error' => 'Invalid parameter "/1/timeperiods/1/day": value must be 0.'
 			],
 			// Fail. Daily period.
 			[
@@ -1096,7 +1096,7 @@ class testMaintenance extends CAPITest {
 						]
 					]
 				],
-				'expected_error' => 'Invalid parameter "/1/timeperiods/1": unexpected parameter "dayofweek".'
+				'expected_error' => 'Invalid parameter "/1/timeperiods/1/dayofweek": value must be 0.'
 			],
 			// Fail. Daily period.
 			[
@@ -1243,7 +1243,7 @@ class testMaintenance extends CAPITest {
 						]
 					]
 				],
-				'expected_error' => 'Invalid parameter "/1/timeperiods/1": unexpected parameter "start_date".'
+				'expected_error' => 'Invalid parameter "/1/timeperiods/1/start_date": value must be 1970-01-01 03:00:00.'
 			],
 			// Fail. Weekly period.
 			[
@@ -1262,7 +1262,7 @@ class testMaintenance extends CAPITest {
 						]
 					]
 				],
-				'expected_error' => 'Invalid parameter "/1/timeperiods/1": unexpected parameter "day".'
+				'expected_error' => 'Invalid parameter "/1/timeperiods/1/day": value must be 0.'
 			],
 			// Fail. Weekly period.
 			[
@@ -1281,7 +1281,7 @@ class testMaintenance extends CAPITest {
 						]
 					]
 				],
-				'expected_error' => 'Invalid parameter "/1/timeperiods/1": unexpected parameter "month".'
+				'expected_error' => 'Invalid parameter "/1/timeperiods/1/month": value must be 0.'
 			],
 			// Success. Monthly period.
 			[
