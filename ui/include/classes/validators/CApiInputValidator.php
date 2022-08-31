@@ -1465,7 +1465,11 @@ class CApiInputValidator {
 		}
 
 		if (array_key_exists('length', $rule) && count($data) > $rule['length']) {
-			$error = _s('Invalid parameter "%1$s": %2$s.', $path, _('value is too long'));
+			$error = ($rule['length'] == 0)
+
+				? _s('Invalid parameter "%1$s": %2$s.', $path, _('should be empty'))
+				: _s('Invalid parameter "%1$s": %2$s.', $path, _('value is too long'));
+
 			return false;
 		}
 
