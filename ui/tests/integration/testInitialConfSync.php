@@ -51,6 +51,14 @@ class testInitialConfSync extends CIntegrationTest
 			],
 		],
 		[
+			'autoreg_host' =>
+			[
+				'insert' => '1',
+				'update' => '0',
+				'delete' => '0',
+			],
+		],
+		[
 			'hosts' =>
 			[
 				'insert' => '14',
@@ -291,6 +299,14 @@ class testInitialConfSync extends CIntegrationTest
 				"delete" =>
 				"0",
 			]
+		],
+		[
+			'autoreg_host' =>
+			[
+				'insert' => '1',
+				'update' => '0',
+				'delete' => '0',
+			],
 		],
 		[
 			"hosts" =>
@@ -613,6 +629,14 @@ class testInitialConfSync extends CIntegrationTest
 				"delete" =>
 				"0",
 			]
+		],
+		[
+			'autoreg_host' =>
+			[
+				'insert' => '1',
+				'update' => '0',
+				'delete' => '0',
+			],
 		],
 		[
 			"hosts" =>
@@ -1386,7 +1410,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
 		$got = $this->parseSyncResults();
-		$this->assertEqualsCanonicalizing($this->expected_initial, $got);
+		$this->assertEquals($this->expected_initial, $got);
 
 		$stringpool_old = $this->getStringPoolCount();
 
@@ -1460,7 +1484,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
 		$got = $this->parseSyncResults();
-		$this->assertEqualsCanonicalizing($this->expected_update, $got);
+		$this->assertEquals($this->expected_update, $got);
 
 		return true;
 	}
@@ -1479,7 +1503,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
 		$got = $this->parseSyncResults();
-		$this->assertEqualsCanonicalizing($this->expected_delete, $got);
+		$this->assertEquals($this->expected_delete, $got);
 
 		self::stopComponent(self::COMPONENT_SERVER);
 		self::clearLog(self::COMPONENT_SERVER);
