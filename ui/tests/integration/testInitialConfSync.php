@@ -51,6 +51,14 @@ class testInitialConfSync extends CIntegrationTest
 			],
 		],
 		[
+			'autoreghost' =>
+			[
+				'insert' => '1',
+				'update' => '0',
+				'delete' => '0',
+			],
+		],
+		[
 			'hosts' =>
 			[
 				'insert' => '14',
@@ -291,6 +299,14 @@ class testInitialConfSync extends CIntegrationTest
 				"delete" =>
 				"0",
 			]
+		],
+		[
+			'autoreghost' =>
+			[
+				'insert' => '0',
+				'update' => '0',
+				'delete' => '0',
+			],
 		],
 		[
 			"hosts" =>
@@ -613,6 +629,14 @@ class testInitialConfSync extends CIntegrationTest
 				"delete" =>
 				"0",
 			]
+		],
+		[
+			'autoreghost' =>
+			[
+				'insert' => '0',
+				'update' => '0',
+				'delete' => '0',
+			],
 		],
 		[
 			"hosts" =>
