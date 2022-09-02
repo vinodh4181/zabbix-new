@@ -1386,7 +1386,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
 		$got = $this->parseSyncResults();
-		$this->assertEquals($this->expected_initial, $got);
+		$this->assertEqualsCanonicalizing($this->expected_initial, $got);
 
 		$stringpool_old = $this->getStringPoolCount();
 
@@ -1460,7 +1460,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
 		$got = $this->parseSyncResults();
-		$this->assertEquals($this->expected_update, $got);
+		$this->assertEqualsCanonicalizing($this->expected_update, $got);
 
 		return true;
 	}
@@ -1479,7 +1479,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
 		$got = $this->parseSyncResults();
-		$this->assertEquals($this->expected_delete, $got);
+		$this->assertEqualsCanonicalizing($this->expected_delete, $got);
 
 		self::stopComponent(self::COMPONENT_SERVER);
 		self::clearLog(self::COMPONENT_SERVER);
