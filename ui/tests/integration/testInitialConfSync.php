@@ -53,7 +53,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'autoreghost' =>
 			[
-				'insert' => '1',
+				'insert' => '0',
 				'update' => '0',
 				'delete' => '0',
 			],
