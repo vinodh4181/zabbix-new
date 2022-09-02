@@ -72,6 +72,7 @@ class IntegrationTests {
 		$suite->addTestSuite('testUserParametersReload');
 		$suite->addTestSuite('testTriggerState');
 		$suite->addTestSuite('testActiveAvailability');
+		$suite->addTestSuite('testInitialConfSync');
 
 		return $suite;
 	}
