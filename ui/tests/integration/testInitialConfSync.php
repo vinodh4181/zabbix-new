@@ -1321,9 +1321,7 @@ class testInitialConfSync extends CIntegrationTest
 		]);
 	}
 
-	/**
-	 */
-	public function testInitialConfSync_Insert()
+	public function testInitialConfSync_testInsert()
 	{
 		$this->updateGlobalMacro();
 		$this->purgeExisting('host', 'hostids');
@@ -1404,7 +1402,7 @@ class testInitialConfSync extends CIntegrationTest
 		return true;
 	}
 
-	public function testInitialConfSync_Update()
+	public function testInitialConfSync_testUpdate()
 	{
 		$this->updateProxies();
 		$this->updateCorrelation();
@@ -1467,7 +1465,7 @@ class testInitialConfSync extends CIntegrationTest
 		return true;
 	}
 
-	public function testInitialConfSync_Delete()
+	public function testInitialConfSync_testDelete()
 	{
 		$this->purgeExisting('maintenance', 'maintenanceids');
 		$this->purgeExisting('host', 'hostids');
