@@ -72,8 +72,6 @@ zbx_session_type_t;
 #define ZBX_AGENT_UNKNOWN	255
 #define ZBX_AGENT_MAX		INTERFACE_TYPE_COUNT
 
-extern int	CONFIG_TIMEOUT;
-
 extern zbx_uint64_t	CONFIG_CONF_CACHE_SIZE;
 extern zbx_uint64_t	CONFIG_HISTORY_CACHE_SIZE;
 extern zbx_uint64_t	CONFIG_HISTORY_INDEX_CACHE_SIZE;

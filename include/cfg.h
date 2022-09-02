@@ -45,13 +45,22 @@
 #define ZBX_PROXY_HEARTBEAT_FREQUENCY_MAX	SEC_PER_HOUR
 #define ZBX_PROXY_LASTACCESS_UPDATE_FREQUENCY	5
 
-extern char	*CONFIG_FILE;
-extern char	*CONFIG_LOG_TYPE_STR;
-extern int	CONFIG_LOG_TYPE;
-extern char	*CONFIG_LOG_FILE;
-extern int	CONFIG_LOG_FILE_SIZE;
-extern int	CONFIG_ALLOW_ROOT;
-extern int	CONFIG_TIMEOUT;
+
+typedef struct
+{
+	char	*config_file;
+	char	*config_log_type_str;
+	int	config_log_type;
+	char	*config_log_file;
+	int	config_log_file_size;
+	int	config_allow_root;
+	int	config_timeout;
+} zbx_config_cfg_t;
+
+typedef zbx_config_cfg_t (*zbx_get_config_cfg_type_f)(void);
+
+zbx_config_cfg_t	*zbx_config_cfg_new(void);
+void			zbx_config_cfg_free(zbx_config_cfg_t *zbx_config_cfg_t);
 
 struct cfg_line
 {
@@ -80,8 +89,9 @@ void	zbx_addr_free(zbx_addr_t *addr);
 
 int	parse_cfg_file(const char *cfg_file, struct cfg_line *cfg, int optional, int strict, int noexit);
 
-int	check_cfg_feature_int(const char *parameter, int value, const char *feature);
-int	check_cfg_feature_str(const char *parameter, const char *value, const char *feature);
+int	check_cfg_feature_int(const char *parameter, int value, const char *feature, unsigned char program_type);
+int	check_cfg_feature_str(const char *parameter, const char *value, const char *feature,
+		unsigned char program_type);
 
 typedef int	(*add_serveractive_host_f)(const zbx_vector_ptr_t *addrs, zbx_vector_str_t *hostnames, void *data);
 int	zbx_set_data_destination_hosts(char *str, unsigned short port, const char *name, add_serveractive_host_f cb,

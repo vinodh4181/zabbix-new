@@ -288,6 +288,7 @@ char	*CONFIG_SSL_CERT_LOCATION	= NULL;
 char	*CONFIG_SSL_KEY_LOCATION	= NULL;
 
 static zbx_config_tls_t	*zbx_config_tls = NULL;
+static zbx_config_cfg_t	*zbx_config_cfg = NULL;
 
 static char	*CONFIG_SOCKET_PATH	= NULL;
 
@@ -600,60 +601,65 @@ static void	zbx_validate_config(ZBX_TASK_EX *task)
 		err = 1;
 	}
 #if !defined(HAVE_IPV6)
-	err |= (FAIL == check_cfg_feature_str("Fping6Location", CONFIG_FPING6_LOCATION, "IPv6 support"));
+	err |= (FAIL == check_cfg_feature_str("Fping6Location", CONFIG_FPING6_LOCATION, "IPv6 support", program_type));
 #endif
 #if !defined(HAVE_LIBCURL)
-	err |= (FAIL == check_cfg_feature_str("SSLCALocation", CONFIG_SSL_CA_LOCATION, "cURL library"));
-	err |= (FAIL == check_cfg_feature_str("SSLCertLocation", CONFIG_SSL_CERT_LOCATION, "cURL library"));
-	err |= (FAIL == check_cfg_feature_str("SSLKeyLocation", CONFIG_SSL_KEY_LOCATION, "cURL library"));
-	err |= (FAIL == check_cfg_feature_str("Vault", CONFIG_VAULT, "cURL library"));
-	err |= (FAIL == check_cfg_feature_str("VaultToken", CONFIG_VAULTTOKEN, "cURL library"));
-	err |= (FAIL == check_cfg_feature_str("VaultDBPath", CONFIG_VAULTDBPATH, "cURL library"));
+	err |= (FAIL == check_cfg_feature_str("SSLCALocation", CONFIG_SSL_CA_LOCATION, "cURL library", program_type));
+	err |= (FAIL == check_cfg_feature_str("SSLCertLocation", CONFIG_SSL_CERT_LOCATION, "cURL library",
+			program_type));
+	err |= (FAIL == check_cfg_feature_str("SSLKeyLocation", CONFIG_SSL_KEY_LOCATION, "cURL library", program_type));
+	err |= (FAIL == check_cfg_feature_str("Vault", CONFIG_VAULT, "cURL library", program_type));
+	err |= (FAIL == check_cfg_feature_str("VaultToken", CONFIG_VAULTTOKEN, "cURL library", program_type));
+	err |= (FAIL == check_cfg_feature_str("VaultDBPath", CONFIG_VAULTDBPATH, "cURL library", program_type));
 #endif
 #if !defined(HAVE_LIBXML2) || !defined(HAVE_LIBCURL)
-	err |= (FAIL == check_cfg_feature_int("StartVMwareCollectors", CONFIG_VMWARE_FORKS, "VMware support"));
+	err |= (FAIL == check_cfg_feature_int("StartVMwareCollectors", CONFIG_VMWARE_FORKS, "VMware support",
+			program_type));
 
 	/* parameters VMwareFrequency, VMwarePerfFrequency, VMwareCacheSize, VMwareTimeout are not checked here */
 	/* because they have non-zero default values */
 #endif
 
-	if (SUCCEED != zbx_validate_log_parameters(task))
+	if (SUCCEED != zbx_validate_log_parameters(task, zbx_config_cfg->config_log_type,
+			zbx_config_cfg->config_log_type_str, zbx_config_cfg->config_log_file))
+	{
 		err = 1;
-
+	}
 #if !(defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL))
-	err |= (FAIL == check_cfg_feature_str("TLSConnect", zbx_config_tls->connect, "TLS support"));
-	err |= (FAIL == check_cfg_feature_str("TLSAccept", zbx_config_tls->accept, "TLS support"));
-	err |= (FAIL == check_cfg_feature_str("TLSCAFile", zbx_config_tls->ca_file, "TLS support"));
-	err |= (FAIL == check_cfg_feature_str("TLSCRLFile", zbx_config_tls->crl_file, "TLS support"));
+	err |= (FAIL == check_cfg_feature_str("TLSConnect", zbx_config_tls->connect, "TLS support", program_type));
+	err |= (FAIL == check_cfg_feature_str("TLSAccept", zbx_config_tls->accept, "TLS support", program_type));
+	err |= (FAIL == check_cfg_feature_str("TLSCAFile", zbx_config_tls->ca_file, "TLS support", program_type));
+	err |= (FAIL == check_cfg_feature_str("TLSCRLFile", zbx_config_tls->crl_file, "TLS support", program_type));
 	err |= (FAIL == check_cfg_feature_str("TLSServerCertIssuer", zbx_config_tls->server_cert_issuer,
-			"TLS support"));
+			"TLS support", program_type));
 	err |= (FAIL == check_cfg_feature_str("TLSServerCertSubject", zbx_config_tls->server_cert_subject,
-			"TLS support"));
-	err |= (FAIL == check_cfg_feature_str("TLSCertFile", zbx_config_tls->cert_file, "TLS support"));
-	err |= (FAIL == check_cfg_feature_str("TLSKeyFile", zbx_config_tls->key_file, "TLS support"));
+			"TLS support", program_type));
+	err |= (FAIL == check_cfg_feature_str("TLSCertFile", zbx_config_tls->cert_file, "TLS support", program_type));
+	err |= (FAIL == check_cfg_feature_str("TLSKeyFile", zbx_config_tls->key_file, "TLS support", program_type));
 	err |= (FAIL == check_cfg_feature_str("TLSPSKIdentity", zbx_config_tls->psk_identity,
-			"TLS support"));
-	err |= (FAIL == check_cfg_feature_str("TLSPSKFile", zbx_config_tls->psk_file, "TLS support"));
+			"TLS support", program_type));
+	err |= (FAIL == check_cfg_feature_str("TLSPSKFile", zbx_config_tls->psk_file, "TLS support", program_type));
 #endif
 #if !(defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL))
 	err |= (FAIL == check_cfg_feature_str("TLSCipherCert", zbx_config_tls->cipher_cert,
-			"GnuTLS or OpenSSL"));
+			"GnuTLS or OpenSSL", program_type));
 	err |= (FAIL == check_cfg_feature_str("TLSCipherPSK", zbx_config_tls->cipher_psk,
-			"GnuTLS or OpenSSL"));
+			"GnuTLS or OpenSSL", program_type));
 	err |= (FAIL == check_cfg_feature_str("TLSCipherAll", zbx_config_tls->cipher_all,
-			"GnuTLS or OpenSSL"));
+			"GnuTLS or OpenSSL", program_type));
 #endif
 #if !defined(HAVE_OPENSSL)
 	err |= (FAIL == check_cfg_feature_str("TLSCipherCert13", zbx_config_tls->cipher_cert13,
-			"OpenSSL 1.1.1 or newer"));
+			"OpenSSL 1.1.1 or newer", program_type));
 	err |= (FAIL == check_cfg_feature_str("TLSCipherPSK13", zbx_config_tls->cipher_psk13,
-			"OpenSSL 1.1.1 or newer"));
+			"OpenSSL 1.1.1 or newer", program_type));
 	err |= (FAIL == check_cfg_feature_str("TLSCipherAll13", zbx_config_tls->cipher_all13,
-			"OpenSSL 1.1.1 or newer"));
+			"OpenSSL 1.1.1 or newer", program_type));
 #endif
 
 #if !defined(HAVE_OPENIPMI)
-	err |= (FAIL == check_cfg_feature_int("StartIPMIPollers", CONFIG_IPMIPOLLER_FORKS, "IPMI support"));
+	err |= (FAIL == check_cfg_feature_int("StartIPMIPollers", CONFIG_IPMIPOLLER_FORKS, "IPMI support",
+			program_type));
 #endif
 
 	err |= (FAIL == zbx_db_validate_config_features());
@@ -1008,7 +1014,7 @@ int	main(int argc, char **argv)
 	int		zbx_optind = 0;
 
 	zbx_config_tls = zbx_config_tls_new();
-
+	zbx_config_cfg = zbx_config_cfg_new();
 #if defined(PS_OVERWRITE_ARGV) || defined(PS_PSTAT_ARGV)
 	argv = setproctitle_save_env(argc, argv);
 #endif
@@ -1104,7 +1110,8 @@ int	main(int argc, char **argv)
 		exit(SUCCEED == ret ? EXIT_SUCCESS : EXIT_FAILURE);
 	}
 
-	return zbx_daemon_start(CONFIG_ALLOW_ROOT, CONFIG_USER, t.flags, get_pid_file_path, zbx_on_exit);
+	return zbx_daemon_start(CONFIG_ALLOW_ROOT, CONFIG_USER, t.flags, get_pid_file_path, zbx_on_exit,
+			zbx_config_cfg->config_log_type, zbx_config_cfg->config_log_file);
 }
 
 static void	zbx_check_db(void)

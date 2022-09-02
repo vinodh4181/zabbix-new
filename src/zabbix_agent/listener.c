@@ -38,13 +38,13 @@ extern ZBX_THREAD_LOCAL int		server_num, process_num;
 static volatile sig_atomic_t	need_update_userparam;
 #endif
 
-static void	process_listener(zbx_socket_t *s)
+static void	process_listener(zbx_socket_t *s, int config_timeout)
 {
 	AGENT_RESULT	result;
 	char		**value = NULL;
 	int		ret;
 
-	if (SUCCEED == (ret = zbx_tcp_recv_to(s, CONFIG_TIMEOUT)))
+	if (SUCCEED == (ret = zbx_tcp_recv_to(s, config_timeout)))
 	{
 		zbx_rtrim(s->buffer, "\r\n");
 
@@ -57,7 +57,7 @@ static void	process_listener(zbx_socket_t *s)
 			if (NULL != (value = GET_TEXT_RESULT(&result)))
 			{
 				zabbix_log(LOG_LEVEL_DEBUG, "Sending back [%s]", *value);
-				ret = zbx_tcp_send_to(s, *value, CONFIG_TIMEOUT);
+				ret = zbx_tcp_send_to(s, *value, config_timeout);
 			}
 		}
 		else
@@ -80,13 +80,13 @@ static void	process_listener(zbx_socket_t *s)
 				buffer_offset++;
 				zbx_strcpy_alloc(&buffer, &buffer_alloc, &buffer_offset, *value);
 
-				ret = zbx_tcp_send_bytes_to(s, buffer, buffer_offset, CONFIG_TIMEOUT);
+				ret = zbx_tcp_send_bytes_to(s, buffer, buffer_offset, config_timeout);
 			}
 			else
 			{
 				zabbix_log(LOG_LEVEL_DEBUG, "Sending back [" ZBX_NOTSUPPORTED "]");
 
-				ret = zbx_tcp_send_to(s, ZBX_NOTSUPPORTED, CONFIG_TIMEOUT);
+				ret = zbx_tcp_send_to(s, ZBX_NOTSUPPORTED, config_timeout);
 			}
 		}
 
@@ -121,6 +121,8 @@ ZBX_THREAD_ENTRY(listener_thread, args)
 	process_type = ((zbx_thread_args_t *)args)->process_type;
 	server_num = ((zbx_thread_args_t *)args)->server_num;
 	process_num = ((zbx_thread_args_t *)args)->process_num;
+	config_timeout = ((zbx_thread_args_t *)args)->config_timeout;
+
 
 	zabbix_log(LOG_LEVEL_INFORMATION, "%s #%d started [%s #%d]",
 			get_program_type_string(init_child_args_in->zbx_get_program_type_cb_arg()),
@@ -168,7 +170,7 @@ ZBX_THREAD_ENTRY(listener_thread, args)
 						&msg)))
 #endif
 				{
-					process_listener(&s);
+					process_listener(&s, config_timeout);
 				}
 			}
 

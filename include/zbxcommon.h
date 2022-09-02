@@ -494,6 +494,7 @@ zbx_group_status_type_t;
 #define ZBX_PROGRAM_TYPE_SENDER		0x10
 #define ZBX_PROGRAM_TYPE_GET		0x20
 const char	*get_program_type_string(unsigned char program_type);
+typedef int	(*zbx_get_config_log_file_size_f)(void);
 
 /* process type */
 #define ZBX_PROCESS_TYPE_POLLER			0

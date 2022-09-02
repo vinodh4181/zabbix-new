@@ -61,6 +61,8 @@ extern int	zbx_log_level;
 #	define zabbix_log __zbx_zabbix_log
 #endif
 
+void		zbx_log_init_cfg(zbx_get_config_log_file_size_f zbx_get_config_log_file_size_cb_arg);
+
 int		zabbix_open_log(int type, int level, const char *filename, char **error);
 void		__zbx_zabbix_log(int level, const char *fmt, ...) __zbx_attr_format_printf(2, 3);
 void		zabbix_close_log(void);
@@ -83,7 +85,8 @@ int		zbx_redirect_stdio(const char *filename);
 void		zbx_handle_log(void);
 
 int		zbx_get_log_type(const char *logtype);
-int		zbx_validate_log_parameters(ZBX_TASK_EX *task);
+int		zbx_validate_log_parameters(ZBX_TASK_EX *task, int config_log_type, char *config_log_type_str,
+				char *config_log_file);
 
 void	zbx_strlog_alloc(int level, char **out, size_t *out_alloc, size_t *out_offset, const char *format,
 		...) __zbx_attr_format_printf(5, 6);

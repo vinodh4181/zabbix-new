@@ -40,7 +40,7 @@ extern char		*CONFIG_HOSTNAME;
 extern char		*CONFIG_SOURCE_IP;
 
 static void	process_configuration_sync(size_t *data_size, zbx_synced_new_config_t *synced,
-		const zbx_config_tls_t *zbx_config_tls)
+		const zbx_config_tls_t *zbx_config_tls, int config_timeout)
 {
 	zbx_socket_t		sock;
 	struct	zbx_json_parse	jp, jp_kvs_paths = {0};
@@ -69,7 +69,7 @@ static void	process_configuration_sync(size_t *data_size, zbx_synced_new_config_
 
 	update_selfmon_counter(ZBX_PROCESS_STATE_IDLE);
 
-	if (FAIL == zbx_connect_to_server(&sock,CONFIG_SOURCE_IP, &zbx_addrs, 600, CONFIG_TIMEOUT,
+	if (FAIL == zbx_connect_to_server(&sock,CONFIG_SOURCE_IP, &zbx_addrs, 600, config_timeout,
 			CONFIG_PROXYCONFIG_RETRY, LOG_LEVEL_WARNING, zbx_config_tls))	/* retry till have a connection */
 	{
 		update_selfmon_counter(ZBX_PROCESS_STATE_BUSY);
@@ -155,12 +155,13 @@ ZBX_THREAD_ENTRY(proxyconfig_thread, args)
 	size_t				data_size;
 	double				sec;
 	zbx_ipc_async_socket_t		rtc;
-	int				sleeptime;
+	int				sleeptime, config_timeout;
 	zbx_synced_new_config_t		synced = ZBX_SYNCED_NEW_CONFIG_NO;
 
 	process_type = ((zbx_thread_args_t *)args)->process_type;
 	server_num = ((zbx_thread_args_t *)args)->server_num;
 	process_num = ((zbx_thread_args_t *)args)->process_num;
+	config_timeout = ((zbx_thread_args_t *)args)->config_timeout; 
 
 	zabbix_log(LOG_LEVEL_INFORMATION, "%s #%d started [%s #%d]",
 			get_program_type_string(proxyconfig_args_in->zbx_get_program_type_cb_arg()),
@@ -226,7 +227,7 @@ ZBX_THREAD_ENTRY(proxyconfig_thread, args)
 
 		zbx_setproctitle("%s [loading configuration]", get_process_type_string(process_type));
 
-		process_configuration_sync(&data_size, &synced, proxyconfig_args_in->zbx_config_tls);
+		process_configuration_sync(&data_size, &synced, proxyconfig_args_in->zbx_config_tls, config_timeout);
 		sec = zbx_time() - sec;
 
 		zbx_setproctitle("%s [synced config " ZBX_FS_SIZE_T " bytes in " ZBX_FS_DBL " sec, idle %d sec]",

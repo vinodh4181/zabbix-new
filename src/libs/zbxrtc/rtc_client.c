@@ -25,8 +25,6 @@
 #include "zbxself.h"
 #include "log.h"
 
-extern int	CONFIG_TIMEOUT;
-
 /******************************************************************************
  *                                                                            *
  * Purpose: parse loglevel runtime control option                             *
@@ -163,7 +161,7 @@ static int	rtc_parse_options(const char *opt, zbx_uint32_t *code, char **data, c
  *               FAIL    - otherwise                                          *
  *                                                                            *
  ******************************************************************************/
-int	zbx_rtc_process(const char *option, char **error)
+int	zbx_rtc_process(const char *option, int config_timeout, char **error)
 {
 	zbx_uint32_t	code = ZBX_RTC_UNKNOWN, size = 0;
 	char		*data = NULL;
@@ -199,7 +197,7 @@ int	zbx_rtc_process(const char *option, char **error)
 	if (NULL != data)
 		size = (zbx_uint32_t)strlen(data) + 1;
 
-	if (SUCCEED == (ret = zbx_ipc_async_exchange(ZBX_IPC_SERVICE_RTC, code, CONFIG_TIMEOUT, (unsigned char *)data,
+	if (SUCCEED == (ret = zbx_ipc_async_exchange(ZBX_IPC_SERVICE_RTC, code, config_timeout, (unsigned char *)data,
 			size, &result, error)))
 	{
 		if (NULL != result)
@@ -232,7 +230,7 @@ int	zbx_rtc_open(zbx_ipc_async_socket_t *asocket, int timeout, char **error)
  * Parameters: rtc   - [OUT] the RTC notification subscription socket         *
  *                                                                            *
  ******************************************************************************/
-void	zbx_rtc_notify_config_sync(zbx_ipc_async_socket_t *rtc)
+void	zbx_rtc_notify_config_sync(zbx_ipc_async_socket_t *rtc, int config_timeout)
 {
 	if (FAIL == zbx_ipc_async_socket_send(rtc, ZBX_RTC_CONFIG_SYNC_NOTIFY, NULL, 0))
 	{
@@ -240,7 +238,7 @@ void	zbx_rtc_notify_config_sync(zbx_ipc_async_socket_t *rtc)
 		exit(EXIT_FAILURE);
 	}
 
-	if (FAIL == zbx_ipc_async_socket_flush(rtc, CONFIG_TIMEOUT))
+	if (FAIL == zbx_ipc_async_socket_flush(rtc, config_timeout))
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "cannot flush configuration syncer notification");
 		exit(EXIT_FAILURE);

@@ -23,16 +23,29 @@
 #include "log.h"
 #include "zbxip.h"
 
-extern unsigned char	program_type;
+zbx_config_cfg_t	*zbx_config_cfg_new(void)
+{
+	zbx_config_cfg_t	*zbx_config_cfg;
 
-char	*CONFIG_FILE		= NULL;
+	zbx_config_cfg = (zbx_config_cfg_t*)zbx_malloc(NULL, sizeof(zbx_config_cfg_t));
 
-char	*CONFIG_LOG_TYPE_STR	= NULL;
-int	CONFIG_LOG_TYPE		= LOG_TYPE_UNDEFINED;
-char	*CONFIG_LOG_FILE	= NULL;
-int	CONFIG_LOG_FILE_SIZE	= 1;
-int	CONFIG_ALLOW_ROOT	= 0;
-int	CONFIG_TIMEOUT		= 3;
+	zbx_config_cfg->config_file = NULL;
+	zbx_config_cfg->config_log_type_str = NULL;
+	zbx_config_cfg->config_log_type = LOG_TYPE_UNDEFINED;
+	zbx_config_cfg->config_log_file = NULL;
+	zbx_config_cfg->config_log_file_size = 1;
+	zbx_config_cfg->config_allow_root = 0;
+	zbx_config_cfg->config_timeout = 3;
+
+	return zbx_config_cfg;
+}
+
+void	zbx_config_cfg_free(zbx_config_cfg_t *zbx_config_cfg)
+{
+	zbx_free(zbx_config_cfg->config_file);
+	zbx_free(zbx_config_cfg->config_log_type_str);
+	zbx_free(zbx_config_cfg->config_log_file);
+}
 
 static int	__parse_cfg_file(const char *cfg_file, struct cfg_line *cfg, int level, int optional, int strict,
 		int noexit);
@@ -571,7 +584,7 @@ int	parse_cfg_file(const char *cfg_file, struct cfg_line *cfg, int optional, int
 	return __parse_cfg_file(cfg_file, cfg, 0, optional, strict, noexit);
 }
 
-int	check_cfg_feature_int(const char *parameter, int value, const char *feature)
+int	check_cfg_feature_int(const char *parameter, int value, const char *feature, unsigned char program_type)
 {
 	if (0 != value)
 	{
@@ -583,7 +596,8 @@ int	check_cfg_feature_int(const char *parameter, int value, const char *feature)
 	return SUCCEED;
 }
 
-int	check_cfg_feature_str(const char *parameter, const char *value, const char *feature)
+int	check_cfg_feature_str(const char *parameter, const char *value, const char *feature,
+		unsigned char program_type)
 {
 	if (NULL != value)
 	{

@@ -58,6 +58,13 @@ int			zbx_log_level = LOG_LEVEL_WARNING;
 #	define ZBX_DEV_NULL	"/dev/null"
 #endif
 
+static zbx_get_config_log_file_size_f	zbx_get_config_log_file_size_cb = NULL;
+
+void	zbx_log_init_cfg(zbx_get_config_log_file_size_f zbx_get_config_log_file_size_cb_arg)
+{
+	zbx_get_config_log_file_size_cb = zbx_get_config_log_file_size_cb_arg;
+}
+
 #ifndef _WINDOWS
 const char	*zabbix_get_log_level_string(void)
 {
@@ -159,7 +166,8 @@ static void	rotate_log(const char *filename)
 
 	new_size = buf.st_size;
 
-	if (0 != CONFIG_LOG_FILE_SIZE && (zbx_uint64_t)CONFIG_LOG_FILE_SIZE * ZBX_MEBIBYTE < new_size)
+	if (0 != zbx_get_config_log_file_size_cb() && (zbx_uint64_t)zbx_get_config_log_file_size_cb() *
+			ZBX_MEBIBYTE < new_size)
 	{
 		char	filename_old[MAX_STRING_LEN];
 
@@ -387,7 +395,7 @@ void	__zbx_zabbix_log(int level, const char *fmt, ...)
 
 		LOCK_LOG;
 
-		if (0 != CONFIG_LOG_FILE_SIZE)
+		if (0 != zbx_get_config_log_file_size_cb())
 			rotate_log(log_filename);
 
 		if (NULL != (log_file = fopen(log_filename, "a+")))
@@ -577,15 +585,16 @@ int	zbx_get_log_type(const char *logtype)
 	return LOG_TYPE_UNDEFINED;
 }
 
-int	zbx_validate_log_parameters(ZBX_TASK_EX *task)
+int	zbx_validate_log_parameters(ZBX_TASK_EX *task, int config_log_type, char *config_log_type_str,
+		char *config_log_file)
 {
-	if (LOG_TYPE_UNDEFINED == CONFIG_LOG_TYPE)
+	if (LOG_TYPE_UNDEFINED == config_log_type)
 	{
-		zabbix_log(LOG_LEVEL_CRIT, "invalid \"LogType\" configuration parameter: '%s'", CONFIG_LOG_TYPE_STR);
+		zabbix_log(LOG_LEVEL_CRIT, "invalid \"LogType\" configuration parameter: '%s'", config_log_type_str);
 		return FAIL;
 	}
 
-	if (LOG_TYPE_CONSOLE == CONFIG_LOG_TYPE && 0 == (task->flags & ZBX_TASK_FLAG_FOREGROUND) &&
+	if (LOG_TYPE_CONSOLE == config_log_type && 0 == (task->flags & ZBX_TASK_FLAG_FOREGROUND) &&
 			ZBX_TASK_START == task->task)
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "\"LogType\" \"console\" parameter can only be used with the"
@@ -593,7 +602,7 @@ int	zbx_validate_log_parameters(ZBX_TASK_EX *task)
 		return FAIL;
 	}
 
-	if (LOG_TYPE_FILE == CONFIG_LOG_TYPE && (NULL == CONFIG_LOG_FILE || '\0' == *CONFIG_LOG_FILE))
+	if (LOG_TYPE_FILE == config_log_type && (NULL == config_log_file || '\0' == *config_log_file))
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "\"LogType\" \"file\" parameter requires \"LogFile\" parameter to be set");
 		return FAIL;
