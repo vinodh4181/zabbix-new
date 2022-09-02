@@ -4,7 +4,7 @@
     <date>2022-08-09T14:26:28Z</date>
     <templates>
         <template>
-            <uuid>0bd61f16b4563200a8d236b1890623a8</uuid>
+            <uuid>501966b8aa284d1caf393a02bb81d535</uuid>
             <template>SampleTemplate</template>
             <name>aaatmpl</name>
             <groups>
@@ -14,14 +14,14 @@
             </groups>
             <items>
                 <item>
-                    <uuid>6ef6a7439b321b2b890fd747514365a1</uuid>
+                    <uuid>de72d3b5a20f4e82ba3cab29ebd02d4d</uuid>
                     <name>TemplateItem</name>
                     <type>TRAP</type>
                     <key>tmpltrap</key>
                     <delay>0</delay>
                     <triggers>
                         <trigger>
-                            <uuid>3f98c7f1354a42348bf75bbcd3de7461</uuid>
+                            <uuid>72c4555ac57c4daf94ccf1d1178d56fb</uuid>
                             <expression>last(/SampleTemplate/tmpltrap)=2</expression>
                             <name>TemplateTrigger</name>
                             <priority>HIGH</priority>
@@ -37,7 +37,7 @@
             </items>
             <discovery_rules>
                 <discovery_rule>
-                    <uuid>bd8751ef045b422db242d3e16cab0509</uuid>
+                    <uuid>4537d1d93224423489130a2785f57ae8</uuid>
                     <name>DiscoveryRule</name>
                     <type>SCRIPT</type>
                     <key>discrule</key>
@@ -76,7 +76,7 @@
             </discovery_rules>
             <httptests>
                 <httptest>
-                    <uuid>8e60529a4ac4427481a1748c307c43c4</uuid>
+                    <uuid>d3f36682c20947cf910e733d8af93c95</uuid>
                     <name>WebScenTmpl</name>
                     <steps>
                         <step>
