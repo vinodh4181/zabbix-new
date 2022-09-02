@@ -1355,7 +1355,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->createProxies();
 		$this->createCorrelation();
 
-		$this->importTemplate('confsync_tmpl_updated.xml', false, [
+		$this->importTemplate('confsync_tmpl.xml', false, [
 			'createMissing' => true,
 			'updateExisting' => false
 		]);
