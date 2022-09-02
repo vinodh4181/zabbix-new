@@ -51,7 +51,7 @@ class testInitialConfSync extends CIntegrationTest
 			],
 		],
 		[
-			'autoreg_host' =>
+			'autoreghost' =>
 			[
 				'insert' => '1',
 				'update' => '0',
@@ -301,7 +301,7 @@ class testInitialConfSync extends CIntegrationTest
 			]
 		],
 		[
-			'autoreg_host' =>
+			'autoreghost' =>
 			[
 				'insert' => '1',
 				'update' => '0',
@@ -631,7 +631,7 @@ class testInitialConfSync extends CIntegrationTest
 			]
 		],
 		[
-			'autoreg_host' =>
+			'autoreghost' =>
 			[
 				'insert' => '1',
 				'update' => '0',
