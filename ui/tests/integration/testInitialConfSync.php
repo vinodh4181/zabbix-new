@@ -1396,9 +1396,6 @@ class testInitialConfSync extends CIntegrationTest
 					'updateExisting' => false,
 					'deleteMissing' => true
 				],
-				'templateLinkage' => [
-					'createMissing' => true
-				],
 			]
 		]);
 
