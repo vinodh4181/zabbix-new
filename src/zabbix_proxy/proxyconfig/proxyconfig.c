@@ -226,7 +226,8 @@ ZBX_THREAD_ENTRY(proxyconfig_thread, args)
 
 		zbx_setproctitle("%s [loading configuration]", get_process_type_string(process_type));
 
-		process_configuration_sync(&data_size, &synced, proxyconfig_args_in->zbx_config_tls, config_timeout);
+		process_configuration_sync(&data_size, &synced, proxyconfig_args_in->zbx_config_tls,
+				proxyconfig_args_in->config_timeout);
 		sec = zbx_time() - sec;
 
 		zbx_setproctitle("%s [synced config " ZBX_FS_SIZE_T " bytes in " ZBX_FS_DBL " sec, idle %d sec]",

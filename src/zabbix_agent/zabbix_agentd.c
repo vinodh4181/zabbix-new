@@ -1106,7 +1106,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 	}
 #endif
 	if (SUCCEED != zabbix_open_log(zbx_config_cfg->CONFIG_LOG_TYPE, CONFIG_LOG_LEVEL,
-			zbx_config_cfg->CONFIG_LOG_FILE, &error))
+			zbx_config_cfg->config_log_file, zbx_config_cfg->config_log_file_size, &error))
 	{
 		zbx_error("cannot open log: %s", error);
 		zbx_free(error);
@@ -1221,9 +1221,9 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 	for (i = 0; i < threads_num; i++)
 	{
 		zbx_thread_args_t		*thread_args;
-		zbx_thread_listener_args	listener_args = {&listen_sock, zbx_config_tls, get_program_type,
-				zbx_config_cfg->config_timeout};
+		zbx_thread_listener_args	listener_args;
 
+		listener_args = {&listen_sock, zbx_config_tls, get_program_type, zbx_config_cfg->config_timeout};
 		thread_args = (zbx_thread_args_t *)zbx_malloc(NULL, sizeof(zbx_thread_args_t));
 
 		if (FAIL == get_process_info_by_thread(i + 1, &thread_args->process_type, &thread_args->process_num))

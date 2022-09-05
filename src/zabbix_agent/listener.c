@@ -121,7 +121,6 @@ ZBX_THREAD_ENTRY(listener_thread, args)
 	process_type = ((zbx_thread_args_t *)args)->process_type;
 	server_num = ((zbx_thread_args_t *)args)->server_num;
 	process_num = ((zbx_thread_args_t *)args)->process_num;
-	config_timeout = ((zbx_thread_args_t *)args)->config_timeout;
 
 
 	zabbix_log(LOG_LEVEL_INFORMATION, "%s #%d started [%s #%d]",
@@ -170,7 +169,7 @@ ZBX_THREAD_ENTRY(listener_thread, args)
 						&msg)))
 #endif
 				{
-					process_listener(&s, config_timeout);
+					process_listener(&s, init_child_args_in->config_timeout);
 				}
 			}
 

@@ -1438,7 +1438,6 @@ ZBX_THREAD_ENTRY(active_checks_thread, args)
 	time_t				nextcheck = 0, nextrefresh = 0, nextsend = 0, now, delta, lastcheck = 0,
 					heartbeat_nextcheck = 0;
 	zbx_uint32_t			config_revision_local = 0;
-	int				config_timeout;
 
 	assert(args);
 	assert(((zbx_thread_args_t *)args)->args);
@@ -1446,7 +1445,6 @@ ZBX_THREAD_ENTRY(active_checks_thread, args)
 	process_type = ((zbx_thread_args_t *)args)->process_type;
 	server_num = ((zbx_thread_args_t *)args)->server_num;
 	process_num = ((zbx_thread_args_t *)args)->process_num;
-	config_timeout = ((zbx_thread_args_t *)args)->config_timeout;
 
 	zabbix_log(LOG_LEVEL_INFORMATION, "%s #%d started [%s #%d]",
 			get_program_type_string(activechks_args_in->zbx_get_program_type_cb_arg()),
@@ -1496,7 +1494,8 @@ ZBX_THREAD_ENTRY(active_checks_thread, args)
 		if (heartbeat_nextcheck != 0 && now >= heartbeat_nextcheck)
 		{
 			heartbeat_nextcheck = now + CONFIG_HEARTBEAT_FREQUENCY;
-			send_heartbeat_msg(&activechk_args.addrs, activechks_args_in->zbx_config_tls, config_timeout);
+			send_heartbeat_msg(&activechk_args.addrs, activechks_args_in->zbx_config_tls,
+					activechks_args_in->config_timeout);
 		}
 
 		if (now >= nextrefresh)
