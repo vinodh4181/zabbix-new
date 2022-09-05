@@ -91,10 +91,12 @@ static int	housekeep_problems_without_triggers(void)
 
 ZBX_THREAD_ENTRY(trigger_housekeeper_thread, args)
 {
-	int		deleted;
-	double		sec;
-	zbx_ipc_async_socket_t	rtc;
+	int					deleted;
+	double					sec;
+	zbx_ipc_async_socket_t			rtc;
+	zbx_thread_trigger_housekeeper_args	*trigger_housekeeper_args_in;
 
+	trigger_housekeeper_args_in = (zbx_thread_housekeeper_args *)((((zbx_thread_args_t *)args))->args);
 	process_type = ((zbx_thread_args_t *)args)->process_type;
 	server_num = ((zbx_thread_args_t *)args)->server_num;
 	process_num = ((zbx_thread_args_t *)args)->process_num;
@@ -110,7 +112,7 @@ ZBX_THREAD_ENTRY(trigger_housekeeper_thread, args)
 	zbx_setproctitle("%s [startup idle for %d second(s)]", get_process_type_string(process_type),
 			CONFIG_PROBLEMHOUSEKEEPING_FREQUENCY);
 
-	zbx_rtc_subscribe(&rtc, process_type, process_num);
+	zbx_rtc_subscribe(&rtc, process_type, process_num, trigger_housekeeper_args_in->config_timeout);
 
 	while (ZBX_IS_RUNNING())
 	{

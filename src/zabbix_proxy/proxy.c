@@ -751,7 +751,7 @@ static void	zbx_load_config(ZBX_TASK_EX *task)
 			PARM_OPT,	0,			0},
 		{"Fping6Location",		&CONFIG_FPING6_LOCATION,		TYPE_STRING,
 			PARM_OPT,	0,			0},
-		{"Timeout",			&CONFIG_TIMEOUT,			TYPE_INT,
+		{"Timeout",			&zbx_config_cfg->config_timeout,	TYPE_INT,
 			PARM_OPT,	1,			30},
 		{"TrapperTimeout",		&CONFIG_TRAPPER_TIMEOUT,		TYPE_INT,
 			PARM_OPT,	1,			300},
@@ -771,11 +771,11 @@ static void	zbx_load_config(ZBX_TASK_EX *task)
 			PARM_OPT,	0,			5},
 		{"PidFile",			&CONFIG_PID_FILE,			TYPE_STRING,
 			PARM_OPT,	0,			0},
-		{"LogType",			&CONFIG_LOG_TYPE_STR,			TYPE_STRING,
+		{"LogType",			&zbx_config_cfg->config_log_type_str,	TYPE_STRING,
 			PARM_OPT,	0,			0},
-		{"LogFile",			&CONFIG_LOG_FILE,			TYPE_STRING,
+		{"LogFile",			&zbx_config_cfg->config_log_file,	TYPE_STRING,
 			PARM_OPT,	0,			0},
-		{"LogFileSize",			&CONFIG_LOG_FILE_SIZE,			TYPE_INT,
+		{"LogFileSize",			&zbx_config_cfg->config_log_file_size,	TYPE_INT,
 			PARM_OPT,	0,			1024},
 		{"ExternalScripts",		&CONFIG_EXTERNALSCRIPTS,		TYPE_STRING,
 			PARM_OPT,	0,			0},
@@ -1136,13 +1136,17 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 	zbx_timespec_t			rtc_timeout = {1, 0};
 
 	zbx_thread_args_t		thread_args;
-	zbx_thread_poller_args		poller_args = {zbx_config_tls, get_program_type, ZBX_NO_POLLER};
+	zbx_thread_poller_args		poller_args = {zbx_config_tls, get_program_type, ZBX_NO_POLLER,
+							zbx_config_cfg->config_timeout};
 	zbx_thread_heart_args		heart_args = {zbx_config_tls, get_program_type};
-	zbx_thread_proxyconfig_args	proxyconfig_args = {zbx_config_tls, get_program_type};
+	zbx_thread_proxyconfig_args	proxyconfig_args = {zbx_config_tls, get_program_type,
+							zbx_config_cfg->config_timeout};
 	zbx_thread_datasender_args	datasender_args = {zbx_config_tls, get_program_type};
-	zbx_thread_taskmanager_args	taskmanager_args = {zbx_config_tls, get_program_type};
+	zbx_thread_taskmanager_args	taskmanager_args = {zbx_config_tls, get_program_type,
+							zbx_config_cfg->config_timeout};
 	zbx_thread_discoverer_args	discoverer_args = {zbx_config_tls, get_program_type};
 	zbx_thread_trapper_args		trapper_args = {zbx_config_tls, get_program_type, &listen_sock};
+	zbx_thread_housekeeper_args	housekeeper_args = {get_program_type, zbx_config_cfg->config_timeout};
 
 	if (0 != (flags & ZBX_TASK_FLAG_FOREGROUND))
 	{
@@ -1411,6 +1415,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 				zbx_thread_start(pinger_thread, &thread_args, &threads[i]);
 				break;
 			case ZBX_PROCESS_TYPE_HOUSEKEEPER:
+				thread_args.args = &housekeeper_args;
 				zbx_thread_start(housekeeper_thread, &thread_args, &threads[i]);
 				break;
 			case ZBX_PROCESS_TYPE_HTTPPOLLER:

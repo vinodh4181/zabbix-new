@@ -452,7 +452,7 @@ ZBX_THREAD_ENTRY(taskmanager_thread, args)
 
 	zbx_setproctitle("%s [started, idle %d sec]", get_process_type_string(process_type), sleeptime);
 
-	zbx_rtc_subscribe(&rtc, process_type, process_num);
+	zbx_rtc_subscribe(&rtc, process_type, process_num, taskmanager_args_in->config_timeout);
 
 	while (ZBX_IS_RUNNING())
 	{

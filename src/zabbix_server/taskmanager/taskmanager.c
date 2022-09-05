@@ -1309,14 +1309,15 @@ static void	tm_reload_proxy_cache_by_names(zbx_ipc_async_socket_t *rtc, const un
 
 ZBX_THREAD_ENTRY(taskmanager_thread, args)
 {
-	static int		cleanup_time = 0;
-	double			sec1, sec2;
-	int			tasks_num, sleeptime, nextcheck;
-	zbx_ipc_async_socket_t	rtc;
+	static int			cleanup_time = 0;
+	double				sec1, sec2;
+	int				tasks_num, sleeptime, nextcheck;
+	zbx_ipc_async_socket_t		rtc;
+	zbx_thread_taskmanager_args	*taskmanager_args_in;
 
+	taskmanager_args_in = (zbx_thread_taskmanager_args *)((((zbx_thread_args_t *)args))->args);
 	process_type = ((zbx_thread_args_t *)args)->process_type;
 	server_num = ((zbx_thread_args_t *)args)->server_num;
-	process_num = ((zbx_thread_args_t *)args)->process_num;
 
 	zabbix_log(LOG_LEVEL_INFORMATION, "%s #%d started [%s #%d]", get_program_type_string(program_type),
 			server_num, get_process_type_string(process_type), process_num);
@@ -1335,7 +1336,7 @@ ZBX_THREAD_ENTRY(taskmanager_thread, args)
 
 	zbx_setproctitle("%s [started, idle %d sec]", get_process_type_string(process_type), sleeptime);
 
-	zbx_rtc_subscribe(&rtc, process_type, process_num);
+	zbx_rtc_subscribe(&rtc, process_type, process_num, taskmanager_args_in->config_timeout);
 
 	while (ZBX_IS_RUNNING())
 	{

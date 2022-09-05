@@ -144,11 +144,13 @@ static int	get_housekeeper_period(double time_slept)
 
 ZBX_THREAD_ENTRY(housekeeper_thread, args)
 {
-	int			records, start, sleeptime;
-	double			sec, time_slept, time_now;
-	char			sleeptext[25];
-	zbx_ipc_async_socket_t	rtc;
+	int				records, start, sleeptime;
+	double				sec, time_slept, time_now;
+	char				sleeptext[25];
+	zbx_ipc_async_socket_t		rtc;
+	zbx_thread_housekeeper_args	housekeeper_args_in;
 
+	housekeeper_args_in = (zbx_thread_housekeeper_args *)((((zbx_thread_args_t *)args))->args);
 	process_type = ((zbx_thread_args_t *)args)->process_type;
 	server_num = ((zbx_thread_args_t *)args)->server_num;
 	process_num = ((zbx_thread_args_t *)args)->process_num;
@@ -172,7 +174,7 @@ ZBX_THREAD_ENTRY(housekeeper_thread, args)
 		zbx_snprintf(sleeptext, sizeof(sleeptext), "idle for %d hour(s)", CONFIG_HOUSEKEEPING_FREQUENCY);
 	}
 
-	zbx_rtc_subscribe(&rtc, process_type, process_num);
+	zbx_rtc_subscribe(&rtc, process_type, process_num, housekeeper_args_in->config_timeout);
 
 	while (ZBX_IS_RUNNING())
 	{

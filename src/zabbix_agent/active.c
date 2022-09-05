@@ -1384,7 +1384,7 @@ static void	zbx_active_checks_sigusr_handler(int flags)
 }
 #endif
 
-static void	send_heartbeat_msg(zbx_vector_ptr_t *addrs, const zbx_config_tls_t *zbx_config_tls)
+static void	send_heartbeat_msg(zbx_vector_ptr_t *addrs, const zbx_config_tls_t *zbx_config_tls, int config_timeout)
 {
 	static ZBX_THREAD_LOCAL int	last_ret = SUCCEED;
 	int				ret, level;
@@ -1401,7 +1401,7 @@ static void	send_heartbeat_msg(zbx_vector_ptr_t *addrs, const zbx_config_tls_t *
 
 	level = SUCCEED != last_ret ? LOG_LEVEL_DEBUG : LOG_LEVEL_WARNING;
 
-	if (SUCCEED == (ret = zbx_connect_to_server(&s, CONFIG_SOURCE_IP, addrs, CONFIG_TIMEOUT, CONFIG_TIMEOUT,
+	if (SUCCEED == (ret = zbx_connect_to_server(&s, CONFIG_SOURCE_IP, addrs, config_timeout, config_timeout,
 			0, level, zbx_config_tls)))
 	{
 		zabbix_log(LOG_LEVEL_DEBUG, "sending [%s]", json.buffer);
@@ -1496,7 +1496,7 @@ ZBX_THREAD_ENTRY(active_checks_thread, args)
 		if (heartbeat_nextcheck != 0 && now >= heartbeat_nextcheck)
 		{
 			heartbeat_nextcheck = now + CONFIG_HEARTBEAT_FREQUENCY;
-			send_heartbeat_msg(&activechk_args.addrs, activechks_args_in->zbx_config_tls);
+			send_heartbeat_msg(&activechk_args.addrs, activechks_args_in->zbx_config_tls, config_timeout);
 		}
 
 		if (now >= nextrefresh)

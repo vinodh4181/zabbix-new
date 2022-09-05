@@ -868,7 +868,8 @@ ZBX_THREAD_ENTRY(discoverer_thread, args)
 {
 	zbx_thread_discoverer_args	*discoverer_args_in = (zbx_thread_discoverer_args *)
 							(((zbx_thread_args_t *)args)->args);
-	int				nextcheck = 0, sleeptime = -1, rule_count = 0, old_rule_count = 0;
+	int				nextcheck = 0, sleeptime = -1, rule_count = 0,
+					old_rule_count = 0;
 	double				sec, total_sec = 0.0, old_total_sec = 0.0;
 	time_t				last_stat_time;
 	zbx_ipc_async_socket_t		rtc;
@@ -894,7 +895,7 @@ ZBX_THREAD_ENTRY(discoverer_thread, args)
 
 	DBconnect(ZBX_DB_CONNECT_NORMAL);
 
-	zbx_rtc_subscribe(&rtc, process_type, process_num);
+	zbx_rtc_subscribe(&rtc, process_type, process_num, discoverer_args_in->config_timeout);
 
 	while (ZBX_IS_RUNNING())
 	{

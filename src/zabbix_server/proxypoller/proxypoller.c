@@ -628,7 +628,7 @@ ZBX_THREAD_ENTRY(proxypoller_thread, args)
 
 	DBconnect(ZBX_DB_CONNECT_NORMAL);
 
-	zbx_rtc_subscribe(&rtc, process_type, process_num);
+	zbx_rtc_subscribe(&rtc, process_type, process_num, proxy_poller_args_in->config_timeout);
 
 	while (ZBX_IS_RUNNING())
 	{

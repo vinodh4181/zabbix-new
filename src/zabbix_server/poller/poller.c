@@ -974,17 +974,18 @@ ZBX_THREAD_ENTRY(poller_thread, args)
 #endif
 	if (ZBX_POLLER_TYPE_HISTORY == poller_type)
 	{
-		zbx_setproctitle("%s #%d [connecting to the database]", get_process_type_string(process_type), process_num);
+		zbx_setproctitle("%s #%d [connecting to the database]", get_process_type_string(process_type),
+				process_num);
 
 		DBconnect(ZBX_DB_CONNECT_NORMAL);
 	}
 	zbx_setproctitle("%s #%d started", get_process_type_string(process_type), process_num);
 	last_stat_time = time(NULL);
 
-	zbx_rtc_subscribe(&rtc, process_type, process_num);
+	zbx_rtc_subscribe(&rtc, process_type, process_num, poller_args_in->config_timeout);
 
 	while (ZBX_IS_RUNNING())
-	{
+	poller_args_in->{
 		zbx_uint32_t	rtc_cmd;
 		unsigned char	*rtc_data;
 

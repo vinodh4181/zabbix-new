@@ -801,7 +801,7 @@ static void	zbx_load_config(ZBX_TASK_EX *task)
 			PARM_OPT,	0,			0},
 		{"Fping6Location",		&CONFIG_FPING6_LOCATION,		TYPE_STRING,
 			PARM_OPT,	0,			0},
-		{"Timeout",			&CONFIG_TIMEOUT,			TYPE_INT,
+		{"Timeout",			&zbx_config_cfg->config_timeout,	TYPE_INT,
 			PARM_OPT,	1,			30},
 		{"TrapperTimeout",		&CONFIG_TRAPPER_TIMEOUT,		TYPE_INT,
 			PARM_OPT,	1,			300},
@@ -821,11 +821,11 @@ static void	zbx_load_config(ZBX_TASK_EX *task)
 			PARM_OPT,	0,			5},
 		{"PidFile",			&CONFIG_PID_FILE,			TYPE_STRING,
 			PARM_OPT,	0,			0},
-		{"LogType",			&CONFIG_LOG_TYPE_STR,			TYPE_STRING,
+		{"LogType",			&zbx_config_cfg->config_log_type_str,	TYPE_STRING,
 			PARM_OPT,	0,			0},
-		{"LogFile",			&CONFIG_LOG_FILE,			TYPE_STRING,
+		{"LogFile",			&zbx_config_cfg->config_log_file,	TYPE_STRING,
 			PARM_OPT,	0,			0},
-		{"LogFileSize",			&CONFIG_LOG_FILE_SIZE,			TYPE_INT,
+		{"LogFileSize",			&zbx_config_cfg->config_log_file_size,	TYPE_INT,
 			PARM_OPT,	0,			1024},
 		{"AlertScriptsPath",		&CONFIG_ALERT_SCRIPTS_PATH,		TYPE_STRING,
 			PARM_OPT,	0,			0},
@@ -1258,13 +1258,19 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 	char				*error = NULL;
 
 	zbx_thread_args_t		thread_args;
-	zbx_thread_poller_args		poller_args = {zbx_config_tls, get_program_type, ZBX_NO_POLLER};
+	zbx_thread_poller_args		poller_args = {zbx_config_tls, get_program_type, ZBX_NO_POLLER,
+							zbx_config_cfg->config_timeout};
 	zbx_thread_trapper_args		trapper_args = {zbx_config_tls, get_program_type, listen_sock};
 	zbx_thread_escalator_args	escalator_args = {zbx_config_tls, get_program_type};
-	zbx_thread_proxy_poller_args	proxy_poller_args = {zbx_config_tls, get_program_type};
+	zbx_thread_proxy_poller_args	proxy_poller_args = {zbx_config_tls, get_program_type,
+							zbx_config_cfg->config_timeout};
 	zbx_thread_discoverer_args	discoverer_args = {zbx_config_tls, get_program_type};
 	zbx_thread_report_writer_args	report_writer_args = {zbx_config_tls->ca_file, zbx_config_tls->cert_file,
 							zbx_config_tls->key_file, get_program_type};
+	zbx_thread_housekeeper_args	housekeeper_args = {get_program_type, zbx_config_cfg->config_timeout};
+	zbx_thread_taskmanager_args	taskmanager_args = {zbx_config_tls, get_program_type,
+							zbx_config_cfg->config_timeout};
+	zbx_thread_dbconfig_args	dbconfig_args = {get_program_type, zbx_config_cfg->config_timeout};
 
 	if (SUCCEED != init_database_cache(&error))
 	{
@@ -1354,7 +1360,9 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 				zbx_thread_start(service_manager_thread, &thread_args, &threads[i]);
 				break;
 			case ZBX_PROCESS_TYPE_CONFSYNCER:
+				thread_args.args = &zbx_thread_dbconfig_args;
 				zbx_thread_start(dbconfig_thread, &thread_args, &threads[i]);
+
 				if (FAIL == (ret = zbx_rtc_wait_config_sync(rtc)))
 					goto out;
 
@@ -1409,6 +1417,7 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 				zbx_thread_start(alerter_thread, &thread_args, &threads[i]);
 				break;
 			case ZBX_PROCESS_TYPE_HOUSEKEEPER:
+				thread_args.args = &housekeeper_args;
 				zbx_thread_start(housekeeper_thread, &thread_args, &threads[i]);
 				break;
 			case ZBX_PROCESS_TYPE_TIMER:
@@ -1448,6 +1457,7 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 				zbx_thread_start(vmware_thread, &thread_args, &threads[i]);
 				break;
 			case ZBX_PROCESS_TYPE_TASKMANAGER:
+				thread_args.args = &taskmanager_args;
 				zbx_thread_start(taskmanager_thread, &thread_args, &threads[i]);
 				break;
 			case ZBX_PROCESS_TYPE_PREPROCMAN:

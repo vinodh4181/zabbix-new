@@ -155,13 +155,12 @@ ZBX_THREAD_ENTRY(proxyconfig_thread, args)
 	size_t				data_size;
 	double				sec;
 	zbx_ipc_async_socket_t		rtc;
-	int				sleeptime, config_timeout;
+	int				sleeptime;
 	zbx_synced_new_config_t		synced = ZBX_SYNCED_NEW_CONFIG_NO;
 
 	process_type = ((zbx_thread_args_t *)args)->process_type;
 	server_num = ((zbx_thread_args_t *)args)->server_num;
 	process_num = ((zbx_thread_args_t *)args)->process_num;
-	config_timeout = ((zbx_thread_args_t *)args)->config_timeout; 
 
 	zabbix_log(LOG_LEVEL_INFORMATION, "%s #%d started [%s #%d]",
 			get_program_type_string(proxyconfig_args_in->zbx_get_program_type_cb_arg()),
@@ -171,7 +170,7 @@ ZBX_THREAD_ENTRY(proxyconfig_thread, args)
 	zbx_tls_init_child(proxyconfig_args_in->zbx_config_tls, proxyconfig_args_in->zbx_get_program_type_cb_arg);
 #endif
 
-	zbx_rtc_subscribe(&rtc, process_type, process_num);
+	zbx_rtc_subscribe(&rtc, process_type, process_num, proxyconfig_args_in->config_timeout);
 
 	zbx_setproctitle("%s [connecting to the database]", get_process_type_string(process_type));
 

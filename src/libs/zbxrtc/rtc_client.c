@@ -252,13 +252,13 @@ void	zbx_rtc_notify_config_sync(zbx_ipc_async_socket_t *rtc, int config_timeout)
  * Parameters: rtc   - [OUT] the RTC notification subscription socket         *
  *                                                                            *
  ******************************************************************************/
-void	zbx_rtc_subscribe(zbx_ipc_async_socket_t *rtc, unsigned char proc_type, int proc_num)
+void	zbx_rtc_subscribe(zbx_ipc_async_socket_t *rtc, unsigned char proc_type, int proc_num, int config_timeout)
 {
 	unsigned char		data[sizeof(int) + sizeof(unsigned char)];
 	const zbx_uint32_t	size = (zbx_uint32_t)(sizeof(int) + sizeof(unsigned char));
 	char			*error = NULL;
 
-	if (FAIL == zbx_ipc_async_socket_open(rtc, ZBX_IPC_SERVICE_RTC, CONFIG_TIMEOUT, &error))
+	if (FAIL == zbx_ipc_async_socket_open(rtc, ZBX_IPC_SERVICE_RTC, config_timeout, &error))
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "cannot connect to RTC service: %s", error);
 		zbx_free(error);
@@ -274,7 +274,7 @@ void	zbx_rtc_subscribe(zbx_ipc_async_socket_t *rtc, unsigned char proc_type, int
 		exit(EXIT_FAILURE);
 	}
 
-	if (FAIL == zbx_ipc_async_socket_flush(rtc, CONFIG_TIMEOUT))
+	if (FAIL == zbx_ipc_async_socket_flush(rtc, config_timeout))
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "cannot flush RTC notification subscribe request");
 		exit(EXIT_FAILURE);

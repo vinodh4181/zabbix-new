@@ -685,7 +685,7 @@ static void	zbx_validate_config(ZBX_TASK_EX *task)
 
 	if (SUCCEED != zbx_validate_log_parameters(task, zbx_config_cfg->config_log_type,
 			zbx_config_cfg->config_log_type_str, zbx_config_cfg->config_log_file))
-	{		
+	{
 		err = 1;
 	}
 #if !(defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL))
@@ -858,13 +858,13 @@ static void	zbx_load_config(int requirement, ZBX_TASK_EX *task)
 		{"PidFile",			&CONFIG_PID_FILE,			TYPE_STRING,
 			PARM_OPT,	0,			0},
 #endif
-		{"LogType",			&zbx_config_cfg->config_log_type_str,			TYPE_STRING,
+		{"LogType",			&zbx_config_cfg->config_log_type_str,	TYPE_STRING,
 			PARM_OPT,	0,			0},
-		{"LogFile",			&zbx_config_cfg->config_log_file,			TYPE_STRING,
+		{"LogFile",			&zbx_config_cfg->config_log_file,	TYPE_STRING,
 			PARM_OPT,	0,			0},
-		{"LogFileSize",			&zbx_config_cfg->config_log_file_suze,			TYPE_INT,
+		{"LogFileSize",			&zbx_config_cfg->config_log_file_size,	TYPE_INT,
 			PARM_OPT,	0,			1024},
-		{"Timeout",			&zbx_config_cfg->config_timeout,			TYPE_INT,
+		{"Timeout",			&zbx_config_cfg->config_timeout,	TYPE_INT,
 			PARM_OPT,	1,			30},
 		{"ListenPort",			&CONFIG_LISTEN_PORT,			TYPE_INT,
 			PARM_OPT,	1024,			32767},
