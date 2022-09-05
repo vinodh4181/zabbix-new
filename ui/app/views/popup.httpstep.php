@@ -23,10 +23,6 @@
  * @var CView $this
  */
 
-$output = [
-	'header' => $data['title']
-];
-
 $options = $data['options'];
 
 $http_popup_form = (new CForm())
@@ -38,6 +34,7 @@ $http_popup_form = (new CForm())
 	->addVar('old_name', $options['old_name'])
 	->addVar('steps_names', $options['steps_names'])
 	->addVar('action', 'popup.httpstep')
+	->addVar('validate', '1')
 	->addItem((new CInput('submit', 'submit'))->addStyle('display: none;'));
 
 $http_popup_form_list = (new CFormList())
@@ -56,7 +53,7 @@ $http_popup_form_list = (new CFormList())
 				->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH),
 			(new CDiv())->addClass(ZBX_STYLE_FORM_INPUT_MARGIN),
 			(new CButton('parse', _('Parse')))
-				->onClick('httpconf.steps.edit_form.parseUrl();')
+				->onClick('http_step_popup.parseUrl();')
 				->addClass(ZBX_STYLE_BTN_GREY)
 		])
 	);
@@ -74,9 +71,11 @@ $http_popup_form_list->addRow(_('Query fields'),
 						->addClass('element-table-add')
 						->addClass(ZBX_STYLE_BTN_LINK)
 				))->setColSpan(5)
-			])))
+				]))),
+		(new CTag('script', true))->setAttribute('type', 'text/json')
 	))
 		->addClass(ZBX_STYLE_TABLE_FORMS_SEPARATOR)
+		->setAttribute('data-sortable-pairs-table', '1')
 		->addStyle('min-width: '.ZBX_TEXTAREA_BIG_WIDTH . 'px;'),
 		'query-fields-row'
 );
@@ -176,21 +175,31 @@ $http_popup_form_list
 		(new CTextBox('status_codes', $options['status_codes']))->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH)
 	);
 
-$output['buttons'] = [
-	[
-		'title' => $options['old_name'] ? _('Update') : _('Add'),
-		'class' => '',
-		'keepOpen' => true,
-		'isSubmit' => true,
-		'action' => 'return httpconf.steps.edit_form.validate(overlay);'
-	]
+$http_popup_form
+	->addItem($http_popup_form_list)
+	->addItem(
+		(new CScriptTag('
+			http_step_popup.init('.json_encode([
+				'no' => $options['no'],
+				'data' => $options
+			]).');
+		'))->setOnDocumentReady()
+	);
+
+$output = [
+	'header' => $data['title'],
+	'buttons' => [
+		[
+			'title' => $options['old_name'] ? _('Update') : _('Add'),
+			'class' => '',
+			'keepOpen' => true,
+			'isSubmit' => true,
+			'action' => 'return http_step_popup.submit(overlay);' // FIXME:
+		]
+	],
+	'body' => (new CDiv($http_popup_form))->toString(),
+	'script_inline' => getPagePostJs().$this->readJsFile('popup.httpstep.js.php')
 ];
-
-$http_popup_form->addItem($http_popup_form_list);
-
-// HTTP test step editing form.
-$output['body'] = (new CDiv($http_popup_form))->toString();
-$output['script_inline'] = 'httpconf.steps.onStepOverlayReadyCb('.$options['no'].');';
 
 if ($data['user']['debug_mode'] == GROUP_DEBUG_MODE_ENABLED) {
 	CProfiler::getInstance()->stop();

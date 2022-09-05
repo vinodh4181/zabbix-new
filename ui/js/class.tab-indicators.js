@@ -757,7 +757,7 @@ class StepsTabIndicatorItem extends TabIndicatorItem {
 
 	getValue() {
 		return document
-			.querySelectorAll('.httpconf-steps-dynamic-row [data-index]')
+			.querySelectorAll('.httpconf-steps-dynamic-row .form_row')
 			.length;
 	}
 

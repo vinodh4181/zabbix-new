@@ -458,7 +458,7 @@ if (hasRequest('action') && hasRequest('group_httptestid') && !$result) {
 if (isset($_REQUEST['form'])) {
 	$data = [
 		'hostid' => getRequest('hostid', 0),
-		'httptestid' => getRequest('httptestid'),
+		'httptestid' => getRequest('httptestid', 0),
 		'form' => getRequest('form'),
 		'form_refresh' => getRequest('form_refresh'),
 		'templates' => [],
@@ -539,7 +539,7 @@ if (isset($_REQUEST['form'])) {
 		$data['http_user'] = $db_httptest['http_user'];
 		$data['http_password'] = $db_httptest['http_password'];
 		$data['http_proxy'] = $db_httptest['http_proxy'];
-		$data['templated'] = (bool) $db_httptest['templateid'];
+		$data['templated'] = $db_httptest['templateid'];
 
 		$data['verify_peer'] = $db_httptest['verify_peer'];
 		$data['verify_host'] = $db_httptest['verify_host'];
@@ -635,6 +635,14 @@ if (isset($_REQUEST['form'])) {
 			foreach ($step['pairs'] as $field) {
 				$pairs_grouped[$field['type']][] = $field;
 			}
+
+			foreach ($pairs_grouped as $pair_type => &$val) {
+				if (!$val) {
+					$val = [['id' => 1, 'type' => $pair_type, 'name' => '', 'value' => '']];
+				}
+			}
+			unset($val);
+
 			$data['steps'][$stepid]['pairs'] = $pairs_grouped;
 		}
 		$data['steps'][$stepid]['no'] = $i++;
@@ -677,6 +685,13 @@ if (isset($_REQUEST['form'])) {
 	}
 	else {
 		CArrayHelper::sort($data['tags'], ['tag', 'value']);
+	}
+
+	if (!$data['pairs']) {
+		$data['pairs'] = [
+			['id' => 1, 'type' => 'variables', 'name' => '', 'value' => ''],
+			['id' => 2, 'type' => 'headers', 'name' => '', 'value' => '']
+		];
 	}
 
 	// render view

@@ -23,6 +23,7 @@ class CControllerPopupHttpStep extends CController {
 
 	protected function init() {
 		$this->disableSIDvalidation();
+		$this->setPostContentType(self::POST_CONTENT_TYPE_JSON);
 	}
 
 	protected function checkInput() {
@@ -42,6 +43,7 @@ class CControllerPopupHttpStep extends CController {
 			'templated' =>			'in 0,1',
 			'old_name' =>			'string',
 			'steps_names' =>		'array',
+			'pairs' =>				'array',
 			'validate' =>			'in 1'
 		];
 
@@ -78,11 +80,11 @@ class CControllerPopupHttpStep extends CController {
 			'old_name' => $this->getInput('old_name', ''),
 			'httpstepid' => $this->getInput('httpstepid', 0),
 			'no' => $this->getInput('no', -1),
-			'steps_names' => $this->getInput('steps_names', [])
+			'steps_names' => $this->getInput('steps_names', []),
+			'pairs' => $this->getInput('pairs', []),
+			'follow_redirects' => $this->getInput('follow_redirects', HTTPTEST_STEP_FOLLOW_REDIRECTS_OFF),
+			'retrieve_mode' => $this->getInput('retrieve_mode', HTTPTEST_STEP_RETRIEVE_MODE_CONTENT)
 		];
-
-		$page_options['follow_redirects'] = $this->getInput('follow_redirects', HTTPTEST_STEP_FOLLOW_REDIRECTS_OFF);
-		$page_options['retrieve_mode'] = $this->getInput('retrieve_mode', HTTPTEST_STEP_RETRIEVE_MODE_CONTENT);
 
 		if ($this->hasInput('validate')) {
 			$output = [];
@@ -128,6 +130,8 @@ class CControllerPopupHttpStep extends CController {
 					'status_codes' => $page_options['status_codes'],
 					'follow_redirects' => $page_options['follow_redirects'],
 					'retrieve_mode' => $page_options['retrieve_mode'],
+					'pairs' => $page_options['pairs'],
+					'httpstepid' => $page_options['httpstepid'],
 					'no' => $page_options['no']
 				];
 

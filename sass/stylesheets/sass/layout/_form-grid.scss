@@ -71,6 +71,12 @@
 		.list-check-radio {
 			line-height: $body-line-height;
 		}
+
+		.drag-icon {
+			position: absolute;
+			top: 5px;
+			left: 3px;
+		}
 	}
 
 	&.form-grid-1-1 {
@@ -103,6 +109,10 @@
 
 		td {
 			padding: 5px 5px 5px 0;
+
+			&.td-drag-icon {
+				padding: 5px 17px 5px 0;
+			}
 		}
 	}
 }

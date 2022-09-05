@@ -898,7 +898,7 @@ function getConditionFormula(conditions, evalType) {
 				// add the new row before the row with the "Add" button
 				var beforeRow = (options['beforeRow'] !== null)
 					? $(options['beforeRow'], table)
-					:  $(this).closest('tr');
+					: $(this).closest('tr');
 				addRow(table, beforeRow, options);
 
 				table.trigger('afteradd.dynamicRows', options);
