@@ -40,8 +40,6 @@
 #	define VFS_TEST_DIR  "c:\\windows"
 #endif
 
-extern int	CONFIG_TIMEOUT;
-
 static int	ONLY_ACTIVE(AGENT_REQUEST *request, AGENT_RESULT *result);
 static int	SYSTEM_RUN(AGENT_REQUEST *request, AGENT_RESULT *result);
 static int	SYSTEM_RUN_LOCAL(AGENT_REQUEST *request, AGENT_RESULT *result);
@@ -101,6 +99,13 @@ void	set_user_parameter_dir(const char *path)
 	user_parameter_dir = path;
 }
 
+static int	config_timeout;
+
+void	set_config_timeout(int config_timeout_in)
+{
+	config_timeout = config_timeout_in;
+}
+
 static int	ONLY_ACTIVE(AGENT_REQUEST *request, AGENT_RESULT *result)
 {
 	ZBX_UNUSED(request);
@@ -110,12 +115,12 @@ static int	ONLY_ACTIVE(AGENT_REQUEST *request, AGENT_RESULT *result)
 	return SYSINFO_RET_FAIL;
 }
 
-static int	execute_str(const char *command, AGENT_RESULT *result, const char* dir)
+static int	execute_str(const char *command, AGENT_RESULT *result, const char* dir, int config_timeout)
 {
 	int		ret = SYSINFO_RET_FAIL;
 	char		*cmd_result = NULL, error[MAX_STRING_LEN];
 
-	if (SUCCEED != zbx_execute(command, &cmd_result, error, sizeof(error), CONFIG_TIMEOUT,
+	if (SUCCEED != zbx_execute(command, &cmd_result, error, sizeof(error), config_timeout,
 			ZBX_EXIT_CODE_CHECKS_DISABLED, dir))
 	{
 		SET_MSG_RESULT(result, zbx_strdup(NULL, error));
@@ -144,7 +149,7 @@ int	EXECUTE_USER_PARAMETER(AGENT_REQUEST *request, AGENT_RESULT *result)
 		return SYSINFO_RET_FAIL;
 	}
 
-	return execute_str(get_rparam(request, 0), result, user_parameter_dir);
+	return execute_str(get_rparam(request, 0), result, user_parameter_dir, config_timeout);
 }
 
 int	EXECUTE_STR(const char *command, AGENT_RESULT *result)

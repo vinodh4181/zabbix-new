@@ -1271,6 +1271,7 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 	zbx_thread_taskmanager_args	taskmanager_args = {zbx_config_tls, get_program_type,
 							zbx_config_cfg->config_timeout};
 	zbx_thread_dbconfig_args	dbconfig_args = {get_program_type, zbx_config_cfg->config_timeout};
+	zbx_thread_pinger_args		pinger_args = {get_program_type, zbx_config_cfg->config_timeout};
 
 	if (SUCCEED != init_database_cache(&error))
 	{
@@ -1411,6 +1412,7 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 				zbx_thread_start(trapper_thread, &thread_args, &threads[i]);
 				break;
 			case ZBX_PROCESS_TYPE_PINGER:
+				thread_args.args = &pinger_args;
 				zbx_thread_start(pinger_thread, &thread_args, &threads[i]);
 				break;
 			case ZBX_PROCESS_TYPE_ALERTER:

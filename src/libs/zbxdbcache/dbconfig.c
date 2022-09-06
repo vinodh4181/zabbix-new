@@ -465,10 +465,10 @@ static void	DCitem_poller_type_update(ZBX_DC_ITEM *dc_item, const ZBX_DC_HOST *d
 	}
 }
 
-static void	DCincrease_disable_until(ZBX_DC_INTERFACE *interface, int now)
+static void	DCincrease_disable_until(ZBX_DC_INTERFACE *interface, int now, int config_timeout)
 {
 	if (NULL != interface && 0 != interface->errors_from)
-		interface->disable_until = now + CONFIG_TIMEOUT;
+		interface->disable_until = now + config_timeout;
 }
 
 /******************************************************************************
@@ -9656,7 +9656,7 @@ static void	dc_requeue_item_at(ZBX_DC_ITEM *dc_item, ZBX_DC_HOST *dc_host, int n
  *           function.                                                        *
  *                                                                            *
  ******************************************************************************/
-int	DCconfig_get_poller_items(unsigned char poller_type, DC_ITEM **items)
+int	DCconfig_get_poller_items(unsigned char poller_type, DC_ITEM **items, int config_timeout)
 {
 	int			now, num = 0, max_items;
 	zbx_binary_heap_t	*queue;
@@ -9756,7 +9756,7 @@ int	DCconfig_get_poller_items(unsigned char poller_type, DC_ITEM **items)
 					continue;
 				}
 
-				DCincrease_disable_until(dc_interface, now);
+				DCincrease_disable_until(dc_interface, now, config_timeout);
 			}
 		}
 
@@ -9868,7 +9868,7 @@ int	DCconfig_get_ipmi_poller_items(int now, DC_ITEM *items, int items_num, int *
 					continue;
 				}
 
-				DCincrease_disable_until(dc_interface, now);
+				DCincrease_disable_until(dc_interface, now, config_timeout);
 			}
 		}
 

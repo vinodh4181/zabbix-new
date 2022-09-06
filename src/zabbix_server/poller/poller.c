@@ -804,7 +804,7 @@ void	zbx_clean_items(DC_ITEM *items, int num, AGENT_RESULT *results)
  *           see DCconfig_get_poller_items()                                  *
  *                                                                            *
  ******************************************************************************/
-static int	get_values(unsigned char poller_type, int *nextcheck)
+static int	get_values(unsigned char poller_type, int *nextcheck, int config_timeout)
 {
 	DC_ITEM			item, *items;
 	AGENT_RESULT		results[MAX_POLLER_ITEMS];
@@ -818,7 +818,7 @@ static int	get_values(unsigned char poller_type, int *nextcheck)
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
 	items = &item;
-	num = DCconfig_get_poller_items(poller_type, &items);
+	num = DCconfig_get_poller_items(poller_type, &items, config_timeout);
 
 	if (0 == num)
 	{
@@ -999,7 +999,7 @@ ZBX_THREAD_ENTRY(poller_thread, args)
 					old_total_sec);
 		}
 
-		processed += get_values(poller_type, &nextcheck);
+		processed += get_values(poller_type, &nextcheck, poller_args_in->config_timeout);
 		total_sec += zbx_time() - sec;
 
 		sleeptime = zbx_calculate_sleeptime(nextcheck, POLLER_DELAY);

@@ -385,7 +385,8 @@ static void	add_icmpping_item(icmpitem_t **items, int *items_alloc, int *items_c
  *               FAIL - otherwise                                             *
  *                                                                            *
  ******************************************************************************/
-static void	get_pinger_hosts(icmpitem_t **icmp_items, int *icmp_items_alloc, int *icmp_items_count)
+static void	get_pinger_hosts(icmpitem_t **icmp_items, int *icmp_items_alloc, int *icmp_items_count,
+		int config_timeout)
 {
 	DC_ITEM			item, *items;
 	int			i, num, count, interval, size, timeout, rc, errcode = SUCCEED;
@@ -399,7 +400,7 @@ static void	get_pinger_hosts(icmpitem_t **icmp_items, int *icmp_items_alloc, int
 	um_handle = zbx_dc_open_user_macros();
 
 	items = &item;
-	num = DCconfig_get_poller_items(ZBX_POLLER_TYPE_PINGER, &items);
+	num = DCconfig_get_poller_items(ZBX_POLLER_TYPE_PINGER, &items, config_timeout);
 
 	for (i = 0; i < num; i++)
 	{
@@ -539,7 +540,9 @@ ZBX_THREAD_ENTRY(pinger_thread, args)
 	double			sec;
 	static icmpitem_t	*items = NULL;
 	static int		items_alloc = 4;
+	zbx_thread_pinger_args	*pinger_args_in;
 
+	pinger_args_in = (zbx_thread_pinger_args *)((((zbx_thread_args_t *)args))->args);
 	process_type = ((zbx_thread_args_t *)args)->process_type;
 	server_num = ((zbx_thread_args_t *)args)->server_num;
 	process_num = ((zbx_thread_args_t *)args)->process_num;
@@ -566,7 +569,7 @@ ZBX_THREAD_ENTRY(pinger_thread, args)
 
 		free_hosts(&items, &items_count);
 
-		nextcheck = DCconfig_get_poller_nextcheck(ZBX_POLLER_TYPE_PINGER);
+		nextcheck = DCconfig_get_poller_nextcheck(ZBX_POLLER_TYPE_PINGER, pinger_args_in->config_timeout);
 		sleeptime = zbx_calculate_sleeptime(nextcheck, POLLER_DELAY);
 
 		zbx_setproctitle("%s #%d [got %d values in " ZBX_FS_DBL " sec, idle %d sec]",

@@ -220,6 +220,7 @@ void	free_key_access_rules(void);
 int	process(const char *in_command, unsigned flags, AGENT_RESULT *result);
 
 void	set_user_parameter_dir(const char *path);
+void	set_config_timeout(int config_timeout_in);
 int	add_user_parameter(const char *itemkey, char *command, char *error, size_t max_error_len);
 void	remove_user_parameters(void);
 void	get_metrics_copy(ZBX_METRIC **metrics);
