@@ -146,7 +146,7 @@ $http_scenario_form_grid
 				->setAttribute('style', 'min-width: '.ZBX_TEXTAREA_BIG_WIDTH.'px;')
 		)
 	])
-	->addItem([ // FIXME: fix drag icon
+	->addItem([
 		new CLabel(_('Headers')),
 		new CFormField(
 			(new CDiv(
@@ -227,7 +227,7 @@ $http_step_form_grid->addItem([
  * Authentication tab
  */
 $http_authentication_form_grid = (new CFormGrid())
-	->addItem([ // FIXME: fix select and hidden fields
+	->addItem([
 		new CLabel(_('HTTP authentication'), 'label-authentication'),
 		new CFormField(
 			(new CSelect('authentication'))
@@ -343,8 +343,6 @@ else {
 		[new CButtonCancel(url_param('context'))]
 	));
 }
-
-$http_form->addItem(new CJsScript($this->readJsFile('../../../include/views/js/editabletable.js.php')));
 
 $http_form->addItem($http_tab);
 $widget->addItem($http_form);

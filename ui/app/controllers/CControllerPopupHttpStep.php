@@ -27,7 +27,6 @@ class CControllerPopupHttpStep extends CController {
 	}
 
 	protected function checkInput() {
-
 		$fields = [
 			'no' =>					'int32',
 			'httpstepid' =>			'db httpstep.httpstepid',
@@ -51,8 +50,11 @@ class CControllerPopupHttpStep extends CController {
 
 		if (!$ret) {
 			$output = [];
-			if (($messages = getMessages()) !== null) {
-				$output['errors'] = $messages->toString();
+			if ($messages = get_and_clear_messages()) {
+				$output['error'] = [
+					'title' => _('Cannot create web scenario step'),
+					'messages' => array_column($messages, 'message')
+				];
 			}
 
 			$this->setResponse(
@@ -115,8 +117,11 @@ class CControllerPopupHttpStep extends CController {
 			}
 
 			// Return collected error messages.
-			if (($messages = getMessages()) !== null) {
-				$output['errors'] = $messages->toString();
+			if ($messages = get_and_clear_messages()) {
+				$output['error'] = [
+					'title' => _('Cannot create web scenario step'),
+					'messages' => array_column($messages, 'message')
+				];
 			}
 			else {
 				// Return valid response.

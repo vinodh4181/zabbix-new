@@ -28,7 +28,9 @@
 	<?= (new CRow([
 			'',
 			(new CSpan('#{no}:'))->setAttribute('data-row-num', ''),
-			(new CLink('#{name}', 'javascript:view.open(#{no});')),
+			(new CLink('#{name}', 'javascript:;'))
+				->setAttribute('data-row-name', '#{name}')
+				->setAttribute('onclick', 'view.open(this)'),
 			'#{timeout}',
 			(new CSpan('#{url_short}'))->setHint('#{url}', '', true, 'word-break: break-all;')
 				->setAttribute('data-hintbox', '#{enabled_hint}'),
@@ -45,14 +47,16 @@
 	<?= (new CRow([
 			(new CCol((new CDiv())->addClass(ZBX_STYLE_DRAG_ICON)))->addClass(ZBX_STYLE_TD_DRAG_ICON),
 			(new CSpan('#{no}:'))->setAttribute('data-row-num', '#{no}'),
-			(new CLink('#{name}', 'javascript:view.open(#{no});'))->setAttribute('data-row-name', '#{name}'),
+			(new CLink('#{name}', 'javascript:;'))
+				->setAttribute('data-row-name', '#{name}')
+				->setAttribute('onclick', 'view.open(this)'),
 			'#{timeout}',
 			(new CSpan('#{url_short}'))->setHint('#{url}', '', true, 'word-break: break-all;')
 				->setAttribute('data-hintbox', '#{enabled_hint}'),
 			'#{required}',
 			'#{status_codes}',
 			(new CCol((new CButton(null, _('Remove')))
-				->setAttribute('onclick', 'javascript:view.removeStepRow(this)')
+				->setAttribute('onclick', 'view.removeStepRow(this)')
 				->addClass(ZBX_STYLE_BTN_LINK)
 				->addClass('element-table-remove')
 			))->addClass(ZBX_STYLE_NOWRAP)
@@ -258,7 +262,7 @@
 			container
 				.querySelector('.element-table-add')
 				.addEventListener('click', () => {
-					this.open(-1);
+					this.open();
 				});
 		}
 
@@ -303,7 +307,13 @@
 			elem.replaceWith(el);
 		}
 
-		open(index) {
+		open(elem) {
+			let index = -1;
+
+			if (elem) {
+				index = elem.closest('tr').querySelector('[data-row-num]').dataset.rowNum;
+			}
+
 			const overlay = this.openPopup(index,
 				document
 					.querySelector('.httpconf-steps-dynamic-row')
@@ -350,9 +360,9 @@
 		openPopup(index, trigger_element) {
 			const data = this.steps.hasOwnProperty(index - 1)
 				? {...this.steps[index - 1], ...{no: index, templated: this.templated, steps_names: this.getStepNames()}}
-				: {};
+				: {steps_names: this.getStepNames()};
 
-			if (data) {
+			if (this.steps.hasOwnProperty(index - 1)) {
 				data.old_name = data.name;
 			}
 

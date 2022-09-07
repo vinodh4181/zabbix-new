@@ -58,23 +58,48 @@ $http_popup_form_list = (new CFormList())
 		])
 	);
 
+$query_fields = (new CTag('script', true))->setAttribute('type', 'text/json');
+$query_fields->items = array_key_exists('query_fields', $options['pairs'])
+	? [json_encode($options['pairs']['query_fields'])]
+	: [json_encode([['name' => '', 'value' => '', 'index' => 1]])];
+
 $http_popup_form_list->addRow(_('Query fields'),
-	(new CDiv(
+	(new CDiv([
 		(new CTable())
-			->addClass('httpconf-dynamic-row')
-			->addStyle('width: 100%;')
+			->setAttribute('style', 'width: 100%;')
 			->setAttribute('data-type', 'query_fields')
 			->setHeader(['', _('Name'), '', _('Value'), ''])
-			->addRow((new CRow([
+			->addRow((new CRow)->setAttribute('data-insert-point', 'append'))
+			->setFooter(new CRow(
 				(new CCol(
 					(new CButton(null, _('Add')))
-						->addClass('element-table-add')
 						->addClass(ZBX_STYLE_BTN_LINK)
+						->setEnabled(!(bool) $options['templated'])
+						->setAttribute('data-row-action', 'add_row')
 				))->setColSpan(5)
-				]))),
-		(new CTag('script', true))->setAttribute('type', 'text/json')
-	))
+			)),
+		(new CTag('script', true))
+			->setAttribute('type', 'text/x-jquery-tmpl')
+			->addItem(new CRow([
+				(new CCol(
+					(new CDiv())->addClass(ZBX_STYLE_DRAG_ICON)
+				))->addClass(ZBX_STYLE_TD_DRAG_ICON),
+				(new CTextBox('query_fields[#{index}][name]', '#{name}', (bool) $options['templated']))
+					->setAttribute('placeholder', _('name'))
+					->setWidth(ZBX_TEXTAREA_HTTP_PAIR_NAME_WIDTH),
+				'&rArr;',
+				(new CTextBox('query_fields[#{index}][value]', '#{value}', (bool) $options['templated']))
+					->setAttribute('placeholder', _('value'))
+					->setWidth(ZBX_TEXTAREA_HTTP_PAIR_VALUE_WIDTH),
+				(new CButton(null, _('Remove')))
+					->addClass(ZBX_STYLE_BTN_LINK)
+					->setEnabled(!(bool) $options['templated'])
+					->setAttribute('data-row-action', 'remove_row')
+			])),
+		$query_fields
+	]))
 		->addClass(ZBX_STYLE_TABLE_FORMS_SEPARATOR)
+		->addClass('js-tbl-editable')
 		->setAttribute('data-sortable-pairs-table', '1')
 		->addStyle('min-width: '.ZBX_TEXTAREA_BIG_WIDTH . 'px;'),
 		'query-fields-row'
@@ -186,6 +211,8 @@ $http_popup_form
 		'))->setOnDocumentReady()
 	);
 
+$http_popup_form->addItem(new CJsScript($this->readJsFile('../../../include/views/js/editabletable.js.php')));
+
 $output = [
 	'header' => $data['title'],
 	'buttons' => [
@@ -194,7 +221,7 @@ $output = [
 			'class' => '',
 			'keepOpen' => true,
 			'isSubmit' => true,
-			'action' => 'return http_step_popup.submit(overlay);' // FIXME:
+			'action' => 'return http_step_popup.submit(overlay);'
 		]
 	],
 	'body' => (new CDiv($http_popup_form))->toString(),

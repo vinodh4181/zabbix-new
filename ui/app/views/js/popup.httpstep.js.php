@@ -26,7 +26,7 @@
 
 window.http_step_popup = new class {
 
-	init({nr, data}) {
+	init({data}) {
 		this.data = data;
 		this.form = document.getElementById('http_step');
 		this.row_id = 1;
@@ -46,7 +46,7 @@ window.http_step_popup = new class {
 			const type = elem.dataset.type;
 
 			if (!(type in this.data.pairs)) {
-				this.data.pairs[type] = [{ id: this.row_id++, type: type, name: '', value: '' }];
+				this.data.pairs[type] = [{index: this.row_id, type: type, name: '', value: ''}];
 			}
 
 			jQuery(elem)
@@ -140,10 +140,24 @@ window.http_step_popup = new class {
 		fields.url = fields.url.trim();
 		fields.required = fields.required.trim();
 
+		const pairs = [];
+
 		for (const value of Object.values(fields.pairs)) {
 			value.name = value.name.trim();
 			value.value = value.value.trim();
+
+			pairs.push(value);
 		}
+
+		for (const value of Object.values(fields.query_fields)) {
+			value.name = value.name.trim();
+			value.value = value.value.trim();
+			value.type = 'query_fields';
+
+			pairs.push(value);
+		}
+
+		fields.pairs = pairs;
 
 		for (const el of this.form.parentNode.children) {
 			if (el.matches('.msg-good, .msg-bad, .msg-warning')) {
@@ -205,11 +219,8 @@ window.http_step_popup = new class {
 
 	parseUrl() {
 		const url_node = document.getElementById('url');
-		// const table = $('[data-type=query_fields]');
-		const table = $('[data-type=query_fields]').data('editableTable');
+		const table = jQuery('.js-tbl-editable').data('editableTable');
 		const url = parseUrlString(this.input_url.value);
-
-		console.log(table);
 
 		if (typeof url === 'object') {
 			if (url.pairs.length > 0) {
