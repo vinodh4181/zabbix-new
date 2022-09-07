@@ -31,8 +31,6 @@
 #include "zbxnum.h"
 #include "zbxparam.h"
 
-extern int	CONFIG_TIMEOUT;
-
 #ifdef WITH_AGENT_METRICS
 #	include "agent/agent.h"
 #endif
@@ -1814,7 +1812,7 @@ int	zbx_execute_threaded_metric(zbx_metric_func_t metric_func, AGENT_REQUEST *re
 
 	close(fds[1]);
 
-	zbx_alarm_on(CONFIG_TIMEOUT);
+	zbx_alarm_on(sysinfo_get_config_timeout());
 
 	while (0 != (n = read(fds[0], buffer, sizeof(buffer))))
 	{
@@ -1967,7 +1965,7 @@ int	zbx_execute_threaded_metric(zbx_metric_func_t metric_func, AGENT_REQUEST *re
 	}
 
 	/* 1000 is multiplier for converting seconds into milliseconds */
-	if (WAIT_FAILED == (rc = WaitForSingleObject(thread, CONFIG_TIMEOUT * 1000)))
+	if (WAIT_FAILED == (rc = WaitForSingleObject(thread, sysinfo_get_config_timeout() * 1000)))
 	{
 		/* unexpected error */
 
@@ -2091,5 +2089,18 @@ int	hostname_handle_params(AGENT_REQUEST *request, AGENT_RESULT *result, char *h
 	SET_STR_RESULT(result, hostname);
 
 	return SUCCEED;
+}
+
+static get_config_timeout_f	get_config_timeout_cb = NULL;
+
+void	sysinfo_set_config_timeout(get_config_timeout_f
+		get_config_timeout_cb_arg)
+{
+	get_config_timeout_cb = get_config_timeout_cb_arg;
+}
+
+int	sysinfo_get_config_timeout(void)
+{
+	return get_config_timeout_cb();
 }
 #endif

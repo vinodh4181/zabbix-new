@@ -935,6 +935,8 @@ void	zbx_version(void);
 const char	*get_program_name(const char *path);
 typedef unsigned char	(*zbx_get_program_type_f)(void);
 
+typedef int	(*get_config_timeout_f)(void);
+
 typedef enum
 {
 	ZBX_TASK_START = 0,

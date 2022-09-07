@@ -73,6 +73,17 @@ char	*CONFIG_SSL_KEY_LOCATION;
 static zbx_config_tls_t	*zbx_config_tls = NULL;
 static zbx_config_cfg_t	*zbx_config_cfg = NULL;
 
+
+static int	get_config_cfg_config_timeout(void)
+{
+	return zbx_config_cfg->config_timeout;
+}
+
+static unsigned char	get_program_type(void)
+{
+	return program_type;
+}
+
 int	CONFIG_TCP_MAX_BACKLOG_SIZE	= SOMAXCONN;
 
 int	CONFIG_HEARTBEAT_FREQUENCY	= 60;
@@ -748,7 +759,7 @@ static int	add_serveractive_host_cb(const zbx_vector_ptr_t *addrs, zbx_vector_st
 				hostnames->values[i] : "");
 		config_active_args[forks].zbx_config_tls = zbx_config_tls;
 		config_active_args[forks].zbx_get_program_type_cb_arg = get_program_type;
-		config_active_args[forks].config_timeout = zbx_config_cfg->config_tls;
+		config_active_args[forks].config_timeout = zbx_config_cfg->config_timeout;
 	}
 
 	return SUCCEED;
@@ -1447,7 +1458,7 @@ int	main(int argc, char **argv)
 			}
 #endif
 			set_user_parameter_dir(CONFIG_USER_PARAMETER_DIR);
-			set_config_timeout(zbx_config_cfg->config_timeout);
+			zbx_sysinfo_set_config_cfg_config_timeout(zbx_get_config_cfg_config_timeout);
 
 			if (FAIL == load_user_parameters(CONFIG_USER_PARAMETERS, &error))
 			{

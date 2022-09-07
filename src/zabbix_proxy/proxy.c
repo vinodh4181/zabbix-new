@@ -1145,7 +1145,8 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 	zbx_thread_taskmanager_args	taskmanager_args = {zbx_config_tls, get_program_type,
 							zbx_config_cfg->config_timeout};
 	zbx_thread_discoverer_args	discoverer_args = {zbx_config_tls, get_program_type};
-	zbx_thread_trapper_args		trapper_args = {zbx_config_tls, get_program_type, &listen_sock};
+	zbx_thread_trapper_args		trapper_args = {zbx_config_tls, get_program_type, &listen_sock,
+							zbx_config_cfg->config_timeout};
 	zbx_thread_housekeeper_args	housekeeper_args = {get_program_type, zbx_config_cfg->config_timeout};
 
 	if (0 != (flags & ZBX_TASK_FLAG_FOREGROUND))

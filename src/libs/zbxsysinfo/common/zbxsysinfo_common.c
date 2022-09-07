@@ -99,12 +99,13 @@ void	set_user_parameter_dir(const char *path)
 	user_parameter_dir = path;
 }
 
-static int	config_timeout;
+//static int	config_timeout;
 
-void	set_config_timeout(int config_timeout_in)
-{
-	config_timeout = config_timeout_in;
-}
+//void	zbx_sysinfo_set_config_timeout(int config_timeout_in)
+//{
+//	config_timeout = config_timeout_in;
+//}
+
 
 static int	ONLY_ACTIVE(AGENT_REQUEST *request, AGENT_RESULT *result)
 {

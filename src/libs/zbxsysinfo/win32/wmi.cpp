@@ -23,6 +23,7 @@ extern "C"
 {
 #	include "zbxstr.h"
 #	include "sysinfo.h"
+#	include "sysinfo_common.h"
 #	include "log.h"
 #	include "zbxalgo.h"
 #	include "zbxjson.h"
@@ -505,7 +506,7 @@ extern "C" int	WMI_GET(AGENT_REQUEST *request, AGENT_RESULT *result)
 
 	zbx_vector_wmi_instance_create(&wmi_values);
 
-	if (SYSINFO_RET_FAIL == zbx_wmi_get_variant(wmi_namespace, wmi_query, parse_first_first, CONFIG_TIMEOUT,
+	if (SYSINFO_RET_FAIL == zbx_wmi_get_variant(wmi_namespace, wmi_query, parse_first_first, sysinfo_get_config_timeout(),
 			&wmi_values, &error))
 	{
 		goto out;
@@ -965,7 +966,7 @@ extern "C" int	WMI_GETALL(AGENT_REQUEST *request, AGENT_RESULT *result)
 
 	zbx_vector_wmi_instance_create(&wmi_values);
 
-	if (SYSINFO_RET_OK == zbx_wmi_get_variant(wmi_namespace, wmi_query, parse_all, CONFIG_TIMEOUT, &wmi_values,
+	if (SYSINFO_RET_OK == zbx_wmi_get_variant(wmi_namespace, wmi_query, parse_all, sysinfo_get_config_timeout(), &wmi_values,
 			&error))
 	{
 		ret = convert_wmi_json(&wmi_values, &jd, &error);

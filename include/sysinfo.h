@@ -414,4 +414,9 @@ void		zbx_add_alias(const char *name, const char *value);
 void		zbx_alias_list_free(void);
 const char	*zbx_alias_get(const char *orig);
 
+void	zbx_sysinfo_set_config_timeout(get_config_timeout_f
+		get_config_timeout_cb_arg);
+
+int	sysinfo_get_config_timeout(void);
+
 #endif

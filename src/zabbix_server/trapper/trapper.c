@@ -1077,7 +1077,7 @@ static int	comms_parse_response(char *xml, char *host, size_t host_len, char *ke
 }
 
 static int	process_trap(zbx_socket_t *sock, char *s, ssize_t bytes_received, zbx_timespec_t *ts,
-		const zbx_config_tls_t *zbx_config_tls)
+		const zbx_config_tls_t *zbx_config_tls, int config_timeout)
 {
 	int	ret = SUCCEED;
 
@@ -1152,7 +1152,7 @@ static int	process_trap(zbx_socket_t *sock, char *s, ssize_t bytes_received, zbx
 				if (0 != (program_type & ZBX_PROGRAM_TYPE_SERVER))
 					zbx_recv_proxy_data(sock, &jp, ts);
 				else if (0 != (program_type & ZBX_PROGRAM_TYPE_PROXY_PASSIVE))
-					zbx_send_proxy_data(sock, ts, zbx_config_tls);
+					zbx_send_proxy_data(sock, ts, zbx_config_tls, config_timeout);
 			}
 			else if (0 == strcmp(value, ZBX_PROTO_VALUE_PROXY_HEARTBEAT))
 			{
@@ -1288,14 +1288,15 @@ static int	process_trap(zbx_socket_t *sock, char *s, ssize_t bytes_received, zbx
 	return ret;
 }
 
-static void	process_trapper_child(zbx_socket_t *sock, zbx_timespec_t *ts, const zbx_config_tls_t *zbx_config_tls)
+static void	process_trapper_child(zbx_socket_t *sock, zbx_timespec_t *ts, const zbx_config_tls_t *zbx_config_tls,
+		int config_timeout)
 {
 	ssize_t	bytes_received;
 
 	if (FAIL == (bytes_received = zbx_tcp_recv_ext(sock, CONFIG_TRAPPER_TIMEOUT, ZBX_TCP_LARGE)))
 		return;
 
-	process_trap(sock, sock->buffer, bytes_received, ts, zbx_config_tls);
+	process_trap(sock, sock->buffer, bytes_received, ts, zbx_config_tls, config_timeout);
 }
 
 ZBX_THREAD_ENTRY(trapper_thread, args)
@@ -1382,7 +1383,7 @@ ZBX_THREAD_ENTRY(trapper_thread, args)
 			}
 #endif
 			sec = zbx_time();
-			process_trapper_child(&s, &ts, trapper_args_in->zbx_config_tls);
+			process_trapper_child(&s, &ts, trapper_args_in->zbx_config_tls, trapper_args_in->config_timeout);
 			sec = zbx_time() - sec;
 
 			zbx_tcp_unaccept(&s);

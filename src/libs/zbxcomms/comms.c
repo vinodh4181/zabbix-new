@@ -54,7 +54,6 @@
 extern ZBX_THREAD_LOCAL char	info_buf[256];
 #endif
 
-extern int	CONFIG_TIMEOUT;
 extern int	CONFIG_TCP_MAX_BACKLOG_SIZE;
 
 zbx_config_tls_t	*zbx_config_tls_new(void)
