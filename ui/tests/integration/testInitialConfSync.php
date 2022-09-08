@@ -978,7 +978,7 @@ class testInitialConfSync extends CIntegrationTest
 
 		$sync_lines1 = preg_replace(
 			[
-				"/^[0-9]+:[0-9]+:[0-9]+\.[0-9]+ DCsync_configuration\(\) /",
+				"/^\s*[0-9]+:[0-9]+:[0-9]+\.[0-9]+ DCsync_configuration\(\) /",
 				"/\s+/",
 				"/:sql:[0-9]+\.[0-9]+sync:[0-9]+\.[0-9]+sec/",
 				"/:sql:[0-9]+\.[0-9]+sec/",
