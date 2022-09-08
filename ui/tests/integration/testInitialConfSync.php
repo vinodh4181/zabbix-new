@@ -991,7 +991,7 @@ class testInitialConfSync extends CIntegrationTest
 
 		$sync_lines2 = preg_replace(
 			[
-				"/\(/",
+				"/\(\)/",
 				"/\)\.|\./",
 			],
 			[
