@@ -973,6 +973,8 @@ class testInitialConfSync extends CIntegrationTest
 		$data = explode("\n", $log);
 
 		$sync_lines = preg_grep('/DCsync_configuration.*\([0-9]+\/[0-9]+\/[0-9]+\)\.$/', $data);
+		var_dump("sync_lines");
+		var_dump($sync_lines);
 
 		$sync_lines1 = preg_replace(
 			[
@@ -984,6 +986,8 @@ class testInitialConfSync extends CIntegrationTest
 			"",
 			$sync_lines
 		);
+		var_dump("sync_lines1");
+		var_dump($sync_lines1);
 
 		$sync_lines2 = preg_replace(
 			[
@@ -996,6 +1000,8 @@ class testInitialConfSync extends CIntegrationTest
 			],
 			$sync_lines1
 		);
+		var_dump("sync_lines2");
+		var_dump($sync_lines2);
 
 		$results = [];
 
