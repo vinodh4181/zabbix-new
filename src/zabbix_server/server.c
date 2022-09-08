@@ -1262,7 +1262,8 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 							zbx_config_cfg->config_timeout};
 	zbx_thread_trapper_args		trapper_args = {zbx_config_tls, get_program_type, listen_sock,
 							zbx_config_cfg->config_timeout};
-	zbx_thread_escalator_args	escalator_args = {zbx_config_tls, get_program_type};
+	zbx_thread_escalator_args	escalator_args = {zbx_config_tls, get_program_type,
+							zbx_config_cfg->config_timeout};
 	zbx_thread_proxy_poller_args	proxy_poller_args = {zbx_config_tls, get_program_type,
 							zbx_config_cfg->config_timeout};
 	zbx_thread_discoverer_args	discoverer_args = {zbx_config_tls, get_program_type};
@@ -1731,7 +1732,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 #endif
 	zbx_initialize_events();
 
-	if (FAIL == zbx_load_modules(CONFIG_LOAD_MODULE_PATH, CONFIG_LOAD_MODULE, CONFIG_TIMEOUT, 1))
+	if (FAIL == zbx_load_modules(CONFIG_LOAD_MODULE_PATH, CONFIG_LOAD_MODULE, &zbx_config_cfg->config_timeout, 1))
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "loading modules failed, exiting...");
 		exit(EXIT_FAILURE);

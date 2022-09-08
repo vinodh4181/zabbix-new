@@ -48,7 +48,7 @@ extern unsigned char	program_type;
  *                                                                            *
  ******************************************************************************/
 static void	db_register_host(const char *host, const char *ip, unsigned short port, unsigned int connection_type,
-		const char *host_metadata, zbx_conn_flags_t flag, const char *interface)
+		const char *host_metadata, zbx_conn_flags_t flag, const char *interface, int config_timeout)
 {
 	char		dns[ZBX_INTERFACE_DNS_LEN_MAX];
 	char		ip_addr[ZBX_INTERFACE_IP_LEN_MAX];
@@ -64,7 +64,7 @@ static void	db_register_host(const char *host, const char *ip, unsigned short po
 	else if (ZBX_CONN_IP == flag)
 		p_ip = p = interface;
 
-	zbx_alarm_on(CONFIG_TIMEOUT);
+	zbx_alarm_on(config_timeout);
 	if (ZBX_CONN_DEFAULT == flag || ZBX_CONN_IP == flag)
 	{
 		if (0 == strncmp("::ffff:", p, 7) && SUCCEED == zbx_is_ip4(p + 7))
@@ -172,7 +172,7 @@ out:
  ******************************************************************************/
 static int	get_hostid_by_host(const zbx_socket_t *sock, const char *host, const char *ip, unsigned short port,
 		const char *host_metadata, zbx_conn_flags_t flag, const char *interface, zbx_uint64_t *hostid,
-		zbx_uint32_t *revision, char *error)
+		zbx_uint32_t *revision, int config_timeout, char *error)
 {
 #define PROXY_AUTO_REGISTRATION_HEARTBEAT	120
 	char	*ch_error;
@@ -213,7 +213,7 @@ static int	get_hostid_by_host(const zbx_socket_t *sock, const char *host, const 
 						(int)time(NULL), heartbeat))
 				{
 					db_register_host(host, ip, port, sock->connection_type, host_metadata, flag,
-							interface);
+							interface, config_timeout);
 				}
 			}
 		}
@@ -251,7 +251,7 @@ out:
  *           format of the list: key:delay:last_log_size                      *
  *                                                                            *
  ******************************************************************************/
-int	send_list_of_active_checks(zbx_socket_t *sock, char *request)
+int	send_list_of_active_checks(zbx_socket_t *sock, char *request, int config_timeout)
 {
 	char			*host = NULL, *p, *buffer = NULL, error[MAX_STRING_LEN];
 	size_t			buffer_alloc = 8 * ZBX_KIBIBYTE, buffer_offset = 0;
@@ -275,7 +275,7 @@ int	send_list_of_active_checks(zbx_socket_t *sock, char *request)
 
 	/* no host metadata in older versions of agent */
 	if (FAIL == get_hostid_by_host(sock, host, sock->peer, ZBX_DEFAULT_AGENT_PORT, "", 0, "",  &hostid, &revision,
-			error))
+			config_timeout, error))
 	{
 		goto out;
 	}
@@ -336,7 +336,7 @@ int	send_list_of_active_checks(zbx_socket_t *sock, char *request)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "%s() sending [%s]", __func__, buffer);
 
-	zbx_alarm_on(CONFIG_TIMEOUT);
+	zbx_alarm_on(config_timeout);
 	if (SUCCEED != zbx_tcp_send_raw(sock, buffer))
 		zbx_strlcpy(error, zbx_socket_strerror(), MAX_STRING_LEN);
 	else
@@ -430,7 +430,7 @@ out:
  *                FAIL - an error occurred                                    *
  *                                                                            *
  ******************************************************************************/
-int	send_list_of_active_checks_json(zbx_socket_t *sock, struct zbx_json_parse *jp)
+int	send_list_of_active_checks_json(zbx_socket_t *sock, struct zbx_json_parse *jp, int config_timeout)
 {
 	char			host[ZBX_HOSTNAME_BUF_LEN], tmp[MAX_STRING_LEN], ip[ZBX_INTERFACE_IP_LEN_MAX],
 				error[MAX_STRING_LEN], *host_metadata = NULL, *interface = NULL, *buffer = NULL;
@@ -683,7 +683,7 @@ int	send_list_of_active_checks_json(zbx_socket_t *sock, struct zbx_json_parse *j
 		zbx_json_free(&json);	/* json buffer can be large, free as fast as possible */
 
 		if (SUCCEED != (ret = zbx_tcp_send_ext(sock, buffer, buffer_size, reserved, sock->protocol,
-				CONFIG_TIMEOUT)))
+				config_timeout)))
 		{
 			zbx_strscpy(error, zbx_socket_strerror());
 		}
@@ -691,7 +691,7 @@ int	send_list_of_active_checks_json(zbx_socket_t *sock, struct zbx_json_parse *j
 	else
 	{
 		if (SUCCEED != (ret = zbx_tcp_send_ext(sock, json.buffer, json.buffer_size, 0, sock->protocol,
-				CONFIG_TIMEOUT)))
+				config_timeout)))
 		{
 			zbx_strscpy(error, zbx_socket_strerror());
 		}

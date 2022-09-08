@@ -35,7 +35,7 @@
  *               NOTSUPPORTED - requested item is not supported               *
  *                                                                            *
  ******************************************************************************/
-int	get_value_db(const DC_ITEM *item, AGENT_RESULT *result)
+int	get_value_db(const DC_ITEM *item, AGENT_RESULT *result, int config_timeout)
 {
 	AGENT_REQUEST		request;
 	const char		*dsn, *connection = NULL;
@@ -92,7 +92,7 @@ int	get_value_db(const DC_ITEM *item, AGENT_RESULT *result)
 		goto out;
 	}
 
-	if (NULL != (data_source = zbx_odbc_connect(dsn, connection, item->username, item->password, CONFIG_TIMEOUT,
+	if (NULL != (data_source = zbx_odbc_connect(dsn, connection, item->username, item->password, config_timeout,
 			&error)))
 	{
 		if (NULL != (query_result = zbx_odbc_select(data_source, item->params, &error)))

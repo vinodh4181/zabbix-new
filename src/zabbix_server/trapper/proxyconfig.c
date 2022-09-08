@@ -33,7 +33,7 @@
  *          (for active proxies)                                              *
  *                                                                            *
  ******************************************************************************/
-void	send_proxyconfig(zbx_socket_t *sock, struct zbx_json_parse *jp)
+void	send_proxyconfig(zbx_socket_t *sock, struct zbx_json_parse *jp, int config_timeout)
 {
 	char		*error = NULL, *buffer = NULL;
 	struct zbx_json	j;
@@ -67,7 +67,7 @@ void	send_proxyconfig(zbx_socket_t *sock, struct zbx_json_parse *jp)
 
 	if (SUCCEED != get_proxyconfig_data(proxy.hostid, &j, &error))
 	{
-		zbx_send_response_ext(sock, FAIL, error, NULL, flags, CONFIG_TIMEOUT);
+		zbx_send_response_ext(sock, FAIL, error, NULL, flags, config_timeout);
 		zabbix_log(LOG_LEVEL_WARNING, "cannot collect configuration data for proxy \"%s\" at \"%s\": %s",
 				proxy.host, sock->peer, error);
 		goto clean;
@@ -123,7 +123,8 @@ out:
  * Purpose: receive configuration tables from server (passive proxies)        *
  *                                                                            *
  ******************************************************************************/
-void	recv_proxyconfig(zbx_socket_t *sock, struct zbx_json_parse *jp, const zbx_config_tls_t *zbx_config_tls)
+void	recv_proxyconfig(zbx_socket_t *sock, struct zbx_json_parse *jp, const zbx_config_tls_t *zbx_config_tls,
+		int config_timeout)
 {
 	struct zbx_json_parse	jp_data, jp_kvs_paths = {0};
 	int			ret;
@@ -134,7 +135,7 @@ void	recv_proxyconfig(zbx_socket_t *sock, struct zbx_json_parse *jp, const zbx_c
 	{
 		zabbix_log(LOG_LEVEL_WARNING, "cannot parse proxy configuration data received from server at"
 				" \"%s\": %s", sock->peer, zbx_json_strerror());
-		zbx_send_proxy_response(sock, ret, zbx_json_strerror(), CONFIG_TIMEOUT);
+		zbx_send_proxy_response(sock, ret, zbx_json_strerror(), config_timeout);
 		goto out;
 	}
 
@@ -159,7 +160,7 @@ void	recv_proxyconfig(zbx_socket_t *sock, struct zbx_json_parse *jp, const zbx_c
 			zbx_free(error);
 		}
 	}
-	zbx_send_proxy_response(sock, ret, NULL, CONFIG_TIMEOUT);
+	zbx_send_proxy_response(sock, ret, NULL, config_timeout);
 out:
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);
 }

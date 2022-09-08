@@ -35,7 +35,7 @@ extern char	*CONFIG_EXTERNALSCRIPTS;
  *               NOTSUPPORTED - requested item is not supported               *
  *                                                                            *
  ******************************************************************************/
-int	get_value_external(const DC_ITEM *item, AGENT_RESULT *result)
+int	get_value_external(const DC_ITEM *item, AGENT_RESULT *result, int config_timeout)
 {
 	char		error[ZBX_ITEM_ERROR_LEN_MAX], *cmd = NULL, *buf = NULL;
 	size_t		cmd_alloc = ZBX_KIBIBYTE, cmd_offset = 0;
@@ -73,7 +73,7 @@ int	get_value_external(const DC_ITEM *item, AGENT_RESULT *result)
 		zbx_free(param_esc);
 	}
 
-	if (SUCCEED == (ret = zbx_execute(cmd, &buf, error, sizeof(error), CONFIG_TIMEOUT,
+	if (SUCCEED == (ret = zbx_execute(cmd, &buf, error, sizeof(error), config_timeout,
 			ZBX_EXIT_CODE_CHECKS_DISABLED, NULL)))
 	{
 		zbx_rtrim(buf, ZBX_WHITESPACE);

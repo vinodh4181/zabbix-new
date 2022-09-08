@@ -23,6 +23,7 @@
 #include "zbxcomms.h"
 #include "zbxjson.h"
 
-int	trapper_process_request(const char *request, zbx_socket_t *sock, const struct zbx_json_parse *jp);
+int	trapper_process_request(const char *request, zbx_socket_t *sock, const struct zbx_json_parse *jp,
+		int config_timeout);
 
 #endif

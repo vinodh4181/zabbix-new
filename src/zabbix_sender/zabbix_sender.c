@@ -272,6 +272,7 @@ const char	*help_message[] = {
 };
 
 static zbx_config_tls_t	*zbx_config_tls = NULL;
+static zbx_config_cfg_t	*zbx_config_cfg = NULL;
 
 int	CONFIG_PASSIVE_FORKS		= 0;	/* not used in zabbix_sender, just for linking with tls.c */
 int	CONFIG_ACTIVE_FORKS		= 0;	/* not used in zabbix_sender, just for linking with tls.c */
@@ -400,6 +401,7 @@ typedef struct
 #endif
 	zbx_config_tls_t		*zbx_config_tls;
 	zbx_get_program_type_f		zbx_get_program_type_cb_arg;
+	zbx_config_cfg_t		*zbx_config_cfg;
 }
 zbx_thread_sendval_args;
 
@@ -700,7 +702,7 @@ static	ZBX_THREAD_ENTRY(send_value, args)
 	}
 #endif
 	if (SUCCEED == zbx_connect_to_server(&sock, CONFIG_SOURCE_IP, sendval_args->addrs, CONFIG_SENDER_TIMEOUT,
-			CONFIG_TIMEOUT, 0, LOG_LEVEL_DEBUG, sendval_args->zbx_config_tls))
+			sendval_args->zbx_config_cfg->config_timeout, 0, LOG_LEVEL_DEBUG, sendval_args->zbx_config_tls))
 	{
 		if (1 == sendval_args->sync_timestamp)
 		{
@@ -1497,6 +1499,7 @@ int	main(int argc, char **argv)
 	zbx_thread_sendval_args	*sendval_args = NULL;
 
 	zbx_config_tls = zbx_config_tls_new();
+	zbx_config_cfg = zbx_config_cfg_new();
 
 	progname = get_program_name(argv[0]);
 

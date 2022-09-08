@@ -19,11 +19,13 @@
 
 #include "trapper_request.h"
 
-int	trapper_process_request(const char *request, zbx_socket_t *sock, const struct zbx_json_parse *jp)
+int	trapper_process_request(const char *request, zbx_socket_t *sock, const struct zbx_json_parse *jp,
+		int config_timeout)
 {
 	ZBX_UNUSED(request);
 	ZBX_UNUSED(sock);
 	ZBX_UNUSED(jp);
+	ZBX_UNUSED(config_timeout);
 
 	return FAIL;
 }

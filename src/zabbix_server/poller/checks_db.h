@@ -23,7 +23,7 @@
 #include "dbcache.h"
 
 #ifdef HAVE_UNIXODBC
-int	get_value_db(const DC_ITEM *item, AGENT_RESULT *result);
+int	get_value_db(const DC_ITEM *item, AGENT_RESULT *result, int config_timeout);
 #endif
 
 #endif

@@ -178,7 +178,7 @@ static int	zbx_host_interfaces_discovery(zbx_uint64_t hostid, struct zbx_json *j
  *               NOTSUPPORTED - requested item is not supported               *
  *                                                                            *
  ******************************************************************************/
-int	get_value_internal(const DC_ITEM *item, AGENT_RESULT *result)
+int	get_value_internal(const DC_ITEM *item, AGENT_RESULT *result, int config_timeout)
 {
 	AGENT_REQUEST	request;
 	int		ret = NOTSUPPORTED, nparams;
@@ -424,8 +424,8 @@ int	get_value_internal(const DC_ITEM *item, AGENT_RESULT *result)
 	{
 		int	res;
 
-		zbx_alarm_on(CONFIG_TIMEOUT);
-		res = get_value_java(ZBX_JAVA_GATEWAY_REQUEST_INTERNAL, item, result);
+		zbx_alarm_on(config_timeout);
+		res = get_value_java(ZBX_JAVA_GATEWAY_REQUEST_INTERNAL, item, result, config_timeout);
 		zbx_alarm_off();
 
 		if (SUCCEED != res)

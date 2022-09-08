@@ -113,7 +113,8 @@ static void	proxy_update_host(zbx_uint64_t druleid, const char *ip, const char *
  * Return value: SUCCEED - service is UP, FAIL - service not discovered       *
  *                                                                            *
  ******************************************************************************/
-static int	discover_service(const DB_DCHECK *dcheck, char *ip, int port, char **value, size_t *value_alloc)
+static int	discover_service(const DB_DCHECK *dcheck, char *ip, int port, char **value, size_t *value_alloc,
+		int config_timeout)
 {
 	int		ret = SUCCEED;
 	const char	*service = NULL;
@@ -179,7 +180,7 @@ static int	discover_service(const DB_DCHECK *dcheck, char *ip, int port, char **
 		DC_ITEM		item;
 		char		key[MAX_STRING_LEN], error[ZBX_ITEM_ERROR_LEN_MAX];
 
-		zbx_alarm_on(CONFIG_TIMEOUT);
+		zbx_alarm_on(config_timeout);
 
 		switch (dcheck->type)
 		{
@@ -290,7 +291,7 @@ static int	discover_service(const DB_DCHECK *dcheck, char *ip, int port, char **
 								&item.snmpv3_contextname, MACRO_TYPE_COMMON, NULL, 0);
 					}
 
-					if (SUCCEED == get_value_snmp(&item, &result, ZBX_NO_POLLER) &&
+					if (SUCCEED == get_value_snmp(&item, &result, ZBX_NO_POLLER, config_timeout) &&
 							NULL != (pvalue = GET_TEXT_RESULT(&result)))
 					{
 						zbx_strcpy_alloc(value, value_alloc, &value_offset, *pvalue);
@@ -501,7 +502,7 @@ fail:
  * Purpose: process single discovery rule                                     *
  *                                                                            *
  ******************************************************************************/
-static void	process_rule(ZBX_DB_DRULE *drule)
+static void	process_rule(ZBX_DB_DRULE *drule, int config_timeout)
 {
 	ZBX_DB_DHOST		dhost;
 	int			host_status, now;
@@ -573,7 +574,7 @@ static void	process_rule(ZBX_DB_DRULE *drule)
 
 			zabbix_log(LOG_LEVEL_DEBUG, "%s() ip:'%s'", __func__, ip);
 
-			zbx_alarm_on(CONFIG_TIMEOUT);
+			zbx_alarm_on(config_timeout);
 			zbx_gethost_by_ip(ip, dns, sizeof(dns));
 			zbx_alarm_off();
 
@@ -748,7 +749,7 @@ out:
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);
 }
 
-static int	process_discovery(void)
+static int	process_discovery(int config_timeout)
 {
 	DB_RESULT		result;
 	DB_ROW			row;
@@ -809,7 +810,7 @@ static int	process_discovery(void)
 			drule.name = row[2];
 			ZBX_DBROW2UINT64(drule.unique_dcheckid, row[3]);
 
-			process_rule(&drule);
+			process_rule(&drule, config_timeout);
 		}
 
 		if (0 != (program_type & ZBX_PROGRAM_TYPE_SERVER))
@@ -914,7 +915,7 @@ ZBX_THREAD_ENTRY(discoverer_thread, args)
 
 		if ((int)sec >= nextcheck)
 		{
-			rule_count += process_discovery();
+			rule_count += process_discovery(discoverer_args_in->config_timeout);
 			total_sec += zbx_time() - sec;
 
 			if (FAIL == (nextcheck = get_minnextcheck()))

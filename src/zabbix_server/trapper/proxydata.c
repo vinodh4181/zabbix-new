@@ -126,7 +126,7 @@ static int	proxy_data_no_history(const struct zbx_json_parse *jp)
  *             ts   - [IN] the connection timestamp                           *
  *                                                                            *
  ******************************************************************************/
-void	zbx_recv_proxy_data(zbx_socket_t *sock, struct zbx_json_parse *jp, zbx_timespec_t *ts)
+void	zbx_recv_proxy_data(zbx_socket_t *sock, struct zbx_json_parse *jp, zbx_timespec_t *ts, int config_timeout)
 {
 	int			ret = FAIL, upload_status = 0, status, version, responded = 0;
 	char			*error = NULL;
@@ -207,7 +207,7 @@ out:
 		if (0 != (sock->protocol & ZBX_TCP_COMPRESS))
 			flags |= ZBX_TCP_COMPRESS;
 
-		zbx_send_response_ext(sock, ret, error, NULL, flags, CONFIG_TIMEOUT);
+		zbx_send_response_ext(sock, ret, error, NULL, flags, config_timeout);
 	}
 
 	zbx_free(error);
@@ -225,10 +225,10 @@ out:
  *                                                                            *
  ******************************************************************************/
 static int	send_data_to_server(zbx_socket_t *sock, char **buffer, size_t buffer_size, size_t reserved,
-		char **error)
+		int config_timeout, char **error)
 {
 	if (SUCCEED != zbx_tcp_send_ext(sock, *buffer, buffer_size, reserved, ZBX_TCP_PROTOCOL | ZBX_TCP_COMPRESS,
-			CONFIG_TIMEOUT))
+			config_timeout))
 	{
 		*error = zbx_strdup(*error, zbx_socket_strerror());
 		return FAIL;
@@ -236,7 +236,7 @@ static int	send_data_to_server(zbx_socket_t *sock, char **buffer, size_t buffer_
 
 	zbx_free(*buffer);
 
-	if (SUCCEED != zbx_recv_response(sock, CONFIG_TIMEOUT, error))
+	if (SUCCEED != zbx_recv_response(sock, config_timeout, error))
 		return FAIL;
 
 	return SUCCEED;

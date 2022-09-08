@@ -1138,10 +1138,11 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 	zbx_thread_args_t		thread_args;
 	zbx_thread_poller_args		poller_args = {zbx_config_tls, get_program_type, ZBX_NO_POLLER,
 							zbx_config_cfg->config_timeout};
-	zbx_thread_heart_args		heart_args = {zbx_config_tls, get_program_type};
+	zbx_thread_heart_args		heart_args = {zbx_config_tls, get_program_type, zbx_config_cfg->config_timeout};
 	zbx_thread_proxyconfig_args	proxyconfig_args = {zbx_config_tls, get_program_type,
 							zbx_config_cfg->config_timeout};
-	zbx_thread_datasender_args	datasender_args = {zbx_config_tls, get_program_type};
+	zbx_thread_datasender_args	datasender_args = {zbx_config_tls, get_program_type,
+							zbx_config_cfg->config_timeout};
 	zbx_thread_taskmanager_args	taskmanager_args = {zbx_config_tls, get_program_type,
 							zbx_config_cfg->config_timeout};
 	zbx_thread_discoverer_args	discoverer_args = {zbx_config_tls, get_program_type};
@@ -1243,7 +1244,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 		exit(EXIT_FAILURE);
 	}
 #endif
-	if (FAIL == zbx_load_modules(CONFIG_LOAD_MODULE_PATH, CONFIG_LOAD_MODULE, CONFIG_TIMEOUT, 1))
+	if (FAIL == zbx_load_modules(CONFIG_LOAD_MODULE_PATH, CONFIG_LOAD_MODULE, zbx_config_cfg->config_timeout, 1))
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "loading modules failed, exiting...");
 		exit(EXIT_FAILURE);

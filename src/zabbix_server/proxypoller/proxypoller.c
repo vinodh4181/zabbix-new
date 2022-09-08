@@ -151,7 +151,8 @@ static void	disconnect_proxy(zbx_socket_t *sock)
  *           protocol flags sent by proxy.                                    *
  *                                                                            *
  ******************************************************************************/
-static int	get_data_from_proxy(DC_PROXY *proxy, const char *request, char **data, zbx_timespec_t *ts)
+static int	get_data_from_proxy(DC_PROXY *proxy, const char *request, char **data, zbx_timespec_t *ts,
+		int config_timeout)
 {
 	zbx_socket_t	s;
 	struct zbx_json	j;
@@ -211,7 +212,7 @@ static int	get_data_from_proxy(DC_PROXY *proxy, const char *request, char **data
 						flags_response |= ZBX_TCP_COMPRESS;
 
 					zbx_send_response_ext(&s, FAIL, "Zabbix server shutdown in progress", NULL,
-							flags_response, CONFIG_TIMEOUT);
+							flags_response, config_timeout);
 
 					zabbix_log(LOG_LEVEL_WARNING, "cannot process proxy data from passive proxy at"
 							" \"%s\": Zabbix server shutdown in progress", s.peer);
@@ -420,7 +421,7 @@ out:
  *           properties.                                                      *
  *                                                                            *
  ******************************************************************************/
-static int	proxy_get_data(DC_PROXY *proxy, int *more)
+static int	proxy_get_data(DC_PROXY *proxy, int *more, int config_timeout)
 {
 	char		*answer = NULL;
 	int		ret;
@@ -428,7 +429,7 @@ static int	proxy_get_data(DC_PROXY *proxy, int *more)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	if (SUCCEED != (ret = get_data_from_proxy(proxy, ZBX_PROTO_VALUE_PROXY_DATA, &answer, &ts)))
+	if (SUCCEED != (ret = get_data_from_proxy(proxy, ZBX_PROTO_VALUE_PROXY_DATA, &answer, &ts, config_timeout)))
 		goto out;
 
 	/* handle pre 3.4 proxies that did not support proxy data request */
@@ -495,7 +496,7 @@ out:
  * Purpose: retrieve values of metrics from monitored hosts                   *
  *                                                                            *
  ******************************************************************************/
-static int	process_proxy(void)
+static int	process_proxy(int config_timeout)
 {
 	DC_PROXY		proxy, proxy_old;
 	int			num, i;
@@ -565,7 +566,7 @@ static int	process_proxy(void)
 					if (FAIL == zbx_hc_check_proxy(proxy.hostid))
 						break;
 
-					if (SUCCEED != (ret = proxy_get_data(&proxy, &more)))
+					if (SUCCEED != (ret = proxy_get_data(&proxy, &more, config_timeout)))
 						goto error;
 
 					check_tasks = 0;
@@ -645,7 +646,7 @@ ZBX_THREAD_ENTRY(proxypoller_thread, args)
 					old_processed, old_total_sec);
 		}
 
-		processed += process_proxy();
+		processed += process_proxy(proxy_poller_args_in->config_timeout);
 		total_sec += zbx_time() - sec;
 
 		nextcheck = DCconfig_get_proxypoller_nextcheck();

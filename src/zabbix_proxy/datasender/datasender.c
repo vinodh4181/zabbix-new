@@ -84,7 +84,7 @@ static void	get_hist_upload_state(const char *buffer, int *state)
  *                                                                            *
  ******************************************************************************/
 static int	proxy_data_sender(int *more, int now, int *hist_upload_state, time_t *last_conn_time,
-		const zbx_config_tls_t *zbx_config_tls)
+		const zbx_config_tls_t *zbx_config_tls, int config_timeout)
 {
 	static int		data_timestamp = 0, task_timestamp = 0, upload_state = SUCCEED;
 
@@ -187,7 +187,7 @@ static int	proxy_data_sender(int *more, int now, int *hist_upload_state, time_t 
 		update_selfmon_counter(ZBX_PROCESS_STATE_IDLE);
 
 		/* retry till have a connection */
-		if (FAIL == zbx_connect_to_server(&sock, CONFIG_SOURCE_IP, &zbx_addrs, 600, CONFIG_TIMEOUT,
+		if (FAIL == zbx_connect_to_server(&sock, CONFIG_SOURCE_IP, &zbx_addrs, 600, config_timeout,
 				CONFIG_PROXYDATA_FREQUENCY, LOG_LEVEL_WARNING, zbx_config_tls))
 		{
 			update_selfmon_counter(ZBX_PROCESS_STATE_BUSY);
@@ -331,7 +331,7 @@ ZBX_THREAD_ENTRY(datasender_thread, args)
 		do
 		{
 			records += proxy_data_sender(&more, (int)time_now, &hist_upload_state, &last_conn_time,
-					datasender_args_in->zbx_config_tls);
+					datasender_args_in->zbx_config_tls, datasender_args_in->config_timeout);
 
 			time_now = zbx_time();
 			time_diff = time_now - time_start;

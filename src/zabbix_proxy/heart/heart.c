@@ -34,9 +34,8 @@ extern ZBX_THREAD_LOCAL int		server_num, process_num;
 extern zbx_vector_ptr_t	zbx_addrs;
 extern char		*CONFIG_HOSTNAME;
 extern char		*CONFIG_SOURCE_IP;
-extern int		CONFIG_TIMEOUT;
 
-static int	send_heartbeat(const zbx_config_tls_t *zbx_config_tls)
+static int	send_heartbeat(const zbx_config_tls_t *zbx_config_tls, int config_timeout)
 {
 	zbx_socket_t		sock;
 	struct zbx_json		j;
@@ -60,7 +59,7 @@ static int	send_heartbeat(const zbx_config_tls_t *zbx_config_tls)
 	reserved = j.buffer_size;
 
 	if (FAIL == (ret = zbx_connect_to_server(&sock, CONFIG_SOURCE_IP, &zbx_addrs, CONFIG_HEARTBEAT_FREQUENCY,
-			CONFIG_TIMEOUT, 0, LOG_LEVEL_DEBUG, zbx_config_tls))) /* do not retry */
+			config_timeout, 0, LOG_LEVEL_DEBUG, zbx_config_tls))) /* do not retry */
 	{
 		goto clean;
 	}
@@ -126,7 +125,7 @@ ZBX_THREAD_ENTRY(heart_thread, args)
 		}
 
 		start = time(NULL);
-		res = send_heartbeat(heart_args_in->zbx_config_tls);
+		res = send_heartbeat(heart_args_in->zbx_config_tls, heart_args_in->config_timeout);
 		total_sec += zbx_time() - sec;
 
 		sleeptime = CONFIG_HEARTBEAT_FREQUENCY - (time(NULL) - start);
