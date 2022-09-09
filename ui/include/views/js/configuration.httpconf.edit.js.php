@@ -148,10 +148,16 @@
 		_update() {
 			const is_agent_disabled = document.getElementById('agent').value != ZBX_AGENT_OTHER;
 
-			[...document.querySelectorAll('.js-agent-other')].map(
-				(elem) => elem
-					.classList
-					.toggle(ZBX_STYLE_DISPLAY_NONE, is_agent_disabled)
+			[...document.querySelectorAll('.js-agent-other, #agent_other')].map(
+				(elem) => {
+					if (elem instanceof HTMLInputElement) {
+						elem.disabled = is_agent_disabled;
+					}
+
+					return elem
+						.classList
+						.toggle(ZBX_STYLE_DISPLAY_NONE, is_agent_disabled)
+				}
 			);
 
 			const is_auth_disabled = document.getElementById('authentication').value == HTTPTEST_AUTH_NONE;

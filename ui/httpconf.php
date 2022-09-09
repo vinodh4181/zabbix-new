@@ -476,9 +476,9 @@ if (isset($_REQUEST['form'])) {
 
 	if (hasRequest('httptestid')) {
 		$db_httptests = API::HttpTest()->get([
-			'output' => ['name', 'delay', 'retries', 'status', 'agent', 'authentication',
-				'http_user', 'http_password', 'http_proxy', 'templateid', 'verify_peer', 'verify_host', 'ssl_cert_file',
-				'ssl_key_file', 'ssl_key_password', 'headers', 'variables'
+			'output' => ['name', 'delay', 'retries', 'status', 'agent', 'authentication', 'http_user', 'http_password',
+				'http_proxy', 'templateid', 'verify_peer', 'verify_host', 'ssl_cert_file','ssl_key_file',
+				'ssl_key_password', 'headers', 'variables'
 			],
 			'selectSteps' => ['httpstepid', 'name', 'no', 'url', 'timeout', 'posts', 'required', 'status_codes',
 				'follow_redirects', 'retrieve_mode', 'headers', 'variables', 'query_fields', 'post_type'
