@@ -953,7 +953,7 @@ class testInitialConfSync extends CIntegrationTest
 	}
 
 	/**
-	 * Component configuration provider for agent related tests.
+	 * Component configuration provider for server related tests.
 	 *
 	 * @return array
 	 */
@@ -963,6 +963,11 @@ class testInitialConfSync extends CIntegrationTest
 			self::COMPONENT_SERVER => [
 				'LogFileSize' => 0,
 				'DebugLevel' => 4,
+				'Vault' => 'CyberArk',
+				'VaultURL' => 'https://127.0.0.1:1858',
+				'VaultDBPath' => 'zabbix_server&Query => Safe => passwordSafe;Object => zabbix_server_database',
+				'VaultTLSCertFile' => 'cert.pem',
+				'VaultTLSKeyFile' => 'key.pem',
 			]
 		];
 	}
@@ -970,11 +975,10 @@ class testInitialConfSync extends CIntegrationTest
 	private function parseSyncResults()
 	{
 		$log = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
+		var_dump($log);
 		$data = explode("\n", $log);
 
 		$sync_lines = preg_grep('/DCsync_configuration.*\([0-9]+\/[0-9]+\/[0-9]+\)\.$/', $data);
-		var_dump("sync_lines");
-		var_dump($sync_lines);
 
 		$sync_lines1 = preg_replace(
 			[
@@ -986,8 +990,6 @@ class testInitialConfSync extends CIntegrationTest
 			"",
 			$sync_lines
 		);
-		var_dump("sync_lines1");
-		var_dump($sync_lines1);
 
 		$sync_lines2 = preg_replace(
 			[
@@ -1000,8 +1002,6 @@ class testInitialConfSync extends CIntegrationTest
 			],
 			$sync_lines1
 		);
-		var_dump("sync_lines2");
-		var_dump($sync_lines2);
 
 		$results = [];
 
