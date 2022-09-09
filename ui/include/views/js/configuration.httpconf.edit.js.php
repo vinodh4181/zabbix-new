@@ -228,7 +228,7 @@
 
 			this.tableHandler(container);
 
-			if (!(this.templated > 0)) {
+			if (!this.templated) {
 				jQuery(container)
 					.sortable({
 						items: 'tbody tr.sortable',
@@ -247,7 +247,7 @@
 		}
 
 		tableHandler(container) {
-			const templated = this.templated > 0;
+			const templated = this.templated;
 			const tmpl = templated ? '#scenario-step-row-templated-tmpl' : '#scenario-step-row-tmpl';
 			const conainer_row = container.querySelector('tbody tr');
 
@@ -323,8 +323,28 @@
 			overlay.$dialogue[0].addEventListener('dialogue.submit', this.savePopup.bind(this));
 		}
 
+		openPopup(index, trigger_element) {
+			const data = this.steps.hasOwnProperty(index - 1)
+				? {...this.steps[index - 1], ...{
+						no: index, templated: this.templated ? 1 : 0, steps_names: this.getStepNames()
+					}}
+				: {steps_names: this.getStepNames()};
+
+			if (this.steps.hasOwnProperty(index - 1)) {
+				data.old_name = data.name;
+			}
+
+			return PopUp('popup.httpstep', data,
+				{
+					dialogueid: 'http_step_edit',
+					dialogue_class: 'modal-popup-generic',
+					trigger_element
+				}
+			);
+		}
+
 		savePopup(e) {
-			const tmpl = this.templated > 0 ? '#scenario-step-row-templated-tmpl' : '#scenario-step-row-tmpl';
+			const tmpl = this.templated ? '#scenario-step-row-templated-tmpl' : '#scenario-step-row-tmpl';
 			const container = document.querySelector('.httpconf-steps-dynamic-row tbody tr:last-child');
 
 			e.detail.httpstepid = 0;
@@ -355,24 +375,6 @@
 			this.steps.map((value) => names.push(value.name));
 
 			return names;
-		}
-
-		openPopup(index, trigger_element) {
-			const data = this.steps.hasOwnProperty(index - 1)
-				? {...this.steps[index - 1], ...{no: index, templated: this.templated, steps_names: this.getStepNames()}}
-				: {steps_names: this.getStepNames()};
-
-			if (this.steps.hasOwnProperty(index - 1)) {
-				data.old_name = data.name;
-			}
-
-			return PopUp('popup.httpstep', data,
-				{
-					dialogueid: 'http_step_edit',
-					dialogue_class: 'modal-popup-generic',
-					trigger_element
-				}
-			);
 		}
 
 		stepSortOrderUpdate() {

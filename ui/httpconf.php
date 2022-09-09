@@ -539,7 +539,7 @@ if (isset($_REQUEST['form'])) {
 		$data['http_user'] = $db_httptest['http_user'];
 		$data['http_password'] = $db_httptest['http_password'];
 		$data['http_proxy'] = $db_httptest['http_proxy'];
-		$data['templated'] = $db_httptest['templateid'];
+		$data['templated'] = (bool) $db_httptest['templateid'];
 
 		$data['verify_peer'] = $db_httptest['verify_peer'];
 		$data['verify_host'] = $db_httptest['verify_host'];
