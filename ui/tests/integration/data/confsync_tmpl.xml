@@ -1,8 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>6.4</version>
-    <date>2022-08-09T14:26:28Z</date>
+    <date>2022-09-12T13:32:57Z</date>
+    <template_groups>
+        <template_group>
+            <uuid>bb17447fffe04b7784ddbd77b209c05a</uuid>
+            <name>Template/Test</name>
+        </template_group>
+    </template_groups>
     <templates>
+        <template>
+            <uuid>17ecce4a1f2b4d739586ad1d6e717812</uuid>
+            <template>bbbtmpl</template>
+            <name>bbbtmpl</name>
+            <templates>
+                <template>
+                    <name>SampleTemplate</name>
+                </template>
+            </templates>
+            <groups>
+                <group>
+                    <name>Template/Test</name>
+                </group>
+            </groups>
+            <macros>
+                <macro>
+                    <macro>{$CHLDTMPLMACRO}</macro>
+                    <value>1</value>
+                </macro>
+            </macros>
+        </template>
         <template>
             <uuid>501966b8aa284d1caf393a02bb81d535</uuid>
             <template>SampleTemplate</template>
@@ -51,6 +78,52 @@
                             </condition>
                         </conditions>
                     </filter>
+                    <item_prototypes>
+                        <item_prototype>
+                            <uuid>f988e57fcdc541668c3c32919d3cfa60</uuid>
+                            <name>DepItemProtoDependsOnNormalItem</name>
+                            <type>DEPENDENT</type>
+                            <key>depitemproto_deponnormal</key>
+                            <delay>0</delay>
+                            <master_item>
+                                <key>tmpltrap</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <uuid>ebc83aff113846518d3e1c88532274e1</uuid>
+                                    <expression>last(/SampleTemplate/depitemproto_deponnormal)=0</expression>
+                                    <name>proto_dep {#LLDMACRO}</name>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>proto {#LLDMACRO}</name>
+                                            <expression>last(/SampleTemplate/depitemproto_deponnormal)=1</expression>
+                                        </dependency>
+                                    </dependencies>
+                                    <tags>
+                                        <tag>
+                                            <tag>xxx</tag>
+                                            <value>yyyy</value>
+                                        </tag>
+                                    </tags>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <uuid>6032b6444698467c8f41587858f089e5</uuid>
+                                    <expression>last(/SampleTemplate/depitemproto_deponnormal)=1</expression>
+                                    <name>proto {#LLDMACRO}</name>
+                                    <tags>
+                                        <tag>
+                                            <tag>AAA</tag>
+                                            <value>bbb</value>
+                                        </tag>
+                                        <tag>
+                                            <tag>CCC</tag>
+                                            <value>ddd</value>
+                                        </tag>
+                                    </tags>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
                     <lld_macro_paths>
                         <lld_macro_path>
                             <lld_macro>{#LLDMACRO}</lld_macro>
@@ -82,11 +155,16 @@
                         <step>
                             <name>StepWSTmpl</name>
                             <url>localhost</url>
-                            <follow_redirects>YES</follow_redirects>
                         </step>
                     </steps>
                 </httptest>
             </httptests>
+            <macros>
+                <macro>
+                    <macro>{$PRNTTMPLMACRO}</macro>
+                    <value>2</value>
+                </macro>
+            </macros>
         </template>
     </templates>
 </zabbix_export>
