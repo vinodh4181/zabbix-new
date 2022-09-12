@@ -357,7 +357,7 @@ func ProcessLogCheck(data unsafe.Pointer, item *LogItem, refresh int, cblob unsa
 	cprepVec := C.new_prep_vec() // In Agent2 it is always empty vector. Not used but required for linking.
 	ret := C.process_log_check(nil, C.zbx_vector_ptr_lp_t(unsafe.Pointer(result)), C.zbx_vector_ptr_lp_t(cblob),
 		C.ZBX_ACTIVE_METRIC_LP(data), C.zbx_process_value_func_t(C.process_value_cb), &clastLogsizeSent,
-		&cmtimeSent, &cerrmsg, cprepVec, ctlsConfig_p)
+		&cmtimeSent, &cerrmsg, cprepVec, ctlsConfig_p, config_timeout)
 
 	C.free_prep_vec(cprepVec)
 
