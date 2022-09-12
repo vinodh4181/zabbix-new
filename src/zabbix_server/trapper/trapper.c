@@ -1107,7 +1107,7 @@ static int	process_trap(zbx_socket_t *sock, char *s, ssize_t bytes_received, zbx
 		{
 			if (0 != (program_type & ZBX_PROGRAM_TYPE_SERVER))
 			{
-				send_proxyconfig(sock, &jp);
+				send_proxyconfig(sock, &jp, config_timeout);
 			}
 			else if (0 != (program_type & ZBX_PROGRAM_TYPE_PROXY_PASSIVE))
 			{
@@ -1147,7 +1147,7 @@ static int	process_trap(zbx_socket_t *sock, char *s, ssize_t bytes_received, zbx
 			else if (0 == strcmp(value, ZBX_PROTO_VALUE_PROXY_TASKS))
 			{
 				if (0 != (program_type & ZBX_PROGRAM_TYPE_PROXY_PASSIVE))
-					zbx_send_task_data(sock, ts, zbx_config_tls);
+					zbx_send_task_data(sock, ts, zbx_config_tls, config_timeout);
 			}
 			else if (0 == strcmp(value, ZBX_PROTO_VALUE_PROXY_DATA))
 			{

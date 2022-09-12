@@ -466,7 +466,7 @@ out:
  *           properties.                                                      *
  *                                                                            *
  ******************************************************************************/
-static int	proxy_get_tasks(DC_PROXY *proxy)
+static int	proxy_get_tasks(DC_PROXY *proxy, int config_timeout)
 {
 	char		*answer = NULL;
 	int		ret = FAIL, more;
@@ -477,7 +477,7 @@ static int	proxy_get_tasks(DC_PROXY *proxy)
 	if (ZBX_COMPONENT_VERSION(3, 2) >= proxy->version)
 		goto out;
 
-	if (SUCCEED != (ret = get_data_from_proxy(proxy, ZBX_PROTO_VALUE_PROXY_TASKS, &answer, &ts)))
+	if (SUCCEED != (ret = get_data_from_proxy(proxy, ZBX_PROTO_VALUE_PROXY_TASKS, &answer, &ts, config_timeout)))
 		goto out;
 
 	proxy->lastaccess = time(NULL);
@@ -576,7 +576,7 @@ static int	process_proxy(int config_timeout)
 
 			if (1 == check_tasks)
 			{
-				if (SUCCEED != (ret = proxy_get_tasks(&proxy)))
+				if (SUCCEED != (ret = proxy_get_tasks(&proxy, config_timeout)))
 					goto error;
 			}
 		}
