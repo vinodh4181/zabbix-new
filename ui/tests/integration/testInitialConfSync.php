@@ -1311,21 +1311,21 @@ class testInitialConfSync extends CIntegrationTest
 	private function createGlobalMacros()
 	{
 		$response = $this->call('usermacro.createglobal', [
-			'macro' => 'GLOBDELAY',
+			'macro' => '{$GLOBDELAY}',
 			'value' => '1'
 		]);
 		$this->assertArrayHasKey('result', $response);
 		$this->assertArrayHasKey('globalmacroids', $response['result']);
 
 		$response = $this->call('usermacro.createglobal', [
-			'macro' => 'CHLDTMPLMACRO',
+			'macro' => '{$CHLDTMPLMACRO}',
 			'value' => '2'
 		]);
 		$this->assertArrayHasKey('result', $response);
 		$this->assertArrayHasKey('globalmacroids', $response['result']);
 
 		$response = $this->call('usermacro.createglobal', [
-			'macro' => 'PRNTTMPLMACRO',
+			'macro' => '{$PRNTTMPLMACRO}',
 			'value' => '3'
 		]);
 		$this->assertArrayHasKey('result', $response);
