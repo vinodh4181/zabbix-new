@@ -18,6 +18,7 @@
 **/
 
 #include "zbxsysinfo.h"
+#include "sysinfo.h"
 #include "alias/alias.h"
 
 #include "log.h"
@@ -2092,7 +2093,7 @@ int	hostname_handle_params(AGENT_REQUEST *request, AGENT_RESULT *result, char *h
 
 static get_config_timeout_f	get_config_timeout_cb = NULL;
 
-void	sysinfo_set_config_timeout(get_config_timeout_f
+void	zbx_sysinfo_set_config_timeout(get_config_timeout_f
 		get_config_timeout_cb_arg)
 {
 	get_config_timeout_cb = get_config_timeout_cb_arg;
