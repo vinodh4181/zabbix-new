@@ -965,9 +965,6 @@ class testInitialConfSync extends CIntegrationTest
 				'DebugLevel' => 4,
 				'Vault' => 'CyberArk',
 				'VaultURL' => 'https://127.0.0.1:1858',
-				'VaultDBPath' => 'zabbix_server&Query => Safe => passwordSafe;Object => zabbix_server_database',
-				'VaultTLSCertFile' => 'cert.pem',
-				'VaultTLSKeyFile' => 'key.pem',
 			]
 		];
 	}
