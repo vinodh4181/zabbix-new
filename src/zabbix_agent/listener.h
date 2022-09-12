@@ -29,6 +29,7 @@ typedef struct
 	zbx_config_tls_t	*zbx_config_tls;
 	zbx_get_program_type_f	zbx_get_program_type_cb_arg;
 	int			config_timeout;
+	const char		*config_file;
 }
 zbx_thread_listener_args;
 

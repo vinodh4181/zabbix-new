@@ -758,6 +758,7 @@ static int	add_serveractive_host_cb(const zbx_vector_ptr_t *addrs, zbx_vector_st
 		config_active_args[forks].zbx_config_tls = zbx_config_tls;
 		config_active_args[forks].zbx_get_program_type_cb_arg = get_program_type;
 		config_active_args[forks].config_timeout = zbx_config_cfg->config_timeout;
+		config_active_args[forks].config_file = zbx_config_cfg->config_file;
 	}
 
 	return SUCCEED;
@@ -1231,7 +1232,9 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 	{
 		zbx_thread_args_t		*thread_args;
 		zbx_thread_listener_args	listener_args = {&listen_sock, zbx_config_tls, get_program_type,
-								zbx_config_cfg->config_timeout};
+								zbx_config_cfg->config_timeout,
+								zbx_config_cfg->config_file};
+
 		thread_args = (zbx_thread_args_t *)zbx_malloc(NULL, sizeof(zbx_thread_args_t));
 
 		if (FAIL == get_process_info_by_thread(i + 1, &thread_args->process_type, &thread_args->process_num))

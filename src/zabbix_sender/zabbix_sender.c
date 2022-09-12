@@ -1013,8 +1013,11 @@ static void	parse_commandline(int argc, char **argv)
 		switch (ch)
 		{
 			case 'c':
-				if (NULL == CONFIG_FILE)
-					CONFIG_FILE = zbx_strdup(CONFIG_FILE, zbx_optarg);
+				if (NULL == zbx_config_cfg->config_file)
+				{
+					zbx_config_cfg->config_file = zbx_strdup(zbx_config_cfg->config_file,
+							zbx_optarg);
+				}
 				break;
 			case 'h':
 				zbx_help();
@@ -1505,8 +1508,8 @@ int	main(int argc, char **argv)
 
 	parse_commandline(argc, argv);
 
-	if (NULL != CONFIG_FILE)
-		zbx_load_config(CONFIG_FILE);
+	if (NULL != zbx_config_cfg->config_file)
+		zbx_load_config(zbx_config_cfg->config_file);
 #ifndef _WINDOWS
 	if (SUCCEED != zbx_locks_create(&error))
 	{
