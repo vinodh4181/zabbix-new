@@ -94,9 +94,10 @@ ZBX_THREAD_ENTRY(trigger_housekeeper_thread, args)
 	int					deleted;
 	double					sec;
 	zbx_ipc_async_socket_t			rtc;
-	zbx_thread_trigger_housekeeper_args	*trigger_housekeeper_args_in;
+	zbx_thread_server_trigger_housekeeper_args	*trigger_housekeeper_args_in;
 
-	trigger_housekeeper_args_in = (zbx_thread_housekeeper_args *)((((zbx_thread_args_t *)args))->args);
+	trigger_housekeeper_args_in = (zbx_thread_server_trigger_housekeeper_args *)
+			((((zbx_thread_args_t *)args))->args);
 	process_type = ((zbx_thread_args_t *)args)->process_type;
 	server_num = ((zbx_thread_args_t *)args)->server_num;
 	process_num = ((zbx_thread_args_t *)args)->process_num;

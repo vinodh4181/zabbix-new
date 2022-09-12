@@ -27,7 +27,7 @@ typedef struct
 	zbx_get_program_type_f	zbx_get_program_type_cb_arg;
 	int			config_timeout;
 }
-zbx_thread_trigger_housekeeper_args;
+zbx_thread_server_trigger_housekeeper_args;
 
 ZBX_THREAD_ENTRY(trigger_housekeeper_thread, args);
 

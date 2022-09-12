@@ -1122,9 +1122,9 @@ ZBX_THREAD_ENTRY(housekeeper_thread, args)
 	double			sec, time_slept, time_now;
 	char			sleeptext[25];
 	zbx_ipc_async_socket_t	rtc;
-	zbx_thread_housekeeper_args	housekeeper_args_in;
+	zbx_thread_server_housekeeper_args	*housekeeper_args_in;
 
-	housekeeper_args_in = (zbx_thread_housekeeper_args *)((((zbx_thread_args_t *)args))->args);
+	housekeeper_args_in = (zbx_thread_server_housekeeper_args *)((((zbx_thread_args_t *)args))->args);
 	process_type = ((zbx_thread_args_t *)args)->process_type;
 	server_num = ((zbx_thread_args_t *)args)->server_num;
 	process_num = ((zbx_thread_args_t *)args)->process_num;

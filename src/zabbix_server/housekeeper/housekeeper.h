@@ -25,6 +25,13 @@
 extern int	CONFIG_HOUSEKEEPING_FREQUENCY;
 extern int	CONFIG_MAX_HOUSEKEEPER_DELETE;
 
+typedef struct
+{
+	zbx_get_program_type_f  zbx_get_program_type_cb_arg;
+	int                     config_timeout;
+}
+zbx_thread_server_housekeeper_args;
+
 ZBX_THREAD_ENTRY(housekeeper_thread, args);
 
 #endif
