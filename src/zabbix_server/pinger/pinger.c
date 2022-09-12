@@ -564,14 +564,14 @@ ZBX_THREAD_ENTRY(pinger_thread, args)
 
 		zbx_setproctitle("%s #%d [getting values]", get_process_type_string(process_type), process_num);
 
-		get_pinger_hosts(&items, &items_alloc, &items_count);
+		get_pinger_hosts(&items, &items_alloc, &items_count, pinger_args_in->config_timeout);
 		process_pinger_hosts(items, items_count);
 		sec = zbx_time() - sec;
 		itc = items_count;
 
 		free_hosts(&items, &items_count);
 
-		nextcheck = DCconfig_get_poller_nextcheck(ZBX_POLLER_TYPE_PINGER, pinger_args_in->config_timeout);
+		nextcheck = DCconfig_get_poller_nextcheck(ZBX_POLLER_TYPE_PINGER);
 		sleeptime = zbx_calculate_sleeptime(nextcheck, POLLER_DELAY);
 
 		zbx_setproctitle("%s #%d [got %d values in " ZBX_FS_DBL " sec, idle %d sec]",

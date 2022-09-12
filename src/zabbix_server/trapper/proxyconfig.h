@@ -26,6 +26,7 @@
 extern int	CONFIG_TRAPPER_TIMEOUT;
 
 void	send_proxyconfig(zbx_socket_t *sock, struct zbx_json_parse *jp, int config_timeout);
-void	recv_proxyconfig(zbx_socket_t *sock, struct zbx_json_parse *jp, const zbx_config_tls_t *zbx_config_tls);
+void	recv_proxyconfig(zbx_socket_t *sock, struct zbx_json_parse *jp, const zbx_config_tls_t *zbx_config_tls,
+		int config_timeout);
 
 #endif

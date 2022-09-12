@@ -722,7 +722,7 @@ void	zbx_check_items(DC_ITEM *items, int *errcodes, int num, AGENT_RESULT *resul
 	else if (ITEM_TYPE_JMX == items[0].type)
 	{
 		zbx_alarm_on(config_timeout);
-		get_values_java(ZBX_JAVA_GATEWAY_REQUEST_JMX, items, results, errcodes, num);
+		get_values_java(ZBX_JAVA_GATEWAY_REQUEST_JMX, items, results, errcodes, num, config_timeout);
 		zbx_alarm_off();
 	}
 	else if (1 == num)
@@ -986,7 +986,7 @@ ZBX_THREAD_ENTRY(poller_thread, args)
 	zbx_rtc_subscribe(&rtc, process_type, process_num, poller_args_in->config_timeout);
 
 	while (ZBX_IS_RUNNING())
-	poller_args_in->{
+	{
 		zbx_uint32_t	rtc_cmd;
 		unsigned char	*rtc_data;
 

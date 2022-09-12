@@ -226,7 +226,8 @@ static int	get_hostid_by_host(const zbx_socket_t *sock, const char *host, const 
 		if (SUCCEED == DCis_autoreg_host_changed(host, port, host_metadata, flag, interface, (int)time(NULL),
 				heartbeat))
 		{
-			db_register_host(host, ip, port, sock->connection_type, host_metadata, flag, interface);
+			db_register_host(host, ip, port, sock->connection_type, host_metadata, flag, interface,
+					config_timeout);
 		}
 	}
 
@@ -517,7 +518,7 @@ int	send_list_of_active_checks_json(zbx_socket_t *sock, struct zbx_json_parse *j
 	}
 
 	if (FAIL == get_hostid_by_host(sock, host, ip, port, host_metadata, flag, interface, &hostid, &revision,
-			error))
+			config_timeout, error))
 	{
 		goto error;
 	}

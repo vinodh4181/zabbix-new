@@ -1519,7 +1519,7 @@ fail:
 						ZBX_SCRIPT_TYPE_WEBHOOK == script.type)
 				{
 					rc = zbx_script_execute(&script, &host, webhook_params_json, config_timeout,
-							NULL, config_timeout, error, sizeof(error), NULL);
+							NULL, error, sizeof(error), NULL);
 					status = ALERT_STATUS_SENT;
 				}
 				else
