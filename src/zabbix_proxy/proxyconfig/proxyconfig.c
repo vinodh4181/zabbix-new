@@ -179,7 +179,7 @@ ZBX_THREAD_ENTRY(proxyconfig_thread, args)
 	zbx_setproctitle("%s [syncing configuration]", get_process_type_string(process_type));
 	DCsync_configuration(ZBX_DBSYNC_INIT, ZBX_SYNCED_NEW_CONFIG_NO);
 
-	zbx_rtc_notify_config_sync(&rtc);
+	zbx_rtc_notify_config_sync(&rtc, proxyconfig_args_in->config_timeout);
 
 	sleeptime = (ZBX_PROGRAM_TYPE_PROXY_PASSIVE == program_type ? ZBX_IPC_WAIT_FOREVER : 0);
 
@@ -211,7 +211,7 @@ ZBX_THREAD_ENTRY(proxyconfig_thread, args)
 				DCsync_configuration(ZBX_DBSYNC_UPDATE, synced);
 				synced = ZBX_SYNCED_NEW_CONFIG_YES;
 				DCupdate_interfaces_availability();
-				zbx_rtc_notify_config_sync(&rtc);
+				zbx_rtc_notify_config_sync(&rtc, proxyconfig_args_in->config_timeout);
 
 				zbx_setproctitle("%s [synced config in " ZBX_FS_DBL " sec]",
 						get_process_type_string(process_type), zbx_time() - sec);

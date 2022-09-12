@@ -79,11 +79,6 @@ static int	get_config_timeout(void)
 	return zbx_config_cfg->config_timeout;
 }
 
-static unsigned char	get_program_type(void)
-{
-	return program_type;
-}
-
 int	CONFIG_TCP_MAX_BACKLOG_SIZE	= SOMAXCONN;
 
 int	CONFIG_HEARTBEAT_FREQUENCY	= 60;
@@ -361,8 +356,8 @@ static int	parse_commandline(int argc, char **argv, ZBX_TASK_EX *t)
 		switch (ch)
 		{
 			case 'c':
-				if (NULL == zbx_config_cfg->CONFIG_FILE)
-					zbx_config_cfg->CONFIG_FILE = strdup(zbx_optarg);
+				if (NULL == zbx_config_cfg->config_file)
+					zbx_config_cfg->config_file = strdup(zbx_optarg);
 				break;
 #ifndef _WINDOWS
 			case 'R':
@@ -540,13 +535,13 @@ static int	parse_commandline(int argc, char **argv, ZBX_TASK_EX *t)
 		goto out;
 	}
 
-	if (NULL == zbx_config_cfg->CONFIG_FILE)
-		zbx_config_cfg->CONFIG_FILE = zbx_strdup(NULL, DEFAULT_CONFIG_FILE);
+	if (NULL == zbx_config_cfg->config_file)
+		zbx_config_cfg->config_file = zbx_strdup(NULL, DEFAULT_CONFIG_FILE);
 out:
 	if (FAIL == ret)
 	{
 		zbx_free(TEST_METRIC);
-		zbx_free(zbx_config_cfg->CONFIG_FILE);
+		zbx_free(zbx_config_cfg->config_file);
 	}
 
 	return ret;
@@ -610,8 +605,11 @@ static void	set_defaults(void)
 	if (NULL == CONFIG_PID_FILE)
 		CONFIG_PID_FILE = (char *)"/tmp/zabbix_agentd.pid";
 #endif
-	if (NULL == zbx_config_cfg->CONFIG_LOG_TYPE_STR)
-		zbx_config_cfg->CONFIG_LOG_TYPE_STR = zbx_strdup(NFIG_LOG_TYPE_STR, ZBX_OPTION_LOGTYPE_FILE);
+	if (NULL == zbx_config_cfg->config_log_type_str)
+	{
+		zbx_config_cfg->config_log_type_str = zbx_strdup(zbx_config_cfg->config_log_type_str,
+				ZBX_OPTION_LOGTYPE_FILE);
+	}
 }
 
 /******************************************************************************
@@ -909,7 +907,7 @@ static void	zbx_load_config(int requirement, ZBX_TASK_EX *task)
 			PARM_OPT,	0,			0},
 		{"LoadModule",			&CONFIG_LOAD_MODULE,			TYPE_MULTISTRING,
 			PARM_OPT,	0,			0},
-		{"AllowRoot",			&zbx_config_cfg->CONFIG_ALLOW_ROOT,			TYPE_INT,
+		{"AllowRoot",			&zbx_config_cfg->config_allow_root,	TYPE_INT,
 			PARM_OPT,	0,			1},
 		{"User",			&CONFIG_USER,				TYPE_STRING,
 			PARM_OPT,	0,			0},
@@ -976,13 +974,13 @@ static void	zbx_load_config(int requirement, ZBX_TASK_EX *task)
 	zbx_strarr_init(&CONFIG_PERF_COUNTERS);
 	zbx_strarr_init(&CONFIG_PERF_COUNTERS_EN);
 #endif
-	parse_cfg_file(zbx_config_cfg->CONFIG_FILE, cfg, requirement, ZBX_CFG_STRICT, ZBX_CFG_EXIT_FAILURE);
+	parse_cfg_file(zbx_config_cfg->config_file, cfg, requirement, ZBX_CFG_STRICT, ZBX_CFG_EXIT_FAILURE);
 
 	finalize_key_access_rules_configuration();
 
 	set_defaults();
 
-	zbx_config_cfg->CONFIG_LOG_TYPE = zbx_get_log_type(zbx_config_cfg->CONFIG_LOG_TYPE_STR);
+	zbx_config_cfg->config_log_type = zbx_get_log_type(zbx_config_cfg->config_log_type_str);
 
 	zbx_vector_str_create(&hostnames);
 	parse_hostnames(CONFIG_HOSTNAMES, &hostnames);
@@ -1116,7 +1114,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 		exit(EXIT_FAILURE);
 	}
 #endif
-	if (SUCCEED != zabbix_open_log(zbx_config_cfg->CONFIG_LOG_TYPE, CONFIG_LOG_LEVEL,
+	if (SUCCEED != zabbix_open_log(zbx_config_cfg->config_log_type, CONFIG_LOG_LEVEL,
 			zbx_config_cfg->config_log_file, zbx_config_cfg->config_log_file_size, &error))
 	{
 		zbx_error("cannot open log: %s", error);
@@ -1143,7 +1141,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 	zabbix_log(LOG_LEVEL_INFORMATION, "TLS support:           " TLS_FEATURE_STATUS);
 	zabbix_log(LOG_LEVEL_INFORMATION, "**************************");
 
-	zabbix_log(LOG_LEVEL_INFORMATION, "using configuration file: %s", zbx_config_cfg->CONFIG_FILE);
+	zabbix_log(LOG_LEVEL_INFORMATION, "using configuration file: %s", zbx_config_cfg->config_file);
 
 #if !defined(_WINDOWS) && (defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL))
 	if (SUCCEED != zbx_coredump_disable())
@@ -1514,7 +1512,7 @@ int	main(int argc, char **argv)
 #if defined(ZABBIX_SERVICE)
 	service_start(t.flags);
 #elif defined(ZABBIX_DAEMON)
-	zbx_daemon_start(zbx_config_cfg->CONFIG_ALLOW_ROOT, CONFIG_USER, t.flags, get_pid_file_path, zbx_on_exit,
+	zbx_daemon_start(zbx_config_cfg->config_allow_root, CONFIG_USER, t.flags, get_pid_file_path, zbx_on_exit,
 			zbx_config_cfg->config_log_type, zbx_config_cfg->config_log_file);
 #endif
 	exit(EXIT_SUCCESS);

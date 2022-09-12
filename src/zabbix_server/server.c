@@ -896,7 +896,7 @@ static void	zbx_load_config(ZBX_TASK_EX *task)
 			PARM_OPT,	256 * ZBX_KIBIBYTE,	__UINT64_C(2) * ZBX_GIBIBYTE},
 		{"VMwareTimeout",		&CONFIG_VMWARE_TIMEOUT,			TYPE_INT,
 			PARM_OPT,	1,			300},
-		{"AllowRoot",			&CONFIG_ALLOW_ROOT,			TYPE_INT,
+		{"AllowRoot",			&zbx_config_cfg->config_allow_root,	TYPE_INT,
 			PARM_OPT,	0,			1},
 		{"User",			&CONFIG_USER,				TYPE_STRING,
 			PARM_OPT,	0,			0},
@@ -1184,8 +1184,8 @@ int	main(int argc, char **argv)
 		exit(SUCCEED == ret ? EXIT_SUCCESS : EXIT_FAILURE);
 	}
 
-	return zbx_daemon_start(CONFIG_ALLOW_ROOT, CONFIG_USER, t.flags, get_pid_file_path, zbx_on_exit,
-			zbx_config_cfg->config_log_type, zbx_config_cfg->config_log_file);
+	return zbx_daemon_start(zbx_config_cfg->config_allow_root, CONFIG_USER, t.flags, get_pid_file_path,
+			zbx_on_exit, zbx_config_cfg->config_log_type, zbx_config_cfg->config_log_file);
 }
 
 static void	zbx_check_db(void)
@@ -1275,6 +1275,8 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 							zbx_config_cfg->config_timeout};
 	zbx_thread_dbconfig_args	dbconfig_args = {get_program_type, zbx_config_cfg->config_timeout};
 	zbx_thread_pinger_args		pinger_args = {get_program_type, zbx_config_cfg->config_timeout};
+
+	zbx_thread_ipmi_manager_args	ipmi_manager_args = {get_program_type, zbx_config_cfg->config_timeout};
 
 	if (SUCCEED != init_database_cache(&error))
 	{
@@ -1473,6 +1475,7 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 				break;
 #ifdef HAVE_OPENIPMI
 			case ZBX_PROCESS_TYPE_IPMIMANAGER:
+				thread_args.args = &ipmi_manager_args;
 				zbx_thread_start(ipmi_manager_thread, &thread_args, &threads[i]);
 				break;
 			case ZBX_PROCESS_TYPE_IPMIPOLLER:

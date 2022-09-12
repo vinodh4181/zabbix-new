@@ -743,14 +743,15 @@ static void	ipmi_manager_schedule_request(zbx_ipmi_manager_t *manager, zbx_uint6
  * Return value: The number of requests scheduled.                            *
  *                                                                            *
  ******************************************************************************/
-static int	ipmi_manager_schedule_requests(zbx_ipmi_manager_t *manager, int now, int *nextcheck)
+static int	ipmi_manager_schedule_requests(zbx_ipmi_manager_t *manager, int now, int *nextcheck,
+		int config_timeout)
 {
 	int			i, num;
 	DC_ITEM			items[MAX_POLLER_ITEMS];
 	zbx_ipmi_request_t	*request;
 	char			*error = NULL;
 
-	num = DCconfig_get_ipmi_poller_items(now, items, MAX_POLLER_ITEMS, nextcheck);
+	num = DCconfig_get_ipmi_poller_items(now, items, MAX_POLLER_ITEMS, nextcheck, config_timeout);
 
 	for (i = 0; i < num; i++)
 	{
@@ -951,12 +952,15 @@ ZBX_THREAD_ENTRY(ipmi_manager_thread, args)
 	double			time_stat, time_idle = 0, time_now, sec;
 	zbx_timespec_t		timeout = {0, 0};
 
+	zbx_thread_ipmi_manager_args    	ipmi_manager_args_in;
+
 #define	STAT_INTERVAL	5	/* if a process is busy and does not sleep then update status not faster than */
 				/* once in STAT_INTERVAL seconds */
 
 	process_type = ((zbx_thread_args_t *)args)->process_type;
 	server_num = ((zbx_thread_args_t *)args)->server_num;
 	process_num = ((zbx_thread_args_t *)args)->process_num;
+	ipmi_manager_args_in = (zbx_thread_ipmi_manager_args *)((((zbx_thread_args_t *)args))->args);
 
 	zbx_setproctitle("%s #%d starting", get_process_type_string(process_type), process_num);
 
@@ -1000,7 +1004,8 @@ ZBX_THREAD_ENTRY(ipmi_manager_thread, args)
 		}
 
 		/* manager -> client */
-		scheduled_num += ipmi_manager_schedule_requests(&ipmi_manager, now, &nextcheck);
+		scheduled_num += ipmi_manager_schedule_requests(&ipmi_manager, now, &nextcheck,
+				ipmi_manager_args_in->config_timeout);
 
 		if (FAIL != nextcheck)
 			timeout.sec = (nextcheck > now ? nextcheck - now : 0);

@@ -9811,7 +9811,7 @@ int	DCconfig_get_poller_items(unsigned char poller_type, DC_ITEM **items, int co
  *           DCrequeue_items() or DCpoller_requeue_items().                   *
  *                                                                            *
  ******************************************************************************/
-int	DCconfig_get_ipmi_poller_items(int now, DC_ITEM *items, int items_num, int *nextcheck)
+int	DCconfig_get_ipmi_poller_items(int now, DC_ITEM *items, int items_num, int *nextcheck, int config_timeout)
 {
 	int			num = 0;
 	zbx_binary_heap_t	*queue;
