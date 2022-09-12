@@ -293,7 +293,7 @@ static int	discover_service(const DB_DCHECK *dcheck, char *ip, int port, char **
 					}
 
 					if (SUCCEED == get_value_snmp(&item, &result, ZBX_NO_POLLER, config_timeout) &&
-							NULL != (pvalue = GET_TEXT_RESULT(&result)))
+							NULL != (pvalue = ZBX_GET_TEXT_RESULT(&result)))
 					{
 						zbx_strcpy_alloc(value, value_alloc, &value_offset, *pvalue);
 					}
@@ -350,7 +350,8 @@ static int	discover_service(const DB_DCHECK *dcheck, char *ip, int port, char **
  * Parameters: service - service info                                         *
  *                                                                            *
  ******************************************************************************/
-static void	process_check(const DB_DCHECK *dcheck, int *host_status, char *ip, int now, zbx_vector_ptr_t *services)
+static void	process_check(const DB_DCHECK *dcheck, int *host_status, char *ip, int now, zbx_vector_ptr_t *services,
+		int config_timeout)
 {
 	const char	*start;
 	char		*value = NULL;
@@ -385,8 +386,8 @@ static void	process_check(const DB_DCHECK *dcheck, int *host_status, char *ip, i
 			zabbix_log(LOG_LEVEL_DEBUG, "%s() port:%d", __func__, port);
 
 			service = (zbx_service_t *)zbx_malloc(NULL, sizeof(zbx_service_t));
-			service->status = (SUCCEED == discover_service(dcheck, ip, port, &value, &value_alloc) ?
-					DOBJECT_STATUS_UP : DOBJECT_STATUS_DOWN);
+			service->status = (SUCCEED == discover_service(dcheck, ip, port, &value, &value_alloc,
+					config_timeout) ? DOBJECT_STATUS_UP : DOBJECT_STATUS_DOWN);
 			service->dcheckid = dcheck->dcheckid;
 			service->itemtime = (time_t)now;
 			service->port = port;
@@ -412,7 +413,7 @@ static void	process_check(const DB_DCHECK *dcheck, int *host_status, char *ip, i
 }
 
 static void	process_checks(const ZBX_DB_DRULE *drule, int *host_status, char *ip, int unique, int now,
-		zbx_vector_ptr_t *services, zbx_vector_uint64_t *dcheckids)
+		zbx_vector_ptr_t *services, zbx_vector_uint64_t *dcheckids, int config_timeout)
 {
 	DB_RESULT	result;
 	DB_ROW		row;
@@ -457,7 +458,7 @@ static void	process_checks(const ZBX_DB_DRULE *drule, int *host_status, char *ip
 
 		zbx_vector_uint64_append(dcheckids, dcheck.dcheckid);
 
-		process_check(&dcheck, host_status, ip, now, services);
+		process_check(&dcheck, host_status, ip, now, services, config_timeout);
 	}
 	DBfree_result(result);
 }
@@ -580,8 +581,8 @@ static void	process_rule(ZBX_DB_DRULE *drule, int config_timeout)
 			zbx_alarm_off();
 
 			if (0 != drule->unique_dcheckid)
-				process_checks(drule, &host_status, ip, 1, now, &services, &dcheckids);
-			process_checks(drule, &host_status, ip, 0, now, &services, &dcheckids);
+				process_checks(drule, &host_status, ip, 1, now, &services, &dcheckids, config_timeout);
+			process_checks(drule, &host_status, ip, 0, now, &services, &dcheckids, config_timeout);
 
 			DBbegin();
 

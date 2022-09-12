@@ -41,11 +41,11 @@ extern ZBX_THREAD_LOCAL int		server_num, process_num;
 ZBX_THREAD_ENTRY(dbconfig_thread, args)
 {
 	double			sec = 0.0;
-	int			config_timeout, nextcheck = 0, sleeptime, secrets_reload = 0;
+	int			nextcheck = 0, sleeptime, secrets_reload = 0;
 	zbx_ipc_async_socket_t	rtc;
 	zbx_thread_dbconfig_args	*dbconfig_args_in;
 
-	dbconfig_args_in = (zbx_thread_dbconfig_args)((((zbx_thread_args_t *)args))->args);
+	dbconfig_args_in = (zbx_thread_dbconfig_args *)((((zbx_thread_args_t *)args))->args);
 	process_type = ((zbx_thread_args_t *)args)->process_type;
 	server_num = ((zbx_thread_args_t *)args)->server_num;
 	process_num = ((zbx_thread_args_t *)args)->process_num;
@@ -55,7 +55,7 @@ ZBX_THREAD_ENTRY(dbconfig_thread, args)
 
 	update_selfmon_counter(ZBX_PROCESS_STATE_BUSY);
 
-	zbx_rtc_subscribe(&rtc, process_type, process_num);
+	zbx_rtc_subscribe(&rtc, process_type, process_num, dbconfig_args_in->config_timeout);
 
 	zbx_setproctitle("%s [connecting to the database]", get_process_type_string(process_type));
 
