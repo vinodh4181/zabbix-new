@@ -74,4 +74,6 @@
 #define ZBX_SYSINFO_FILE_TAG_TIME_MODIFY	"modify"
 #define ZBX_SYSINFO_FILE_TAG_TIME_CHANGE	"change"
 
+int	sysinfo_get_config_timeout(void);
+
 #endif /* ZABBIX_SYSINFO_H */

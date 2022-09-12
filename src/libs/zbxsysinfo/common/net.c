@@ -18,6 +18,7 @@
 **/
 
 #include "net.h"
+#include "../sysinfo.h"
 
 #include "zbxcomms.h"
 #include "log.h"
