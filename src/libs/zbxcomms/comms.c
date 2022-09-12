@@ -39,9 +39,6 @@
 #	endif
 #endif
 
-#define IPV4_MAX_CIDR_PREFIX	32	/* max number of bits in IPv4 CIDR prefix */
-#define IPV6_MAX_CIDR_PREFIX	128	/* max number of bits in IPv6 CIDR prefix */
-
 #ifndef ZBX_SOCKLEN_T
 #	define ZBX_SOCKLEN_T socklen_t
 #endif
@@ -2117,13 +2114,13 @@ static int	subnet_match(int af, unsigned int prefix_size, const void *address1, 
 
 	if (af == AF_INET)
 	{
-		if (prefix_size > IPV4_MAX_CIDR_PREFIX)
+		if (prefix_size > ZBX_IPV4_MAX_CIDR_PREFIX)
 			return FAIL;
 		bytes = 4;
 	}
 	else
 	{
-		if (prefix_size > IPV6_MAX_CIDR_PREFIX)
+		if (prefix_size > ZBX_IPV6_MAX_CIDR_PREFIX)
 			return FAIL;
 		bytes = 16;
 	}
@@ -2252,10 +2249,10 @@ int	zbx_ip_cmp(unsigned int prefix_size, const struct addrinfo *current_ai, ZBX_
 int	validate_cidr(const char *ip, const char *cidr, void *value)
 {
 	if (SUCCEED == zbx_is_ip4(ip))
-		return zbx_is_uint_range(cidr, value, 0, IPV4_MAX_CIDR_PREFIX);
+		return zbx_is_uint_range(cidr, value, 0, ZBX_IPV4_MAX_CIDR_PREFIX);
 #ifdef HAVE_IPV6
 	if (SUCCEED == zbx_is_ip6(ip))
-		return zbx_is_uint_range(cidr, value, 0, IPV6_MAX_CIDR_PREFIX);
+		return zbx_is_uint_range(cidr, value, 0, ZBX_IPV6_MAX_CIDR_PREFIX);
 #endif
 	return FAIL;
 }
@@ -2355,7 +2352,7 @@ int	zbx_tcp_check_allowed_peers(const zbx_socket_t *s, const char *peer_list)
 				if (-1 == prefix_size_current)
 				{
 					prefix_size_current = (current_ai->ai_family == AF_INET ?
-							IPV4_MAX_CIDR_PREFIX : IPV6_MAX_CIDR_PREFIX);
+							ZBX_IPV4_MAX_CIDR_PREFIX : ZBX_IPV6_MAX_CIDR_PREFIX);
 				}
 
 				if (SUCCEED == zbx_ip_cmp(prefix_size_current, current_ai, s->peer_info, 0))

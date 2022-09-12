@@ -32,6 +32,7 @@
 #include "zbxnum.h"
 #include "zbxtime.h"
 #include "zbxip.h"
+#include "zbxsysinfo.h"
 
 extern int				CONFIG_DISCOVERER_FORKS;
 extern ZBX_THREAD_LOCAL unsigned char	process_type;
@@ -198,7 +199,7 @@ static int	discover_service(const DB_DCHECK *dcheck, char *ip, int port, char **
 			case SVC_TELNET:
 				zbx_snprintf(key, sizeof(key), "net.tcp.service[%s,%s,%d]", service, ip, port);
 
-				if (SUCCEED != process(key, 0, &result) || NULL == GET_UI64_RESULT(&result) ||
+				if (SUCCEED != process(key, 0, &result) || NULL == ZBX_GET_UI64_RESULT(&result) ||
 						0 == result.ui64)
 				{
 					ret = FAIL;
@@ -244,7 +245,7 @@ static int	discover_service(const DB_DCHECK *dcheck, char *ip, int port, char **
 					item.host.tls_connect = ZBX_TCP_SEC_UNENCRYPTED;
 
 					if (SUCCEED == get_value_agent(&item, &result) &&
-							NULL != (pvalue = GET_TEXT_RESULT(&result)))
+							NULL != (pvalue = ZBX_GET_TEXT_RESULT(&result)))
 					{
 						zbx_strcpy_alloc(value, value_alloc, &value_offset, *pvalue);
 					}
@@ -314,7 +315,7 @@ static int	discover_service(const DB_DCHECK *dcheck, char *ip, int port, char **
 					ret = FAIL;
 #endif	/* HAVE_NETSNMP */
 
-				if (FAIL == ret && ISSET_MSG(&result))
+				if (FAIL == ret && ZBX_ISSET_MSG(&result))
 				{
 					zabbix_log(LOG_LEVEL_DEBUG, "discovery: item [%s] error: %s",
 							item.key, result.msg);
@@ -794,7 +795,7 @@ static int	process_discovery(int config_timeout)
 			now = (int)time(NULL);
 
 			DBexecute("update drules set nextcheck=%d where druleid=" ZBX_FS_UI64,
-					0 > now ? ZBX_JAN_2038 : now, druleid);
+					0 > now ? ZBX_JAN_2038 : now + SEC_PER_MIN, druleid);
 
 			continue;
 		}

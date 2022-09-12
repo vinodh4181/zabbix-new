@@ -21,8 +21,8 @@
 
 extern "C"
 {
+#	include "../sysinfo.h"
 #	include "zbxstr.h"
-#	include "sysinfo.h"
 #	include "sysinfo_common.h"
 #	include "log.h"
 #	include "zbxalgo.h"
@@ -134,16 +134,16 @@ extern "C" static void	get_error_code_text(HRESULT hres, char **error)
 		else
 		{
 			*error = zbx_dsprintf(*error, "error code:" ZBX_FS_I64, hres);
-			zabbix_log(LOG_LEVEL_DEBUG, "GetErrorCodeText() failed with code:" ZBX_FS_I64 " when retrieving error"
-					" code for " ZBX_FS_I64, sc, hres);
+			zabbix_log(LOG_LEVEL_DEBUG, "GetErrorCodeText() failed with code:" ZBX_FS_I64
+					" when retrieving error code for " ZBX_FS_I64, sc, hres);
 		}
 		pStatus->Release();
 	}
 	else
 	{
 		*error = zbx_dsprintf(*error, "error code:" ZBX_FS_I64, hres);
-		zabbix_log(LOG_LEVEL_DEBUG, "CoCreateInstance() failed with code:" ZBX_FS_I64 " when retrieving error code"
-				" for:" ZBX_FS_I64, sc, hres);
+		zabbix_log(LOG_LEVEL_DEBUG, "CoCreateInstance() failed with code:" ZBX_FS_I64
+				" when retrieving error code for:" ZBX_FS_I64, sc, hres);
 	}
 
 	if (NULL != pStatus)
@@ -231,7 +231,7 @@ extern "C" static int	parse_first_first(IEnumWbemClassObject *pEnumerator, doubl
 	zbx_vector_wmi_instance_append(wmi_values, inst_val);
 out1:
 	pclsObj->Release();
-out2:	
+out2:
 	return ret;
 }
 
@@ -929,6 +929,7 @@ extern "C" int	convert_wmi_json(zbx_vector_wmi_instance_t *wmi_values, char **js
 	}
 
 	zbx_json_free(&j);
+
 	return ret;
 }
 

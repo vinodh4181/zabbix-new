@@ -20,7 +20,7 @@
 #ifndef ZABBIX_SYSINFO_COMMON_MODBTYPE_H
 #define ZABBIX_SYSINFO_COMMON_MODBTYPE_H
 
-#include "sysinfo.h"
+#include "zbxsysinfo.h"
 
 #define ZBX_MODBUS_TCP_PORT_DEFAULT		502
 
