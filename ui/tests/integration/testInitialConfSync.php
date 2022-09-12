@@ -1311,6 +1311,30 @@ class testInitialConfSync extends CIntegrationTest
 		$this->assertArrayHasKey("proxyids", $response['result']);
 	}
 
+	private function createGlobalMacros()
+	{
+		$response = $this->call('usermacro.createglobal', [
+			'macro' => 'GLOBDELAY',
+			'value' => '1'
+		]);
+		$this->assertArrayHasKey('result', $response);
+		$this->assertArrayHasKey('globalmacroids', $response['result']);
+
+		$response = $this->call('usermacro.createglobal', [
+			'macro' => 'CHLDTMPLMACRO',
+			'value' => '2'
+		]);
+		$this->assertArrayHasKey('result', $response);
+		$this->assertArrayHasKey('globalmacroids', $response['result']);
+
+		$response = $this->call('usermacro.createglobal', [
+			'macro' => 'PRNTTMPLMACRO',
+			'value' => '3'
+		]);
+		$this->assertArrayHasKey('result', $response);
+		$this->assertArrayHasKey('globalmacroids', $response['result']);
+	}
+
 	private function updateGlobalMacro()
 	{
 		$response = $this->call('usermacro.get', [
@@ -1356,6 +1380,7 @@ class testInitialConfSync extends CIntegrationTest
 	public function testInitialConfSync_Insert()
 	{
 		$this->updateGlobalMacro();
+		$this->createGlobalMacros();
 		$this->purgeExisting('host', 'hostids');
 		$this->purgeExisting('template', 'templateids');
 		$this->purgeHostGroups();
@@ -1418,8 +1443,6 @@ class testInitialConfSync extends CIntegrationTest
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
 		$got = $this->parseSyncResults();
-		var_dump($got);
-		var_dump(file_get_contents(self::getLogPath(self::COMPONENT_SERVER)));
 		$this->assertEquals($this->expected_initial, $got);
 
 		$stringpool_old = $this->getStringPoolCount();
