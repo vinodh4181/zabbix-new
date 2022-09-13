@@ -185,6 +185,9 @@ typedef enum
 }
 zbx_key_access_rule_type_t;
 
+void	zbx_sysinfo_set_config_timeout(get_config_timeout_f
+		get_config_timeout_cb_arg);
+
 void	init_metrics(void);
 int	add_metric(ZBX_METRIC *metric, char *error, size_t max_error_len);
 int	add_metric_local(ZBX_METRIC *metric, char *error, size_t max_error_len);
@@ -369,8 +372,5 @@ char		*zbx_format_mntopt_string(zbx_mntopt_t mntopts[], int flags);
 void		zbx_add_alias(const char *name, const char *value);
 void		zbx_alias_list_free(void);
 const char	*zbx_alias_get(const char *orig);
-
-void	zbx_sysinfo_set_config_timeout(get_config_timeout_f
-		get_config_timeout_cb_arg);
 
 #endif /* ZABBIX_ZBXSYSINFO_H */

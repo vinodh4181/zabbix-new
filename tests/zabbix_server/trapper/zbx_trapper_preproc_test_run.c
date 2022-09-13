@@ -145,7 +145,7 @@ void	zbx_mock_test_entry(void **state)
 	if (FAIL == zbx_json_open(request, &jp))
 		fail_msg("Invalid request format: %s", zbx_json_strerror());
 
-	returned_ret = zbx_trapper_preproc_test_run(&jp, &out, &error, 3);
+	returned_ret = zbx_trapper_preproc_test_run(&jp, &out, &error);
 	if (FAIL == returned_ret)
 		printf("zbx_trapper_preproc_test_run error: %s\n", error);
 	else
