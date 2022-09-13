@@ -1262,6 +1262,24 @@ class testInitialConfSync extends CIntegrationTest
 		$this->assertArrayHasKey("correlationids", $response['result']);
 	}
 
+	private function createRegexp()
+	{
+		$response = $this->call('regexp.create', [
+			'name' => 'global regexp test',
+			'test_string' => '/boot',
+			'expressions' => [
+				[
+					'expression' => '.*',
+					'expression_type' => EXPRESSION_TYPE_FALSE,
+					'case_sensetive' => 1
+				]
+			]
+		]);
+		$this->assertArrayHasKey("correlationids", $response['result']);
+		self::$correlationid = $response['result']['correlationids'][0];
+	}
+
+
 	private function createProxies()
 	{
 		$response = $this->call('proxy.create', [
@@ -1378,14 +1396,15 @@ class testInitialConfSync extends CIntegrationTest
 	 */
 	public function testInitialConfSync_Insert()
 	{
-		$this->updateGlobalMacro();
 		$this->createGlobalMacros();
 		$this->purgeExisting('host', 'hostids');
 		$this->purgeExisting('template', 'templateids');
+		$this->purgeExisting('regexp', 'regexpids');
 		$this->purgeHostGroups();
 
 		$this->createProxies();
 		$this->createCorrelation();
+		$this->createRegexp();
 
 		$this->importTemplate('confsync_tmpl.xml', false, [
 			'createMissing' => true,
