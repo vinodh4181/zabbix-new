@@ -1354,12 +1354,14 @@ class testInitialConfSync extends CIntegrationTest
 
 	private function importTemplate($filename, $update, $params)
 	{
+		/*
 		if (!$update) {
 			$response = $this->call('templategroup.create', [
 				'name' => 'Test'
 			]);
 			$this->assertArrayHasKey("groupids", $response['result']);
 		}
+		*/
 
 		$xml = file_get_contents('integration/data/' . $filename);
 
@@ -1372,7 +1374,11 @@ class testInitialConfSync extends CIntegrationTest
 			'format' => 'xml',
 			'source' => $xml,
 			'rules' => [
-				'templates' => $params
+				'templates' => $params,
+				'template_groups' => [
+					'createMissing' => true,
+					'updateExisting' => false,
+				]
 			]
 		]);
 	}
