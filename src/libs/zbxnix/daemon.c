@@ -323,6 +323,8 @@ static void	set_daemon_signal_handlers(void)
  *                          name of PID file                                  *
  *       zbx_on_exit_cb_arg - callback function called when terminating       *
  *                            signal handler                                  *
+ *       config_log_type    - [IN]                                            *
+ *       config_log_file    - [IN]                                            *
  *                                                                            *
  * Comments: it doesn't allow running under 'root' if allow_root is zero      *
  *                                                                            *

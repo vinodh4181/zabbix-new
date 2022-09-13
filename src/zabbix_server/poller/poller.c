@@ -819,7 +819,7 @@ static int	get_values(unsigned char poller_type, int *nextcheck, int config_time
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
 	items = &item;
-	num = DCconfig_get_poller_items(poller_type, &items, config_timeout);
+	num = DCconfig_get_poller_items(poller_type, config_timeout, &items);
 
 	if (0 == num)
 	{

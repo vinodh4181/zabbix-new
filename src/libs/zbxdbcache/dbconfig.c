@@ -9639,8 +9639,9 @@ static void	dc_requeue_item_at(ZBX_DC_ITEM *dc_item, ZBX_DC_HOST *dc_host, int n
  *                                                                            *
  * Purpose: Get array of items for selected poller                            *
  *                                                                            *
- * Parameters: poller_type - [IN] poller type (ZBX_POLLER_TYPE_...)           *
- *             items       - [OUT] array of items                             *
+ * Parameters: poller_type    - [IN] poller type (ZBX_POLLER_TYPE_...)        *
+ *             config_timeout - [IN]                                          *
+ *             items          - [OUT] array of items                          *
  *                                                                            *
  * Return value: number of items in items array                               *
  *                                                                            *
@@ -9656,7 +9657,7 @@ static void	dc_requeue_item_at(ZBX_DC_ITEM *dc_item, ZBX_DC_HOST *dc_host, int n
  *           function.                                                        *
  *                                                                            *
  ******************************************************************************/
-int	DCconfig_get_poller_items(unsigned char poller_type, DC_ITEM **items, int config_timeout)
+int	DCconfig_get_poller_items(unsigned char poller_type, int config_timeout, DC_ITEM **items)
 {
 	int			now, num = 0, max_items;
 	zbx_binary_heap_t	*queue;

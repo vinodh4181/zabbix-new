@@ -402,7 +402,7 @@ static void	get_pinger_hosts(icmpitem_t **icmp_items, int *icmp_items_alloc, int
 	um_handle = zbx_dc_open_user_macros();
 
 	items = &item;
-	num = DCconfig_get_poller_items(ZBX_POLLER_TYPE_PINGER, &items, config_timeout);
+	num = DCconfig_get_poller_items(ZBX_POLLER_TYPE_PINGER, config_timeout, &items);
 
 	for (i = 0; i < num; i++)
 	{
