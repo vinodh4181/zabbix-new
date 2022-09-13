@@ -1275,8 +1275,8 @@ class testInitialConfSync extends CIntegrationTest
 				]
 			]
 		]);
-		$this->assertArrayHasKey("correlationids", $response['result']);
-		self::$correlationid = $response['result']['correlationids'][0];
+		$this->assertArrayHasKey("regexpids", $response['result']);
+		self::$correlationid = $response['result']['regexpids'][0];
 	}
 
 
