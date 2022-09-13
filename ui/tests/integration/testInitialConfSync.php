@@ -1271,7 +1271,7 @@ class testInitialConfSync extends CIntegrationTest
 				[
 					'expression' => '.*',
 					'expression_type' => EXPRESSION_TYPE_FALSE,
-					'case_sensetive' => 1
+					'case_sensitive' => 1
 				]
 			]
 		]);
