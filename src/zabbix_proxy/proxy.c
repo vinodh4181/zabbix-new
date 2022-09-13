@@ -514,8 +514,11 @@ static void	zbx_set_defaults(void)
 		program_type = ZBX_PROGRAM_TYPE_PROXY_PASSIVE;
 	}
 
-	if (NULL == CONFIG_LOG_TYPE_STR)
-		CONFIG_LOG_TYPE_STR = zbx_strdup(CONFIG_LOG_TYPE_STR, ZBX_OPTION_LOGTYPE_FILE);
+	if (NULL == zbx_config_cfg->config_log_type_str)
+	{
+		zbx_config_cfg->config_log_type_str = zbx_strdup(zbx_config_cfg->config_log_type_str,
+				ZBX_OPTION_LOGTYPE_FILE);
+	}
 
 	if (NULL == CONFIG_SOCKET_PATH)
 		CONFIG_SOCKET_PATH = zbx_strdup(CONFIG_SOCKET_PATH, "/tmp");
@@ -899,11 +902,11 @@ static void	zbx_load_config(ZBX_TASK_EX *task)
 	/* initialize multistrings */
 	zbx_strarr_init(&CONFIG_LOAD_MODULE);
 
-	parse_cfg_file(CONFIG_FILE, cfg, ZBX_CFG_FILE_REQUIRED, ZBX_CFG_STRICT, ZBX_CFG_EXIT_FAILURE);
+	parse_cfg_file(zbx_config_cfg->config_file, cfg, ZBX_CFG_FILE_REQUIRED, ZBX_CFG_STRICT, ZBX_CFG_EXIT_FAILURE);
 
 	zbx_set_defaults();
 
-	CONFIG_LOG_TYPE = zbx_get_log_type(CONFIG_LOG_TYPE_STR);
+	zbx_config_cfg->config_log_type = zbx_get_log_type(zbx_config_cfg->config_log_type_str);
 
 	zbx_validate_config(task);
 
@@ -1028,8 +1031,11 @@ int	main(int argc, char **argv)
 		{
 			case 'c':
 				opt_c++;
-				if (NULL == CONFIG_FILE)
-					CONFIG_FILE = zbx_strdup(CONFIG_FILE, zbx_optarg);
+				if (NULL == zbx_config_cfg->config_file)
+				{
+					zbx_config_cfg->config_file = zbx_strdup(zbx_config_cfg->config_file,
+							zbx_optarg);
+				}
 				break;
 			case 'R':
 				opt_r++;
@@ -1081,8 +1087,8 @@ int	main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (NULL == CONFIG_FILE)
-		CONFIG_FILE = zbx_strdup(NULL, DEFAULT_CONFIG_FILE);
+	if (NULL == zbx_config_cfg->config_file)
+		zbx_config_cfg->config_file = zbx_strdup(NULL, DEFAULT_CONFIG_FILE);
 
 	/* required for simple checks */
 	init_metrics();
@@ -1101,7 +1107,7 @@ int	main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 
-		if (SUCCEED != (ret = zbx_rtc_process(t.opts, &error, zbx_config_cfg->config_timeout)))
+		if (SUCCEED != (ret = zbx_rtc_process(t.opts, zbx_config_cfg->config_timeout, &error)))
 		{
 			zbx_error("Cannot perform runtime control command: %s", error);
 			zbx_free(error);
@@ -1192,20 +1198,21 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 	zbx_rtc_t			rtc;
 	zbx_timespec_t			rtc_timeout = {1, 0};
 
-	zbx_thread_args_t		thread_args;
-	zbx_thread_poller_args		poller_args = {zbx_config_tls, get_program_type, ZBX_NO_POLLER,
+	zbx_thread_args_t			thread_args;
+	zbx_thread_poller_args			poller_args = {zbx_config_tls, get_program_type, ZBX_NO_POLLER,
 							zbx_config_cfg->config_timeout};
-	zbx_thread_heart_args		heart_args = {zbx_config_tls, get_program_type, zbx_config_cfg->config_timeout};
-	zbx_thread_proxyconfig_args	proxyconfig_args = {zbx_config_tls, get_program_type,
-							zbx_config_cfg->config_timeout};
-	zbx_thread_datasender_args	datasender_args = {zbx_config_tls, get_program_type,
-							zbx_config_cfg->config_timeout};
-	zbx_thread_taskmanager_args	taskmanager_args = {zbx_config_tls, get_program_type,
-							zbx_config_cfg->config_timeout};
-	zbx_thread_discoverer_args	discoverer_args = {zbx_config_tls, get_program_type};
-	zbx_thread_trapper_args		trapper_args = {zbx_config_tls, get_program_type, &listen_sock,
-							zbx_config_cfg->config_timeout};
-	zbx_thread_housekeeper_args	housekeeper_args = {get_program_type, zbx_config_cfg->config_timeout};
+	zbx_thread_heart_args			heart_args = {zbx_config_tls, get_program_type,
+								zbx_config_cfg->config_timeout};
+	zbx_thread_proxyconfig_args		proxyconfig_args = {zbx_config_tls, get_program_type,
+								zbx_config_cfg->config_timeout};
+	zbx_thread_datasender_args		datasender_args = {zbx_config_tls, get_program_type,
+								zbx_config_cfg->config_timeout};
+	zbx_thread_taskmanager_args		taskmanager_args = {zbx_config_tls, get_program_type,
+								zbx_config_cfg->config_timeout};
+	zbx_thread_discoverer_args		discoverer_args = {zbx_config_tls, get_program_type};
+	zbx_thread_trapper_args			trapper_args = {zbx_config_tls, get_program_type, &listen_sock,
+								zbx_config_cfg->config_timeout};
+	zbx_thread_proxy_housekeeper_args	housekeeper_args = {get_program_type, zbx_config_cfg->config_timeout};
 
 	if (0 != (flags & ZBX_TASK_FLAG_FOREGROUND))
 	{
@@ -1228,8 +1235,8 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 		exit(EXIT_FAILURE);
 	}
 
-	if (SUCCEED != zabbix_open_log(CONFIG_LOG_TYPE, CONFIG_LOG_LEVEL, zbx_config_cfg->config_log_file,
-			zbx_config_cfg->config_log_file_size, &error))
+	if (SUCCEED != zabbix_open_log(zbx_config_cfg->config_log_type, CONFIG_LOG_LEVEL,
+			zbx_config_cfg->config_log_file, zbx_config_cfg->config_log_file_size, &error))
 	{
 		zbx_error("cannot open log:%s", error);
 		zbx_free(error);
@@ -1292,7 +1299,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 	zabbix_log(LOG_LEVEL_INFORMATION, "TLS support:           " TLS_FEATURE_STATUS);
 	zabbix_log(LOG_LEVEL_INFORMATION, "**************************");
 
-	zabbix_log(LOG_LEVEL_INFORMATION, "using configuration file: %s", CONFIG_FILE);
+	zabbix_log(LOG_LEVEL_INFORMATION, "using configuration file: %s", zbx_config_cfg->config_file);
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
 	if (SUCCEED != zbx_coredump_disable())
