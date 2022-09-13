@@ -758,7 +758,7 @@
                 </item>
                 <item>
                     <name>ItemWithGlobalAndHostMacro</name>
-                    <key>sensor[{$UU},${HM1}]</key>
+                    <key>sensor[{$UU},{$HM1}]</key>
                     <delay>{$GLOBDELAY}</delay>
                     <value_type>FLOAT</value_type>
                     <interface_ref>if1</interface_ref>

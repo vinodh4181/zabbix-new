@@ -61,7 +61,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'hosts' =>
 			[
-				'insert' => '14',
+				'insert' => '16',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -69,7 +69,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'host_invent' =>
 			[
-				'insert' => '1',
+				'insert' => '2',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -77,7 +77,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'templates' =>
 			[
-				'insert' => '1',
+				'insert' => '2',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -93,7 +93,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'hostmacros' =>
 			[
-				'insert' => '1',
+				'insert' => '4',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -101,7 +101,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'interfaces' =>
 			[
-				'insert' => '7',
+				'insert' => '10',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -109,7 +109,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'items' =>
 			[
-				'insert' => '24',
+				'insert' => '42',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -141,7 +141,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'triggers' =>
 			[
-				'insert' => '4',
+				'insert' => '6',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -165,7 +165,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'hosttags' =>
 			[
-				'insert' => '2',
+				'insert' => '3',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -181,7 +181,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'functions' =>
 			[
-				'insert' => '4',
+				'insert' => '6',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -189,7 +189,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'expressions' =>
 			[
-				'insert' => '10',
+				'insert' => '1',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -245,7 +245,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'hgroups' =>
 			[
-				'insert' => '16',
+				'insert' => '17',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -253,7 +253,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'itempproc' =>
 			[
-				'insert' => '2',
+				'insert' => '10',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -943,6 +943,7 @@ class testInitialConfSync extends CIntegrationTest
 	private static $triggerid;
 	private static $correlationid;
 	private static $maintenanceid;
+	private static $regexpid;
 
 	/**
 	 * @inheritdoc
@@ -1276,9 +1277,24 @@ class testInitialConfSync extends CIntegrationTest
 			]
 		]);
 		$this->assertArrayHasKey("regexpids", $response['result']);
-		self::$correlationid = $response['result']['regexpids'][0];
+		self::$regexpid = $response['result']['regexpids'][0];
 	}
 
+	private function updateRegexp()
+	{
+		$response = $this->call('regexp.update', [
+			'regexpid' => self::$regexpid,
+			'test_string' => '/tmp',
+			'expressions' => [
+				[
+					'expression' => '.*a',
+					'expression_type' => EXPRESSION_TYPE_TRUE,
+					'case_sensitive' => 1
+				]
+			]
+		]);
+		$this->assertArrayHasKey("correlationids", $response['result']);
+	}
 
 	private function createProxies()
 	{
@@ -1484,6 +1500,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->updateProxies();
 		$this->updateCorrelation();
 		$this->updateMaintenance();
+		$this->updateRegexp();
 
 		$this->importTemplate('confsync_tmpl_updated.xml', true, [
 			'createMissing' => false,
@@ -1549,6 +1566,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeExisting('proxy', 'proxyids');
 		$this->purgeExisting('template', 'templateids');
 		$this->purgeExisting('correlation', 'correlationids');
+		$this->purgeExisting('regexp', 'extend');
 		$this->purgeHostGroups();
 
 		$this->clearLog(self::COMPONENT_SERVER);
