@@ -1046,7 +1046,8 @@ static int	zbx_exec_service_task(const char *name, const ZBX_TASK_EX *t)
 	switch (t->task)
 	{
 		case ZBX_TASK_INSTALL_SERVICE:
-			ret = ZabbixCreateService(name, t->flags & ZBX_TASK_FLAG_MULTIPLE_AGENTS);
+			ret = ZabbixCreateService(name, t->flags & ZBX_TASK_FLAG_MULTIPLE_AGENTS,
+					zbx_config_cfg->config_file);
 			break;
 		case ZBX_TASK_UNINSTALL_SERVICE:
 			ret = ZabbixRemoveService();

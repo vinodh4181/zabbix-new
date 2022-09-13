@@ -1390,9 +1390,10 @@ static void	zbx_parse_eventlog_message(const wchar_t *wsource, const EVENTLOGREC
  *             metric           - [IN/OUT] parameters for EventLog process    *
  *             lastlogsize_sent - [OUT] position of the last record sent to   *
  *                                      the server                            *
+ *             zbx_config_tls   - [IN]                                        *
+ *             config_timeout   - [IN]                                        *
  *             error            - [OUT] the error message in the case of      *
  *                                     failure                                *
- *             zbx_config_tls   - [IN]                                        *
  *                                                                            *
  * Return value: SUCCEED or FAIL                                              *
  *                                                                            *
@@ -1401,7 +1402,7 @@ static int	process_eventslog(zbx_vector_ptr_t *addrs, zbx_vector_ptr_t *agent2_r
 		zbx_vector_ptr_t *regexps, const char *pattern, const char *key_severity, const char *key_source,
 		const char *key_logeventid, int rate, zbx_process_value_func_t process_value_cb,
 		ZBX_ACTIVE_METRIC *metric, zbx_uint64_t *lastlogsize_sent, const zbx_config_tls_t *zbx_config_tls,
-		char **error)
+		int config_timeout, char **error)
 {
 	int		ret = FAIL;
 	HANDLE		eventlog_handle = NULL;
@@ -1693,7 +1694,7 @@ out:
 
 int	process_eventlog_check(zbx_vector_ptr_t *addrs, zbx_vector_ptr_t *agent2_result, zbx_vector_ptr_t *regexps,
 		ZBX_ACTIVE_METRIC *metric, zbx_process_value_func_t process_value_cb, zbx_uint64_t *lastlogsize_sent,
-		const zbx_config_tls_t *zbx_config_tls, char **error)
+		const zbx_config_tls_t *zbx_config_tls, int config_timeout, char **error)
 {
 	int 		ret = FAIL;
 	AGENT_REQUEST	request;
@@ -1824,7 +1825,7 @@ int	process_eventlog_check(zbx_vector_ptr_t *addrs, zbx_vector_ptr_t *agent2_res
 	{
 		ret = process_eventslog(addrs, agent2_result, filename, regexps, pattern, key_severity, key_source,
 				key_logeventid, rate, process_value_cb, metric, lastlogsize_sent, zbx_config_tls,
-				error);
+				config_timeout, error);
 	}
 out:
 	free_request(&request);
