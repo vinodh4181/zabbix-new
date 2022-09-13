@@ -5,7 +5,7 @@
     <template_groups>
         <template_group>
             <uuid>bb17447fffe04b7784ddbd77b209c05a</uuid>
-            <name>Template/Test</name>
+            <name>Test</name>
         </template_group>
     </template_groups>
     <templates>
@@ -20,7 +20,7 @@
             </templates>
             <groups>
                 <group>
-                    <name>Template/Test</name>
+                    <name>Test</name>
                 </group>
             </groups>
             <macros>
@@ -36,7 +36,7 @@
             <name>aaatmpl</name>
             <groups>
                 <group>
-                    <name>Template/Test</name>
+                    <name>Test</name>
                 </group>
             </groups>
             <items>

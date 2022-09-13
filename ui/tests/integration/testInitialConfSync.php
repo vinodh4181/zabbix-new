@@ -1356,7 +1356,7 @@ class testInitialConfSync extends CIntegrationTest
 	{
 		if (!$update) {
 			$response = $this->call('templategroup.create', [
-				'name' => 'Template/Test'
+				'name' => 'Test'
 			]);
 			$this->assertArrayHasKey("groupids", $response['result']);
 		}
