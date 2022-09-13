@@ -1285,9 +1285,9 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 	zbx_thread_taskmanager_args	taskmanager_args = {get_program_type, zbx_config_cfg->config_timeout};
 	zbx_thread_dbconfig_args	dbconfig_args = {get_program_type, zbx_config_cfg->config_timeout};
 	zbx_thread_pinger_args		pinger_args = {get_program_type, zbx_config_cfg->config_timeout};
-
+#ifdef HAVE_OPENIPMI
 	zbx_thread_ipmi_manager_args	ipmi_manager_args = {get_program_type, zbx_config_cfg->config_timeout};
-
+#endif
 	if (SUCCEED != init_database_cache(&error))
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "cannot initialize database cache: %s", error);
