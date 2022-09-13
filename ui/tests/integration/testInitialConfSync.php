@@ -1363,6 +1363,11 @@ class testInitialConfSync extends CIntegrationTest
 
 		$xml = file_get_contents('integration/data/' . $filename);
 
+		$response = $this->call('templategroup.get', [
+			'output' => 'extend'
+		]);
+		var_dump($response);
+
 		$response = $this->call('configuration.import', [
 			'format' => 'xml',
 			'source' => $xml,
