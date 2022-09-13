@@ -1354,15 +1354,6 @@ class testInitialConfSync extends CIntegrationTest
 
 	private function importTemplate($filename, $update, $params)
 	{
-		/*
-		if (!$update) {
-			$response = $this->call('templategroup.create', [
-				'name' => 'Test'
-			]);
-			$this->assertArrayHasKey("groupids", $response['result']);
-		}
-		*/
-
 		$xml = file_get_contents('integration/data/' . $filename);
 
 		$response = $this->call('templategroup.get', [
@@ -1451,6 +1442,8 @@ class testInitialConfSync extends CIntegrationTest
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
 		$got = $this->parseSyncResults();
+		var_dump($got);
+		var_dump(self::getLogPath(self::COMPONENT_SERVER));
 		$this->assertEquals($this->expected_initial, $got);
 
 		$stringpool_old = $this->getStringPoolCount();
