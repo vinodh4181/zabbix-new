@@ -1399,7 +1399,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->createGlobalMacros();
 		$this->purgeExisting('host', 'hostids');
 		$this->purgeExisting('template', 'templateids');
-		$this->purgeExisting('regexp', 'regexpids');
+		$this->purgeExisting('regexp', 'extend');
 		$this->purgeHostGroups();
 
 		$this->createProxies();
