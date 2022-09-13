@@ -756,6 +756,7 @@ static int	check_response(char *response)
  *   prep_vec       - [IN/OUT] vector with data for writing into              *
  *                                 persistent files                           *
  *   zbx_config_tls - [IN]                                                    *
+ *   config_timeout - [IN]                                                    *
  *                                                                            *
  * Return value: SUCCEED if:                                                  *
  *                    - no need to send data now (buffer empty or has enough  *
@@ -954,6 +955,7 @@ ret:
  *                           event logs                                       *
  *   flags          - metric flags                                            *
  *   zbx_config_tls - [IN]                                                    *
+ *   config_timeout - [IN]                                                    *
  *                                                                            *
  * Return value: returns SUCCEED on successful parsing,                       *
  *               FAIL on other cases                                          *
@@ -1266,7 +1268,7 @@ static void	process_active_checks(zbx_vector_ptr_t *addrs, const zbx_config_tls_
 		else if (0 != (ZBX_METRIC_FLAG_LOG_EVENTLOG & metric->flags))
 		{
 			ret = process_eventlog_check(addrs, NULL, &regexps, metric, process_value, &lastlogsize_sent,
-					zbx_config_tls, &error);
+					zbx_config_tls, config_timeout, &error);
 		}
 		else
 			ret = process_common_check(addrs, metric, zbx_config_tls, config_timeout, &error);
