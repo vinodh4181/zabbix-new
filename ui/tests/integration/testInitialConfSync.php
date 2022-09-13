@@ -1293,7 +1293,7 @@ class testInitialConfSync extends CIntegrationTest
 				]
 			]
 		]);
-		$this->assertArrayHasKey("correlationids", $response['result']);
+		$this->assertArrayHasKey("regexpids", $response['result']);
 	}
 
 	private function createProxies()
