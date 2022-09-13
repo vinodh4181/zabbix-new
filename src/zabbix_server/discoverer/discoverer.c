@@ -109,13 +109,18 @@ static void	proxy_update_host(zbx_uint64_t druleid, const char *ip, const char *
  *                                                                            *
  * Purpose: check if service is available                                     *
  *                                                                            *
- * Parameters: service type, ip address, port number                          *
+ * Parameters: dcheck         - [IN] service type                             *
+ *             ip             - [IN]                                          *
+ *             port           - [IN]                                          *
+ *             config_timeout - [IN]                                          *
+ *	       value          - [OUT]                                         *
+ *             value_alloc    - [IN/OUT]                                      *
  *                                                                            *
  * Return value: SUCCEED - service is UP, FAIL - service not discovered       *
  *                                                                            *
  ******************************************************************************/
-static int	discover_service(const DB_DCHECK *dcheck, char *ip, int port, char **value, size_t *value_alloc,
-		int config_timeout)
+static int	discover_service(const DB_DCHECK *dcheck, char *ip, int port, int config_timeout, char **value,
+		size_t *value_alloc)
 {
 	int		ret = SUCCEED;
 	const char	*service = NULL;
@@ -386,8 +391,8 @@ static void	process_check(const DB_DCHECK *dcheck, int *host_status, char *ip, i
 			zabbix_log(LOG_LEVEL_DEBUG, "%s() port:%d", __func__, port);
 
 			service = (zbx_service_t *)zbx_malloc(NULL, sizeof(zbx_service_t));
-			service->status = (SUCCEED == discover_service(dcheck, ip, port, &value, &value_alloc,
-					config_timeout) ? DOBJECT_STATUS_UP : DOBJECT_STATUS_DOWN);
+			service->status = (SUCCEED == discover_service(dcheck, ip, port, config_timeout, &value,
+					&value_alloc) ? DOBJECT_STATUS_UP : DOBJECT_STATUS_DOWN);
 			service->dcheckid = dcheck->dcheckid;
 			service->itemtime = (time_t)now;
 			service->port = port;

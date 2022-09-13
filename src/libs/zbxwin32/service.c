@@ -207,7 +207,7 @@ static void	svc_get_command_line(const char *path, int multiple_agents, wchar_t 
 
 	if (NULL != config_file)
 	{
-		svc_get_fullpath(CONFIG_FILE, path2, MAX_PATH);
+		svc_get_fullpath(config_file, path2, MAX_PATH);
 		StringCchPrintf(cmdLine, max_cmdLine, TEXT("\"%s\" %s--config \"%s\""),
 				path1,
 				(0 == multiple_agents) ? TEXT("") : TEXT("--multiple-agents "),

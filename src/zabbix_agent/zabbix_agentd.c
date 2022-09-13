@@ -73,7 +73,6 @@ char	*CONFIG_SSL_KEY_LOCATION;
 static zbx_config_tls_t	*zbx_config_tls = NULL;
 static zbx_config_cfg_t	*zbx_config_cfg = NULL;
 
-
 static int	get_config_timeout(void)
 {
 	return zbx_config_cfg->config_timeout;
@@ -82,7 +81,6 @@ static int	get_config_timeout(void)
 int	CONFIG_TCP_MAX_BACKLOG_SIZE	= SOMAXCONN;
 
 int	CONFIG_HEARTBEAT_FREQUENCY	= 60;
-
 
 #ifndef _WINDOWS
 #	include "../libs/zbxnix/control.h"

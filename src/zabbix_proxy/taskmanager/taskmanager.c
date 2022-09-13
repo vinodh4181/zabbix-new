@@ -49,10 +49,11 @@ extern char 				*CONFIG_HOSTNAME;
  *                                                                            *
  * Purpose: execute remote command task                                       *
  *                                                                            *
- * Parameters: taskid - [IN] the task identifier                              *
- *             clock  - [IN] the task creation time                           *
- *             ttl    - [IN] the task expiration period in seconds            *
- *             now    - [IN] the current time                                 *
+ * Parameters: taskid         - [IN] the task identifier                      *
+ *             clock          - [IN] the task creation time                   *
+ *             ttl            - [IN] the task expiration period in seconds    *
+ *             now            - [IN] the current time                         *
+ *             config_timeout - [IN]                                          *
  *                                                                            *
  * Return value: SUCCEED - the remote command was executed                    *
  *               FAIL    - otherwise                                          *
