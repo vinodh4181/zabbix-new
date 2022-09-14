@@ -3231,7 +3231,7 @@ static void	DCsync_triggers(zbx_dbsync_t *sync, zbx_uint32_t revision)
 	int		found, ret;
 	zbx_uint64_t	triggerid;
 
-	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
+	zabbix_log(LOG_LEVEL_DEBUG, "In %s()1 ", __func__);
 
 	while (SUCCEED == (ret = zbx_dbsync_next(sync, &rowid, &row, &tag)))
 	{
