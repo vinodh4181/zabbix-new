@@ -314,7 +314,7 @@ class testInitialConfSync extends CIntegrationTest
 				"insert" =>
 				"0",
 				"update" =>
-				"14",
+				"16",
 				"delete" =>
 				"0",
 			]
@@ -347,7 +347,7 @@ class testInitialConfSync extends CIntegrationTest
 				"insert" =>
 				"0",
 				"update" =>
-				"0",
+				"3",
 				"delete" =>
 				"0",
 			]
@@ -358,7 +358,7 @@ class testInitialConfSync extends CIntegrationTest
 				"insert" =>
 				"0",
 				"update" =>
-				"1",
+				"2",
 				"delete" =>
 				"0",
 			]
@@ -369,7 +369,7 @@ class testInitialConfSync extends CIntegrationTest
 				"insert" =>
 				"0",
 				"update" =>
-				"7",
+				"8",
 				"delete" =>
 				"0",
 			]
@@ -380,7 +380,7 @@ class testInitialConfSync extends CIntegrationTest
 				"insert" =>
 				"0",
 				"update" =>
-				"24",
+				"33",
 				"delete" =>
 				"0",
 			]
@@ -488,11 +488,11 @@ class testInitialConfSync extends CIntegrationTest
 			"expressions" =>
 			[
 				"insert" =>
-				"0",
+				"1",
 				"update" =>
 				"0",
 				"delete" =>
-				"0",
+				"1",
 			]
 		],
 		[
@@ -578,7 +578,7 @@ class testInitialConfSync extends CIntegrationTest
 				"insert" =>
 				"0",
 				"update" =>
-				"2",
+				"10",
 				"delete" =>
 				"0",
 			]
@@ -587,11 +587,11 @@ class testInitialConfSync extends CIntegrationTest
 			"itemscriptparam" =>
 			[
 				"insert" =>
-				"1",
-				"update" =>
 				"0",
-				"delete" =>
+				"update" =>
 				"1",
+				"delete" =>
+				"0",
 			]
 		],
 		[
