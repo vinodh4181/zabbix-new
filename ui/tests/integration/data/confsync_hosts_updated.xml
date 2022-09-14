@@ -276,7 +276,7 @@
                             <trigger_prototypes>
                                 <trigger_prototype>
                                     <expression>last(/HostWithDiscovery/proto)=2</expression>
-                                    <name>TriggerPrototype</name>
+                                    <name>TriggerPrototypee</name>
                                     <priority>HIGH</priority>
                                     <manual_close>YES</manual_close>
                                 </trigger_prototype>
