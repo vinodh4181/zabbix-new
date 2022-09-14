@@ -1213,6 +1213,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 	zbx_thread_trapper_args			trapper_args = {zbx_config_tls, get_program_type, &listen_sock,
 								zbx_config_cfg->config_timeout};
 	zbx_thread_proxy_housekeeper_args	housekeeper_args = {get_program_type, zbx_config_cfg->config_timeout};
+	zbx_thread_pinger_args			pinger_args = {get_program_type, zbx_config_cfg->config_timeout};
 
 	if (0 != (flags & ZBX_TASK_FLAG_FOREGROUND))
 	{
@@ -1453,6 +1454,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 				zbx_thread_start(poller_thread, &thread_args, &threads[i]);
 				break;
 			case ZBX_PROCESS_TYPE_PINGER:
+				thread_args.args = &pinger_args;
 				zbx_thread_start(pinger_thread, &thread_args, &threads[i]);
 				break;
 			case ZBX_PROCESS_TYPE_HOUSEKEEPER:
