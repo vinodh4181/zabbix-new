@@ -965,7 +965,7 @@ class testInitialConfSync extends CIntegrationTest
 		return [
 			self::COMPONENT_SERVER => [
 				'LogFileSize' => 0,
-				'DebugLevel' => 4,
+				'DebugLevel' => 5,
 				'Vault' => 'CyberArk',
 				'VaultURL' => 'https://127.0.0.1:1858',
 			]
@@ -1568,6 +1568,9 @@ class testInitialConfSync extends CIntegrationTest
 				],
 			]
 		]);
+
+		sleep(15);
+
 
 		$this->updateGlobalMacro();
 		$this->updateAction();
