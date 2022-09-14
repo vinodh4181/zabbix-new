@@ -1532,6 +1532,8 @@ class testInitialConfSync extends CIntegrationTest
 
 		$xml = file_get_contents('integration/data/confsync_hosts_updated.xml');
 
+		var_dump(CDBHelper::getDataProvider("select * from triggers"));
+
 		$response = $this->call('configuration.import', [
 			'format' => 'xml',
 			'source' => $xml,
@@ -1571,7 +1573,7 @@ class testInitialConfSync extends CIntegrationTest
 
 		sleep(15);
 
-		var_dump(CDBHelper::getDataProvider(DBselect("select * from triggers")));
+		var_dump(CDBHelper::getDataProvider("select * from triggers"));
 
 		$this->updateGlobalMacro();
 		$this->updateAction();
