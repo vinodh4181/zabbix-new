@@ -85,7 +85,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'globmacros' =>
 			[
-				'insert' => '4',
+				'insert' => '6',
 				'update' => '0',
 				'delete' => '0',
 			],
