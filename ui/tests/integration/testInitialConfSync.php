@@ -1364,6 +1364,22 @@ class testInitialConfSync extends CIntegrationTest
 		]);
 		$this->assertArrayHasKey('result', $response);
 		$this->assertArrayHasKey('globalmacroids', $response['result']);
+
+		$response = $this->call('usermacro.createglobal', [
+			'macro' => '{$SECRETMACRO}',
+			'value' => '1234567890',
+			'type' => 1
+		]);
+		$this->assertArrayHasKey('result', $response);
+		$this->assertArrayHasKey('globalmacroids', $response['result']);
+
+		$response = $this->call('usermacro.createglobal', [
+			'macro' => '{$VAULTMACRO}',
+			'value' => '1234567890',
+			'type' => 2
+		]);
+		$this->assertArrayHasKey('result', $response);
+		$this->assertArrayHasKey('globalmacroids', $response['result']);
 	}
 
 	private function updateGlobalMacro()
