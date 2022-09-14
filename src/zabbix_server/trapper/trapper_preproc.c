@@ -396,8 +396,9 @@ out:
  *                                                                            *
  * Purpose: processes preprocessing test request                              *
  *                                                                            *
- * Parameters: sock - [IN] the request source socket (frontend)               *
- *             jp   - [IN] the request                                        *
+ * Parameters: sock           - [IN] the request source socket (frontend)     *
+ *             jp             - [IN] the request                              *
+ *             config_timeout - [IN]                                          *
  *                                                                            *
  * Return value: SUCCEED - the request was processed successfully             *
  *               FAIL    - otherwise                                          *

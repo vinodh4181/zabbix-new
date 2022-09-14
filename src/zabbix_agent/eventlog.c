@@ -1051,7 +1051,8 @@ static int	process_eventslog6(zbx_vector_ptr_t *addrs, zbx_vector_ptr_t *agent2_
 				send_err = process_value_cb(addrs, agent2_result, CONFIG_HOSTNAME, metric->key_orig,
 						evt_message, ITEM_STATE_NORMAL, &lastlogsize, NULL, &evt_timestamp,
 						evt_provider, &evt_severity, &evt_eventid,
-						metric->flags | ZBX_METRIC_FLAG_PERSISTENT, zbx_config_tls);
+						metric->flags | ZBX_METRIC_FLAG_PERSISTENT, zbx_config_tls,
+						config_timeout);
 
 				if (SUCCEED == send_err)
 				{
@@ -1642,7 +1643,8 @@ static int	process_eventslog(zbx_vector_ptr_t *addrs, zbx_vector_ptr_t *agent2_r
 					send_err = process_value_cb(addrs, agent2_result, CONFIG_HOSTNAME,
 							metric->key_orig, value, ITEM_STATE_NORMAL, &lastlogsize,
 							NULL, &timestamp, source, &severity, &logeventid,
-							metric->flags | ZBX_METRIC_FLAG_PERSISTENT, zbx_config_tls);
+							metric->flags | ZBX_METRIC_FLAG_PERSISTENT, zbx_config_tls,
+							config_timeout);
 
 					if (SUCCEED == send_err)
 					{

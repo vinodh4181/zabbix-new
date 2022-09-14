@@ -296,8 +296,9 @@ static int	queue_compare_by_nextcheck_asc(zbx_queue_item_t **d1, zbx_queue_item_
  *                                                                            *
  * Purpose: process queue request                                             *
  *                                                                            *
- * Parameters:  sock  - [IN] the request socket                               *
- *              jp    - [IN] the request data                                 *
+ * Parameters:  sock           - [IN] the request socket                      *
+ *              jp             - [IN] the request data                        *
+ *              config_timeout - [IN]                                         *
  *                                                                            *
  * Return value:  SUCCEED - processed successfully                            *
  *                FAIL - an error occurred                                    *
@@ -768,8 +769,9 @@ static void	status_stats_export(struct zbx_json *json, zbx_user_type_t access_le
  *                                                                            *
  * Purpose: process status request                                            *
  *                                                                            *
- * Parameters:  sock  - [IN] the request socket                               *
- *              jp    - [IN] the request data                                 *
+ * Parameters:  sock           - [IN] the request socket                      *
+ *              jp             - [IN] the request data                        *
+ *              config_timeout - [IN]                                         *
  *                                                                            *
  * Return value:  SUCCEED - processed successfully                            *
  *                FAIL - an error occurred                                    *
@@ -1386,7 +1388,8 @@ ZBX_THREAD_ENTRY(trapper_thread, args)
 			}
 #endif
 			sec = zbx_time();
-			process_trapper_child(&s, &ts, trapper_args_in->zbx_config_tls, trapper_args_in->config_timeout);
+			process_trapper_child(&s, &ts, trapper_args_in->zbx_config_tls,
+					trapper_args_in->config_timeout);
 			sec = zbx_time() - sec;
 
 			zbx_tcp_unaccept(&s);

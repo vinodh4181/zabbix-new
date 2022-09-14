@@ -247,13 +247,16 @@ void	zbx_rtc_notify_config_sync(int config_timeout, zbx_ipc_async_socket_t *rtc)
 	}
 }
 
-/******************************************************************************
- *                                                                            *
- * Purpose: subscribe process for RTC notifications                           *
- *                                                                            *
- * Parameters: rtc   - [OUT] the RTC notification subscription socket         *
- *                                                                            *
- ******************************************************************************/
+/*******************************************************************************
+ *                                                                             *
+ * Purpose: subscribe process for RTC notifications                            *
+ *                                                                             *
+ * Parameters: rtc            - [OUT] the RTC notification subscription socket *
+ *             proc_type      - [IN]                                           *
+ *             proc_num       - [IN]                                           *
+ *             config_timeout - [IN]                                           *
+ *                                                                             *
+ *******************************************************************************/
 void	zbx_rtc_subscribe(zbx_ipc_async_socket_t *rtc, unsigned char proc_type, int proc_num, int config_timeout)
 {
 	unsigned char		data[sizeof(int) + sizeof(unsigned char)];
