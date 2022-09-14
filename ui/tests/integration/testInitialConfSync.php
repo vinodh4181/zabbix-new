@@ -1530,6 +1530,12 @@ class testInitialConfSync extends CIntegrationTest
 			'updateExisting' => true
 		]);
 
+		$response = $this->call('proxy.get', [
+			'output' => 'extend'
+		]);
+		var_dump($response);
+
+
 		$xml = file_get_contents('integration/data/confsync_hosts_updated.xml');
 
 		$response = $this->call('configuration.import', [
