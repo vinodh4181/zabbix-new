@@ -76,6 +76,21 @@ zbx_vector_ptr_t	key_access_rules;
 static int	compare_key_access_rules(const void *rule_a, const void *rule_b);
 static int	parse_key_access_rule(char *pattern, zbx_key_access_rule_t *rule);
 
+static int	config_timeout = -1;
+
+void	zbx_sysinfo_set_config_timeout(int config_timeout_in)
+{
+	config_timeout = config_timeout_in;
+}
+
+int	sysinfo_get_config_timeout(void)
+{
+	if (-1 == config_timeout)
+		THIS_SHOULD_NEVER_HAPPEN;
+
+	return config_timeout;
+}
+
 /******************************************************************************
  *                                                                            *
  * Purpose: parses item key and splits it into command and parameters         *
@@ -2089,21 +2104,6 @@ int	hostname_handle_params(AGENT_REQUEST *request, AGENT_RESULT *result, char *h
 	SET_STR_RESULT(result, hostname);
 
 	return SUCCEED;
-}
-
-static int	config_timeout = -1;
-
-void	zbx_sysinfo_set_config_timeout(int config_timeout_in)
-{
-	config_timeout = config_timeout_in;
-}
-
-int	sysinfo_get_config_timeout(void)
-{
-	if (-1 == config_timeout)
-		THIS_SHOULD_NEVER_HAPPEN;
-
-	return config_timeout;
 }
 
 /******************************************************************************
