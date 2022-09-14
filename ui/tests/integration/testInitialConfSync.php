@@ -1569,7 +1569,9 @@ class testInitialConfSync extends CIntegrationTest
 					'createMissing' => false
 				],
 			]
+
 		]);
+		var_dump($response);
 
 		sleep(15);
 
