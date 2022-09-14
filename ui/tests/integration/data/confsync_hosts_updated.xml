@@ -421,8 +421,8 @@
                             <manual_close>YES</manual_close>
                             <dependencies>
                                 <dependency>
-                                    <name>SimpleTrigger</name>
-                                    <expression>last(/HostWithItems/calc)=2</expression>
+                                    <name>SimpleTrigger2</name>
+                                    <expression>last(/HostWithItems/calc)=22</expression>
                                 </dependency>
                             </dependencies>
                         </trigger>
