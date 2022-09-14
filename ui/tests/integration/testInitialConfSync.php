@@ -1570,11 +1570,12 @@ class testInitialConfSync extends CIntegrationTest
 		]);
 
 		$this->updateGlobalMacro();
+		$this->updateAction();
 
 		$this->clearLog(self::COMPONENT_SERVER);
-		$this->updateAction();
 		$this->reloadConfigurationCache(self::COMPONENT_SERVER);
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
+		var_dump(self::getLogPath(self::COMPONENT_SERVER));
 
 		$got = $this->parseSyncResults();
 		$this->assertEquals($this->expected_update, $got);
