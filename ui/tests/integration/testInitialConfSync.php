@@ -1571,6 +1571,7 @@ class testInitialConfSync extends CIntegrationTest
 			]
 
 		]);
+		var_dump("SBG");
 		var_dump($response);
 
 		sleep(15);
