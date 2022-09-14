@@ -944,6 +944,8 @@ class testInitialConfSync extends CIntegrationTest
 	private static $correlationid;
 	private static $maintenanceid;
 	private static $regexpid;
+	private static $vaultmacroid;
+	private static $secretmacroid;
 
 	/**
 	 * @inheritdoc
@@ -1372,6 +1374,7 @@ class testInitialConfSync extends CIntegrationTest
 		]);
 		$this->assertArrayHasKey('result', $response);
 		$this->assertArrayHasKey('globalmacroids', $response['result']);
+		self::$secretmacroid = $response['result']['globalmacroids'][0];
 
 		$response = $this->call('usermacro.createglobal', [
 			'macro' => '{$VAULTMACRO}',
@@ -1380,6 +1383,7 @@ class testInitialConfSync extends CIntegrationTest
 		]);
 		$this->assertArrayHasKey('result', $response);
 		$this->assertArrayHasKey('globalmacroids', $response['result']);
+		self::$vaultmacroid = $response['result']['globalmacroids'][0];
 	}
 
 	private function updateGlobalMacro()
@@ -1388,7 +1392,6 @@ class testInitialConfSync extends CIntegrationTest
 			'output' => 'extend',
 			'globalmacro' => 'true'
 		]);
-		$this->assertCount(1, $response['result']);
 		$this->assertArrayHasKey(0, $response['result']);
 		$this->assertArrayHasKey('globalmacroid', $response['result'][0]);
 
@@ -1398,6 +1401,18 @@ class testInitialConfSync extends CIntegrationTest
 			'globalmacroid' => $globalmacroid,
 			'macro' => '{$UU}',
 			'value' => 'updated'
+		]);
+		$this->assertArrayHasKey('globalmacroids', $response['result']);
+
+		$response = $this->call('usermacro.updateglobal', [
+			'globalmacroid' => self::$secretmacroid,
+			'value' => 'qwerasdfzxcv'
+		]);
+		$this->assertArrayHasKey('globalmacroids', $response['result']);
+
+		$response = $this->call('usermacro.updateglobal', [
+			'globalmacroid' => self::$vaultmacroid,
+			'value' => 'secret/zabbix:ZABBIX123',
 		]);
 		$this->assertArrayHasKey('globalmacroids', $response['result']);
 	}
