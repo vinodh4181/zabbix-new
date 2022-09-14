@@ -82,7 +82,7 @@
             <host>Host5_PassiveProxy</host>
             <name>Host5_PassiveProxy</name>
             <proxy>
-                <name>ProxyP</name>
+                <name>ProxyP1</name>
             </proxy>
             <groups>
                 <group>
