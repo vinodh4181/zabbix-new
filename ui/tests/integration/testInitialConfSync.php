@@ -1375,7 +1375,7 @@ class testInitialConfSync extends CIntegrationTest
 
 		$response = $this->call('usermacro.createglobal', [
 			'macro' => '{$VAULTMACRO}',
-			'value' => '1234567890',
+			'value' => 'secret/zabbix:password',
 			'type' => 2
 		]);
 		$this->assertArrayHasKey('result', $response);
