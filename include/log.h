@@ -61,8 +61,6 @@ extern int	zbx_log_level;
 #	define zabbix_log __zbx_zabbix_log
 #endif
 
-void		zbx_log_init_cfg(zbx_get_config_log_file_size_f zbx_get_config_log_file_size_cb_arg);
-
 int		zabbix_open_log(int type, int level, const char *filename, int config_log_file_size_in,
 				char **error);
 void		__zbx_zabbix_log(int level, const char *fmt, ...) __zbx_attr_format_printf(2, 3);

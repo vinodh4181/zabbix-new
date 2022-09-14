@@ -25,11 +25,6 @@
 #include "zbxcommon.h"
 #include "zbxsysinfo.h"
 
-static int      get_config_timeout(void)
-{
-	return 3;
-}
-
 void	zbx_mock_test_entry(void **state)
 {
 	AGENT_REQUEST		request;
@@ -45,7 +40,7 @@ void	zbx_mock_test_entry(void **state)
 
 	init_request(&request);
 	init_result(&result);
-	//zbx_sysinfo_set_config_timeout(get_config_timeout);
+	zbx_sysinfo_set_config_timeout(3);
 
 	if (SUCCEED != parse_item_key(param, &request))
 		fail_msg("Cannot parse item key: %s", param);
