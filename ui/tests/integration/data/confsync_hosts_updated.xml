@@ -277,7 +277,7 @@
                                 <trigger_prototype>
                                     <expression>last(/HostWithDiscovery/proto)=2</expression>
                                     <name>TriggerPrototype</name>
-                                    <priority>DISASTER</priority>
+                                    <priority>HIGH</priority>
                                     <manual_close>YES</manual_close>
                                 </trigger_prototype>
                             </trigger_prototypes>
@@ -395,7 +395,7 @@
                     </tags>
                     <triggers>
                         <trigger>
-                            <expression>now()&gt;1 and baselinedev(/HostWithItems/agent.ping,1M:now/M,&quot;h&quot;,3)=0</expression>
+                            <expression>now()&gt;2 and baselinedev(/HostWithItems/agent.ping,1M:now/M,&quot;h&quot;,3)=0</expression>
                             <name>TimeBasedAndOrdFuncTrigger</name>
                         </trigger>
                     </triggers>
@@ -416,7 +416,7 @@
                         <trigger>
                             <expression>last(/HostWithItems/calc)=2</expression>
                             <name>DepTrigger</name>
-                            <priority>DISASTER</priority>
+                            <priority>HIGH</priority>
                             <manual_close>YES</manual_close>
                             <dependencies>
                                 <dependency>
@@ -429,7 +429,7 @@
                             <expression>last(/HostWithItems/calc)=2</expression>
                             <name>SimpleTrigger</name>
                             <event_name>SimpleTriggerEvent</event_name>
-                            <priority>WARNING</priority>
+                            <priority>DISASTER</priority>
                             <manual_close>YES</manual_close>
                             <tags>
                                 <tag>
@@ -439,10 +439,10 @@
                             </tags>
                         </trigger>
                         <trigger>
-                            <expression>last(/HostWithItems/calc)=2</expression>
+                            <expression>last(/HostWithItems/calc)=22</expression>
                             <name>SimpleTrigger2</name>
                             <event_name>SimpleTriggerEvent2</event_name>
-                            <priority>DISASTER</priority>
+                            <priority>WARNING</priority>
                             <manual_close>YES</manual_close>
                             <tags>
                                 <tag>
@@ -751,7 +751,7 @@
                     <params>1</params>
                     <triggers>
                         <trigger>
-                            <expression>bytelength(last(/HostWithMacros/itm))&gt;bitlength({$HM0})</expression>
+                            <expression>bytelength(last(/HostWithMacros/itm))&gt;bytelength({$HM1})</expression>
                             <name>trigger with macro</name>
                         </trigger>
                     </triggers>
