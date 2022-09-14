@@ -3262,6 +3262,8 @@ static void	DCsync_triggers(zbx_dbsync_t *sync, zbx_uint32_t revision)
 		ZBX_STR2UCHAR(trigger->recovery_mode, row[10]);
 		ZBX_STR2UCHAR(trigger->correlation_mode, row[12]);
 
+		zabbix_log(1, "DBG trigger expr '%s'", trigger->expression);
+
 		if (0 == found)
 		{
 			dc_strpool_replace(found, &trigger->error, row[3]);
@@ -3288,6 +3290,7 @@ static void	DCsync_triggers(zbx_dbsync_t *sync, zbx_uint32_t revision)
 		trigger->recovery_expression_bin = config_decode_serialized_expression(row[17]);
 		trigger->timer = atoi(row[18]);
 		trigger->revision = revision;
+		zabbix_log()
 	}
 
 	/* remove deleted triggers from buffer */
