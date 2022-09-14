@@ -1561,9 +1561,9 @@ class testInitialConfSync extends CIntegrationTest
 					'deleteMissing' => false
 				],
 				'triggers' => [
-					'createMissing' => false,
+					'createMissing' => true,
 					'updateExisting' => true,
-					'deleteMissing' => false
+					'deleteMissing' => true
 				],
 				'templateLinkage' => [
 					'createMissing' => false
