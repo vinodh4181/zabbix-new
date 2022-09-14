@@ -3290,7 +3290,6 @@ static void	DCsync_triggers(zbx_dbsync_t *sync, zbx_uint32_t revision)
 		trigger->recovery_expression_bin = config_decode_serialized_expression(row[17]);
 		trigger->timer = atoi(row[18]);
 		trigger->revision = revision;
-		zabbix_log()
 	}
 
 	/* remove deleted triggers from buffer */
