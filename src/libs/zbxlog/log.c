@@ -35,7 +35,23 @@ static char		log_filename[MAX_STRING_LEN];
 static int		log_type = LOG_TYPE_UNDEFINED;
 static zbx_mutex_t	log_access = ZBX_MUTEX_NULL;
 int			zbx_log_level = LOG_LEVEL_WARNING;
-static int		config_log_file_size;
+static int		config_log_file_size = -1;
+
+static void	set_config_log_file_size(int config_log_file_size_in)
+{
+	config_log_file_size = config_log_file_size_in;
+}
+
+static int	get_config_log_file_size(void)
+{
+	if (-1 == config_log_file_size)
+	{
+		THIS_SHOULD_NEVER_HAPPEN;
+		exit(EXIT_FAILURE);
+	}
+
+	return config_log_file_size;
+}
 
 #ifdef _WINDOWS
 #	define LOCK_LOG		zbx_mutex_lock(log_access)
@@ -160,7 +176,7 @@ static void	rotate_log(const char *filename)
 
 	new_size = buf.st_size;
 
-	if (0 != config_log_file_size && (zbx_uint64_t)config_log_file_size *
+	if (0 != get_config_log_file_size() && (zbx_uint64_t)get_config_log_file_size() *
 			ZBX_MEBIBYTE < new_size)
 	{
 		char	filename_old[MAX_STRING_LEN];
@@ -297,7 +313,7 @@ int	zabbix_open_log(int type, int level, const char *filename, int config_log_fi
 {
 	log_type = type;
 	zbx_log_level = level;
-	config_log_file_size = config_log_file_size_in;
+	set_config_log_file_size(config_log_file_size_in);
 
 	if (LOG_TYPE_SYSTEM == type)
 	{
@@ -390,7 +406,7 @@ void	__zbx_zabbix_log(int level, const char *fmt, ...)
 
 		LOCK_LOG;
 
-		if (0 != config_log_file_size)
+		if (0 != get_config_log_file_size())
 			rotate_log(log_filename);
 
 		if (NULL != (log_file = fopen(log_filename, "a+")))

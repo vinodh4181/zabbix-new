@@ -86,7 +86,10 @@ void	zbx_sysinfo_set_config_timeout(int config_timeout_in)
 int	sysinfo_get_config_timeout(void)
 {
 	if (-1 == config_timeout)
+	{
 		THIS_SHOULD_NEVER_HAPPEN;
+		exit(EXIT_FAILURE);
+	}
 
 	return config_timeout;
 }
