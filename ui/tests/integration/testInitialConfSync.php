@@ -1571,6 +1571,7 @@ class testInitialConfSync extends CIntegrationTest
 
 		sleep(15);
 
+		var_dump(CDBHelper::getDataProvider(DBselect("select * from triggers")));
 
 		$this->updateGlobalMacro();
 		$this->updateAction();
