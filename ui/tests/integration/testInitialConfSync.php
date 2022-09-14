@@ -1354,20 +1354,6 @@ class testInitialConfSync extends CIntegrationTest
 		$this->assertArrayHasKey('globalmacroids', $response['result']);
 
 		$response = $this->call('usermacro.createglobal', [
-			'macro' => '{$CHLDTMPLMACRO}',
-			'value' => '2'
-		]);
-		$this->assertArrayHasKey('result', $response);
-		$this->assertArrayHasKey('globalmacroids', $response['result']);
-
-		$response = $this->call('usermacro.createglobal', [
-			'macro' => '{$PRNTTMPLMACRO}',
-			'value' => '3'
-		]);
-		$this->assertArrayHasKey('result', $response);
-		$this->assertArrayHasKey('globalmacroids', $response['result']);
-
-		$response = $this->call('usermacro.createglobal', [
 			'macro' => '{$SECRETMACRO}',
 			'value' => '1234567890',
 			'type' => 1

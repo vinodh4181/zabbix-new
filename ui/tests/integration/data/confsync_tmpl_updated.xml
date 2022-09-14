@@ -1,34 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>6.4</version>
-    <date>2022-08-09T14:26:28Z</date>
+    <date>2022-09-12T13:32:57Z</date>
+    <template_groups>
+        <template_group>
+            <uuid>bb17447fffe04b7784ddbd77b209c05a</uuid>
+            <name>TmplTests</name>
+        </template_group>
+    </template_groups>
     <templates>
         <template>
-            <uuid>0bd61f16b4554200a8d236b1890623a8</uuid>
+            <uuid>beae65b7da0a4106bb34b9fc5d39120e</uuid>
+            <template>bbbtmpl</template>
+            <name>bbbtmpl</name>
+            <templates>
+                <template>
+                    <name>SampleTemplate</name>
+                </template>
+            </templates>
+            <groups>
+                <group>
+                    <name>TmplTests</name>
+                </group>
+            </groups>
+            <macros>
+                <macro>
+                    <macro>{$CHLDTMPLMACRO}</macro>
+                    <value>1</value>
+                </macro>
+            </macros>
+        </template>
+        <template>
+            <uuid>02988c606ac84654beb66617b9d7a80c</uuid>
             <template>SampleTemplate</template>
             <name>aaatmpl</name>
             <groups>
                 <group>
-                    <name>Test</name>
+                    <name>TmplTests</name>
                 </group>
             </groups>
             <items>
                 <item>
-                    <uuid>6ef6a7439b324b2b890fd747514365a1</uuid>
+                    <uuid>9a443737fdc84f9a8305294ccb8c1ce9</uuid>
                     <name>TemplateItem</name>
                     <type>TRAP</type>
                     <key>tmpltrap</key>
-                    <delay>0</delay>
+                    <delay>10s</delay>
                     <triggers>
                         <trigger>
-                            <uuid>3f98f7f1354b42348bf75bbcd3de7461</uuid>
-                            <expression>last(/SampleTemplate/tmpltrap)=2</expression>
+                            <uuid>677b5052252d423491ec680c7b1b32e5</uuid>
+                            <expression>last(/SampleTemplate/tmpltrap)=3</expression>
                             <name>TemplateTrigger</name>
-                            <priority>DISASTER</priority>
+                            <priority>HIGH</priority>
                             <tags>
                                 <tag>
                                     <tag>eee</tag>
-                                    <value>fff</value>
+                                    <value>faff</value>
                                 </tag>
                             </tags>
                         </trigger>
@@ -37,7 +64,7 @@
             </items>
             <discovery_rules>
                 <discovery_rule>
-                    <uuid>bd8751ef045b422db242d3e16cab0509</uuid>
+                    <uuid>0c03a20de6f144d68bd48855e59fb32e</uuid>
                     <name>DiscoveryRule</name>
                     <type>SCRIPT</type>
                     <key>discrule</key>
@@ -46,11 +73,57 @@
                         <conditions>
                             <condition>
                                 <macro>{#LLDMACRO}</macro>
-                                <value>W</value>
+                                <value>WA</value>
                                 <formulaid>A</formulaid>
                             </condition>
                         </conditions>
                     </filter>
+                    <item_prototypes>
+                        <item_prototype>
+                            <uuid>4d34d26d2480480c862261b1b9e9d99d</uuid>
+                            <name>DepItemProtoDependsOnNormalItem</name>
+                            <type>DEPENDENT</type>
+                            <key>depitemproto_deponnormal</key>
+                            <delay>10s</delay>
+                            <master_item>
+                                <key>tmpltrap</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <uuid>c64594a285b64df79b137eeaec10e52b</uuid>
+                                    <expression>last(/SampleTemplate/depitemproto_deponnormal)=10</expression>
+                                    <name>proto_dep {#LLDMACRO}</name>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>proto {#LLDMACRO}</name>
+                                            <expression>last(/SampleTemplate/depitemproto_deponnormal)=10</expression>
+                                        </dependency>
+                                    </dependencies>
+                                    <tags>
+                                        <tag>
+                                            <tag>xxx</tag>
+                                            <value>yyy1y</value>
+                                        </tag>
+                                    </tags>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <uuid>1f2fbda374544b0cb77869c6f1d88314</uuid>
+                                    <expression>last(/SampleTemplate/depitemproto_deponnormal)=10</expression>
+                                    <name>proto {#LLDMACRO}</name>
+                                    <tags>
+                                        <tag>
+                                            <tag>AAA</tag>
+                                            <value>bb1b</value>
+                                        </tag>
+                                        <tag>
+                                            <tag>CCC</tag>
+                                            <value>dda1d</value>
+                                        </tag>
+                                    </tags>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
                     <lld_macro_paths>
                         <lld_macro_path>
                             <lld_macro>{#LLDMACRO}</lld_macro>
@@ -65,7 +138,7 @@
                                 <conditions>
                                     <condition>
                                         <macro>{#LLDMACRO}</macro>
-                                        <value>q</value>
+                                        <value>q1</value>
                                         <formulaid>A</formulaid>
                                     </condition>
                                 </conditions>
@@ -76,17 +149,22 @@
             </discovery_rules>
             <httptests>
                 <httptest>
-                    <uuid>8e60529a4ac4427481a1732c307c43c4</uuid>
+                    <uuid>14b0dc4f96ac43ceafafa7ef817ef4d6</uuid>
                     <name>WebScenTmpl</name>
                     <steps>
                         <step>
                             <name>StepWSTmpl</name>
-                            <url>localhost</url>
-                            <follow_redirects>NO</follow_redirects>
+                            <url>localhost/zabbix</url>
                         </step>
                     </steps>
                 </httptest>
             </httptests>
+            <macros>
+                <macro>
+                    <macro>{$PRNTTMPLMACRO}</macro>
+                    <value>22</value>
+                </macro>
+            </macros>
         </template>
     </templates>
 </zabbix_export>
