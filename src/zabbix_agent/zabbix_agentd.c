@@ -1445,7 +1445,6 @@ int	main(int argc, char **argv)
 			}
 #endif
 			set_user_parameter_dir(CONFIG_USER_PARAMETER_DIR);
-			zbx_sysinfo_set_config_timeout(zbx_config_cfg->config_timeout);
 
 			if (FAIL == load_user_parameters(CONFIG_USER_PARAMETERS, &error))
 			{

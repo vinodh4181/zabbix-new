@@ -969,7 +969,7 @@ ZBX_THREAD_ENTRY(poller_thread, args)
 	update_selfmon_counter(ZBX_PROCESS_STATE_BUSY);
 
 	scriptitem_es_engine_init();
-
+	zbx_sysinfo_set_config_timeout(poller_args_in->config_timeout);
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
 	zbx_tls_init_child(poller_args_in->zbx_config_tls, poller_args_in->zbx_get_program_type_cb_arg);
 #endif

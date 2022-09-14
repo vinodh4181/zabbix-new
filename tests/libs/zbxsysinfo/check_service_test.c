@@ -51,6 +51,7 @@ void	zbx_mock_test_entry(void **state)
 	expected_code = zbx_mock_str_to_return_code(zbx_mock_get_parameter_string("out.return"));
 	default_addr = zbx_mock_get_parameter_string("in.interface");
 	ip = zbx_mock_get_parameter_string("in.ip");
+	zbx_sysinfo_set_config_timeout(3);
 
 	init_result(&result);
 	init_request(&request);

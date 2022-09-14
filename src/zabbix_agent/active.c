@@ -1463,6 +1463,7 @@ ZBX_THREAD_ENTRY(active_checks_thread, args)
 
 	session_token = zbx_create_token(0);
 
+	zbx_sysinfo_set_config_timeout(activechks_args_in->config_timeout);
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
 	zbx_tls_init_child(activechks_args_in->zbx_config_tls, activechks_args_in->zbx_get_program_type_cb_arg);
 #endif

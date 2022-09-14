@@ -76,6 +76,7 @@ void	zbx_mock_test_entry(void **state)
 	init_request(&request);
 	init_result(&param_result);
 	init_param = zbx_mock_get_parameter_string("in.key");
+	zbx_sysinfo_set_config_timeout(3);
 
 	if (SUCCEED != parse_item_key(init_param, &request))
 		fail_msg("Cannot parse item key: %s", init_param);
