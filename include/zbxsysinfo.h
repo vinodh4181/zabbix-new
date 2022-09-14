@@ -185,8 +185,7 @@ typedef enum
 }
 zbx_key_access_rule_type_t;
 
-void	zbx_sysinfo_set_config_timeout(get_config_timeout_f
-		get_config_timeout_cb_arg);
+void	zbx_sysinfo_set_config_timeout(int config_timeout_in);
 
 void	init_metrics(void);
 int	add_metric(ZBX_METRIC *metric, char *error, size_t max_error_len);

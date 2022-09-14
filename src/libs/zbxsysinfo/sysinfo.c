@@ -2091,17 +2091,19 @@ int	hostname_handle_params(AGENT_REQUEST *request, AGENT_RESULT *result, char *h
 	return SUCCEED;
 }
 
-static get_config_timeout_f	get_config_timeout_cb = NULL;
+static int	config_timeout = -1;
 
-void	zbx_sysinfo_set_config_timeout(get_config_timeout_f
-		get_config_timeout_cb_arg)
+void	zbx_sysinfo_set_config_timeout(int config_timeout_in)
 {
-	get_config_timeout_cb = get_config_timeout_cb_arg;
+	config_timeout = config_timeout_in;
 }
 
 int	sysinfo_get_config_timeout(void)
 {
-	return get_config_timeout_cb();
+	if (-1 == config_timeout)
+		THIS_SHOULD_NEVER_HAPPEN;
+
+	return config_timeout;
 }
 
 /******************************************************************************

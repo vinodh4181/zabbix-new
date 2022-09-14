@@ -73,11 +73,6 @@ char	*CONFIG_SSL_KEY_LOCATION;
 static zbx_config_tls_t	*zbx_config_tls = NULL;
 static zbx_config_cfg_t	*zbx_config_cfg = NULL;
 
-static int	get_config_timeout(void)
-{
-	return zbx_config_cfg->config_timeout;
-}
-
 int	CONFIG_TCP_MAX_BACKLOG_SIZE	= SOMAXCONN;
 
 int	CONFIG_HEARTBEAT_FREQUENCY	= 60;
@@ -1450,7 +1445,7 @@ int	main(int argc, char **argv)
 			}
 #endif
 			set_user_parameter_dir(CONFIG_USER_PARAMETER_DIR);
-			zbx_sysinfo_set_config_timeout(get_config_timeout);
+			zbx_sysinfo_set_config_timeout(zbx_config_cfg->config_timeout);
 
 			if (FAIL == load_user_parameters(CONFIG_USER_PARAMETERS, &error))
 			{
