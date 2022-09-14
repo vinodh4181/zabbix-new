@@ -276,7 +276,7 @@
                             <trigger_prototypes>
                                 <trigger_prototype>
                                     <expression>last(/HostWithDiscovery/proto)=2</expression>
-                                    <name>TriggerPrototypee</name>
+                                    <name>TriggerPrototype</name>
                                     <priority>HIGH</priority>
                                     <manual_close>YES</manual_close>
                                 </trigger_prototype>
@@ -397,6 +397,7 @@
                         <trigger>
                             <expression>now()&gt;2 and baselinedev(/HostWithItems/agent.ping,1M:now/M,&quot;h&quot;,3)=0</expression>
                             <name>TimeBasedAndOrdFuncTrigger</name>
+                            <priority>HIGH</priority>
                         </trigger>
                     </triggers>
                 </item>
