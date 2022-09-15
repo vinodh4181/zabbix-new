@@ -1449,10 +1449,6 @@ class testInitialConfSync extends CIntegrationTest
 
 		$xml = file_get_contents('integration/data/confsync_hosts.xml');
 
-		$response = $this->call('proxy.get', [
-			'output' => 'extend'
-		]);
-		var_dump($response);
 
 		$response = $this->call('configuration.import', [
 			'format' => 'xml',
@@ -1494,6 +1490,20 @@ class testInitialConfSync extends CIntegrationTest
 		$this->createActions();
 		$this->createMaintenance();
 
+		$response = $this->call('host.get', [
+			'output' => 'extend'
+		]);
+		var_dump($response);
+
+		$response = $this->call('template.get', [
+			'output' => 'extend'
+		]);
+		var_dump($response);
+
+		$response = $this->call('item.get', [
+			'output' => 'extend'
+		]);
+		var_dump($response);
 
 		self::startComponent(self::COMPONENT_SERVER);
 
