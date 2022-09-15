@@ -1403,14 +1403,9 @@ class testInitialConfSync extends CIntegrationTest
 		$this->assertArrayHasKey('globalmacroids', $response['result']);
 	}
 
-	private function importTemplate($filename, $update, $params)
+	private function importTemplate($filename)
 	{
 		$xml = file_get_contents('integration/data/' . $filename);
-
-		$response = $this->call('templategroup.get', [
-			'output' => 'extend'
-		]);
-		var_dump($response);
 
 		$response = $this->call('configuration.import', [
 			'format' => 'xml',
@@ -1482,6 +1477,80 @@ class testInitialConfSync extends CIntegrationTest
 		]);
 	}
 
+	private function importTemplateForUpdate($filename)
+	{
+		$xml = file_get_contents('integration/data/' . $filename);
+
+		$response = $this->call('configuration.import', [
+			'format' => 'xml',
+			'source' => $xml,
+			'rules' => [
+				'template_groups' =>
+				[
+					'updateExisting' => true,
+					'createMissing' => false,
+				],
+				'host_groups' =>
+				[
+					'updateExisting' => true,
+					'createMissing' => false,
+				],
+				'templates' =>
+				[
+					'updateExisting' => true,
+					'createMissing' => false,
+				],
+				'valueMaps' =>
+				[
+					'updateExisting' => true,
+					'createMissing' => false,
+					'deleteMissing' => false,
+				],
+				'templateDashboards' =>
+				[
+					'updateExisting' => true,
+					'createMissing' => false,
+					'deleteMissing' => false,
+				],
+				'templateLinkage' =>
+				[
+					'createMissing' => false,
+					'deleteMissing' => false,
+				],
+				'items' =>
+				[
+					'updateExisting' => true,
+					'createMissing' => false,
+					'deleteMissing' => false,
+				],
+				'discoveryRules' =>
+				[
+					'updateExisting' => true,
+					'createMissing' => false,
+					'deleteMissing' => false,
+				],
+				'triggers' =>
+				[
+					'updateExisting' => true,
+					'createMissing' => false,
+					'deleteMissing' => false,
+				],
+				'graphs' =>
+				[
+					'updateExisting' => true,
+					'createMissing' => false,
+					'deleteMissing' => false,
+				],
+				'httptests' =>
+				[
+					'updateExisting' => true,
+					'createMissing' => false,
+					'deleteMissing' => false,
+				],
+			]
+		]);
+	}
+
 	/**
 	 */
 	public function testInitialConfSync_Insert()
@@ -1501,10 +1570,7 @@ class testInitialConfSync extends CIntegrationTest
 		self::stopComponent(self::COMPONENT_SERVER);
 		self::clearLog(self::COMPONENT_SERVER);
 
-		$this->importTemplate('confsync_tmpl.xml', false, [
-			'createMissing' => true,
-			'updateExisting' => false
-		]);
+		$this->importTemplate('confsync_tmpl.xml');
 
 		$xml = file_get_contents('integration/data/confsync_hosts.xml');
 
@@ -1599,11 +1665,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->updateMaintenance();
 		$this->updateRegexp();
 
-		$this->importTemplate('confsync_tmpl_updated.xml', true, [
-			'createMissing' => false,
-			'updateExisting' => true
-		]);
-
+		$this->importTemplateForUpdate('confsync_tmpl_updated.xml');
 		$xml = file_get_contents('integration/data/confsync_hosts_updated.xml');
 
 		var_dump(CDBHelper::getDataProvider("select * from triggers"));
