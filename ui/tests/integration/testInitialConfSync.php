@@ -745,7 +745,7 @@ class testInitialConfSync extends CIntegrationTest
 				"update" =>
 				"0",
 				"delete" =>
-				"1",
+				"5",
 			]
 		],
 		[
@@ -756,7 +756,7 @@ class testInitialConfSync extends CIntegrationTest
 				"update" =>
 				"0",
 				"delete" =>
-				"4",
+				"28",
 			]
 		],
 		[
@@ -767,7 +767,7 @@ class testInitialConfSync extends CIntegrationTest
 				"update" =>
 				"0",
 				"delete" =>
-				"1",
+				"22",
 			]
 		],
 		[
@@ -778,7 +778,7 @@ class testInitialConfSync extends CIntegrationTest
 				"update" =>
 				"0",
 				"delete" =>
-				"2",
+				"22",
 			]
 		],
 		[
@@ -789,7 +789,7 @@ class testInitialConfSync extends CIntegrationTest
 				"update" =>
 				"0",
 				"delete" =>
-				"2",
+				"3",
 			]
 		],
 		[
@@ -800,7 +800,7 @@ class testInitialConfSync extends CIntegrationTest
 				"update" =>
 				"0",
 				"delete" =>
-				"1",
+				"3",
 			]
 		],
 		[
@@ -811,7 +811,7 @@ class testInitialConfSync extends CIntegrationTest
 				"update" =>
 				"0",
 				"delete" =>
-				"16",
+				"28",
 			]
 		],
 		[
@@ -822,7 +822,7 @@ class testInitialConfSync extends CIntegrationTest
 				"update" =>
 				"0",
 				"delete" =>
-				"0",
+				"1",
 			]
 		],
 		[
@@ -899,7 +899,7 @@ class testInitialConfSync extends CIntegrationTest
 				"update" =>
 				"0",
 				"delete" =>
-				"1",
+				"2",
 			]
 		],
 		[
@@ -910,7 +910,7 @@ class testInitialConfSync extends CIntegrationTest
 				"update" =>
 				"0",
 				"delete" =>
-				"2",
+				"44",
 			]
 		],
 		[
@@ -921,7 +921,7 @@ class testInitialConfSync extends CIntegrationTest
 				"update" =>
 				"0",
 				"delete" =>
-				"1",
+				"2",
 			]
 		],
 		[
