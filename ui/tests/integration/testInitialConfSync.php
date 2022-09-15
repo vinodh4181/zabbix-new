@@ -1454,6 +1454,23 @@ class testInitialConfSync extends CIntegrationTest
 			'format' => 'xml',
 			'source' => $xml,
 			'rules' => [
+				'discoveryRules' => [
+					'createMissing' => true,
+					'updateExisting' => true,
+				],
+				'graphs' => [
+					'createMissing' => false,
+					'updateExisting' => false,
+					'deleteMissing' => false,
+				],
+				'host_groups' => [
+					'createMissing' => true,
+					'updateExisting' => true
+				],
+				'template_groups' => [
+					'createMissing' => false,
+					'updateExisting' => false,
+				],
 				'hosts' => [
 					'createMissing' => true,
 					'updateExisting' => true,
@@ -1461,18 +1478,12 @@ class testInitialConfSync extends CIntegrationTest
 				'items' => [
 					'createMissing' => true,
 					'updateExisting' => true,
-				],
-				'host_groups' => [
-					'createMissing' => true,
-					'updateExisting' => true
-				],
-				'discoveryRules' => [
-					'createMissing' => true,
-					'updateExisting' => true,
+					'deleteMissing' => false,
 				],
 				'httptests' => [
 					'createMissing' => true,
 					'updateExisting' => true,
+					'deleteMissing' => false,
 				],
 				'triggers' => [
 					'createMissing' => true,
