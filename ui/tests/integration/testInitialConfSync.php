@@ -1454,52 +1454,52 @@ class testInitialConfSync extends CIntegrationTest
 			'format' => 'xml',
 			'source' => $xml,
 			'rules' => [
-				  'host_groups' => 
+				'host_groups' =>
 				[
 				'updateExisting' => true,
 				'createMissing' => true,
 				],
-				'hosts' => 
+				'hosts' =>
 				[
 				'updateExisting' => true,
 				'createMissing' => true,
 				],
-				'valueMaps' => 
-				[
-				'updateExisting' => true,
-				'createMissing' => true,
-				'deleteMissing' => false,
-				],
-				'templateLinkage' => 
-				[
-				'createMissing' => true,
-				'deleteMissing' => false,
-				],
-				'items' => 
+				'valueMaps' =>
 				[
 				'updateExisting' => true,
 				'createMissing' => true,
 				'deleteMissing' => false,
 				],
-				'discoveryRules' => 
+				'templateLinkage' =>
+				[
+				'createMissing' => true,
+				'deleteMissing' => false,
+				],
+				'items' =>
 				[
 				'updateExisting' => true,
 				'createMissing' => true,
 				'deleteMissing' => false,
 				],
-				'triggers' => 
+				'discoveryRules' =>
 				[
 				'updateExisting' => true,
 				'createMissing' => true,
 				'deleteMissing' => false,
 				],
-				'graphs' => 
+				'triggers' =>
 				[
 				'updateExisting' => true,
 				'createMissing' => true,
 				'deleteMissing' => false,
 				],
-				'httptests' => 
+				'graphs' =>
+				[
+				'updateExisting' => true,
+				'createMissing' => true,
+				'deleteMissing' => false,
+				],
+				'httptests' =>
 				[
 				'updateExisting' => true,
 				'createMissing' => true,
