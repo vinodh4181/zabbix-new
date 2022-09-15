@@ -1729,7 +1729,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeExisting('template', 'templateids');
 		$this->purgeExisting('correlation', 'correlationids');
 		$this->purgeExisting('regexp', 'extend');
-		$this->purgeExisting('items', 'itemids');
+		$this->purgeExisting('item', 'itemids');
 		$this->purgeHostGroups();
 
 		$this->clearLog(self::COMPONENT_SERVER);
