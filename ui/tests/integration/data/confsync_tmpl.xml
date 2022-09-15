@@ -172,7 +172,7 @@
             <name>ComprehensiveTemplate</name>
             <groups>
                 <group>
-                    <name>Templates</name>
+                    <name>TmplTests</name>
                 </group>
             </groups>
             <items>
