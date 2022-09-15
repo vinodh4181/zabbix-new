@@ -616,7 +616,7 @@
                 <item>
                     <uuid>d94160c34be4455bba660b1b18c0fb0e</uuid>
                     <name>ItemWithGlobalAndHostMacro1</name>
-                    <key>sensor[{$UU},{$HM1}]</key>
+                    <key>sensor[{$HM1},{$UU}]</key>
                     <delay>{$GLOBDELAY}</delay>
                     <value_type>FLOAT</value_type>
                 </item>
@@ -644,7 +644,7 @@
                     <delay>23s</delay>
                     <params>echo</params>
                     <username>username</username>
-                    <password>password1</password>
+                    <password>password11</password>
                 </item>
                 <item>
                     <uuid>74939b6a93294881ac5ec83d885920c9</uuid>
@@ -677,7 +677,7 @@
                     <uuid>aaaff64eee7e47589a6b6a329a1060a3</uuid>
                     <name>Zabbix trapper1</name>
                     <type>TRAP</type>
-                    <key>trap</key>
+                    <key>trapo</key>
                     <delay>0</delay>
                     <units>MB</units>
                 </item>
