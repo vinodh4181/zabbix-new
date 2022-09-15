@@ -1490,6 +1490,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeExisting('host', 'hostids');
 		$this->purgeExisting('template', 'templateids');
 		$this->purgeExisting('item', 'itemids');
+		$this->purgeExisting('trigger', 'triggerids');
 		$this->purgeExisting('regexp', 'extend');
 		$this->purgeHostGroups();
 
@@ -1571,20 +1572,24 @@ class testInitialConfSync extends CIntegrationTest
 		$this->createActions();
 		$this->createMaintenance();
 
+		$counts = [];
+
 		$response = $this->call('host.get', [
 			'output' => 'extend'
 		]);
-		var_dump($response);
+		$counts['hosts'] = sizeof($response['result']);
 
 		$response = $this->call('template.get', [
 			'output' => 'extend'
 		]);
-		var_dump($response);
+		$counts['templates'] = sizeof($response['result']);
 
 		$response = $this->call('item.get', [
 			'output' => 'extend'
 		]);
-		var_dump($response);
+		$counts['triggers'] = sizeof($response['result']);
+
+		var_dump($counts);
 
 		self::startComponent(self::COMPONENT_SERVER);
 
