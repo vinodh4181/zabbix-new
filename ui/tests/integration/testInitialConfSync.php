@@ -133,7 +133,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'item_discovery' =>
 			[
-				'insert' => '1',
+				'insert' => '5',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -173,7 +173,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'itemtags' =>
 			[
-				'insert' => '1',
+				'insert' => '3',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -181,7 +181,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'functions' =>
 			[
-				'insert' => '6',
+				'insert' => '28',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -253,7 +253,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'itempproc' =>
 			[
-				'insert' => '10',
+				'insert' => '44',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -261,7 +261,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'itemscriptparam' =>
 			[
-				'insert' => '1',
+				'insert' => '2',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -1567,29 +1567,9 @@ class testInitialConfSync extends CIntegrationTest
 
 			]
 		]);
-		var_dump($response);
 
 		$this->createActions();
 		$this->createMaintenance();
-
-		$counts = [];
-
-		$response = $this->call('host.get', [
-			'output' => 'extend'
-		]);
-		$counts['hosts'] = sizeof($response['result']);
-
-		$response = $this->call('template.get', [
-			'output' => 'extend'
-		]);
-		$counts['templates'] = sizeof($response['result']);
-
-		$response = $this->call('item.get', [
-			'output' => 'extend'
-		]);
-		$counts['triggers'] = sizeof($response['result']);
-
-		var_dump($counts);
 
 		self::startComponent(self::COMPONENT_SERVER);
 
@@ -1597,7 +1577,6 @@ class testInitialConfSync extends CIntegrationTest
 
 		$got = $this->parseSyncResults();
 		$this->assertEquals($this->expected_initial, $got);
-		$this->assertEquals(1, 2);
 
 		$stringpool_old = $this->getStringPoolCount();
 
@@ -1666,12 +1645,6 @@ class testInitialConfSync extends CIntegrationTest
 			]
 
 		]);
-		var_dump("SBG");
-		var_dump($response);
-
-		sleep(15);
-
-		var_dump(CDBHelper::getDataProvider("select * from triggers"));
 
 		$this->updateGlobalMacro();
 		$this->updateAction();
@@ -1679,7 +1652,6 @@ class testInitialConfSync extends CIntegrationTest
 		$this->clearLog(self::COMPONENT_SERVER);
 		$this->reloadConfigurationCache(self::COMPONENT_SERVER);
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
-		var_dump(self::getLogPath(self::COMPONENT_SERVER));
 
 		$got = $this->parseSyncResults();
 		$this->assertEquals($this->expected_update, $got);
