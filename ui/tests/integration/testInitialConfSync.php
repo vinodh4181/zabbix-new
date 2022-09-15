@@ -1513,6 +1513,7 @@ class testInitialConfSync extends CIntegrationTest
 		var_dump($got);
 		var_dump(self::getLogPath(self::COMPONENT_SERVER));
 		$this->assertEquals($this->expected_initial, $got);
+		$this->assertEquals(1, 2);
 
 		$stringpool_old = $this->getStringPoolCount();
 
