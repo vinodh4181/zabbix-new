@@ -1456,30 +1456,27 @@ class testInitialConfSync extends CIntegrationTest
 			'rules' => [
 				'hosts' => [
 					'createMissing' => true,
-					'updateExisting' => false
+					'updateExisting' => true,
 				],
 				'items' => [
 					'createMissing' => true,
-					'updateExisting' => false
+					'updateExisting' => true,
 				],
 				'host_groups' => [
 					'createMissing' => true,
-					'updateExisting' => false
+					'updateExisting' => true
 				],
 				'discoveryRules' => [
 					'createMissing' => true,
-					'updateExisting' => false,
-					'deleteMissing' => true
+					'updateExisting' => true,
 				],
 				'httptests' => [
 					'createMissing' => true,
-					'updateExisting' => false,
-					'deleteMissing' => true
+					'updateExisting' => true,
 				],
 				'triggers' => [
 					'createMissing' => true,
-					'updateExisting' => false,
-					'deleteMissing' => true
+					'updateExisting' => true,
 				],
 				'templateLinkage' => [
 					'createMissing' => true
