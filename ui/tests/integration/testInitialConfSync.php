@@ -1454,44 +1454,58 @@ class testInitialConfSync extends CIntegrationTest
 			'format' => 'xml',
 			'source' => $xml,
 			'rules' => [
-				'discoveryRules' => [
-					'createMissing' => true,
-					'updateExisting' => true,
+				  'host_groups' => 
+				[
+				'updateExisting' => true,
+				'createMissing' => true,
 				],
-				'graphs' => [
-					'createMissing' => false,
-					'updateExisting' => false,
-					'deleteMissing' => false,
+				'hosts' => 
+				[
+				'updateExisting' => true,
+				'createMissing' => true,
 				],
-				'host_groups' => [
-					'createMissing' => true,
-					'updateExisting' => true
+				'valueMaps' => 
+				[
+				'updateExisting' => true,
+				'createMissing' => true,
+				'deleteMissing' => false,
 				],
-				'template_groups' => [
-					'createMissing' => false,
-					'updateExisting' => false,
+				'templateLinkage' => 
+				[
+				'createMissing' => true,
+				'deleteMissing' => false,
 				],
-				'hosts' => [
-					'createMissing' => true,
-					'updateExisting' => true,
+				'items' => 
+				[
+				'updateExisting' => true,
+				'createMissing' => true,
+				'deleteMissing' => false,
 				],
-				'items' => [
-					'createMissing' => true,
-					'updateExisting' => true,
-					'deleteMissing' => false,
+				'discoveryRules' => 
+				[
+				'updateExisting' => true,
+				'createMissing' => true,
+				'deleteMissing' => false,
 				],
-				'httptests' => [
-					'createMissing' => true,
-					'updateExisting' => true,
-					'deleteMissing' => false,
+				'triggers' => 
+				[
+				'updateExisting' => true,
+				'createMissing' => true,
+				'deleteMissing' => false,
 				],
-				'triggers' => [
-					'createMissing' => true,
-					'updateExisting' => true,
+				'graphs' => 
+				[
+				'updateExisting' => true,
+				'createMissing' => true,
+				'deleteMissing' => false,
 				],
-				'templateLinkage' => [
-					'createMissing' => true
+				'httptests' => 
+				[
+				'updateExisting' => true,
+				'createMissing' => true,
+				'deleteMissing' => false,
 				],
+
 			]
 		]);
 		var_dump($response);
