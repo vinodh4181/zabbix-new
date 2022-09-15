@@ -77,7 +77,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'templates' =>
 			[
-				'insert' => '3',
+				'insert' => '4',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -109,7 +109,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'items' =>
 			[
-				'insert' => '42',
+				'insert' => '93',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -117,7 +117,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'template_items' =>
 			[
-				'insert' => '0',
+				'insert' => '53',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -125,7 +125,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'prototype_items' =>
 			[
-				'insert' => '1',
+				'insert' => '5',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -141,7 +141,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'triggers' =>
 			[
-				'insert' => '6',
+				'insert' => '28',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -149,7 +149,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'trigdeps' =>
 			[
-				'insert' => '1',
+				'insert' => '7',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -157,7 +157,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'trigtags' =>
 			[
-				'insert' => '2',
+				'insert' => '22',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -1489,6 +1489,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->createGlobalMacros();
 		$this->purgeExisting('host', 'hostids');
 		$this->purgeExisting('template', 'templateids');
+		$this->purgeExisting('item', 'itemids');
 		$this->purgeExisting('regexp', 'extend');
 		$this->purgeHostGroups();
 
