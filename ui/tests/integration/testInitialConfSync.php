@@ -1439,13 +1439,13 @@ class testInitialConfSync extends CIntegrationTest
 		$this->createCorrelation();
 		$this->createRegexp();
 
+		self::stopComponent(self::COMPONENT_SERVER);
+		self::clearLog(self::COMPONENT_SERVER);
+
 		$this->importTemplate('confsync_tmpl.xml', false, [
 			'createMissing' => true,
 			'updateExisting' => false
 		]);
-
-		self::stopComponent(self::COMPONENT_SERVER);
-		self::clearLog(self::COMPONENT_SERVER);
 
 		$xml = file_get_contents('integration/data/confsync_hosts.xml');
 
