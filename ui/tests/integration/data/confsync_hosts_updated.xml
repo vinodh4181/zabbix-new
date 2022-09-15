@@ -189,24 +189,27 @@
             <items>
                 <item>
                     <name>Hostname</name>
-                    <key>agent.ping</key>
+                    <key>agent.hostname</key>
                     <trends>0</trends>
+                    <delay>25s</delay>
                     <value_type>CHAR</value_type>
-                    <inventory_link>HARDWARE</inventory_link>
+                    <inventory_link>NAME</inventory_link>
                     <interface_ref>if1</interface_ref>
                 </item>
                 <item>
                     <name>Chassis</name>
-                    <key>system.hw.chassis[serial]</key>
+                    <key>system.hw.chassis[model]</key>
                     <trends>0</trends>
+                    <delay>25s</delay>
                     <value_type>CHAR</value_type>
                     <inventory_link>HARDWARE_FULL</inventory_link>
                     <interface_ref>if1</interface_ref>
                 </item>
                 <item>
                     <name>Uname</name>
-                    <key>agent.version</key>
+                    <key>system.uname</key>
                     <trends>0</trends>
+                    <delay>25s</delay>
                     <value_type>CHAR</value_type>
                     <inventory_link>OS</inventory_link>
                     <interface_ref>if1</interface_ref>
@@ -371,6 +374,7 @@
                     <name>NormalItemPreproc</name>
                     <key>agent.hostmetadata</key>
                     <trends>0</trends>
+		    <delay>20s</delay>
                     <value_type>CHAR</value_type>
                     <preprocessing>
                         <step>
@@ -387,6 +391,7 @@
                     <name>Agent ping (active)</name>
                     <type>ZABBIX_ACTIVE</type>
                     <key>agent.ping</key>
+		    <delay>20s</delay>
                     <tags>
                         <tag>
                             <tag>qw</tag>
@@ -405,6 +410,7 @@
                 <item>
                     <name>Agent version (passive)</name>
                     <key>agent.version</key>
+		    <delay>20s</delay>
                     <trends>0</trends>
                     <value_type>CHAR</value_type>
                     <interface_ref>if1</interface_ref>
