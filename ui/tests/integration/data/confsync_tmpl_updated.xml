@@ -96,7 +96,7 @@
                                     <dependencies>
                                         <dependency>
                                             <name>proto {#LLDMACRO}</name>
-                                            <expression>last(/SampleTemplate/depitemproto_deponnormal)=10</expression>
+                                            <expression>last(/SampleTemplate/depitemproto_deponnormal)=110</expression>
                                         </dependency>
                                     </dependencies>
                                     <tags>
@@ -217,7 +217,7 @@
                     <triggers>
                         <trigger>
                             <uuid>02f89248506b4288b90646576e5d3e5f</uuid>
-                            <expression>now()&gt;1 and baselinedev(/ComprehensiveTemplate/agent.ping,1M:now/M,&quot;h&quot;,2)=0</expression>
+                            <expression>now()&gt;1 and baselinedev(/ComprehensiveTemplate/agent.ping,1M:now/M,&quot;h&quot;,2)=22</expression>
                             <name>TimeBasedAndOrdFuncTrigger1</name>
                             <priority>HIGH</priority>
                         </trigger>
@@ -268,7 +268,7 @@
                         </trigger>
                         <trigger>
                             <uuid>29f384f401b643d7b6889324470783ab</uuid>
-                            <expression>last(/ComprehensiveTemplate/calc)=2</expression>
+                            <expression>last(/ComprehensiveTemplate/calc)=22</expression>
                             <name>SimpleTrigger21</name>
                             <event_name>SimpleTriggerEvent2</event_name>
                             <priority>HIGH</priority>
@@ -573,7 +573,7 @@
                     <triggers>
                         <trigger>
                             <uuid>3d12940891624ea38571bde3202bc728</uuid>
-                            <expression>bitlength(last(/ComprehensiveTemplate/itm))&gt;bitlength({$HM1})</expression>
+                            <expression>bitlength(last(/ComprehensiveTemplate/itm))&gt;bytelength({$HM1})</expression>
                             <name>trigger with macro1</name>
                             <priority>HIGH</priority>
                         </trigger>
