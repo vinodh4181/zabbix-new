@@ -192,7 +192,7 @@
                     <key>agent.ping</key>
                     <trends>0</trends>
                     <value_type>CHAR</value_type>
-                    <inventory_link>NAME</inventory_link>
+                    <inventory_link>HARDWARE</inventory_link>
                     <interface_ref>if1</interface_ref>
                 </item>
                 <item>
@@ -549,6 +549,11 @@
                     </master_item>
                 </item>
                 <item>
+                    <name>Zabbix internal</name>
+                    <type>INTERNAL</type>
+                    <key>zabbix[boottime]</key>
+                </item>
+                <item>
                     <name>DepItemOnInternalItem</name>
                     <type>DEPENDENT</type>
                     <key>depitem_internal</key>
@@ -723,11 +728,6 @@
                     <trends>0</trends>
                     <value_type>TEXT</value_type>
                     <interface_ref>if1</interface_ref>
-                </item>
-                <item>
-                    <name>Zabbix internal</name>
-                    <type>INTERNAL</type>
-                    <key>zabbix[hosts]</key>
                 </item>
             </items>
             <inventory_mode>DISABLED</inventory_mode>
