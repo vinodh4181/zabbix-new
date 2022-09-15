@@ -61,7 +61,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'hosts' =>
 			[
-				'insert' => '16',
+				'insert' => '17',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -69,7 +69,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'host_invent' =>
 			[
-				'insert' => '2',
+				'insert' => '3',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -77,7 +77,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'templates' =>
 			[
-				'insert' => '2',
+				'insert' => '3',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -93,7 +93,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'hostmacros' =>
 			[
-				'insert' => '4',
+				'insert' => '5',
 				'update' => '0',
 				'delete' => '0',
 			],
@@ -101,7 +101,7 @@ class testInitialConfSync extends CIntegrationTest
 		[
 			'interfaces' =>
 			[
-				'insert' => '10',
+				'insert' => '14',
 				'update' => '0',
 				'delete' => '0',
 			],
