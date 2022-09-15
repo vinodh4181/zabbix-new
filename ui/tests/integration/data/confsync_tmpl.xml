@@ -178,7 +178,7 @@
             <items>
                 <item>
                     <uuid>9a1082526795476ab429acd9caafc920</uuid>
-                    <name>NormalItemPreproc</name>
+                    <name>NormalItemPreproc1</name>
                     <key>agent.hostmetadata</key>
                     <trends>0</trends>
                     <value_type>CHAR</value_type>
@@ -194,7 +194,7 @@
                 </item>
                 <item>
                     <uuid>79a3b0eca3764c64abc7c53b83c0ce83</uuid>
-                    <name>Hostname</name>
+                    <name>Hostname1</name>
                     <key>agent.hostname</key>
                     <trends>0</trends>
                     <value_type>CHAR</value_type>
@@ -202,7 +202,7 @@
                 </item>
                 <item>
                     <uuid>ca3303d4b06a4d05915bf4a6785962cb</uuid>
-                    <name>Agent ping (active)</name>
+                    <name>Agent ping (active)1</name>
                     <type>ZABBIX_ACTIVE</type>
                     <key>agent.ping</key>
                     <tags>
@@ -215,20 +215,20 @@
                         <trigger>
                             <uuid>02f89248506b4288b90646576e5d3e5f</uuid>
                             <expression>now()&gt;1 and baselinedev(/ComprehensiveTemplate/agent.ping,1M:now/M,&quot;h&quot;,2)=0</expression>
-                            <name>TimeBasedAndOrdFuncTrigger</name>
+                            <name>TimeBasedAndOrdFuncTrigger1</name>
                         </trigger>
                     </triggers>
                 </item>
                 <item>
                     <uuid>1b74d86537414efe8dee3c05442aff2c</uuid>
-                    <name>Agent version (passive)</name>
+                    <name>Agent version (passive)1</name>
                     <key>agent.version</key>
                     <trends>0</trends>
                     <value_type>CHAR</value_type>
                 </item>
                 <item>
                     <uuid>79a349483aae4d01915d0d307191dd56</uuid>
-                    <name>Calculated</name>
+                    <name>Calculated1</name>
                     <type>CALCULATED</type>
                     <key>calc</key>
                     <params>1+1+1</params>
@@ -236,12 +236,12 @@
                         <trigger>
                             <uuid>d6edfd2d79874f9db4cfefe3065ea13e</uuid>
                             <expression>last(/ComprehensiveTemplate/calc)=1</expression>
-                            <name>DepTrigger</name>
+                            <name>DepTrigger1</name>
                             <priority>DISASTER</priority>
                             <manual_close>YES</manual_close>
                             <dependencies>
                                 <dependency>
-                                    <name>SimpleTrigger</name>
+                                    <name>SimpleTrigger1</name>
                                     <expression>last(/ComprehensiveTemplate/calc)=1</expression>
                                 </dependency>
                             </dependencies>
@@ -249,7 +249,7 @@
                         <trigger>
                             <uuid>a82242bc84594586843847afe5296adb</uuid>
                             <expression>last(/ComprehensiveTemplate/calc)=1</expression>
-                            <name>SimpleTrigger</name>
+                            <name>SimpleTrigger1</name>
                             <event_name>SimpleTriggerEvent</event_name>
                             <priority>WARNING</priority>
                             <manual_close>YES</manual_close>
@@ -263,7 +263,7 @@
                         <trigger>
                             <uuid>29f384f401b643d7b6889324470783ab</uuid>
                             <expression>last(/ComprehensiveTemplate/calc)=2</expression>
-                            <name>SimpleTrigger2</name>
+                            <name>SimpleTrigger21</name>
                             <event_name>SimpleTriggerEvent2</event_name>
                             <priority>DISASTER</priority>
                             <manual_close>YES</manual_close>
@@ -278,7 +278,7 @@
                 </item>
                 <item>
                     <uuid>16e297773b8d48958ebd4da74918687c</uuid>
-                    <name>CalculatedItemPreprocStepTest</name>
+                    <name>CalculatedItemPreprocStepTest1</name>
                     <type>CALCULATED</type>
                     <key>calculateditempreprocsteptest</key>
                     <trends>0</trends>
@@ -341,14 +341,14 @@
                 </item>
                 <item>
                     <uuid>34693044a4b84f269f829c92b8e6888f</uuid>
-                    <name>CalculatedAsAggregated</name>
+                    <name>CalculatedAsAggregated1</name>
                     <type>CALCULATED</type>
                     <key>calc_as_aggr</key>
                     <params>sum(last_foreach(/*/agent.version?[group=&quot;HG1&quot;]))</params>
                 </item>
                 <item>
                     <uuid>489114fec8b44645b96b9c463ea54f22</uuid>
-                    <name>CalculatedPreproc</name>
+                    <name>CalculatedPreproc1</name>
                     <type>CALCULATED</type>
                     <key>calc_preproc</key>
                     <params>1</params>
@@ -364,14 +364,14 @@
                 </item>
                 <item>
                     <uuid>de2c2812f00240ec84359fb3c0165ff6</uuid>
-                    <name>ODBC monitor</name>
+                    <name>ODBC monitor1</name>
                     <type>ODBC</type>
                     <key>db.odbc.select[x,y,z]</key>
                     <params>select null from dual;</params>
                 </item>
                 <item>
                     <uuid>2012d2c4562340d990eebfac680cc1da</uuid>
-                    <name>Dependent item</name>
+                    <name>Dependent item1</name>
                     <type>DEPENDENT</type>
                     <key>depitem</key>
                     <delay>0</delay>
@@ -381,7 +381,7 @@
                 </item>
                 <item>
                     <uuid>d8def5fedd5a42a7b9a910c805a56899</uuid>
-                    <name>DepItemOnCalcPreproc</name>
+                    <name>DepItemOnCalcPreproc1</name>
                     <type>DEPENDENT</type>
                     <key>depitem_calc_preproc</key>
                     <delay>0</delay>
@@ -400,7 +400,7 @@
                 </item>
                 <item>
                     <uuid>10741348d10842d5a2888c7c3ebe4063</uuid>
-                    <name>DepItemOnDepCalcItem</name>
+                    <name>DepItemOnDepCalcItem1</name>
                     <type>DEPENDENT</type>
                     <key>depitem_depitem</key>
                     <delay>0</delay>
@@ -419,7 +419,7 @@
                 </item>
                 <item>
                     <uuid>d3e8a08190584da2a79f0c2c665a62ee</uuid>
-                    <name>DepItemOnNormalDepItem</name>
+                    <name>DepItemOnNormalDepItem1</name>
                     <type>DEPENDENT</type>
                     <key>depitem_depitem_normal</key>
                     <delay>0</delay>
@@ -438,7 +438,7 @@
                 </item>
                 <item>
                     <uuid>fd462776884943c08b6998bff03d5267</uuid>
-                    <name>DepItemOnInternalItem</name>
+                    <name>DepItemOnInternalItem1</name>
                     <type>DEPENDENT</type>
                     <key>depitem_internal</key>
                     <delay>0</delay>
@@ -457,7 +457,7 @@
                 </item>
                 <item>
                     <uuid>a1baaaa5e7af48578a749c5380426ed6</uuid>
-                    <name>DepItemOnNormalItem</name>
+                    <name>DepItemOnNormalItem1</name>
                     <type>DEPENDENT</type>
                     <key>depitem_normalitem</key>
                     <delay>0</delay>
@@ -476,7 +476,7 @@
                 </item>
                 <item>
                     <uuid>0a65fd6e155747ad9768e1c48c874264</uuid>
-                    <name>DepItemOnInternalItemPreproc</name>
+                    <name>DepItemOnInternalItemPreproc1</name>
                     <type>DEPENDENT</type>
                     <key>depitem_normal_preproc</key>
                     <delay>0</delay>
@@ -495,13 +495,13 @@
                 </item>
                 <item>
                     <uuid>e2b844f2d30440ef88deff5f3a596e1b</uuid>
-                    <name>External check</name>
+                    <name>External check1</name>
                     <type>EXTERNAL</type>
                     <key>extcheck</key>
                 </item>
                 <item>
                     <uuid>2644c18c42864249a4be85871879af30</uuid>
-                    <name>HTTP agent</name>
+                    <name>HTTP agent1</name>
                     <type>HTTP_AGENT</type>
                     <key>httpagent</key>
                     <authtype>BASIC</authtype>
@@ -510,14 +510,14 @@
                     <url>localhost</url>
                     <query_fields>
                         <query_field>
-                            <name>a</name>
+                            <name>a1</name>
                             <value>ba</value>
                         </query_field>
                     </query_fields>
                     <posts>test</posts>
                     <headers>
                         <header>
-                            <name>x</name>
+                            <name>x1</name>
                             <value>yq</value>
                         </header>
                     </headers>
@@ -527,13 +527,13 @@
                 </item>
                 <item>
                     <uuid>352e9f1baba8491f9fcf4e0e8d968f4d</uuid>
-                    <name>Simple check</name>
+                    <name>Simple check1</name>
                     <type>SIMPLE</type>
                     <key>icmpping[127.0.0.1]</key>
                 </item>
                 <item>
                     <uuid>f219f82b5f2f41d0a72f718684476638</uuid>
-                    <name>IPMI agent</name>
+                    <name>IPMI agent1</name>
                     <type>IPMI</type>
                     <key>ipmi.get</key>
                     <trends>0</trends>
@@ -542,7 +542,7 @@
                 </item>
                 <item>
                     <uuid>5184862f271d4f8ebec44ef6526c1da1</uuid>
-                    <name>item1</name>
+                    <name>item11</name>
                     <type>CALCULATED</type>
                     <key>itm</key>
                     <trends>0</trends>
@@ -552,13 +552,13 @@
                         <trigger>
                             <uuid>3d12940891624ea38571bde3202bc728</uuid>
                             <expression>bitlength(last(/ComprehensiveTemplate/itm))&gt;bitlength({$HM1})</expression>
-                            <name>trigger with macro</name>
+                            <name>trigger with macro1</name>
                         </trigger>
                     </triggers>
                 </item>
                 <item>
                     <uuid>3ce4f0ce210148cdb778a05e00bbdc81</uuid>
-                    <name>ItemPreproc</name>
+                    <name>ItemPreproc1</name>
                     <type>CALCULATED</type>
                     <key>preproc</key>
                     <params>1</params>
@@ -576,42 +576,42 @@
                 </item>
                 <item>
                     <uuid>74db5c8a26b447468c2f2590af135878</uuid>
-                    <name>Script</name>
+                    <name>Script1</name>
                     <type>SCRIPT</type>
                     <key>script</key>
                     <params>return &quot;1&quot;;</params>
                     <inventory_link>HARDWARE</inventory_link>
                     <parameters>
                         <parameter>
-                            <name>aaa</name>
+                            <name>aaa1</name>
                             <value>bbbf</value>
                         </parameter>
                     </parameters>
                 </item>
                 <item>
                     <uuid>d94160c34be4455bba660b1b18c0fb0e</uuid>
-                    <name>ItemWithGlobalAndHostMacro</name>
+                    <name>ItemWithGlobalAndHostMacro1</name>
                     <key>sensor[{$UU},{$HM1}]</key>
                     <delay>{$GLOBDELAY}</delay>
                     <value_type>FLOAT</value_type>
                 </item>
                 <item>
                     <uuid>5861cb498c044908a7aa5b225500ba3d</uuid>
-                    <name>SNMP trap</name>
+                    <name>SNMP trap1</name>
                     <type>SNMP_TRAP</type>
                     <key>snmptrap.fallback</key>
                     <delay>10s</delay>
                 </item>
                 <item>
                     <uuid>0106d4d9fba64066a66fbfe2d2340602</uuid>
-                    <name>SNMP agent</name>
+                    <name>SNMP agent1</name>
                     <type>SNMP_AGENT</type>
                     <snmp_oid>SNMPv2-MIB::sysContact.0</snmp_oid>
                     <key>snmp_test</key>
                 </item>
                 <item>
                     <uuid>49db5d3e8da84948a543801129a84b99</uuid>
-                    <name>SSH agent</name>
+                    <name>SSH agent1</name>
                     <type>SSH</type>
                     <key>ssh.run[x,localhost]</key>
                     <params>echo</params>
@@ -620,7 +620,7 @@
                 </item>
                 <item>
                     <uuid>74939b6a93294881ac5ec83d885920c9</uuid>
-                    <name>Chassis</name>
+                    <name>Chassis1</name>
                     <key>system.hw.chassis[model]</key>
                     <trends>0</trends>
                     <value_type>CHAR</value_type>
@@ -628,7 +628,7 @@
                 </item>
                 <item>
                     <uuid>8d311f6a4fb44a4ab325600539f8398e</uuid>
-                    <name>Uname</name>
+                    <name>Uname1</name>
                     <key>system.uname</key>
                     <trends>0</trends>
                     <value_type>CHAR</value_type>
@@ -636,7 +636,7 @@
                 </item>
                 <item>
                     <uuid>dca59a5058074e9f96a3d81f973bba75</uuid>
-                    <name>Telnet agent</name>
+                    <name>Telnet agent1</name>
                     <type>TELNET</type>
                     <key>telnet.run[a,localhost]</key>
                     <params>echo</params>
@@ -644,27 +644,27 @@
                 </item>
                 <item>
                     <uuid>aaaff64eee7e47589a6b6a329a1060a3</uuid>
-                    <name>Zabbix trapper</name>
+                    <name>Zabbix trapper1</name>
                     <type>TRAP</type>
                     <key>trap</key>
                     <delay>0</delay>
                 </item>
                 <item>
                     <uuid>a1dfb8d4a8004159979dff4f884f5d89</uuid>
-                    <name>ItemWithMultilevelMacros</name>
+                    <name>ItemWithMultilevelMacros1</name>
                     <key>vfs.dir.count[/tmp/{$UU},{$CHLDTMPLMACRO},{$PRNTTMPLMACRO}]</key>
                     <delay>{$PRNTTMPLMACRO}</delay>
                 </item>
                 <item>
                     <uuid>381db19a280a4c27a1ad86693ea535bc</uuid>
-                    <name>ItemWithMacro</name>
+                    <name>ItemWithMacro1</name>
                     <key>vfs.file.get[/tmp/{$HM1}]</key>
                     <trends>0</trends>
                     <value_type>TEXT</value_type>
                 </item>
                 <item>
                     <uuid>ec8e28d9728f4418af7847db9ce17612</uuid>
-                    <name>delay_globmacro</name>
+                    <name>delay_globmacro1</name>
                     <key>vfs.file.get[/tmp/{$UU}]</key>
                     <delay>{$GLOBDELAY}</delay>
                     <trends>0</trends>
@@ -672,7 +672,7 @@
                 </item>
                 <item>
                     <uuid>2a562bcf814343afb9c5cc4e9619e307</uuid>
-                    <name>Zabbix internal</name>
+                    <name>Zabbix internal1</name>
                     <type>INTERNAL</type>
                     <key>zabbix[boottime]</key>
                 </item>
