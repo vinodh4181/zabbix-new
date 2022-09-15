@@ -1494,6 +1494,7 @@ class testInitialConfSync extends CIntegrationTest
 				],
 			]
 		]);
+		var_dump($response);
 
 		$this->createActions();
 		$this->createMaintenance();
