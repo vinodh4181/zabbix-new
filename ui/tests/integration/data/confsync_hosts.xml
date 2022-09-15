@@ -892,5 +892,53 @@
             </httptests>
             <inventory_mode>DISABLED</inventory_mode>
         </host>
+        <host>
+            <host>HostWithComprehensiveTemplate</host>
+            <name>HostWithComprehensiveTemplate</name>
+            <templates>
+                <template>
+                    <name>ComprehensiveTemplate</name>
+                </template>
+            </templates>
+            <groups>
+                <group>
+                    <name>HG1/Subgroup</name>
+                </group>
+            </groups>
+            <interfaces>
+                <interface>
+                    <ip>127.0.1.1</ip>
+                    <interface_ref>if1</interface_ref>
+                </interface>
+                <interface>
+                    <type>SNMP</type>
+                    <ip>127.0.1.1</ip>
+                    <port>161</port>
+                    <details>
+                        <community>{$SNMP_COMMUNITY}</community>
+                    </details>
+                    <interface_ref>if2</interface_ref>
+                </interface>
+                <interface>
+                    <type>IPMI</type>
+                    <ip>127.0.1.1</ip>
+                    <port>623</port>
+                    <interface_ref>if4</interface_ref>
+                </interface>
+                <interface>
+                    <type>JMX</type>
+                    <ip>127.0.1.1</ip>
+                    <port>12345</port>
+                    <interface_ref>if3</interface_ref>
+                </interface>
+            </interfaces>
+            <macros>
+                <macro>
+                    <macro>{$HM1}</macro>
+                    <value>hm1b</value>
+                </macro>
+            </macros>
+            <inventory_mode>AUTOMATIC</inventory_mode>
+        </host>
     </hosts>
 </zabbix_export>

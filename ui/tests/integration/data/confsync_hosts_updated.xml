@@ -671,7 +671,7 @@
                     <type>SCRIPT</type>
                     <key>script</key>
                     <params>return &quot;1&quot;;</params>
-                    <inventory_link>NAME</inventory_link>
+                    <inventory_link>HARDWARE</inventory_link>
                     <parameters>
                         <parameter>
                             <name>aaa</name>
