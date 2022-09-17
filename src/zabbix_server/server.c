@@ -1278,7 +1278,7 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 							zbx_config_cfg->config_timeout};
 	zbx_thread_discoverer_args	discoverer_args = {zbx_config_tls, get_program_type};
 	zbx_thread_report_writer_args	report_writer_args = {zbx_config_tls->ca_file, zbx_config_tls->cert_file,
-							zbx_config_tls->key_file, get_program_type};
+							zbx_config_tls->key_file, CONFIG_SOURCE_IP, get_program_type};
 	zbx_thread_server_housekeeper_args	housekeeper_args = {get_program_type, zbx_config_cfg->config_timeout};
 	zbx_thread_server_trigger_housekeeper_args	trigger_housekeeper_args = {get_program_type,
 							zbx_config_cfg->config_timeout};
