@@ -127,7 +127,7 @@ static void	db_uchar_from_json(const struct zbx_json_parse *jp, const char *name
 }
 
 int	zbx_trapper_item_test_run(const struct zbx_json_parse *jp_data, zbx_uint64_t proxy_hostid, char **info,
-		int config_timeout)
+		const zbx_config_comms_args_t *zbx_config)
 {
 	char			tmp[MAX_STRING_LEN + 1], **pvalue;
 	DC_ITEM			item;
@@ -351,7 +351,7 @@ int	zbx_trapper_item_test_run(const struct zbx_json_parse *jp_data, zbx_uint64_t
 			zbx_eval_clear(&ctx);
 		}
 
-		zbx_check_items(&item, &errcode, 1, &result, &add_results, ZBX_NO_POLLER, config_timeout);
+		zbx_check_items(&item, &errcode, 1, &result, &add_results, ZBX_NO_POLLER, zbx_config);
 
 		switch (errcode)
 		{
@@ -410,7 +410,8 @@ out:
 	return ret;
 }
 
-void	zbx_trapper_item_test(zbx_socket_t *sock, const struct zbx_json_parse *jp, int config_timeout)
+void	zbx_trapper_item_test(zbx_socket_t *sock, const struct zbx_json_parse *jp,
+		const zbx_config_comms_args_t *zbx_config)
 {
 	zbx_user_t		user;
 	struct zbx_json_parse	jp_data;
@@ -447,7 +448,7 @@ void	zbx_trapper_item_test(zbx_socket_t *sock, const struct zbx_json_parse *jp, 
 	else
 		proxy_hostid = 0;
 
-	ret = zbx_trapper_item_test_run(&jp_data, proxy_hostid, &info, config_timeout);
+	ret = zbx_trapper_item_test_run(&jp_data, proxy_hostid, &info, zbx_config);
 
 	zbx_json_addstring(&json, ZBX_PROTO_TAG_RESPONSE, "success", ZBX_JSON_TYPE_STRING);
 	zbx_json_addobject(&json, ZBX_PROTO_TAG_DATA);
