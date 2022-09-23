@@ -29,7 +29,6 @@ typedef struct
 	zbx_config_comms_args_t	*zbx_config;
 	zbx_get_program_type_f	zbx_get_program_type_cb_arg;
 	unsigned char		poller_type;
-	int			config_timeout;
 }
 zbx_thread_poller_args;
 

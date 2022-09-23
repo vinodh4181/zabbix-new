@@ -808,7 +808,7 @@ static int	process_discovery(time_t *nextcheck, int config_timeout)
 				drule.name = row[1];
 				ZBX_DBROW2UINT64(drule.unique_dcheckid, row[2]);
 
-				process_rule(&drule);
+				process_rule(&drule, config_timeout);
 			}
 
 			zbx_dc_drule_queue(now, druleid, delay);

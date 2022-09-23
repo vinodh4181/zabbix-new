@@ -485,7 +485,7 @@ ZBX_THREAD_ENTRY(taskmanager_thread, args)
 		zbx_setproctitle("%s [processing tasks]", get_process_type_string(process_type));
 
 		tasks_num = tm_process_tasks(&rtc, (int)sec1, taskmanager_args_in->zbx_config);
-		
+
 		if (ZBX_TM_CLEANUP_PERIOD <= sec1 - cleanup_time)
 		{
 			tm_remove_old_tasks((int)sec1);
