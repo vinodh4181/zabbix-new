@@ -354,8 +354,11 @@ static int	tm_process_tasks(zbx_ipc_async_socket_t *rtc, int now, const zbx_conf
 		switch (type)
 		{
 			case ZBX_TM_TASK_REMOTE_COMMAND:
-				if (SUCCEED == tm_execute_remote_command(taskid, clock, ttl, now, config_timeout))
+				if (SUCCEED == tm_execute_remote_command(taskid, clock, ttl, now,
+						zbx_config->config_timeout))
+				{
 					processed_num++;
+				}
 				break;
 			case ZBX_TM_TASK_CHECK_NOW:
 				zbx_vector_uint64_append(&check_now_taskids, taskid);

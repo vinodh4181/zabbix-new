@@ -427,7 +427,7 @@ void	zbx_trapper_item_test(zbx_socket_t *sock, const struct zbx_json_parse *jp,
 
 	if (FAIL == zbx_get_user_from_json(jp, &user, NULL) || USER_TYPE_ZABBIX_ADMIN > user.type)
 	{
-		zbx_send_response(sock, FAIL, "Permission denied.", config_timeout);
+		zbx_send_response(sock, FAIL, "Permission denied.", zbx_config->config_timeout);
 		goto out;
 	}
 
@@ -436,7 +436,7 @@ void	zbx_trapper_item_test(zbx_socket_t *sock, const struct zbx_json_parse *jp,
 		char	*error;
 
 		error = zbx_dsprintf(NULL, "Cannot parse request tag: %s.", ZBX_PROTO_TAG_DATA);
-		zbx_send_response(sock, FAIL, error, config_timeout);
+		zbx_send_response(sock, FAIL, error, zbx_config->config_timeout);
 		zbx_free(error);
 		goto out;
 	}
@@ -454,7 +454,7 @@ void	zbx_trapper_item_test(zbx_socket_t *sock, const struct zbx_json_parse *jp,
 	zbx_json_addobject(&json, ZBX_PROTO_TAG_DATA);
 	zbx_json_addstring(&json, SUCCEED == ret ? ZBX_PROTO_TAG_RESULT : ZBX_PROTO_TAG_ERROR, info,
 			ZBX_JSON_TYPE_STRING);
-	zbx_tcp_send_bytes_to(sock, json.buffer, json.buffer_size, config_timeout);
+	zbx_tcp_send_bytes_to(sock, json.buffer, json.buffer_size, zbx_config->config_timeout);
 
 	zabbix_log(LOG_LEVEL_DEBUG, "%s() json.buffer:'%s'", __func__, json.buffer);
 

@@ -505,7 +505,7 @@ static int	proxy_get_tasks(DC_PROXY *proxy, int config_timeout)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	if (SUCCEED != (ret = get_data_from_proxy(proxy, ZBX_PROTO_VALUE_PROXY_TASKS, &answer, &ts)))
+	if (SUCCEED != (ret = get_data_from_proxy(proxy, ZBX_PROTO_VALUE_PROXY_TASKS, &answer, &ts, config_timeout)))
 		goto out;
 
 	/* handle pre 3.4 proxies that did not support proxy data request and active/passive configuration mismatch */

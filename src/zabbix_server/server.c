@@ -1290,17 +1290,14 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 	int				i, ret = SUCCEED;
 	char				*error = NULL;
 
-	zbx_config_comms_args_t		zbx_config = {zbx_config_tls, NULL, 0};
+	zbx_config_comms_args_t		zbx_config = {zbx_config_tls, NULL, 0, zbx_config_cfg->config_timeout};
 
 	zbx_thread_args_t		thread_args;
-	zbx_thread_poller_args		poller_args = {zbx_config_tls, get_program_type, ZBX_NO_POLLER,
-							zbx_config_cfg->config_timeout};
-	zbx_thread_trapper_args		trapper_args = {zbx_config_tls, get_program_type, listen_sock,
-							zbx_config_cfg->config_timeout};
+	zbx_thread_poller_args		poller_args = {&zbx_config, get_program_type, ZBX_NO_POLLER};
+	zbx_thread_trapper_args		trapper_args = {&zbx_config, get_program_type, listen_sock};
 	zbx_thread_escalator_args	escalator_args = {zbx_config_tls, get_program_type,
 							zbx_config_cfg->config_timeout};
-	zbx_thread_proxy_poller_args	proxy_poller_args = {zbx_config_tls, get_program_type,
-							zbx_config_cfg->config_timeout};
+	zbx_thread_proxy_poller_args	proxy_poller_args = {zbx_config_tls, get_program_type};
 	zbx_thread_discoverer_args	discoverer_args = {zbx_config_tls, get_program_type};
 	zbx_thread_report_writer_args	report_writer_args = {zbx_config_tls->ca_file, zbx_config_tls->cert_file,
 							zbx_config_tls->key_file, CONFIG_SOURCE_IP, get_program_type};

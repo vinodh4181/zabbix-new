@@ -234,7 +234,7 @@ int	trapper_process_request(const char *request, zbx_socket_t *sock, const struc
 	}
 	else if (0 == strcmp(request, ZBX_PROTO_VALUE_PROXY_CONFIG))
 	{
-		zbx_send_proxyconfig(sock, jp);
+		zbx_send_proxyconfig(sock, jp, config_timeout);
 		return SUCCEED;
 	}
 
