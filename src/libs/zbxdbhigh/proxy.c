@@ -1313,7 +1313,7 @@ static int	process_history_data_value(DC_ITEM *item, zbx_agent_value_t *value, i
 	{
 		AGENT_RESULT	result;
 
-		init_result(&result);
+		zbx_init_agent_result(&result);
 
 		if (NULL != value->value)
 		{
@@ -1347,11 +1347,11 @@ static int	process_history_data_value(DC_ITEM *item, zbx_agent_value_t *value, i
 				SET_LOG_RESULT(&result, log);
 			}
 			else
-				set_result_type(&result, ITEM_VALUE_TYPE_TEXT, value->value);
+				zbx_set_agent_result_type(&result, ITEM_VALUE_TYPE_TEXT, value->value);
 		}
 
 		if (0 != value->meta)
-			set_result_meta(&result, value->lastlogsize, value->mtime);
+			zbx_set_agent_result_meta(&result, value->lastlogsize, value->mtime);
 
 		if (0 != ZBX_ISSET_VALUE(&result) || 0 != ZBX_ISSET_META(&result))
 		{
@@ -1359,7 +1359,7 @@ static int	process_history_data_value(DC_ITEM *item, zbx_agent_value_t *value, i
 			process_item_value(item, &result, &value->ts, h_num, NULL);
 		}
 
-		free_result(&result);
+		zbx_free_agent_result(&result);
 	}
 
 	return SUCCEED;

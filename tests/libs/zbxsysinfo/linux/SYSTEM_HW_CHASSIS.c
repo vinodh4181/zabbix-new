@@ -38,11 +38,11 @@ void	zbx_mock_test_entry(void **state)
 	expected_value = zbx_mock_get_parameter_string("out.value");
 	expected_result = zbx_mock_str_to_return_code(zbx_mock_get_parameter_string("out.return"));
 
-	init_request(&request);
-	init_result(&result);
 	zbx_sysinfo_set_config_timeout(3);
+	zbx_init_agent_request(&request);
+	zbx_init_agent_result(&result);
 
-	if (SUCCEED != parse_item_key(param, &request))
+	if (SUCCEED != zbx_parse_item_key(param, &request))
 		fail_msg("Cannot parse item key: %s", param);
 
 	if (expected_result != (actual_result = SYSTEM_HW_CHASSIS(&request, &result)))
@@ -66,6 +66,6 @@ void	zbx_mock_test_entry(void **state)
 		}
 	}
 
-	free_request(&request);
-	free_result(&result);
+	zbx_free_agent_request(&request);
+	zbx_free_agent_result(&result);
 }
