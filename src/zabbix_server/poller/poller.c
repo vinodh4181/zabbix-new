@@ -308,7 +308,7 @@ static int	get_value(DC_ITEM *item, AGENT_RESULT *result, zbx_vector_ptr_t *add_
 			break;
 		case ITEM_TYPE_DB_MONITOR:
 #ifdef HAVE_UNIXODBC
-			res = get_value_db(item, result, zbx_config->config_timeout);
+			res = get_value_db(item, zbx_config->config_timeout, result);
 #else
 			SET_MSG_RESULT(result,
 					zbx_strdup(NULL, "Support for Database monitor checks was not compiled in."));
@@ -317,7 +317,7 @@ static int	get_value(DC_ITEM *item, AGENT_RESULT *result, zbx_vector_ptr_t *add_
 			break;
 		case ITEM_TYPE_EXTERNAL:
 			/* external checks use their own timeouts */
-			res = get_value_external(item, result, zbx_config->config_timeout);
+			res = get_value_external(item, zbx_config->config_timeout, result);
 			break;
 		case ITEM_TYPE_SSH:
 #if defined(HAVE_SSH2) || defined(HAVE_SSH)

@@ -144,10 +144,10 @@ static int	get_housekeeper_period(double time_slept)
 
 ZBX_THREAD_ENTRY(housekeeper_thread, args)
 {
-	int				records, start, sleeptime;
-	double				sec, time_slept, time_now;
-	char				sleeptext[25];
-	zbx_ipc_async_socket_t		rtc;
+	int					records, start, sleeptime;
+	double					sec, time_slept, time_now;
+	char					sleeptext[25];
+	zbx_ipc_async_socket_t			rtc;
 	zbx_thread_proxy_housekeeper_args	*housekeeper_args_in;
 
 	housekeeper_args_in = (zbx_thread_proxy_housekeeper_args *)((((zbx_thread_args_t *)args))->args);

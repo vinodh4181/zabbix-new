@@ -225,6 +225,7 @@ static int	zbx_check_event_end_recovery_event(zbx_uint64_t eventid, zbx_uint64_t
  *              eventid  - [IN] the id of an event                            *
  *              user     - [IN] the user who executes the command             *
  *              clientip - [IN] the IP of client                              *
+ *        config_timeout - [IN]                                               *
  *              result   - [OUT] the result of a script execution             *
  *              debug    - [OUT] the debug data (optional)                    *
  *                                                                            *

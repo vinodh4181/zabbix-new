@@ -91,9 +91,9 @@ static int	housekeep_problems_without_triggers(void)
 
 ZBX_THREAD_ENTRY(trigger_housekeeper_thread, args)
 {
-	int					deleted;
-	double					sec;
-	zbx_ipc_async_socket_t			rtc;
+	int						deleted;
+	double						sec;
+	zbx_ipc_async_socket_t				rtc;
 	zbx_thread_server_trigger_housekeeper_args	*trigger_housekeeper_args_in;
 
 	trigger_housekeeper_args_in = (zbx_thread_server_trigger_housekeeper_args *)

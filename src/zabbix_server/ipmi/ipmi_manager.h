@@ -33,7 +33,6 @@ typedef struct
 }
 zbx_thread_ipmi_manager_args;
 
-
 ZBX_THREAD_ENTRY(ipmi_manager_thread, args);
 
 #endif

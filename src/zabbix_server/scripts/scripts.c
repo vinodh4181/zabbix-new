@@ -431,6 +431,7 @@ out:
  * Parameters:  script         - [IN] the script to be executed               *
  *              host           - [IN] the host the script will be executed on *
  *              params         - [IN] parameters for the script               *
+ *              config_timeout - [IN]                                         *
  *              result         - [OUT] the result of a script execution       *
  *              error          - [OUT] the error reported by the script       *
  *              max_error_len  - [IN] the maximum error length                *

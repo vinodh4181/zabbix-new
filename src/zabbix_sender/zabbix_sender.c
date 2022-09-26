@@ -702,7 +702,8 @@ static	ZBX_THREAD_ENTRY(send_value, args)
 	}
 #endif
 	if (SUCCEED == zbx_connect_to_server(&sock, CONFIG_SOURCE_IP, sendval_args->addrs, CONFIG_SENDER_TIMEOUT,
-			sendval_args->zbx_config_cfg->config_timeout, 0, LOG_LEVEL_DEBUG, sendval_args->zbx_config_tls))
+			sendval_args->zbx_config_cfg->config_timeout, 0, LOG_LEVEL_DEBUG,
+			sendval_args->zbx_config_tls))
 	{
 		if (1 == sendval_args->sync_timestamp)
 		{

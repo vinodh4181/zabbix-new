@@ -730,21 +730,22 @@ static void	ipmi_manager_schedule_request(zbx_ipmi_manager_t *manager, zbx_uint6
 	ipmi_poller_schedule_request(host->poller, request);
 }
 
-/******************************************************************************
- *                                                                            *
- * Purpose: either sends or queues IPMI poll requests from configuration      *
- *          cache IPMI poller queue                                           *
- *                                                                            *
- * Parameters: manager   - [IN] the IPMI manager                              *
- *             now       - [IN] current time                                  *
- *             nextcheck - [OUT] time when the next IPMI check is scheduled   *
- *                         in configuration cache IPMI poller queue           *
- *                                                                            *
- * Return value: The number of requests scheduled.                            *
- *                                                                            *
- ******************************************************************************/
-static int	ipmi_manager_schedule_requests(zbx_ipmi_manager_t *manager, int now, int *nextcheck,
-		int config_timeout)
+/*********************************************************************************
+ *                                                                               *
+ * Purpose: either sends or queues IPMI poll requests from configuration         *
+ *          cache IPMI poller queue                                              *
+ *                                                                               *
+ * Parameters: manager        - [IN] the IPMI manager                            *
+ *             now            - [IN] current time                                *
+ *             config_timeout - [IN]                                             *
+ *             nextcheck      - [OUT] time when the next IPMI check is scheduled *
+ *                                    in configuration cache IPMI poller queue   *
+ *                                                                               *
+ * Return value: The number of requests scheduled.                               *
+ *                                                                               *
+ *********************************************************************************/
+static int	ipmi_manager_schedule_requests(zbx_ipmi_manager_t *manager, int now, int config_timeout,
+		int *nextcheck)
 {
 	int			i, num;
 	DC_ITEM			items[MAX_POLLER_ITEMS];
@@ -942,16 +943,16 @@ static void	ipmi_manager_process_value_result(zbx_ipmi_manager_t *manager, zbx_i
 
 ZBX_THREAD_ENTRY(ipmi_manager_thread, args)
 {
-	zbx_ipc_service_t	ipmi_service;
-	char			*error = NULL;
-	zbx_ipc_client_t	*client;
-	zbx_ipc_message_t	*message;
-	zbx_ipmi_manager_t	ipmi_manager;
-	zbx_ipmi_poller_t	*poller;
-	int			ret, nextcheck, nextcleanup, polled_num = 0, scheduled_num = 0, now;
-	double			time_stat, time_idle = 0, time_now, sec;
-	zbx_timespec_t		timeout = {0, 0};
-	zbx_thread_ipmi_manager_args    	*ipmi_manager_args_in;
+	zbx_ipc_service_t		ipmi_service;
+	char				*error = NULL;
+	zbx_ipc_client_t		*client;
+	zbx_ipc_message_t		*message;
+	zbx_ipmi_manager_t		ipmi_manager;
+	zbx_ipmi_poller_t		*poller;
+	int				ret, nextcheck, nextcleanup, polled_num = 0, scheduled_num = 0, now;
+	double				time_stat, time_idle = 0, time_now, sec;
+	zbx_timespec_t			timeout = {0, 0};
+	zbx_thread_ipmi_manager_args	*ipmi_manager_args_in;
 
 #define	STAT_INTERVAL	5	/* if a process is busy and does not sleep then update status not faster than */
 				/* once in STAT_INTERVAL seconds */
@@ -1003,8 +1004,8 @@ ZBX_THREAD_ENTRY(ipmi_manager_thread, args)
 		}
 
 		/* manager -> client */
-		scheduled_num += ipmi_manager_schedule_requests(&ipmi_manager, now, &nextcheck,
-				ipmi_manager_args_in->config_timeout);
+		scheduled_num += ipmi_manager_schedule_requests(&ipmi_manager, now,
+				ipmi_manager_args_in->config_timeout, &nextcheck);
 
 		if (FAIL != nextcheck)
 			timeout.sec = (nextcheck > now ? nextcheck - now : 0);

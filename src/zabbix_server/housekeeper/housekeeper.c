@@ -1117,11 +1117,11 @@ static int	get_housekeeping_period(double time_slept)
 
 ZBX_THREAD_ENTRY(housekeeper_thread, args)
 {
-	int			now, d_history_and_trends, d_cleanup, d_events, d_problems, d_sessions, d_services,
-				d_audit, sleeptime, records;
-	double			sec, time_slept, time_now;
-	char			sleeptext[25];
-	zbx_ipc_async_socket_t	rtc;
+	int					now, d_history_and_trends, d_cleanup, d_events, d_problems, d_sessions,
+						d_services, d_audit, sleeptime, records;
+	double					sec, time_slept, time_now;
+	char					sleeptext[25];
+	zbx_ipc_async_socket_t			rtc;
 	zbx_thread_server_housekeeper_args	*housekeeper_args_in;
 
 	housekeeper_args_in = (zbx_thread_server_housekeeper_args *)((((zbx_thread_args_t *)args))->args);

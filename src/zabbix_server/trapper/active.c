@@ -36,14 +36,15 @@ extern unsigned char	program_type;
  *                                                                            *
  * Purpose: perform active agent auto registration                            *
  *                                                                            *
- * Parameters: host          - [IN] name of the host to be added or updated   *
- *             ip            - [IN] IP address of the host                    *
- *             port          - [IN] port of the host                          *
+ * Parameters: host          -   [IN] name of the host to be added or updated *
+ *             ip            -   [IN] IP address of the host                  *
+ *             port          -   [IN] port of the host                        *
  *             connection_type - [IN] ZBX_TCP_SEC_UNENCRYPTED,                *
  *                             ZBX_TCP_SEC_TLS_PSK or ZBX_TCP_SEC_TLS_CERT    *
- *             host_metadata - [IN] host metadata                             *
- *             flag          - [IN] flag describing interface type            *
- *             interface     - [IN] interface value if flag is not default    *
+ *             host_metadata -   [IN] host metadata                           *
+ *             flag          -   [IN] flag describing interface type          *
+ *             interface     -   [IN] interface value if flag is not default  *
+ *             config_timeout -  [IN]                                         *
  *                                                                            *
  * Comments: helper function for get_hostid_by_host                           *
  *                                                                            *
@@ -152,16 +153,17 @@ out:
  *                                                                            *
  * Purpose: check for host name and return hostid                             *
  *                                                                            *
- * Parameters: sock          - [IN] open socket of server-agent connection    *
- *             host          - [IN] host name                                 *
- *             ip            - [IN] IP address of the host                    *
- *             port          - [IN] port of the host                          *
- *             host_metadata - [IN] host metadata                             *
- *             flag          - [IN] flag describing interface type            *
- *             interface     - [IN] interface value if flag is not default    *
- *             revision      - [OUT] host configuration revision              *
- *             hostid        - [OUT] host ID                                  *
- *             error         - [OUT] error message                            *
+ * Parameters: sock           - [IN] open socket of server-agent connection   *
+ *             host           - [IN] host name                                *
+ *             ip             - [IN] IP address of the host                   *
+ *             port           - [IN] port of the host                         *
+ *             host_metadata  - [IN] host metadata                            *
+ *             flag           - [IN] flag describing interface type           *
+ *             interface      - [IN] interface value if flag is not default   *
+ *             config_timeout - [IN]                                          *
+ *             revision       - [OUT] host configuration revision             *
+ *             hostid         - [OUT] host ID                                 *
+ *             hostid         - [OUT] host ID                                 *
  *                                                                            *
  * Return value:  SUCCEED - host is found                                     *
  *                FAIL - an error occurred or host not found                  *
@@ -172,8 +174,8 @@ out:
  *                                                                            *
  ******************************************************************************/
 static int	get_hostid_by_host(const zbx_socket_t *sock, const char *host, const char *ip, unsigned short port,
-		const char *host_metadata, zbx_conn_flags_t flag, const char *interface, zbx_uint64_t *hostid,
-		zbx_uint64_t *revision, int config_timeout, char *error)
+		const char *host_metadata, zbx_conn_flags_t flag, const char *interface, int config_timeout,
+		zbx_uint64_t *hostid, zbx_uint64_t *revision, char *error)
 {
 #define PROXY_AUTO_REGISTRATION_HEARTBEAT	120
 	char	*ch_error;
@@ -243,8 +245,9 @@ out:
  *                                                                            *
  * Purpose: send list of active checks to the host (older version agent)      *
  *                                                                            *
- * Parameters: sock - open socket of server-agent connection                  *
- *             request - request buffer                                       *
+ * Parameters: sock           - open socket of server-agent connection        *
+ *             request        - request buffer                                *
+ *             config_timeout - [IN]                                          *
  *                                                                            *
  * Return value:  SUCCEED - list of active checks sent successfully           *
  *                FAIL - an error occurred                                    *
@@ -275,8 +278,8 @@ int	send_list_of_active_checks(zbx_socket_t *sock, char *request, int config_tim
 	}
 
 	/* no host metadata in older versions of agent */
-	if (FAIL == get_hostid_by_host(sock, host, sock->peer, ZBX_DEFAULT_AGENT_PORT, "", 0, "",  &hostid, &revision,
-			config_timeout, error))
+	if (FAIL == get_hostid_by_host(sock, host, sock->peer, ZBX_DEFAULT_AGENT_PORT, "", 0, "",  config_timeout,
+			&hostid, &revision, error))
 	{
 		goto out;
 	}
@@ -424,8 +427,9 @@ out:
  *                                                                            *
  * Purpose: send list of active checks to the host                            *
  *                                                                            *
- * Parameters: sock - open socket of server-agent connection                  *
- *             jp   - request buffer                                          *
+ * Parameters: sock          - open socket of server-agent connection         *
+ *             jp            - request buffer                                 *
+ *             config_tmeout - [IN]                                           *
  *                                                                            *
  * Return value:  SUCCEED - list of active checks sent successfully           *
  *                FAIL - an error occurred                                    *
@@ -516,8 +520,8 @@ int	send_list_of_active_checks_json(zbx_socket_t *sock, struct zbx_json_parse *j
 		goto error;
 	}
 
-	if (FAIL == get_hostid_by_host(sock, host, ip, port, host_metadata, flag, interface, &hostid, &revision,
-			config_timeout, error))
+	if (FAIL == get_hostid_by_host(sock, host, ip, port, host_metadata, flag, interface, config_timeout,
+			&hostid, &revision, error))
 	{
 		goto error;
 	}

@@ -351,8 +351,6 @@ static int	discover_service(const DB_DCHECK *dcheck, char *ip, int port, int con
  *                                                                            *
  * Purpose: check if service is available and update database                 *
  *                                                                            *
- * Parameters: service - service info                                         *
- *                                                                            *
  ******************************************************************************/
 static void	process_check(const DB_DCHECK *dcheck, int *host_status, char *ip, int now, zbx_vector_ptr_t *services,
 		int config_timeout)

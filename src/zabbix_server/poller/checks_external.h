@@ -23,6 +23,6 @@
 #include "dbcache.h"
 #include "module.h"
 
-int	get_value_external(const DC_ITEM *item, AGENT_RESULT *result, int config_timeout);
+int	get_value_external(const DC_ITEM *item, int config_timeout, AGENT_RESULT *result);
 
 #endif

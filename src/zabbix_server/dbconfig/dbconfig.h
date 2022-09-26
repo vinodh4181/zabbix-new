@@ -22,7 +22,6 @@
 
 #include "zbxthreads.h"
 
-
 typedef struct
 {
 	zbx_get_program_type_f	zbx_get_program_type_cb_arg;
