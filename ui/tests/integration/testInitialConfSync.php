@@ -1058,12 +1058,12 @@ class testInitialConfSync extends CIntegrationTest
 	{
 		$response = $this->call('usermacro.get', [
 			'output' => 'extend',
-			'globalmacro' => true
+			'globalmacro' => true,
 			'preservekeys' => true
 		]);
 		$this->assertArrayHasKey('result', $response);
 
-		$ids = array_keys($filtered_groups);
+		$ids = array_keys($response['result']);
 		if (empty($ids)) {
 			return;
 		}
@@ -1651,6 +1651,8 @@ class testInitialConfSync extends CIntegrationTest
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
 		$stringpool_new = $this->getStringPoolCount();
+		$test_s = 'sp_new = ' . $stringpool_old . ', sp_old = ' . $stringpool_new;
+		var_dump($test_s);
 		$this->assertEquals($stringpool_old, $stringpool_new);
 
 		return true;
