@@ -1548,27 +1548,8 @@ class testInitialConfSync extends CIntegrationTest
 		]);
 	}
 
-	/**
-	 */
-	public function testInitialConfSync_Insert()
+	public function loadInitialConfiguration()
 	{
-		$this->createGlobalMacros();
-		$this->purgeExisting('host', 'hostids');
-		$this->purgeExisting('proxy', 'proxyids');
-		$this->purgeExisting('template', 'templateids');
-		$this->purgeExisting('item', 'itemids');
-		$this->purgeExisting('trigger', 'triggerids');
-		$this->purgeExisting('regexp', 'extend');
-		$this->purgeHostGroups();
-		//$this->purgeGlobalMacros();
-
-		$this->createProxies();
-		$this->createCorrelation();
-		$this->createRegexp();
-
-		self::stopComponent(self::COMPONENT_SERVER);
-		self::clearLog(self::COMPONENT_SERVER);
-
 		$this->importTemplate('confsync_tmpl.xml');
 
 		$xml = file_get_contents('integration/data/confsync_hosts.xml');
@@ -1632,8 +1613,32 @@ class testInitialConfSync extends CIntegrationTest
 			]
 		]);
 
+		$this->createProxies();
+		$this->createCorrelation();
+		$this->createRegexp();
+		$this->createGlobalMacros();
+
 		$this->createActions();
 		$this->createMaintenance();
+	}
+
+	/**
+	 */
+	public function testInitialConfSync_Insert()
+	{
+		$this->purgeExisting('host', 'hostids');
+		$this->purgeExisting('proxy', 'proxyids');
+		$this->purgeExisting('template', 'templateids');
+		$this->purgeExisting('item', 'itemids');
+		$this->purgeExisting('trigger', 'triggerids');
+		$this->purgeExisting('regexp', 'extend');
+		$this->purgeHostGroups();
+		$this->purgeGlobalMacros();
+
+		self::stopComponent(self::COMPONENT_SERVER);
+		self::clearLog(self::COMPONENT_SERVER);
+
+		$this->loadInitialConfiguration();
 
 		var_dump("DBG 1");
 
@@ -1648,6 +1653,18 @@ class testInitialConfSync extends CIntegrationTest
 
 		var_dump("DBG 2");
 		self::stopComponent(self::COMPONENT_SERVER);
+
+		$this->purgeExisting('host', 'hostids');
+		$this->purgeExisting('proxy', 'proxyids');
+		$this->purgeExisting('template', 'templateids');
+		$this->purgeExisting('item', 'itemids');
+		$this->purgeExisting('trigger', 'triggerids');
+		$this->purgeExisting('regexp', 'extend');
+		$this->purgeHostGroups();
+		$this->purgeGlobalMacros();
+
+		$this->loadInitialConfiguration();
+
 		var_dump("DBG 3");
 		self::clearLog(self::COMPONENT_SERVER);
 		var_dump("DBG 4");
@@ -1660,6 +1677,7 @@ class testInitialConfSync extends CIntegrationTest
 		$test_s = 'sp_new = ' . $stringpool_old . ', sp_old = ' . $stringpool_new;
 		var_dump($test_s);
 		$this->assertEquals($stringpool_old, $stringpool_new);
+		$this->assertEquals(1, 2);
 
 		return true;
 	}
