@@ -1550,6 +1550,12 @@ class testInitialConfSync extends CIntegrationTest
 
 	public function loadInitialConfiguration()
 	{
+		$this->createProxies();
+		$this->createCorrelation();
+		$this->createRegexp();
+		$this->createGlobalMacros();
+		$this->createActions();
+		$this->createMaintenance();
 		$this->importTemplate('confsync_tmpl.xml');
 
 		$xml = file_get_contents('integration/data/confsync_hosts.xml');
@@ -1612,14 +1618,6 @@ class testInitialConfSync extends CIntegrationTest
 
 			]
 		]);
-
-		$this->createProxies();
-		$this->createCorrelation();
-		$this->createRegexp();
-		$this->createGlobalMacros();
-
-		$this->createActions();
-		$this->createMaintenance();
 	}
 
 	/**
