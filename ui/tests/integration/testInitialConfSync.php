@@ -975,7 +975,6 @@ class testInitialConfSync extends CIntegrationTest
 	private function parseSyncResults()
 	{
 		$log = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
-		var_dump($log);
 		$data = explode("\n", $log);
 
 		$sync_lines = preg_grep('/DCsync_configuration.*\([0-9]+\/[0-9]+\/[0-9]+\)\.$/', $data);
@@ -1055,6 +1054,22 @@ class testInitialConfSync extends CIntegrationTest
 		$response = $this->call('hostgroup.delete', $ids);
 	}
 
+	private function purgeGlobalMacros()
+	{
+		$response = $this->call('usermacro.get', [
+			'output' => 'extend',
+			'globalmacro' => true
+			'preservekeys' => true
+		]);
+		$this->assertArrayHasKey('result', $response);
+
+		$ids = array_keys($filtered_groups);
+		if (empty($ids)) {
+			return;
+		}
+
+		$response = $this->call('usermacro.deleteglobal', $ids);
+	}
 	private function purgeExisting($method, $field_name)
 	{
 		$params = [
@@ -1539,11 +1554,13 @@ class testInitialConfSync extends CIntegrationTest
 	{
 		$this->createGlobalMacros();
 		$this->purgeExisting('host', 'hostids');
+		$this->purgeExisting('proxy', 'proxyids');
 		$this->purgeExisting('template', 'templateids');
 		$this->purgeExisting('item', 'itemids');
 		$this->purgeExisting('trigger', 'triggerids');
 		$this->purgeExisting('regexp', 'extend');
 		$this->purgeHostGroups();
+		$this->purgeGlobalMacros();
 
 		$this->createProxies();
 		$this->createCorrelation();
@@ -1555,7 +1572,6 @@ class testInitialConfSync extends CIntegrationTest
 		$this->importTemplate('confsync_tmpl.xml');
 
 		$xml = file_get_contents('integration/data/confsync_hosts.xml');
-
 
 		$response = $this->call('configuration.import', [
 			'format' => 'xml',
@@ -1649,8 +1665,6 @@ class testInitialConfSync extends CIntegrationTest
 
 		$this->importTemplateForUpdate('confsync_tmpl_updated.xml');
 		$xml = file_get_contents('integration/data/confsync_hosts_updated.xml');
-
-		var_dump(CDBHelper::getDataProvider("select * from triggers"));
 
 		$response = $this->call('configuration.import', [
 			'format' => 'xml',
