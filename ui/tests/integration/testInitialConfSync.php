@@ -1658,6 +1658,7 @@ class testInitialConfSync extends CIntegrationTest
 
 		$stringpool_new = $this->getStringPoolCount();
 		$test_s = 'sp_new = ' . $stringpool_old . ', sp_old = ' . $stringpool_new;
+		var_dump($test_s);
 		$this->assertEquals($stringpool_old, $stringpool_new);
 
 		return true;
