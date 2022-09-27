@@ -1659,7 +1659,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeExisting('proxy', 'proxyids');
 		$this->purgeExisting('template', 'templateids');
 		$this->purgeExisting('item', 'itemids');
-		$this->purgeExisting('actions', 'actionid');
+		$this->purgeExisting('action', 'actionid');
 		$this->purgeExisting('trigger', 'triggerids');
 		$this->purgeExisting('regexp', 'extend');
 		$this->purgeHostGroups();
