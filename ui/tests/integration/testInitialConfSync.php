@@ -1560,7 +1560,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeExisting('trigger', 'triggerids');
 		$this->purgeExisting('regexp', 'extend');
 		$this->purgeHostGroups();
-		$this->purgeGlobalMacros();
+		//$this->purgeGlobalMacros();
 
 		$this->createProxies();
 		$this->createCorrelation();
