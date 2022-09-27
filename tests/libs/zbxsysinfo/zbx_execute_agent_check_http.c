@@ -21,7 +21,7 @@
 #include "zbxmockdata.h"
 
 #include "zbxdbhigh.h"
-#include "sysinfo.h"
+#include "zbxsysinfo.h"
 #include "zbxnum.h"
 #include "zbxstr.h"
 
@@ -53,12 +53,12 @@ void	zbx_mock_test_entry(void **state)
 	{
 		fail_msg("Cannot get flags from test case data: %s", zbx_mock_error_string(error));
 	}
-	if (SUCCEED != is_uint32(flags_string, &flags_uint32))
+	if (SUCCEED != zbx_is_uint32(flags_string, &flags_uint32))
 		fail_msg("Cannot convert flags to unsigned 32 bit integer.");
 
-	init_metrics();
+	zbx_init_metrics();
 
-	process(in_command_string, flags_uint32, &result);
+	zbx_execute_agent_check(in_command_string, flags_uint32, &result);
 
 	if (NULL != (p = strchr(in_command_string, '[')))
 		zbx_strlcpy(key, in_command_string, p - in_command_string + 1);
