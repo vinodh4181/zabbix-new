@@ -1653,6 +1653,7 @@ class testInitialConfSync extends CIntegrationTest
 		var_dump("DBG 2");
 		self::stopComponent(self::COMPONENT_SERVER);
 
+		$this->purgeExisting('maintenance', 'maintenanceids');
 		$this->purgeExisting('host', 'hostids');
 		$this->purgeExisting('proxy', 'proxyids');
 		$this->purgeExisting('template', 'templateids');
