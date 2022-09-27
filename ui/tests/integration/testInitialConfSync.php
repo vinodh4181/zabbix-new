@@ -1665,6 +1665,16 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeHostGroups();
 		$this->purgeGlobalMacros();
 
+		//
+		self::clearLog(self::COMPONENT_SERVER);
+		var_dump("DBG S");
+		self::startComponent(self::COMPONENT_SERVER);
+		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
+		$spt = $this->getStringPoolCount();
+		var_dump($spt);
+		var_dump(file_get_contents(self::getLogPath(self::COMPONENT_SERVER)));
+		//
+
 		$this->loadInitialConfiguration();
 
 		var_dump("DBG 3");
