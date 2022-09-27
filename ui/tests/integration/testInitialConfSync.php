@@ -1672,9 +1672,7 @@ class testInitialConfSync extends CIntegrationTest
 		$spt = $this->getStringPoolCount();
 		var_dump($spt);
 		$data=file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
-		$d1=explode('\n', $data);
-		$s1 = preg_grep('\s\s', $d1);
-		var_dump($s1);
+		var_dump($data);
 
 		$this->loadInitialConfiguration();
 
