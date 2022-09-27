@@ -1635,6 +1635,8 @@ class testInitialConfSync extends CIntegrationTest
 		$this->createActions();
 		$this->createMaintenance();
 
+		var_dump("DBG 1");
+
 		self::startComponent(self::COMPONENT_SERVER);
 
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
@@ -1644,10 +1646,14 @@ class testInitialConfSync extends CIntegrationTest
 
 		$stringpool_old = $this->getStringPoolCount();
 
+		var_dump("DBG 2");
 		self::stopComponent(self::COMPONENT_SERVER);
+		var_dump("DBG 3");
 		self::clearLog(self::COMPONENT_SERVER);
+		var_dump("DBG 4");
 		self::startComponent(self::COMPONENT_SERVER);
 
+		var_dump("DBG 5");
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
 		$stringpool_new = $this->getStringPoolCount();
