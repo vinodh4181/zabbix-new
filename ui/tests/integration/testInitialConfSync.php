@@ -1665,7 +1665,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeHostGroups();
 		$this->purgeGlobalMacros();
 
-		// l
+		/* test
 		self::clearLog(self::COMPONENT_SERVER);
 		var_dump("DBG S");
 		self::startComponent(self::COMPONENT_SERVER);
@@ -1673,7 +1673,7 @@ class testInitialConfSync extends CIntegrationTest
 		$spt = $this->getStringPoolCount();
 		var_dump($spt);
 		var_dump(file_get_contents(self::getLogPath(self::COMPONENT_SERVER)));
-		// a
+*/
 
 		$this->loadInitialConfiguration();
 
