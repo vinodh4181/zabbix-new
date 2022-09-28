@@ -1671,8 +1671,9 @@ class testInitialConfSync extends CIntegrationTest
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 		$spt = $this->getStringPoolCount();
 		var_dump($spt);
-		$data=file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
-		var_dump($data);
+		$data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
+		$da = preg_grep('STRPOOL', $data);
+		var_dump($da);
 
 		$this->loadInitialConfiguration();
 
