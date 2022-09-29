@@ -632,6 +632,9 @@ int	dc_strpool_replace(int found, const char **curr, const char *new_str)
 		dc_strpool_release(*curr);
 	}
 
+	if (0 == strcmp(new_str, "29"))
+		zbx_backtrace();
+
 	*curr = dc_strpool_intern(new_str);
 
 	return SUCCEED;	/* indicate that the string has been replaced */
