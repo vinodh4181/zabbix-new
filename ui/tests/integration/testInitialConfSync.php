@@ -1698,7 +1698,6 @@ class testInitialConfSync extends CIntegrationTest
 		var_dump($da);
 
 		$this->assertEquals(1,2);
-		
 
 		self::stopComponent(self::COMPONENT_SERVER);
 		self::clearLog(self::COMPONENT_SERVER);
