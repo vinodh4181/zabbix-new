@@ -1070,6 +1070,7 @@ class testInitialConfSync extends CIntegrationTest
 
 		$response = $this->call('usermacro.deleteglobal', $ids);
 	}
+
 	private function purgeExisting($method, $field_name)
 	{
 		$params = [
@@ -1087,6 +1088,25 @@ class testInitialConfSync extends CIntegrationTest
 		}
 
 		$response = $this->call($method . '.delete', $ids);
+	}
+
+	private function disableAllHosts()
+	{
+		$response = $this->call('host.get', [
+			'output' => 'hostid',
+			'preservekeys' => true
+		]);
+		$this->assertArrayHasKey('result', $response);
+
+		$ids = array_keys($response['result']);
+
+		if (empty($ids)) {
+			return;
+		}
+
+		$response = $this->call('host.update', [
+			'status' => 1
+		]);
 	}
 
 	private function createActions()
@@ -1685,6 +1705,7 @@ class testInitialConfSync extends CIntegrationTest
 		//$this->getEverything();
 
 		$this->loadInitialConfiguration();
+		$this->disableAllHosts();
 
 		$this->reloadConfigurationCache(self::COMPONENT_SERVER);
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
