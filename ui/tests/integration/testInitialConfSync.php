@@ -1644,16 +1644,6 @@ class testInitialConfSync extends CIntegrationTest
 		$this->createMaintenance();
 	}
 
-	private function getEverything()
-	{
-		foreach (['correlation', 'maintenance', 'host', 'proxy', 'template', 'item', 'action', 'trigger', 'regexp', 'usermacro'] as $value) {
-			$response = $this->call($value . '.get', [
-				'output' => 'extend'
-			]);
-			var_dump($response);
-		}
-	}
-
 	/**
 	 */
 	public function testInitialConfSync_Insert()
@@ -1681,18 +1671,7 @@ class testInitialConfSync extends CIntegrationTest
 		$got = $this->parseSyncResults();
 		$this->assertEquals($this->expected_initial, $got);
 
-		// this
 		$stringpool_old = $this->getStringPoolCount();
-		$data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
-		$d1 = explode("\n", $data);
-		$da = preg_grep('/STRPOOL.*/', $d1);
-		var_dump($da);
-		var_dump("Selects after first sync");
-		$qw = CDBHelper::getAll('select * from conditions');
-		var_dump($qw);
-		$qw = CDBHelper::getAll('select * from actions');
-		var_dump($qw);
-		// this
 
 		$this->purgeExisting('correlation', 'correlationids');
 		$this->purgeExisting('maintenance', 'maintenanceids');
@@ -1706,14 +1685,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeHostGroups();
 		$this->purgeGlobalMacros();
 
-		var_dump("Selects after purge");
-		$qw=CDBHelper::getAll('select * from conditions');
-		var_dump($qw);
-		$qw=CDBHelper::getAll('select * from actions');
-		var_dump($qw);
-
 		self::clearLog(self::COMPONENT_SERVER);
-		//$this->getEverything();
 
 		$this->loadInitialConfiguration();
 		$this->disableAllHosts();
