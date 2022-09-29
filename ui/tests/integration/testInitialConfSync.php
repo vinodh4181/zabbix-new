@@ -1641,6 +1641,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeExisting('item', 'itemids');
 		$this->purgeExisting('trigger', 'triggerids');
 		$this->purgeExisting('regexp', 'extend');
+		$this->purgeExisting('action', 'extend');
 		$this->purgeHostGroups();
 		$this->purgeGlobalMacros();
 
@@ -1649,20 +1650,12 @@ class testInitialConfSync extends CIntegrationTest
 
 		$this->loadInitialConfiguration();
 
-		var_dump("DBG 1");
-
 		self::startComponent(self::COMPONENT_SERVER);
 
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
 		$got = $this->parseSyncResults();
 		$this->assertEquals($this->expected_initial, $got);
-
-		$data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
-		$d1 = explode("\n", $data);
-		$da = preg_grep('/STRPOOL.*/', $d1);
-		var_dump('strpool old');
-		var_dump($da);
 
 		$stringpool_old = $this->getStringPoolCount();
 
@@ -1694,6 +1687,8 @@ class testInitialConfSync extends CIntegrationTest
 		var_dump($da);
 
 		$qw=CDBHelper::getAll('select * from conditions');
+		var_dump($qw);
+		$qw=CDBHelper::getAll('select * from actions');
 		var_dump($qw);
 
 		$got = $this->parseSyncResults();
