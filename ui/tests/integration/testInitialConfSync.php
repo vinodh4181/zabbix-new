@@ -1681,7 +1681,7 @@ class testInitialConfSync extends CIntegrationTest
 		self::clearLog(self::COMPONENT_SERVER);
 		$this->getEverything();
 
-		$this->loadInitialConfiguration();
+		//$this->loadInitialConfiguration();
 
 		$this->reloadConfigurationCache(self::COMPONENT_SERVER);
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
@@ -1693,7 +1693,7 @@ class testInitialConfSync extends CIntegrationTest
 		var_dump($da);
 
 		$got = $this->parseSyncResults();
-		$this->assertEquals($this->expected_delete, $got);
+		$this->assertEquals($this->expected_insert, $got);
 
 		var_dump("DBG 3");
 		self::clearLog(self::COMPONENT_SERVER);
