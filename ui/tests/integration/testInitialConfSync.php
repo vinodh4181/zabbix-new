@@ -1681,11 +1681,17 @@ class testInitialConfSync extends CIntegrationTest
 		$got = $this->parseSyncResults();
 		$this->assertEquals($this->expected_initial, $got);
 
+		// this
 		$stringpool_old = $this->getStringPoolCount();
 		$data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
 		$d1 = explode("\n", $data);
 		$da = preg_grep('/STRPOOL.*/', $d1);
 		var_dump($da);
+		$qw=CDBHelper::getAll('select * from conditions');
+		var_dump($qw);
+		$qw=CDBHelper::getAll('select * from actions');
+		var_dump($qw);
+		// this
 
 		$this->purgeExisting('correlation', 'correlationids');
 		$this->purgeExisting('maintenance', 'maintenanceids');
