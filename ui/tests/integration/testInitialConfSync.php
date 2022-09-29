@@ -1693,6 +1693,9 @@ class testInitialConfSync extends CIntegrationTest
 		var_dump('strpool new');
 		var_dump($da);
 
+		$qw=CDBHelper::getAll('select * from conditions');
+		var_dump($qw);
+
 		$got = $this->parseSyncResults();
 		$this->assertEquals($this->expected_initial, $got);
 
