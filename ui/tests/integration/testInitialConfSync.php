@@ -1685,8 +1685,7 @@ class testInitialConfSync extends CIntegrationTest
 		$data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
 		$d1 = explode("\n", $data);
 		$da = preg_grep('/STRPOOL.*/', $d1);
-		// var_dump("DBG2");
-		// var_dump($da)
+		var_dump($da);
 
 		$this->purgeExisting('correlation', 'correlationids');
 		$this->purgeExisting('maintenance', 'maintenanceids');
