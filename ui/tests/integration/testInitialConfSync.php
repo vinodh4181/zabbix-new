@@ -1679,6 +1679,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeGlobalMacros();
 
 		self::clearLog(self::COMPONENT_SERVER);
+		$this->getEverything();
 
 		$this->loadInitialConfiguration();
 
@@ -1692,7 +1693,6 @@ class testInitialConfSync extends CIntegrationTest
 		var_dump($da);
 
 		$got = $this->parseSyncResults();
-		$this->getEverything();
 		$this->assertEquals($this->expected_delete, $got);
 
 		var_dump("DBG 3");
