@@ -1672,37 +1672,37 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeGlobalMacros();
 
 		self::clearLog(self::COMPONENT_SERVER);
-		$this->getEverything();
+		//$this->getEverything();
 
 		$this->loadInitialConfiguration();
 
 		$this->reloadConfigurationCache(self::COMPONENT_SERVER);
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
-		$data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
-		var_dump($data);
-		$d1 = explode("\n", $data);
-		$da = preg_grep('/STRPOOL.*/', $d1);
-		var_dump('strpool old = '. $strpool_old . ', strpool new = ' . $strpool_new);
+		$stringpool_mid = $this->getStringPoolCount();
+
+		// $data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
+		// var_dump($data);
+		// $d1 = explode("\n", $data);
+		// $da = preg_grep('/STRPOOL.*/', $d1);
+		// var_dump('strpool old = '. $strpool_old . ', strpool new = ' . $strpool_new);
 
 		$qw=CDBHelper::getAll('select * from conditions');
-		var_dump($qw);
+		//var_dump($qw);
 		$qw=CDBHelper::getAll('select * from actions');
-		var_dump($qw);
+		//var_dump($qw);
 
 		$got = $this->parseSyncResults();
 		$this->assertEquals($this->expected_initial, $got);
 
-		var_dump("DBG 3");
+		self::stopComponent(self::COMPONENT_SERVER);
 		self::clearLog(self::COMPONENT_SERVER);
-		var_dump("DBG 4");
 		self::startComponent(self::COMPONENT_SERVER);
 
-		var_dump("DBG 5");
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
 		$stringpool_new = $this->getStringPoolCount();
-		$test_s = 'sp_new = ' . $stringpool_old . ', sp_old = ' . $stringpool_new;
+		$test_s = 'sp_new = ' . $stringpool_old . 'sp_mid = ' . $stringpool_mid . ', sp_old = ' . $stringpool_new;
 		var_dump($test_s);
 		$data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
 		$d1 = explode("\n", $data);
