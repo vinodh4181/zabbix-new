@@ -1664,7 +1664,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeExisting('item', 'itemids');
 		$this->purgeExisting('trigger', 'triggerids');
 		$this->purgeExisting('regexp', 'extend');
-		$this->purgeExisting('action', 'extend');
+		$this->purgeExisting('action', 'actionids');
 		$this->purgeHostGroups();
 		$this->purgeGlobalMacros();
 
@@ -1687,9 +1687,9 @@ class testInitialConfSync extends CIntegrationTest
 		$d1 = explode("\n", $data);
 		$da = preg_grep('/STRPOOL.*/', $d1);
 		var_dump($da);
-		$qw=CDBHelper::getAll('select * from conditions');
+		$qw = CDBHelper::getAll('select * from conditions');
 		var_dump($qw);
-		$qw=CDBHelper::getAll('select * from actions');
+		$qw = CDBHelper::getAll('select * from actions');
 		var_dump($qw);
 		// this
 
