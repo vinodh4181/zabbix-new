@@ -1823,6 +1823,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeExisting('template', 'templateids');
 		$this->purgeExisting('correlation', 'correlationids');
 		$this->purgeExisting('regexp', 'extend');
+		$this->purgeExisting('action', 'actionids');
 		$this->purgeExisting('item', 'itemids');
 		$this->purgeHostGroups();
 
