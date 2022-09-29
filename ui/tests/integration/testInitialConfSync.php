@@ -1129,7 +1129,7 @@ class testInitialConfSync extends CIntegrationTest
 				'conditions' => [
 					[
 						'conditiontype' => CONDITION_TYPE_TRIGGER_NAME,
-						'operator' => CONDITION_OPERATOR_EQUAL,
+						'operator' => CONDITION_OPERATOR_LIKE,
 						'value' => 'qqq'
 					]
 				],
