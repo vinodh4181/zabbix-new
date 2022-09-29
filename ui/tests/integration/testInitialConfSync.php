@@ -1672,6 +1672,7 @@ class testInitialConfSync extends CIntegrationTest
 		self::clearLog(self::COMPONENT_SERVER);
 
 		$this->loadInitialConfiguration();
+		$this->disableAllHosts();
 
 		self::startComponent(self::COMPONENT_SERVER);
 
