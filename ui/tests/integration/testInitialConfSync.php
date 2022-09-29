@@ -1104,9 +1104,12 @@ class testInitialConfSync extends CIntegrationTest
 			return;
 		}
 
-		$response = $this->call('host.update', [
-			'status' => 1
-		]);
+		foreach ($ids as $hostid) {
+			$response = $this->call('host.update', [
+				'hostid' => $hostid,
+				'status' => 1
+			]);
+		}
 	}
 
 	private function createActions()
