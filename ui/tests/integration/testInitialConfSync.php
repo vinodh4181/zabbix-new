@@ -1687,6 +1687,7 @@ class testInitialConfSync extends CIntegrationTest
 		$d1 = explode("\n", $data);
 		$da = preg_grep('/STRPOOL.*/', $d1);
 		var_dump($da);
+		var_dump("Selects after first sync");
 		$qw = CDBHelper::getAll('select * from conditions');
 		var_dump($qw);
 		$qw = CDBHelper::getAll('select * from actions');
@@ -1705,6 +1706,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeHostGroups();
 		$this->purgeGlobalMacros();
 
+		var_dump("Selects after purge");
 		$qw=CDBHelper::getAll('select * from conditions');
 		var_dump($qw);
 		$qw=CDBHelper::getAll('select * from actions');
@@ -1724,8 +1726,12 @@ class testInitialConfSync extends CIntegrationTest
 		$data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
 		$d1 = explode("\n", $data);
 		$da = preg_grep('/STRPOOL.*/', $d1);
-		var_dump("DBG2");
 		var_dump($da);
+		var_dump("Selects after sync2");
+		$qw=CDBHelper::getAll('select * from conditions');
+		var_dump($qw);
+		$qw=CDBHelper::getAll('select * from actions');
+		var_dump($qw);
 
 		// $this->assertEquals(1,2);
 
