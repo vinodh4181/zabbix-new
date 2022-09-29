@@ -1697,7 +1697,7 @@ class testInitialConfSync extends CIntegrationTest
 		var_dump("DBG2");
 		var_dump($da);
 
-		$this->assertEquals(1,2);
+		// $this->assertEquals(1,2);
 
 		self::stopComponent(self::COMPONENT_SERVER);
 		self::clearLog(self::COMPONENT_SERVER);
@@ -1713,8 +1713,7 @@ class testInitialConfSync extends CIntegrationTest
 		$da = preg_grep('/STRPOOL.*/', $d1);
 		var_dump('strpool new');
 		var_dump($da);
-		$this->assertEquals($stringpool_old, $stringpool_new);
-		$this->assertEquals(1, 2);
+		$this->assertEquals($stringpool_old, $stringpool_mid);
 
 		return true;
 	}
