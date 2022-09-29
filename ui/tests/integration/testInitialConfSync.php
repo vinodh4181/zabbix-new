@@ -1680,7 +1680,6 @@ class testInitialConfSync extends CIntegrationTest
 		var_dump($qw);
 		$qw=CDBHelper::getAll('select * from actions');
 		var_dump($qw);
-		$this->assertEquals(1,2);
 
 		self::clearLog(self::COMPONENT_SERVER);
 		//$this->getEverything();
@@ -1698,6 +1697,8 @@ class testInitialConfSync extends CIntegrationTest
 		var_dump("DBG2");
 		var_dump($da);
 
+		$this->assertEquals(1,2);
+		
 
 		self::stopComponent(self::COMPONENT_SERVER);
 		self::clearLog(self::COMPONENT_SERVER);
