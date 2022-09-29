@@ -1692,9 +1692,6 @@ class testInitialConfSync extends CIntegrationTest
 		$qw=CDBHelper::getAll('select * from actions');
 		//var_dump($qw);
 
-		$got = $this->parseSyncResults();
-		$this->assertEquals($this->expected_initial, $got);
-
 		self::stopComponent(self::COMPONENT_SERVER);
 		self::clearLog(self::COMPONENT_SERVER);
 		self::startComponent(self::COMPONENT_SERVER);
