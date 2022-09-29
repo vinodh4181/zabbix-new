@@ -1623,7 +1623,7 @@ class testInitialConfSync extends CIntegrationTest
 
 	private function getEverything()
 	{
-		foreach (['correlation', 'maintenance', 'host', 'proxy', 'template', 'item', 'action', 'trigger', 'regexp'] as $value) {
+		foreach (['correlation', 'maintenance', 'host', 'proxy', 'template', 'item', 'action', 'trigger', 'regexp', 'usermacro'] as $value) {
 			$response = $this->call($value . '.get', [
 				'output' => 'extend'
 			]);
