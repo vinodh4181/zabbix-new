@@ -1681,7 +1681,7 @@ class testInitialConfSync extends CIntegrationTest
 		self::clearLog(self::COMPONENT_SERVER);
 		$this->getEverything();
 
-		//$this->loadInitialConfiguration();
+		$this->loadInitialConfiguration();
 
 		$this->reloadConfigurationCache(self::COMPONENT_SERVER);
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
