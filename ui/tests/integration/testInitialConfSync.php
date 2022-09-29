@@ -1652,6 +1652,7 @@ class testInitialConfSync extends CIntegrationTest
 		$d1 = explode("\n", $data);
 		$da = preg_grep('/STRPOOL.*/', $d1);
 		var_dump('strpool old');
+		var_dump($da);
 
 		$stringpool_old = $this->getStringPoolCount();
 
@@ -1678,6 +1679,7 @@ class testInitialConfSync extends CIntegrationTest
 		$d1 = explode("\n", $data);
 		$da = preg_grep('/STRPOOL.*/', $d1);
 		var_dump('strpool new');
+		var_dump($da);
 
 		var_dump("DBG 3");
 		self::clearLog(self::COMPONENT_SERVER);
