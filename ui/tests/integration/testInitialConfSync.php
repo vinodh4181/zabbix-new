@@ -1693,7 +1693,7 @@ class testInitialConfSync extends CIntegrationTest
 		var_dump($da);
 
 		$got = $this->parseSyncResults();
-		$this->assertEquals($this->expected_insert, $got);
+		$this->assertEquals($this->expected_initial, $got);
 
 		var_dump("DBG 3");
 		self::clearLog(self::COMPONENT_SERVER);
