@@ -1128,9 +1128,9 @@ class testInitialConfSync extends CIntegrationTest
 			'filter' => [
 				'conditions' => [
 					[
-						'conditiontype' => CONDITION_TYPE_TRIGGER,
+						'conditiontype' => CONDITION_TYPE_HOST_NAME,
 						'operator' => CONDITION_OPERATOR_EQUAL,
-						'value' => self::$triggerid
+						'value' => 'Host1'
 					]
 				],
 				'evaltype' => CONDITION_EVAL_TYPE_AND_OR
