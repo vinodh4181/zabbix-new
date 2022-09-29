@@ -1648,10 +1648,12 @@ class testInitialConfSync extends CIntegrationTest
 		$got = $this->parseSyncResults();
 		$this->assertEquals($this->expected_initial, $got);
 
-		$stringpool_old = $this->getStringPoolCount();
+		$data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
+		$d1 = explode("\n", $data);
+		$da = preg_grep('/STRPOOL.*/', $d1);
+		var_dump('strpool old');
 
-		var_dump("DBG 2");
-		self::stopComponent(self::COMPONENT_SERVER);
+		$stringpool_old = $this->getStringPoolCount();
 
 		$this->purgeExisting('correlation', 'correlationids');
 		$this->purgeExisting('maintenance', 'maintenanceids');
@@ -1666,18 +1668,16 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeGlobalMacros();
 
 		self::clearLog(self::COMPONENT_SERVER);
-		var_dump("DBG S");
-		self::startComponent(self::COMPONENT_SERVER);
+
+		$this->loadInitialConfiguration();
+
+		$this->reloadConfigurationCache(self::COMPONENT_SERVER);
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
-		$spt = $this->getStringPoolCount();
-		var_dump($spt);
+
 		$data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
 		$d1 = explode("\n", $data);
 		$da = preg_grep('/STRPOOL.*/', $d1);
-		var_dump($da);
-		$this->assertEquals(1,2);
-
-		$this->loadInitialConfiguration();
+		var_dump('strpool new');
 
 		var_dump("DBG 3");
 		self::clearLog(self::COMPONENT_SERVER);
@@ -1690,6 +1690,11 @@ class testInitialConfSync extends CIntegrationTest
 		$stringpool_new = $this->getStringPoolCount();
 		$test_s = 'sp_new = ' . $stringpool_old . ', sp_old = ' . $stringpool_new;
 		var_dump($test_s);
+		$data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
+		$d1 = explode("\n", $data);
+		$da = preg_grep('/STRPOOL.*/', $d1);
+		var_dump('strpool new');
+		var_dump($da);
 		$this->assertEquals($stringpool_old, $stringpool_new);
 		$this->assertEquals(1, 2);
 
