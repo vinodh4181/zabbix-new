@@ -1721,19 +1721,7 @@ class testInitialConfSync extends CIntegrationTest
 		$this->reloadConfigurationCache(self::COMPONENT_SERVER);
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
-		$stringpool_mid = $this->getStringPoolCount();
-
-		$data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
-		$d1 = explode("\n", $data);
-		$da = preg_grep('/STRPOOL.*/', $d1);
-		var_dump($da);
-		var_dump("Selects after sync2");
-		$qw=CDBHelper::getAll('select * from conditions');
-		var_dump($qw);
-		$qw=CDBHelper::getAll('select * from actions');
-		var_dump($qw);
-
-		// $this->assertEquals(1,2);
+		$stringpool_new = $this->getStringPoolCount();
 
 		self::stopComponent(self::COMPONENT_SERVER);
 		self::clearLog(self::COMPONENT_SERVER);
@@ -1741,15 +1729,10 @@ class testInitialConfSync extends CIntegrationTest
 
 		$this->waitForLogLineToBePresent(self::COMPONENT_SERVER, "End of DCsync_configuration()", true, 30, 1);
 
-		$stringpool_new = $this->getStringPoolCount();
-		$test_s = 'sp_new = ' . $stringpool_old . 'sp_mid = ' . $stringpool_mid . ', sp_old = ' . $stringpool_new;
-		var_dump($test_s);
-		$data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
-		$d1 = explode("\n", $data);
-		$da = preg_grep('/STRPOOL.*/', $d1);
-		var_dump('strpool new');
-		var_dump($da);
-		$this->assertEquals($stringpool_old, $stringpool_mid);
+		$this->assertEquals($stringpool_old, $stringpool_new);
+
+		$got = $this->parseSyncResults();
+		$this->assertEquals($this->expected_initial, $got);
 
 		return true;
 	}
