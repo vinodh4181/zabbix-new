@@ -1621,6 +1621,16 @@ class testInitialConfSync extends CIntegrationTest
 		$this->createMaintenance();
 	}
 
+	private function getEverything()
+	{
+		foreach (['correlation', 'maintenance', 'host', 'proxy', 'template', 'item', 'action', 'trigger', 'regexp'] as $value) {
+			$response = $this->call($value . '.get', [
+				'output' => 'extend'
+			]);
+			var_dump($response);
+		}
+	}
+
 	/**
 	 */
 	public function testInitialConfSync_Insert()
@@ -1682,6 +1692,7 @@ class testInitialConfSync extends CIntegrationTest
 		var_dump($da);
 
 		$got = $this->parseSyncResults();
+		$this->getEverything();
 		$this->assertEquals($this->expected_delete, $got);
 
 		var_dump("DBG 3");
