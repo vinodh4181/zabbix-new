@@ -1344,7 +1344,7 @@ static void	DCdump_strpool()
 
 	for (i = 0; i < records.values_num; i++)
 	{
-		zabbix_log(LOG_LEVEL_TRACE, "  %s: %u", (char *)records.values[i] + sizeof(zbx_uint32_t),
+		zabbix_log(LOG_LEVEL_TRACE, "STRPOOL  %s: %u", (char *)records.values[i] + sizeof(zbx_uint32_t),
 				*(zbx_uint32_t *)records.values[i]);
 	}
 
@@ -1381,7 +1381,5 @@ void	DCdump_configuration(void)
 	DCdump_host_group_index();
 	DCdump_maintenances();
 	DCdump_autoreg_hosts();
-#ifdef HAVE_TESTS
 	DCdump_strpool();
-#endif
 }
