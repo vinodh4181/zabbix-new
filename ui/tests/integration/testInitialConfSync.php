@@ -1683,8 +1683,7 @@ class testInitialConfSync extends CIntegrationTest
 		var_dump($data);
 		$d1 = explode("\n", $data);
 		$da = preg_grep('/STRPOOL.*/', $d1);
-		var_dump('strpool new');
-		var_dump($da);
+		var_dump('strpool old = '. $strpool_old . ', strpool new = ' . $strpool_new);
 
 		$qw=CDBHelper::getAll('select * from conditions');
 		var_dump($qw);
