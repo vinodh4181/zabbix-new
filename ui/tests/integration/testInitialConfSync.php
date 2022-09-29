@@ -1675,6 +1675,7 @@ class testInitialConfSync extends CIntegrationTest
 		$d1 = explode("\n", $data);
 		$da = preg_grep('/STRPOOL.*/', $d1);
 		var_dump($da);
+		$this->assertEquals(1,2);
 
 		$this->loadInitialConfiguration();
 
