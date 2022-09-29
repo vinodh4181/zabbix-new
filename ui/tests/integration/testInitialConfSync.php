@@ -1661,8 +1661,8 @@ class testInitialConfSync extends CIntegrationTest
 		$data = file_get_contents(self::getLogPath(self::COMPONENT_SERVER));
 		$d1 = explode("\n", $data);
 		$da = preg_grep('/STRPOOL.*/', $d1);
-		var_dump("DBG2");
-		var_dump($da);
+		// var_dump("DBG2");
+		// var_dump($da)
 
 		$this->purgeExisting('correlation', 'correlationids');
 		$this->purgeExisting('maintenance', 'maintenanceids');
@@ -1675,6 +1675,12 @@ class testInitialConfSync extends CIntegrationTest
 		$this->purgeExisting('regexp', 'extend');
 		$this->purgeHostGroups();
 		$this->purgeGlobalMacros();
+
+		$qw=CDBHelper::getAll('select * from conditions');
+		var_dump($qw);
+		$qw=CDBHelper::getAll('select * from actions');
+		var_dump($qw);
+		$this->assertEquals(1,2);
 
 		self::clearLog(self::COMPONENT_SERVER);
 		//$this->getEverything();
@@ -1692,10 +1698,6 @@ class testInitialConfSync extends CIntegrationTest
 		var_dump("DBG2");
 		var_dump($da);
 
-		$qw=CDBHelper::getAll('select * from conditions');
-		var_dump($qw);
-		$qw=CDBHelper::getAll('select * from actions');
-		var_dump($qw);
 
 		self::stopComponent(self::COMPONENT_SERVER);
 		self::clearLog(self::COMPONENT_SERVER);
