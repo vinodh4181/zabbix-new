@@ -162,7 +162,7 @@
             <macros>
                 <macro>
                     <macro>{$PRNTTMPLMACRO}</macro>
-                    <value>2</value>
+                    <value>1m</value>
                 </macro>
             </macros>
         </template>
