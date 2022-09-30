@@ -1052,7 +1052,7 @@ static void	zbx_on_exit(int ret)
 		/* free vmware support */
 		zbx_vmware_destroy();
 
-		free_selfmon_collector();
+		zbx_free_selfmon_collector();
 	}
 
 	zbx_uninitialize_events();
@@ -1324,7 +1324,7 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 		return FAIL;
 	}
 
-	if (SUCCEED != init_selfmon_collector(&error))
+	if (SUCCEED != zbx_init_selfmon_collector(&error))
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "cannot initialize self-monitoring: %s", error);
 		zbx_free(error);
@@ -1398,6 +1398,7 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 				zbx_thread_start(service_manager_thread, &thread_args, &threads[i]);
 				break;
 			case ZBX_PROCESS_TYPE_CONFSYNCER:
+				zbx_vc_enable();
 				thread_args.args = &dbconfig_args;
 				zbx_thread_start(dbconfig_thread, &thread_args, &threads[i]);
 
@@ -1431,8 +1432,6 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 				zbx_dc_update_maintenances();
 
 				DBclose();
-
-				zbx_vc_enable();
 				break;
 			case ZBX_PROCESS_TYPE_POLLER:
 				poller_args.poller_type = ZBX_POLLER_TYPE_NORMAL;
@@ -1642,7 +1641,7 @@ static void	server_teardown(zbx_rtc_t *rtc, zbx_socket_t *listen_sock)
 	zbx_tfc_destroy();
 	zbx_vc_destroy();
 	zbx_vmware_destroy();
-	free_selfmon_collector();
+	zbx_free_selfmon_collector();
 	free_configuration_cache();
 	free_database_cache(ZBX_SYNC_NONE);
 
