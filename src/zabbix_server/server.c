@@ -1405,7 +1405,8 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 				if (FAIL == (ret = zbx_rtc_wait_config_sync(rtc)))
 					goto out;
 
-				if (SUCCEED != (ret = zbx_ha_get_status(ha_stat, ha_failover, &error)))
+				if (SUCCEED != (ret = zbx_ha_get_status(CONFIG_HA_NODE_NAME, ha_stat, ha_failover,
+						&error)))
 				{
 					zabbix_log(LOG_LEVEL_CRIT, "cannot obtain HA status: %s", error);
 					zbx_free(error);
@@ -1554,7 +1555,7 @@ static int	server_startup(zbx_socket_t *listen_sock, int *ha_stat, int *ha_failo
 	}
 
 	/* startup/postinit tasks can take a long time, update status */
-	if (SUCCEED != (ret = zbx_ha_get_status(ha_stat, ha_failover, &error)))
+	if (SUCCEED != (ret = zbx_ha_get_status(CONFIG_HA_NODE_NAME, ha_stat, ha_failover, &error)))
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "cannot obtain HA status: %s", error);
 		zbx_free(error);
@@ -1589,8 +1590,9 @@ static int	server_restart_logger(char **error)
  ******************************************************************************/
 static void	server_teardown(zbx_rtc_t *rtc, zbx_socket_t *listen_sock)
 {
-	int	i;
-	char	*error = NULL;
+	int		i;
+	char		*error = NULL;
+	zbx_ha_config_t	*ha_config = NULL;
 
 	/* hard kill all zabbix processes, no logging or other  */
 
@@ -1649,7 +1651,14 @@ static void	server_teardown(zbx_rtc_t *rtc, zbx_socket_t *listen_sock)
 	zbx_locks_enable();
 #endif
 
-	if (SUCCEED != zbx_ha_start(rtc, ZBX_NODE_STATUS_STANDBY, &error))
+	ha_config = zbx_malloc(NULL, sizeof(zbx_ha_config_t));
+	ha_config->ha_node_name =	CONFIG_HA_NODE_NAME;
+	ha_config->ha_node_address =	CONFIG_NODE_ADDRESS;
+	ha_config->default_node_ip =	CONFIG_LISTEN_IP;
+	ha_config->default_node_port =	CONFIG_LISTEN_PORT;
+	ha_config->ha_status =		ZBX_NODE_STATUS_STANDBY;
+
+	if (SUCCEED != zbx_ha_start(rtc, ha_config, &error))
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "cannot start HA manager: %s", error);
 		zbx_free(error);
@@ -1666,6 +1675,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 	time_t		standby_warning_time;
 	zbx_rtc_t	rtc;
 	zbx_timespec_t	rtc_timeout = {1, 0};
+	zbx_ha_config_t	*ha_config = NULL;
 
 	if (0 != (flags & ZBX_TASK_FLAG_FOREGROUND))
 	{
@@ -1855,7 +1865,14 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 
 	zbx_unset_exit_on_terminate();
 
-	if (SUCCEED != zbx_ha_start(&rtc, ZBX_NODE_STATUS_UNKNOWN, &error))
+	ha_config = zbx_malloc(NULL, sizeof(zbx_ha_config_t));
+	ha_config->ha_node_name =	CONFIG_HA_NODE_NAME;
+	ha_config->ha_node_address =	CONFIG_NODE_ADDRESS;
+	ha_config->default_node_ip =	CONFIG_LISTEN_IP;
+	ha_config->default_node_port =	CONFIG_LISTEN_PORT;
+	ha_config->ha_status =		ZBX_NODE_STATUS_UNKNOWN;
+
+	if (SUCCEED != zbx_ha_start(&rtc, ha_config, &error))
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "cannot start HA manager: %s", error);
 		zbx_free(error);
@@ -1871,7 +1888,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 	if (SUCCEED == zbx_is_export_enabled(ZBX_FLAG_EXPTYPE_TRENDS))
 		zbx_trends_export_init("main-process", 0);
 
-	if (SUCCEED != zbx_ha_get_status(&ha_status, &ha_failover_delay, &error))
+	if (SUCCEED != zbx_ha_get_status(CONFIG_HA_NODE_NAME, &ha_status, &ha_failover_delay, &error))
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "cannot start server: %s", error);
 		zbx_free(error);
@@ -1898,7 +1915,7 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 
 	if (ZBX_NODE_STATUS_ERROR != ha_status)
 	{
-		if (ZBX_HA_IS_CLUSTER())
+		if (NULL != CONFIG_HA_NODE_NAME && '\0' != *CONFIG_HA_NODE_NAME)
 		{
 			zabbix_log(LOG_LEVEL_INFORMATION, "\"%s\" node started in \"%s\" mode", CONFIG_HA_NODE_NAME,
 					zbx_ha_status_str(ha_status));
@@ -1921,7 +1938,8 @@ int	MAIN_ZABBIX_ENTRY(int flags)
 
 		if (NULL == message || ZBX_IPC_SERVICE_HA_RTC_FIRST <= message->code)
 		{
-			if (SUCCEED != zbx_ha_dispatch_message(message, &ha_status, &ha_failover_delay, &error))
+			if (SUCCEED != zbx_ha_dispatch_message(CONFIG_HA_NODE_NAME, message, &ha_status,
+					&ha_failover_delay, &error))
 			{
 				zabbix_log(LOG_LEVEL_CRIT, "HA manager error: %s", error);
 				zbx_set_exiting_with_fail();
