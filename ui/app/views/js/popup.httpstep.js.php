@@ -23,6 +23,7 @@
  * @var CView $this
  */
 ?>
+'use strict';
 
 window.http_step_popup = new class {
 
@@ -40,9 +41,9 @@ window.http_step_popup = new class {
 
 		this.overlay = overlays_stack.getById('http_step_edit');
 
-		const tables = this.form.querySelectorAll('.httpconf-dynamic-row');
+		const tables = this.form.querySelectorAll('.httpconf-dynamic-table');
 
-		[...tables].map((elem) => {
+		for (const elem of tables) {
 			const type = elem.dataset.type;
 
 			if (!(type in this.data.pairs)) {
@@ -87,7 +88,7 @@ window.http_step_popup = new class {
 				});
 
 			this.pairs[type] = elem;
-		});
+		};
 
 		this.radio_retrieve_mode = document.getElementById('retrieve_mode');
 		this.textarea_raw_post = document.getElementById('posts');
@@ -110,16 +111,43 @@ window.http_step_popup = new class {
 		const is_disabled = this.radio_retrieve_mode.querySelector('input:checked').value == HTTPTEST_STEP_RETRIEVE_MODE_HEADERS;
 
 		this.textarea_raw_post.disabled = is_disabled;
-		[...this.radio_post_type.querySelectorAll('input')].map ((input) => {
+		[...this.radio_post_type.querySelectorAll('input')].map((input) => {
 			input.disabled = is_disabled;
 		});
 
 		const is_raw = this.radio_post_type.querySelector('input:checked').value == ZBX_POSTTYPE_RAW;
 
-		this.textarea_raw_post.closest('#post-raw-row').style.display = is_raw ? 'table-row' : 'none';
-		this.pairs.post_fields.closest('#post-fields-row').style.display = is_raw ? 'none' : 'table-row';
+		[...this.form.querySelectorAll('.js-raw-post')].map((elem) => elem.style.display = is_raw ? 'block' : 'none');
+		[...this.form.querySelectorAll('.js-post-fields')].map((elem) => elem.style.display = is_raw ? 'none' : 'block');
 
-		jQuery(this.pairs.post_fields).sortable('option', 'disabled', is_disabled);
+		if (is_raw) {
+			this.textarea_raw_post.value = ScenarioHelper.parsePostPairsToRaw(this.pairs.post_fields);
+		}
+		else {
+			if (this.textarea_raw_post.value != '') {
+				this.data.pairs.post_fields = ScenarioHelper.parsePostRawToPairs(this.textarea_raw_post.value);
+
+				// clear table
+				[...document.querySelectorAll('.httpconf-dynamic-table[data-type=post_fields] .form_row')].map(
+					elem => elem.remove()
+				);
+
+				// clear event
+				jQuery(document.querySelector('.httpconf-dynamic-table[data-type=post_fields]')).off();
+
+				jQuery(document.querySelector('.httpconf-dynamic-table[data-type=post_fields]'))
+					.dynamicRows({
+						template: '#scenario-pair-row-tmpl',
+						rows: this.data.pairs.post_fields,
+						counter: 0,
+						dataCallback: (data) => {
+							return {...data, ...{type: 'post_fields', index: this.row_id++}};
+						}
+					})
+			}
+		}
+
+		// jQuery(this.pairs.post_fields).sortable('option', 'disabled', is_disabled);
 		this.pairs.post_fields.classList.toggle('disabled', is_disabled);
 
 		[...this.pairs.post_fields.querySelectorAll('input, button')].map((elem) => elem.disabled = is_disabled);
@@ -159,9 +187,9 @@ window.http_step_popup = new class {
 
 		fields.pairs = pairs;
 
-		for (const el of this.form.parentNode.children) {
-			if (el.matches('.msg-good, .msg-bad, .msg-warning')) {
-				el.parentNode.removeChild(el);
+		for (const elem of this.form.parentNode.children) {
+			if (elem.matches('.msg-good, .msg-bad, .msg-warning')) {
+				elem.parentNode.removeChild(elem);
 			}
 		}
 
@@ -218,12 +246,11 @@ window.http_step_popup = new class {
 	}
 
 	parseUrl() {
-		const url_node = document.getElementById('url');
 		const table = jQuery('.js-tbl-editable').data('editableTable');
 		const url = parseUrlString(this.input_url.value);
 
 		if (typeof url === 'object') {
-			if (url.pairs.length > 0) {
+			if (url.pairs.length) {
 				table.addRows(url.pairs);
 				table.getTableRows()
 					.map(function() {
@@ -238,7 +265,7 @@ window.http_step_popup = new class {
 					});
 			}
 
-			url_node.value = url.url;
+			this.input_url.value = url.url;
 		}
 		else {
 			overlayDialogue({

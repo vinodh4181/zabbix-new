@@ -389,7 +389,7 @@ function copyHttpTests($srcHostId, $dstHostId) {
 /**
  * Construct and return a multidimensional array of user agents sorted in groups.
  *
- * @see http://www.useragentstring.com
+ * @see https://www.useragentstring.com
  *      https://developers.whatismybrowser.com
  *
  * @return array

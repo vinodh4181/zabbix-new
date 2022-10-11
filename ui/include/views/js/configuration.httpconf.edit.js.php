@@ -127,7 +127,7 @@
 				.getElementById('authentication')
 				.addEventListener('change', () => this._update());
 
-			this.initScenarioTab(this.sanitizePairs(pairs));
+			this.initScenarioTab(ScenarioHelper.sanitizePairs(pairs));
 			this.initStepsTab(steps);
 
 			this.form.addEventListener('submit', (e) => {
@@ -172,18 +172,8 @@
 			);
 		}
 
-		sanitizePairs(pairs) {
-			const obj = {variables: [], headers: []};
-
-			for (const value of pairs) {
-				obj[value.type].push(value);
-			}
-
-			return obj;
-		}
-
 		initScenarioTab(pairs) {
-			[...document.querySelectorAll('.httpconf-headers-dynamic-row, .httpconf-variables-dynamic-row')].map(
+			[...document.querySelectorAll('.httpconf-headers-dynamic-table, .httpconf-variables-dynamic-table')].map(
 				(elem) => {
 					const $elem = jQuery(elem);
 					const type = elem.dataset.type;
@@ -275,7 +265,7 @@
 		addStepRow(data, container, tmpl = '#scenario-step-row-tmpl') {
 			data.url = data.url ?? '';
 			data.enabled_hint = data.url.length > URL_MAX_LENGTH ? 1 : 0;
-			data.url_short = this.urlShortener(data.url);
+			data.url_short = ScenarioHelper.urlShortener(data.url);
 
 			container.insertAdjacentHTML('beforeBegin',
 				new Template(document.querySelector(tmpl).innerHTML).evaluate(data)
@@ -305,7 +295,7 @@
 
 			data.url = data.url ?? '';
 			data.enabled_hint = data.url.length > URL_MAX_LENGTH ? 1 : 0;
-			data.url_short = this.urlShortener(data.url);
+			data.url_short = ScenarioHelper.urlShortener(data.url);
 
 			const el = document.createElement('tr');
 			el.innerHTML = new Template(document.querySelector('#scenario-step-row-tmpl').innerHTML).evaluate(data);
@@ -406,16 +396,6 @@
 			});
 		}
 
-		urlShortener(str, max = URL_MAX_LENGTH) {
-			return str.length < max
-				? str
-				: [
-					str.slice(0, Math.floor((max - 3) / 2)),
-					'...',
-					str.slice(- Math.ceil((max - 3) / 2))
-				].join('')
-		}
-
 		stepsFragment() {
 			const frag = document.createDocumentFragment();
 			let iter_step = 0;
@@ -425,27 +405,28 @@
 				let prefix_step = 'steps[' + (iter_step ++) + ']';
 				let prefix_pair;
 
-				frag.appendChild(hiddenInput('follow_redirects', value.follow_redirects, prefix_step));
-				frag.appendChild(hiddenInput('httpstepid', value.httpstepid, prefix_step));
-				frag.appendChild(hiddenInput('name', value.name, prefix_step));
-				frag.appendChild(hiddenInput('post_type', value.post_type, prefix_step));
-				frag.appendChild(hiddenInput('required', value.required, prefix_step));
-				frag.appendChild(hiddenInput('retrieve_mode', value.retrieve_mode, prefix_step));
-				frag.appendChild(hiddenInput('status_codes', value.status_codes, prefix_step));
-				frag.appendChild(hiddenInput('timeout', value.timeout, prefix_step));
-				frag.appendChild(hiddenInput('url', value.url, prefix_step));
+				frag.appendChild(ScenarioHelper.hiddenInput('follow_redirects', value.follow_redirects, prefix_step));
+				frag.appendChild(ScenarioHelper.hiddenInput('httpstepid', value.httpstepid, prefix_step));
+				frag.appendChild(ScenarioHelper.hiddenInput('name', value.name, prefix_step));
+				frag.appendChild(ScenarioHelper.hiddenInput('post_type', value.post_type, prefix_step));
+				frag.appendChild(ScenarioHelper.hiddenInput('required', value.required, prefix_step));
+				frag.appendChild(ScenarioHelper.hiddenInput('retrieve_mode', value.retrieve_mode, prefix_step));
+				frag.appendChild(ScenarioHelper.hiddenInput('status_codes', value.status_codes, prefix_step));
+				frag.appendChild(ScenarioHelper.hiddenInput('timeout', value.timeout, prefix_step));
+				frag.appendChild(ScenarioHelper.hiddenInput('url', value.url, prefix_step));
+				frag.appendChild(ScenarioHelper.hiddenInput('no', value.no, prefix_step));
 
 				if (value.retrieve_mode != HTTPTEST_STEP_RETRIEVE_MODE_HEADERS) {
 					if (value.post_type != ZBX_POSTTYPE_FORM) {
-						frag.appendChild(hiddenInput('posts', value.posts, prefix_step));
+						frag.appendChild(ScenarioHelper.hiddenInput('posts', value.posts, prefix_step));
 					}
 					else {
 						if ('post_fields' in value.pairs) {
 							for (const pair of value.pairs.post_fields) {
 								prefix_pair = prefix_step + '[pairs][' + (iter_pair ++) + ']';
-								frag.appendChild(hiddenInput('type', 'post_fields', prefix_pair));
-								frag.appendChild(hiddenInput('name', pair.name, prefix_pair));
-								frag.appendChild(hiddenInput('value', pair.value, prefix_pair));
+								frag.appendChild(ScenarioHelper.hiddenInput('type', 'post_fields', prefix_pair));
+								frag.appendChild(ScenarioHelper.hiddenInput('name', pair.name, prefix_pair));
+								frag.appendChild(ScenarioHelper.hiddenInput('value', pair.value, prefix_pair));
 							}
 						}
 					}
@@ -456,9 +437,9 @@
 						for (const pair of value.pairs[type]) {
 							prefix_pair = prefix_step + '[pairs][' + (iter_pair ++) + ']';
 
-							frag.appendChild(hiddenInput('type', type, prefix_pair));
-							frag.appendChild(hiddenInput('name', pair.name, prefix_pair));
-							frag.appendChild(hiddenInput('value', pair.value, prefix_pair));
+							frag.appendChild(ScenarioHelper.hiddenInput('type', type, prefix_pair));
+							frag.appendChild(ScenarioHelper.hiddenInput('name', pair.name, prefix_pair));
+							frag.appendChild(ScenarioHelper.hiddenInput('value', pair.value, prefix_pair));
 						}
 					}
 				}
@@ -468,13 +449,94 @@
 		}
 	};
 
-	function hiddenInput(name, value, prefix) {
-		var input = window.document.createElement('input');
+	class ScenarioHelper {
 
-		input.type = 'hidden';
-		input.value = value;
-		input.name = prefix ? prefix + '[' + name + ']' : name;
+		static hiddenInput(name, value, prefix) {
+			const input = window.document.createElement('input');
 
-		return input;
-	}
+			input.type = 'hidden';
+			input.value = value;
+			input.name = prefix ? prefix + '[' + name + ']' : name;
+
+			return input;
+		};
+
+		static parsePostRawToPairs(raw_txt) {
+			if (!raw_txt) {
+				return [];
+			}
+
+			const pairs = [];
+
+			raw_txt.split('&').forEach((pair) => {
+				const fields = pair.split('=');
+
+				if (fields[0] === '' || fields[0].length > 255) {
+					return;
+				}
+
+				if (fields.length == 1) {
+					fields.push('');
+				}
+
+				const malformed = (fields.length > 2);
+				const non_printable_chars = (fields[0].match(/%[01]/) || fields[1].match(/%[01]/));
+
+				if (malformed || non_printable_chars) {
+					return;
+				}
+
+				pairs.push({
+					name: decodeURIComponent(fields[0].replace(/\+/g, ' ')),
+					value: decodeURIComponent(fields[1].replace(/\+/g, ' '))
+				});
+			});
+
+			return pairs;
+		};
+
+		static parsePostPairsToRaw(table) {
+			const fields = [];
+
+			for (const row of [...table.querySelectorAll('.form_row')]) {
+				const parts = [];
+				const name = row.querySelector('[data-type=name]').value;
+				const value = row.querySelector('[data-type=value]').value;
+
+				if (name === '') {
+					continue;
+				}
+
+				parts.push(encodeURIComponent(name.replace(/'/g,'%27').replace(/"/g,'%22')));
+
+				if (value !== '') {
+					parts.push(encodeURIComponent(value.replace(/'/g,'%27').replace(/"/g,'%22')));
+				}
+
+				fields.push(parts.join('='));
+			}
+
+			return fields.join('&');
+		};
+
+		static sanitizePairs(pairs) {
+			const obj = {variables: [], headers: []};
+
+			for (const value of pairs) {
+				obj[value.type].push(value);
+			}
+
+			return obj;
+		};
+
+		static urlShortener(str, max = URL_MAX_LENGTH) {
+			return str.length < max
+				? str
+				: [
+					str.slice(0, Math.floor((max - 3) / 2)),
+					'...',
+					str.slice(- Math.ceil((max - 3) / 2))
+				].join('');
+		};
+	};
 </script>

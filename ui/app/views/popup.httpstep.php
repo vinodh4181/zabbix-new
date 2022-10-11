@@ -21,11 +21,12 @@
 
 /**
  * @var CView $this
+ * @var array $data
  */
 
 $options = $data['options'];
 
-$http_popup_form = (new CForm())
+$form = (new CForm())
 	->cleanItems()
 	->setId('http_step')
 	->addVar('no', $options['no'])
@@ -37,18 +38,27 @@ $http_popup_form = (new CForm())
 	->addVar('validate', '1')
 	->addItem((new CInput('submit', 'submit'))->addStyle('display: none;'));
 
-$http_popup_form_list = (new CFormList())
-	->addRow(
+$query_fields = (new CTag('script', true))->setAttribute('type', 'text/json');
+$query_fields->items = array_key_exists('query_fields', $options['pairs'])
+	? [json_encode($options['pairs']['query_fields'])]
+	: [json_encode([['name' => '', 'value' => '', 'index' => 1]])];
+
+$popup_grid = (new CFormGrid())
+	->addItem([
 		(new CLabel(_('Name'), 'step_name'))->setAsteriskMark(),
-		(new CTextBox('name', $options['name'], (bool) $options['templated'], 64))
-			->setAriaRequired()
-			->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH)
-			->setId('step_name')
-	)
-	->addRow(
+		new CFormField(
+			(new CTextBox('name', $options['name'], (bool) $options['templated'],
+				DB::getFieldLength('httpstep', 'name')
+			))
+				->setAriaRequired()
+				->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH)
+				->setId('step_name')
+		)
+	])
+	->addItem([
 		(new CLabel(_('URL'), 'url'))->setAsteriskMark(),
-		new CDiv([
-			(new CTextBox('url', $options['url'], false, null))
+		new CFormField([
+			(new CTextBox('url', $options['url'], false, DB::getFieldLength('httpstep', 'url')))
 				->setAriaRequired()
 				->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH),
 			(new CDiv())->addClass(ZBX_STYLE_FORM_INPUT_MARGIN),
@@ -56,152 +66,170 @@ $http_popup_form_list = (new CFormList())
 				->onClick('http_step_popup.parseUrl();')
 				->addClass(ZBX_STYLE_BTN_GREY)
 		])
-	);
-
-$query_fields = (new CTag('script', true))->setAttribute('type', 'text/json');
-$query_fields->items = array_key_exists('query_fields', $options['pairs'])
-	? [json_encode($options['pairs']['query_fields'])]
-	: [json_encode([['name' => '', 'value' => '', 'index' => 1]])];
-
-$http_popup_form_list->addRow(_('Query fields'),
-	(new CDiv([
-		(new CTable())
-			->setAttribute('style', 'width: 100%;')
-			->setAttribute('data-type', 'query_fields')
-			->setHeader(['', _('Name'), '', _('Value'), ''])
-			->addRow((new CRow)->setAttribute('data-insert-point', 'append'))
-			->setFooter(new CRow(
-				(new CCol(
-					(new CButton(null, _('Add')))
-						->addClass(ZBX_STYLE_BTN_LINK)
-						->setEnabled(!(bool) $options['templated'])
-						->setAttribute('data-row-action', 'add_row')
-				))->setColSpan(5)
-			)),
-		(new CTag('script', true))
-			->setAttribute('type', 'text/x-jquery-tmpl')
-			->addItem(new CRow([
-				(new CCol(
-					(new CDiv())->addClass(ZBX_STYLE_DRAG_ICON)
-				))->addClass(ZBX_STYLE_TD_DRAG_ICON),
-				(new CTextBox('query_fields[#{index}][name]', '#{name}', (bool) $options['templated']))
-					->setAttribute('placeholder', _('name'))
-					->setWidth(ZBX_TEXTAREA_HTTP_PAIR_NAME_WIDTH),
-				'&rArr;',
-				(new CTextBox('query_fields[#{index}][value]', '#{value}', (bool) $options['templated']))
-					->setAttribute('placeholder', _('value'))
-					->setWidth(ZBX_TEXTAREA_HTTP_PAIR_VALUE_WIDTH),
-				(new CButton(null, _('Remove')))
-					->addClass(ZBX_STYLE_BTN_LINK)
-					->setEnabled(!(bool) $options['templated'])
-					->setAttribute('data-row-action', 'remove_row')
-			])),
-		$query_fields
-	]))
-		->addClass(ZBX_STYLE_TABLE_FORMS_SEPARATOR)
-		->addClass('js-tbl-editable')
-		->setAttribute('data-sortable-pairs-table', '1')
-		->addStyle('min-width: '.ZBX_TEXTAREA_BIG_WIDTH . 'px;'),
-		'query-fields-row'
-);
-
-$http_popup_form_list->addRow(_('Post type'), (new CRadioButtonList('post_type', (int) $options['post_type']))
-	->addValue(_('Form data'), ZBX_POSTTYPE_FORM)
-	->addValue(_('Raw data'), ZBX_POSTTYPE_RAW)
-	->setModern(true)
-);
-
-$http_popup_form_list->addRow(_('Post fields'),
-	(new CDiv(
-		(new CTable())
-			->addClass('httpconf-dynamic-row')
-			->addStyle('width: 100%;')
-			->setAttribute('data-type', 'post_fields')
-			->setHeader(['', _('Name'), '', _('Value'), ''])
-			->addRow((new CRow([
-				(new CCol(
-					(new CButton(null, _('Add')))
-						->addClass('element-table-add')
-						->addClass(ZBX_STYLE_BTN_LINK)
-				))->setColSpan(5)
-			])))
-	))
-		->addClass(ZBX_STYLE_TABLE_FORMS_SEPARATOR)
-		->addStyle('min-width: '.ZBX_TEXTAREA_BIG_WIDTH . 'px;'),
-		'post-fields-row'
-);
-
-$http_popup_form_list->addRow(_('Raw post'), (new CTextArea('posts', $options['posts']))
-	->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH), 'post-raw-row'
-);
-
-$http_popup_form_list->addRow(_('Variables'),
-	(new CDiv(
-		(new CTable())
-			->addClass('httpconf-dynamic-row')
-			->setAttribute('data-type', 'variables')
-			->addStyle('width: 100%;')
-			->setHeader(['', _('Name'), '', _('Value'), ''])
-			->addRow((new CRow([
-				(new CCol(
-					(new CButton(null, _('Add')))
-						->addClass('element-table-add')
-						->addClass(ZBX_STYLE_BTN_LINK)
-				))->setColSpan(5)
-			])))
-	))
-		->addClass(ZBX_STYLE_TABLE_FORMS_SEPARATOR)
-		->addStyle('min-width: '.ZBX_TEXTAREA_BIG_WIDTH . 'px;')
-);
-
-$http_popup_form_list->addRow(_('Headers'),
-	(new CDiv(
-		(new CTable())
-			->addClass('httpconf-dynamic-row')
-			->setAttribute('data-type', 'headers')
-			->addStyle('width: 100%;')
-			->setHeader(['', _('Name'), '', _('Value'), ''])
-			->addRow((new CRow([
-				(new CCol(
-					(new CButton(null, _('Add')))
-						->addClass('element-table-add')
-						->addClass(ZBX_STYLE_BTN_LINK)
-				))->setColSpan(5)
-			])))
-	))
-		->addClass(ZBX_STYLE_TABLE_FORMS_SEPARATOR)
-		->addStyle('min-width: '.ZBX_TEXTAREA_BIG_WIDTH . 'px;')
-);
-
-$http_popup_form_list
-	->addRow(_('Follow redirects'),
-		(new CCheckBox('follow_redirects'))
-			->setChecked($options['follow_redirects'] == HTTPTEST_STEP_FOLLOW_REDIRECTS_ON)
-	)
-	->addRow(
+	])
+	->addItem([
+		new CLabel(_('Query fields')),
+		new CFormField(
+			(new CDiv([
+				(new CTable())
+					->setAttribute('style', 'width: 100%;')
+					->setAttribute('data-type', 'query_fields')
+					->setHeader(['', _('Name'), '', _('Value'), ''])
+					->addRow((new CRow)->setAttribute('data-insert-point', 'append'))
+					->setFooter(new CRow(
+						(new CCol(
+							(new CButton(null, _('Add')))
+								->addClass(ZBX_STYLE_BTN_LINK)
+								->setEnabled(!(bool) $options['templated'])
+								->setAttribute('data-row-action', 'add_row')
+						))->setColSpan(5)
+					)),
+				(new CTag('script', true))
+					->setAttribute('type', 'text/x-jquery-tmpl')
+					->addItem(new CRow([
+						(new CCol(
+							(new CDiv())->addClass(ZBX_STYLE_DRAG_ICON)
+						))->addClass(ZBX_STYLE_TD_DRAG_ICON),
+						(new CTextBox('query_fields[#{index}][name]', '#{name}', (bool) $options['templated']))
+							->setAttribute('placeholder', _('name'))
+							->setWidth(ZBX_TEXTAREA_HTTP_PAIR_NAME_WIDTH),
+						'&rArr;',
+						(new CTextBox('query_fields[#{index}][value]', '#{value}', (bool) $options['templated']))
+							->setAttribute('placeholder', _('value'))
+							->setWidth(ZBX_TEXTAREA_HTTP_PAIR_VALUE_WIDTH),
+						(new CButton(null, _('Remove')))
+							->addClass(ZBX_STYLE_BTN_LINK)
+							->setEnabled(!(bool) $options['templated'])
+							->setAttribute('data-row-action', 'remove_row')
+					])),
+				$query_fields
+			]))
+				->addClass(ZBX_STYLE_TABLE_FORMS_SEPARATOR)
+				->addClass('js-tbl-editable')
+				->setAttribute('data-sortable-pairs-table', '1')
+				->addStyle('min-width: '.ZBX_TEXTAREA_BIG_WIDTH . 'px;')
+		)
+	])
+	->addItem([
+		new CLabel(_('Post type')),
+		new CFormField(
+			(new CRadioButtonList('post_type', (int) $options['post_type']))
+				->addValue(_('Form data'), ZBX_POSTTYPE_FORM)
+				->addValue(_('Raw data'), ZBX_POSTTYPE_RAW)
+				->setModern(true)
+		)
+	])
+	->addItem([
+		(new CLabel(_('Post fields')))->addClass('js-post-fields'),
+		(new CFormField(
+			(new CDiv(
+				(new CTable())
+					->addClass('httpconf-dynamic-table')
+					->addStyle('width: 100%;')
+					->setAttribute('data-type', 'post_fields')
+					->setHeader(['', _('Name'), '', _('Value'), ''])
+					->addRow((new CRow([
+						(new CCol(
+							(new CButton(null, _('Add')))
+								->addClass('element-table-add')
+								->addClass(ZBX_STYLE_BTN_LINK)
+						))->setColSpan(5)
+					])))
+			))
+				->addClass(ZBX_STYLE_TABLE_FORMS_SEPARATOR)
+				->addStyle('min-width: '.ZBX_TEXTAREA_BIG_WIDTH . 'px;')
+		))->addClass('js-post-fields')
+	])
+	->addItem([
+		(new CLabel(_('Raw post'), 'posts'))->addClass('js-raw-post'),
+		(new CFormField(
+			(new CTextArea('posts', $options['posts']))->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH))
+		)->addClass('js-raw-post')
+	])
+	->addItem([
+		new CLabel(_('Variables')),
+		new CFormField(
+			(new CDiv(
+				(new CTable())
+					->addClass('httpconf-dynamic-table')
+					->setAttribute('data-type', 'variables')
+					->addStyle('width: 100%;')
+					->setHeader(['', _('Name'), '', _('Value'), ''])
+					->addRow((new CRow([
+						(new CCol(
+							(new CButton(null, _('Add')))
+								->addClass('element-table-add')
+								->addClass(ZBX_STYLE_BTN_LINK)
+						))->setColSpan(5)
+					])))
+			))
+				->addClass(ZBX_STYLE_TABLE_FORMS_SEPARATOR)
+				->addStyle('min-width: '.ZBX_TEXTAREA_BIG_WIDTH . 'px;')
+		)
+	])
+	->addItem([
+		new CLabel(_('Headers')),
+		new CFormField(
+			(new CDiv(
+				(new CTable())
+					->addClass('httpconf-dynamic-table')
+					->setAttribute('data-type', 'headers')
+					->addStyle('width: 100%;')
+					->setHeader(['', _('Name'), '', _('Value'), ''])
+					->addRow((new CRow([
+						(new CCol(
+							(new CButton(null, _('Add')))
+								->addClass('element-table-add')
+								->addClass(ZBX_STYLE_BTN_LINK)
+						))->setColSpan(5)
+					])))
+			))
+				->addClass(ZBX_STYLE_TABLE_FORMS_SEPARATOR)
+				->addStyle('min-width: '.ZBX_TEXTAREA_BIG_WIDTH . 'px;')
+		)
+	])
+	->addItem([
+		new CLabel(_('Follow redirects'), 'follow_redirects'),
+		new CFormField(
+			(new CCheckBox('follow_redirects'))
+				->setChecked($options['follow_redirects'] == HTTPTEST_STEP_FOLLOW_REDIRECTS_ON)
+		)
+	])
+	->addItem([
 		new CLabel(_('Retrieve mode'), 'retrieve_mode'),
-		(new CRadioButtonList('retrieve_mode', (int) $options['retrieve_mode']))
-			->addValue(_('Body'), HTTPTEST_STEP_RETRIEVE_MODE_CONTENT)
-			->addValue(_('Headers'), HTTPTEST_STEP_RETRIEVE_MODE_HEADERS)
-			->addValue(_('Body and headers'), HTTPTEST_STEP_RETRIEVE_MODE_BOTH)
-			->setModern(true)
-	)
-	->addRow((new CLabel(_('Timeout'), 'timeout'))->setAsteriskMark(),
-		(new CTextBox('timeout', $options['timeout']))
-			->setAriaRequired()
-			->setWidth(ZBX_TEXTAREA_SMALL_WIDTH)
-	)
-	->addRow(_('Required string'),
-		(new CTextBox('required', $options['required']))
-			->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH)
-			->setAttribute('placeholder', _('pattern'))
-	)
-	->addRow(_('Required status codes'),
-		(new CTextBox('status_codes', $options['status_codes']))->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH)
-	);
+		new CFormField(
+			(new CRadioButtonList('retrieve_mode', (int) $options['retrieve_mode']))
+				->addValue(_('Body'), HTTPTEST_STEP_RETRIEVE_MODE_CONTENT)
+				->addValue(_('Headers'), HTTPTEST_STEP_RETRIEVE_MODE_HEADERS)
+				->addValue(_('Body and headers'), HTTPTEST_STEP_RETRIEVE_MODE_BOTH)
+				->setModern(true)
+		)
+	])
+	->addItem([
+		(new CLabel(_('Timeout'), 'timeout'))->setAsteriskMark(),
+		new CFormField(
+			(new CTextBox('timeout', $options['timeout']))
+				->setAriaRequired()
+				->setWidth(ZBX_TEXTAREA_SMALL_WIDTH)
+		)
+	])
+	->addItem([
+		new CLabel(_('Required string'), 'required'),
+		new CFormField(
+			(new CTextBox('required', $options['required']))
+				->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH)
+				->setAttribute('placeholder', _('pattern'))
+		)
+	])
+	->addItem([
+		new CLabel(_('Required status codes'), 'status_codes'),
+		new CFormField(
+			(new CTextBox('status_codes', $options['status_codes']))->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH)
+		)
+	]);
 
-$http_popup_form
-	->addItem($http_popup_form_list)
+$form
+	->addItem($popup_grid)
 	->addItem(
 		(new CScriptTag('
 			http_step_popup.init('.json_encode([
@@ -211,7 +239,7 @@ $http_popup_form
 		'))->setOnDocumentReady()
 	);
 
-$http_popup_form->addItem(new CJsScript($this->readJsFile('../../../include/views/js/editabletable.js.php')));
+$form->addItem(new CJsScript($this->readJsFile('../../../include/views/js/editabletable.js.php')));
 
 $output = [
 	'header' => $data['title'],
@@ -224,7 +252,7 @@ $output = [
 			'action' => 'return http_step_popup.submit(overlay);'
 		]
 	],
-	'body' => (new CDiv($http_popup_form))->toString(),
+	'body' => (new CDiv($form))->toString(),
 	'script_inline' => getPagePostJs().$this->readJsFile('popup.httpstep.js.php')
 ];
 

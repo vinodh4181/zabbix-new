@@ -52,7 +52,9 @@ class CControllerPopupHttpStep extends CController {
 			$output = [];
 			if ($messages = get_and_clear_messages()) {
 				$output['error'] = [
-					'title' => _('Cannot create web scenario step'),
+					'title' => $this->getInput('old_name')
+						? _('Cannot update web scenario step')
+						: _('Cannot create web scenario step'),
 					'messages' => array_column($messages, 'message')
 				];
 			}
@@ -95,13 +97,13 @@ class CControllerPopupHttpStep extends CController {
 			$simple_interval_parser = new CSimpleIntervalParser(['usermacros' => true]);
 
 			if ($simple_interval_parser->parse($page_options['timeout']) != CParser::PARSE_SUCCESS) {
-				error(_s('Incorrect value for field "%1$s": %2$s.', 'timeout', _('a time unit is expected')));
+				error(_s('Incorrect value for field "%1$s": %2$s.', '/timeout', _('a time unit is expected')));
 			}
 			elseif ($page_options['timeout'][0] !== '{') {
 				$seconds = timeUnitToSeconds($page_options['timeout']);
 
 				if ($seconds < 1 || $seconds > SEC_PER_HOUR) {
-					error(_s('Invalid parameter "%1$s": %2$s.', 'timeout',
+					error(_s('Invalid parameter "%1$s": %2$s.', '/timeout',
 						_s('value must be one of %1$s', '1-'.SEC_PER_HOUR)
 					));
 				}
@@ -116,10 +118,20 @@ class CControllerPopupHttpStep extends CController {
 				}
 			}
 
+			foreach ($page_options['pairs'] as $i => $pair) {
+				if ($pair['name'] === '' && $pair['value'] != '') {
+					error(_s('Incorrect value for field "%1$s": %2$s.', '/'.$pair['type'].'/'.($i+1).'/name',
+						_('cannot be empty'))
+					);
+				}
+			}
+
 			// Return collected error messages.
 			if ($messages = get_and_clear_messages()) {
 				$output['error'] = [
-					'title' => _('Cannot create web scenario step'),
+					'title' => $this->getInput('old_name')
+						? _('Cannot update web scenario step')
+						: _('Cannot create web scenario step'),
 					'messages' => array_column($messages, 'message')
 				];
 			}

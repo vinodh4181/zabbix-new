@@ -21,14 +21,15 @@
 
 /**
  * @var CView $this
+ * @var array $data
  */
 
 $this->includeJsFile('configuration.httpconf.edit.js.php');
 
 $widget = (new CWidget())->setTitle(_('Web monitoring'));
 
-// append host summary to widget header
-if (!empty($data['hostid'])) {
+// Append host summary to widget header.
+if ($data['hostid'] == 0) {
 	$widget->setNavigation(getHostNavigation('web', $data['hostid']));
 }
 
@@ -36,32 +37,29 @@ $url = (new CUrl('httpconf.php'))
 	->setArgument('context', $data['context'])
 	->getUrl();
 
-// create form
-$http_form = (new CForm('post', $url))
+$form = (new CForm('post', $url))
 	->setId('http-form')
 	->setName('httpForm')
-	->setAttribute('aria-labeledby', ZBX_STYLE_PAGE_TITLE)
+	->setAttribute('aria-labelledby', ZBX_STYLE_PAGE_TITLE)
 	->addVar('form', $data['form'])
 	->addVar('hostid', $data['hostid'])
 	->addVar('templated', $data['templated']);
 
 if ($data['httptestid'] != 0) {
-	$http_form->addVar('httptestid', $data['httptestid']);
+	$form->addVar('httptestid', $data['httptestid']);
 }
 
-/*
- * Scenario tab
- */
-$http_scenario_form_grid = new CFormGrid();
+// Scenario tab.
+$scenario_tab = new CFormGrid();
 
 if ($data['templates']) {
-	$http_scenario_form_grid->addItem([
+	$scenario_tab->addItem([
 		new CLabel(_('Parent web scenarios')),
 		new CFormField($data['templates'])
 	]);
 }
 
-$name_text_box = (new CTextBox('name', $data['name'], $data['templated'], 64))
+$name_text_box = (new CTextBox('name', $data['name'], $data['templated'], DB::getFieldLength('httptest', 'name')))
 	->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH)
 	->setAriaRequired();
 if (!$data['templated']) {
@@ -82,7 +80,7 @@ foreach ($user_agents_all as $user_agent_group => $user_agents) {
 	);
 }
 
-$http_scenario_form_grid
+$scenario_tab
 	->addItem([
 		(new CLabel(_('Name'), 'name'))->setAsteriskMark(),
 		new CFormField($name_text_box)
@@ -116,7 +114,7 @@ $http_scenario_form_grid
 	->addItem([
 		new CLabel(_('HTTP proxy'), 'http_proxy'),
 		new CFormField(
-			(new CTextBox('http_proxy', $data['http_proxy'], false, 255))
+			(new CTextBox('http_proxy', $data['http_proxy']))
 				->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH)
 				->setAttribute('placeholder', '[protocol://][user[:password]@]proxy.example.com[:port]')
 				->disableAutocomplete()
@@ -127,8 +125,8 @@ $http_scenario_form_grid
 		new CFormField(
 			(new CDiv(
 				(new CTable())
-					->addClass('httpconf-variables-dynamic-row')
-					->addClass('httpconf-dynamic-row')
+					->addClass('httpconf-variables-dynamic-table')
+					->addClass('httpconf-dynamic-table')
 					->setAttribute('data-type', 'variables')
 					->setAttribute('style', 'width: 100%;')
 					->setHeader(['', _('Name'), '', _('Value'), ''])
@@ -151,8 +149,8 @@ $http_scenario_form_grid
 		new CFormField(
 			(new CDiv(
 				(new CTable())
-					->addClass('httpconf-headers-dynamic-row')
-					->addClass('httpconf-dynamic-row')
+					->addClass('httpconf-headers-dynamic-table')
+					->addClass('httpconf-dynamic-table')
 					->setAttribute('data-type', 'headers')
 					->setAttribute('style', 'width: 100%;')
 					->setHeader(['', _('Name'), '', _('Value'), ''])
@@ -177,13 +175,11 @@ $http_scenario_form_grid
 		)
 	]);
 
-/*
- * Step tab
- */
-$http_step_form_grid = new CFormGrid();
+// Step tab.
+$steps_tab = new CFormGrid();
 $steps_table = (new CTable())
 	->addClass('httpconf-steps-dynamic-row')
-	->addClass('httpconf-dynamic-row')
+	->addClass('httpconf-dynamic-table')
 	->setHeader([
 		(new CColHeader())->setWidth('15'),
 		(new CColHeader())->setWidth('15'),
@@ -214,7 +210,7 @@ else {
 	);
 }
 
-$http_step_form_grid->addItem([
+$steps_tab->addItem([
 	(new CLabel(_('Steps'), $steps_table->getId()))->setAsteriskMark(),
 	new CFormField(
 		(new CDiv($steps_table))
@@ -223,10 +219,8 @@ $http_step_form_grid->addItem([
 	)
 ]);
 
-/*
- * Authentication tab
- */
-$http_authentication_form_grid = (new CFormGrid())
+// Authentication tab.
+$authentication_tab = (new CFormGrid())
 	->addItem([
 		new CLabel(_('HTTP authentication'), 'label-authentication'),
 		new CFormField(
@@ -244,7 +238,6 @@ $http_authentication_form_grid = (new CFormGrid())
 				->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH)
 				->disableAutocomplete()
 		))->addClass('js-http-auth')
-
 	])
 	->addItem([
 		(new CLabel(_('Password'), 'http_password'))->addClass('js-http-auth'),
@@ -255,7 +248,6 @@ $http_authentication_form_grid = (new CFormGrid())
 				->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH)
 				->disableAutocomplete()
 		))->addClass('js-http-auth')
-
 	])
 	->addItem([
 		new CLabel(_('SSL verify peer'), 'verify_peer'),
@@ -296,10 +288,9 @@ $http_authentication_form_grid = (new CFormGrid())
 		)
 	]);
 
-// append tabs to form
-$http_tab = (new CTabView())
-	->addTab('scenarioTab', _('Scenario'), $http_scenario_form_grid)
-	->addTab('stepTab', _('Steps'), $http_step_form_grid, TAB_INDICATOR_STEPS)
+$http_tabs = (new CTabView())
+	->addTab('scenario-tab', _('Scenario'), $scenario_tab)
+	->addTab('steps-tab', _('Steps'), $steps_tab, TAB_INDICATOR_STEPS)
 	->addTab('tags-tab', _('Tags'),
 		new CPartial('configuration.tags.tab', [
 			'source' => 'httptest',
@@ -311,19 +302,16 @@ $http_tab = (new CTabView())
 		]),
 		TAB_INDICATOR_TAGS
 	)
-	->addTab('authenticationTab', _('Authentication'), $http_authentication_form_grid, TAB_INDICATOR_HTTP_AUTH);
+	->addTab('authentication-tab', _('Authentication'), $authentication_tab, TAB_INDICATOR_HTTP_AUTH);
 
 if (!$data['form_refresh']) {
-	$http_tab->setSelected(0);
+	$http_tabs->setSelected(0);
 }
 
-// append buttons to form
 if ($data['httptestid'] != 0) {
 	$buttons = [new CSubmit('clone', _('Clone'))];
 
-	if ($data['host']['status'] == HOST_STATUS_MONITORED
-			|| $data['host']['status'] == HOST_STATUS_NOT_MONITORED) {
-
+	if ($data['host']['status'] == HOST_STATUS_MONITORED || $data['host']['status'] == HOST_STATUS_NOT_MONITORED) {
 		$buttons[] = new CButtonQMessage(
 			'del_history',
 			_('Clear history and trends'),
@@ -336,24 +324,23 @@ if ($data['httptestid'] != 0) {
 	))->setEnabled(!$data['templated']);
 	$buttons[] = new CButtonCancel(url_param('context'));
 
-	$http_tab->setFooter(makeFormFooter(new CSubmit('update', _('Update')), $buttons));
+	$http_tabs->setFooter(makeFormFooter(new CSubmit('update', _('Update')), $buttons));
 }
 else {
-	$http_tab->setFooter(makeFormFooter(
+	$http_tabs->setFooter(makeFormFooter(
 		new CSubmit('add', _('Add')),
 		[new CButtonCancel(url_param('context'))]
 	));
 }
 
-$http_form->addItem($http_tab);
-$widget->addItem($http_form);
+$form->addItem($http_tabs);
+$widget->addItem($form);
 
 $widget->show();
 
-
 (new CScriptTag('
 	view.init('.json_encode([
-		'form_name' => $http_form->getName(),
+		'form_name' => $form->getName(),
 		'templated' => $data['templated'],
 		'pairs' => $data['pairs'],
 		'steps' => $data['steps']

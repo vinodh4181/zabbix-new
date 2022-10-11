@@ -693,6 +693,14 @@ if (isset($_REQUEST['form'])) {
 			['id' => 2, 'type' => 'headers', 'name' => '', 'value' => '']
 		];
 	}
+	else {
+		if (!in_array('headers', array_column($data['pairs'], 'type'))) {
+			$data['pairs'][] = ['id' => 1, 'type' => 'headers', 'name' => '', 'value' => ''];
+		}
+		if (!in_array('variables', array_column($data['pairs'], 'type'))) {
+			$data['pairs'][] = ['id' => 1, 'type' => 'variables', 'name' => '', 'value' => ''];
+		}
+	}
 
 	// render view
 	echo (new CView('configuration.httpconf.edit', $data))->getOutput();
