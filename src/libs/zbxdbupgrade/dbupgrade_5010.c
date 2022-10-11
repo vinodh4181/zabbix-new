@@ -556,6 +556,12 @@ static void DBpatch_normalize_screen_items_pos(zbx_vector_ptr_t *scr_items)
 		for (n = c->y; n < c->y + c->rowspan && n < SCREEN_MAX_ROWS; n++)
 			used_y[n] = 1;
 
+		if (ZBX_UNLIKELY(SCREEN_MAX_COLS <= c->x || SCREEN_MAX_ROWS <= c->y))
+		{
+			THIS_SHOULD_NEVER_HAPPEN_NO_BACKTRACE;
+			exit(EXIT_FAILURE);
+		}
+
 		keep_x[c->x] = 1;
 		if (c->x + c->colspan < SCREEN_MAX_COLS)
 			keep_x[c->x + c->colspan] = 1;
@@ -935,6 +941,12 @@ static void	DBpatch_adjust_axis_dimensions(zbx_vector_char_t *d, zbx_vector_char
 		{
 			zabbix_log(LOG_LEVEL_TRACE, "dim_sum:%d pot_idx/val:%d/%.2lf", dimensions_sum,
 					potential_index, potential_value);
+		}
+
+		if (ZBX_UNLIKELY(d->values_num <= potential_index || 0 > potential_index))
+		{
+			THIS_SHOULD_NEVER_HAPPEN_NO_BACKTRACE;
+			exit(EXIT_FAILURE);
 		}
 
 		if (dimensions_sum > target && d->values[potential_index] == d_min->values[potential_index])

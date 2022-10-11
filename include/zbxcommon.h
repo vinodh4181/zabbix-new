@@ -122,6 +122,14 @@ const char	*zbx_result_string(int result);
  ******************************************************************************/
 #define ZBX_UNUSED(var) (void)(var)
 
+#ifdef HAVE___BUILTIN_EXPECT
+#define ZBX_UNLIKELY(x)	__builtin_expect(!!(x), 0)
+#define ZBX_LIKELY(x)	__builtin_expect(!!(x), 1)
+#else
+#define ZBX_UNLIKELY(x)	(x)
+#define ZBX_LIKELY(x)	(x)
+#endif
+
 /* item types */
 typedef enum
 {

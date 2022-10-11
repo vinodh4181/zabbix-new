@@ -974,6 +974,9 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <execinfo.h>]], [[void *bcktrc[6];
 AC_MSG_RESULT(yes)],[LDFLAGS="$saved_LDFLAGS"
 AC_MSG_RESULT(no)])
 
+dnl Check for __builtins
+AX_GCC_BUILTIN([__builtin_expect])
+
 dnl *****************************************************************
 dnl *                                                               *
 dnl *                 Checks for operating systems                  *

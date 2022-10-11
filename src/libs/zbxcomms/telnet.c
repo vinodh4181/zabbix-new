@@ -301,6 +301,12 @@ static char	telnet_lastchar(const char *buf, size_t offset)
 
 static int	telnet_rm_echo(char *buf, size_t *offset, const char *echo, size_t len)
 {
+	if (ZBX_UNLIKELY(len > *offset))
+	{
+		THIS_SHOULD_NEVER_HAPPEN_NO_BACKTRACE;
+		exit(EXIT_FAILURE);
+	}
+
 	if (0 == memcmp(buf, echo, len))
 	{
 		*offset -= len;

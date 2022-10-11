@@ -269,6 +269,12 @@ char	*zbx_user_macro_unquote_context_dyn(const char *context, int len)
 	int	quoted = 0;
 	char	*buffer, *ptr;
 
+	if (ZBX_UNLIKELY(0 > len))
+	{
+		THIS_SHOULD_NEVER_HAPPEN_NO_BACKTRACE;
+		exit(EXIT_FAILURE);
+	}
+
 	ptr = buffer = (char *)zbx_malloc(NULL, len + 1);
 
 	if ('"' == *context)

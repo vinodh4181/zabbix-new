@@ -1590,6 +1590,12 @@ static const char	*zbx_socket_find_line(zbx_socket_t *s)
 	/* check if the buffer contains the next line */
 	if ((size_t)(s->next_line - s->buffer) <= s->read_bytes && NULL != (ptr = strchr(s->next_line, '\n')))
 	{
+		if (ZBX_UNLIKELY(ptr - s->buffer > s->read_bytes))
+		{
+			THIS_SHOULD_NEVER_HAPPEN_NO_BACKTRACE;
+			exit(EXIT_FAILURE);
+		}
+
 		line = s->next_line;
 		s->next_line = ptr + 1;
 
