@@ -113,11 +113,16 @@ class testPageWeb extends CWebTest {
 		$this->page->waitUntilReady();
 	}
 
+	/**
+	 * Test that links to web service names are working properly and directed to needed form.
+	 */
 	public function testPageWeb_CheckLinks() {
-
-
+		$this->page->login()->open('zabbix.php?action=web.view');
+		$row = $this->query('class:list-table')->asTable()->one()->findRow('Name', 'testFormWeb1');
+		$row->query('link', 'testFormWeb1')->one()->click();
+		$this->page->waitUntilReady();
+		$this->assertEquals('Details of web scenario: testFormWeb1', $this->query('xpath://h1[@id="page-title-general"]')->one()->getText());
 	}
-
 
 	public static function getCheckFilterData() {
 		return [
