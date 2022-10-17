@@ -17,6 +17,8 @@
 ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 **/
 
+#include "zbxrtc.h"
+#include "zbx_rtc_constants.h"
 #include "rtc.h"
 
 #include "zbxcommon.h"
@@ -82,7 +84,7 @@ finish:
  *               FAIL    - an error occurred                                  *
  *                                                                            *
  ******************************************************************************/
-static int	rtc_parse_options(const char *opt, zbx_uint32_t *code, char **data, char **error)
+int	zbx_rtc_parse_options(const char *opt, zbx_uint32_t *code, char **data, char **error)
 {
 	if (0 == strncmp(opt, ZBX_LOG_LEVEL_INCREASE, ZBX_CONST_STRLEN(ZBX_LOG_LEVEL_INCREASE)))
 	{
@@ -152,85 +154,10 @@ static int	rtc_parse_options(const char *opt, zbx_uint32_t *code, char **data, c
 
 /******************************************************************************
  *                                                                            *
- * Purpose: process runtime control option and print result                   *
+ * Purpose: notify RTC service about finishing initial configuration sync     *
  *                                                                            *
- * Parameters: option   - [IN] the runtime control option                     *
- *     config_timeout   - [IN]                                                *
- *             error    - [OUT] error message                                 *
+ * Parameters: rtc   - [OUT] the RTC notification subscription socket         *
  *                                                                            *
- * Return value: SUCCEED - the runtime control option was processed           *
- *               FAIL    - otherwise                                          *
- *                                                                            *
- ******************************************************************************/
-int	zbx_rtc_process(const char *option, int config_timeout, char **error)
-{
-	zbx_uint32_t	code = ZBX_RTC_UNKNOWN, size = 0;
-	char		*data = NULL;
-	unsigned char	*result = NULL;
-	int		ret;
-
-	if (SUCCEED != rtc_parse_options(option, &code, &data, error))
-		return FAIL;
-
-	if (ZBX_RTC_UNKNOWN == code)
-	{
-		if (SUCCEED != rtc_parse_options_ex(option, &code, &data, error))
-			return FAIL;
-
-		if (ZBX_RTC_UNKNOWN == code)
-		{
-			*error = zbx_dsprintf(NULL, "unknown option \"%s\"", option);
-			return FAIL;
-		}
-	}
-
-#if !defined(HAVE_SIGQUEUE)
-	switch (code)
-	{
-		/* allow only socket based runtime control options */
-		case ZBX_RTC_LOG_LEVEL_DECREASE:
-		case ZBX_RTC_LOG_LEVEL_INCREASE:
-			*error = zbx_dsprintf(NULL, "operation is not supported on the given operating system");
-			return FAIL;
-	}
-#endif
-
-	if (NULL != data)
-		size = (zbx_uint32_t)strlen(data) + 1;
-
-	if (SUCCEED == (ret = zbx_ipc_async_exchange(ZBX_IPC_SERVICE_RTC, code, config_timeout, (unsigned char *)data,
-			size, &result, error)))
-	{
-		if (NULL != result)
-		{
-			printf("%s", result);
-			zbx_free(result);
-		}
-		else
-			printf("No response\n");
-
-	}
-
-	zbx_free(data);
-
-	return ret;
-}
-
-int	zbx_rtc_open(zbx_ipc_async_socket_t *asocket, int timeout, char **error)
-{
-	if (FAIL == zbx_ipc_async_socket_open(asocket, ZBX_IPC_SERVICE_RTC, timeout, error))
-		return FAIL;
-
-	return SUCCEED;
-}
-
-/******************************************************************************
- *                                                                             *
- * Purpose: notify RTC service about finishing initial configuration sync      *
- *                                                                             *
- * Parameters: config_timeout - [IN]                                           *
- *                        rtc - [OUT] the RTC notification subscription socket *
- *                                                                             *
  ******************************************************************************/
 void	zbx_rtc_notify_config_sync(int config_timeout, zbx_ipc_async_socket_t *rtc)
 {
@@ -351,4 +278,55 @@ int	zbx_rtc_reload_config_cache(char **error)
 	zbx_free(result);
 
 	return SUCCEED;
+}
+
+/******************************************************************************
+ *                                                                            *
+ * Purpose: exchange RTC data                                                 *
+ *                                                                            *
+ * Parameters: data           - [IN/OUT] data                                 *
+ *             code           - [IN] message code                             *
+ *             config_timeout - [IN]                                          *
+ *             error          - [OUT] error message                           *
+ *                                                                            *
+ * Return value: SUCCEED - successfully sent message and received response    *
+ *               FAIL    - error occurred                                     *
+ *                                                                            *
+ ******************************************************************************/
+int	zbx_rtc_async_exchange(char **data, zbx_uint32_t code, int config_timeout, char **error)
+{
+	zbx_uint32_t	size = 0;
+	unsigned char	*result = NULL;
+	int				ret;
+
+#if !defined(HAVE_SIGQUEUE)
+	switch (code)
+	{
+		/* allow only socket based runtime control options */
+		case ZBX_RTC_LOG_LEVEL_DECREASE:
+		case ZBX_RTC_LOG_LEVEL_INCREASE:
+			*error = zbx_dsprintf(NULL, "operation is not supported on the given operating system");
+			return FAIL;
+	}
+#endif
+
+	if (NULL != *data)
+		size = (zbx_uint32_t)strlen(*data) + 1;
+
+	if (SUCCEED == (ret = zbx_ipc_async_exchange(ZBX_IPC_SERVICE_RTC, code, config_timeout,
+			(const unsigned char *)*data, size, &result, error)))
+	{
+		if (NULL != result)
+		{
+			printf("%s", result);
+			zbx_free(result);
+		}
+		else
+			printf("No response\n");
+
+	}
+
+	zbx_free(*data);
+
+	return ret;
 }
