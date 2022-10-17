@@ -121,10 +121,10 @@ static int	proxy_data_no_history(const struct zbx_json_parse *jp)
  *                                                                            *
  * Purpose: receive 'proxy data' request from proxy                           *
  *                                                                            *
- * Parameters:   sock - [IN] the connection socket                            *
- *               jp   - [IN] the received JSON data                           *
- *               ts   - [IN] the connection timestamp                         *
- *   config_timeout   - [IN]                                                  *
+ * Parameters:   sock             - [IN] the connection socket                *
+ *               jp               - [IN] the received JSON data               *
+ *               ts               - [IN] the connection timestamp             *
+ *               config_timeout   - [IN]                                      *
  *                                                                            *
  ******************************************************************************/
 void	zbx_recv_proxy_data(zbx_socket_t *sock, struct zbx_json_parse *jp, zbx_timespec_t *ts, int config_timeout)
@@ -223,10 +223,12 @@ out:
  *                                                                            *
  * Purpose: sends data from proxy to server                                   *
  *                                                                            *
- * Parameters: sock  - [IN] the connection socket                             *
- *             data  - [IN] the data to send                                  *
- *   config_timeout  - [IN]                                                   *
- *             error - [OUT] the error message                                *
+ * Parameters: sock            - [IN] the connection socket                   *
+ *             buffer          -                                              *
+ *             buffer_size     -                                              *
+ *             reserved        -                                              *
+ *             config_timeout  - [IN]                                         *
+ *             error           - [OUT] the error message                      *
  *                                                                            *
  ******************************************************************************/
 static int	send_data_to_server(zbx_socket_t *sock, char **buffer, size_t buffer_size, size_t reserved,
