@@ -85,8 +85,9 @@ void	zbx_db_deinit(void);
 
 void	zbx_db_init_autoincrement_options(void);
 
-int	zbx_db_connect(char *host, char *user, char *password, char *dbname, char *dbschema, char *dbsocket, int port,
-			char *tls_connect, char *cert, char *key, char *ca, char *cipher, char *cipher_13);
+int	zbx_db_connect(const char *host, const char *user, const char *password, const char *dbname,
+			const char *dbschema, const char *dbsocket, int port, const char *tls_connect,
+			const char *cert, const char *key, const char *ca, const char *cipher, const char *cipher_13);
 void	zbx_db_close(void);
 
 int	zbx_db_begin(void);
@@ -314,7 +315,7 @@ int	zbx_dbms_mariadb_used(void);
 
 int	zbx_db_version_check(const char *database, zbx_uint32_t current_version, zbx_uint32_t min_version,
 		zbx_uint32_t max_version, zbx_uint32_t min_supported_version);
-void	zbx_db_version_json_create(struct zbx_json *json, struct zbx_db_version_info_t *info);
+void	zbx_db_version_json_create(struct zbx_json *json, const struct zbx_db_version_info_t *info);
 
 #if defined(HAVE_MYSQL)
 #	define ZBX_DB_TIMESTAMP()	"unix_timestamp()"

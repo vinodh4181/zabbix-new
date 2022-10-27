@@ -1419,7 +1419,7 @@ out:
 }
 #endif	/* HAVE_IPV6 */
 
-void	zbx_tcp_unlisten(zbx_socket_t *s)
+void	zbx_tcp_unlisten(const zbx_socket_t *s)
 {
 	int	i;
 

@@ -72,7 +72,7 @@ void	zbx_list_destroy(zbx_list_t *list)
  *             created  - [OUT] pointer to the created list item              *
  *                                                                            *
  ******************************************************************************/
-static void	list_create_item(zbx_list_t *list, void *value, zbx_list_item_t **created)
+static void	list_create_item(const zbx_list_t *list, void *value, zbx_list_item_t **created)
 {
 	zbx_list_item_t *item;
 

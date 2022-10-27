@@ -73,7 +73,7 @@ static void	zbx_matrix_free(zbx_matrix_t *m)
 	zbx_free(m);
 }
 
-static int	zbx_matrix_copy(zbx_matrix_t *dest, zbx_matrix_t *src)
+static int	zbx_matrix_copy(zbx_matrix_t *dest, const zbx_matrix_t *src)
 {
 	if (!ZBX_VALID_MATRIX(src))
 		goto error;
@@ -102,7 +102,7 @@ static int	zbx_identity_matrix(zbx_matrix_t *m, int n)
 	return SUCCEED;
 }
 
-static int	zbx_transpose_matrix(zbx_matrix_t *m, zbx_matrix_t *r)
+static int	zbx_transpose_matrix(const zbx_matrix_t *m, zbx_matrix_t *r)
 {
 	int	i, j;
 
@@ -268,7 +268,7 @@ error:
 	return FAIL;
 }
 
-static int	zbx_matrix_mult(zbx_matrix_t *left, zbx_matrix_t *right, zbx_matrix_t *result)
+static int	zbx_matrix_mult(const zbx_matrix_t *left, const zbx_matrix_t *right, zbx_matrix_t *result)
 {
 	double	element;
 	int	i, j, k;
@@ -335,7 +335,7 @@ out:
 	return res;
 }
 
-static int	zbx_fill_dependent(double *x, int n, zbx_fit_t fit, zbx_matrix_t *m)
+static int	zbx_fill_dependent(const double *x, int n, zbx_fit_t fit, zbx_matrix_t *m)
 {
 	int	i;
 
@@ -367,7 +367,7 @@ static int	zbx_fill_dependent(double *x, int n, zbx_fit_t fit, zbx_matrix_t *m)
 	return SUCCEED;
 }
 
-static int	zbx_fill_independent(double *t, int n, zbx_fit_t fit, int k, zbx_matrix_t *m)
+static int	zbx_fill_independent(const double *t, int n, zbx_fit_t fit, int k, zbx_matrix_t *m)
 {
 	double	element;
 	int	i, j;
@@ -442,7 +442,7 @@ out:
 	return res;
 }
 
-static double	zbx_polynomial_value(double t, zbx_matrix_t *coefficients)
+static double	zbx_polynomial_value(double t, const zbx_matrix_t *coefficients)
 {
 	double	pow = 1.0, res = 0.0;
 	int	i;
@@ -453,7 +453,7 @@ static double	zbx_polynomial_value(double t, zbx_matrix_t *coefficients)
 	return res;
 }
 
-static double	zbx_polynomial_antiderivative(double t, zbx_matrix_t *coefficients)
+static double	zbx_polynomial_antiderivative(double t, const zbx_matrix_t *coefficients)
 {
 	double	pow = t, res = 0.0;
 	int	i;
@@ -464,7 +464,7 @@ static double	zbx_polynomial_antiderivative(double t, zbx_matrix_t *coefficients
 	return res;
 }
 
-static int	zbx_derive_polynomial(zbx_matrix_t *polynomial, zbx_matrix_t *derivative)
+static int	zbx_derive_polynomial(const zbx_matrix_t *polynomial, zbx_matrix_t *derivative)
 {
 	int	i;
 
@@ -486,7 +486,7 @@ error:
 	return FAIL;
 }
 
-static int	zbx_polynomial_roots(zbx_matrix_t *coefficients, zbx_matrix_t *roots)
+static int	zbx_polynomial_roots(const zbx_matrix_t *coefficients, zbx_matrix_t *roots)
 {
 #define Re(z)	(z)[0]
 #define Im(z)	(z)[1]
@@ -865,7 +865,7 @@ error:
 	return FAIL;
 }
 
-int	zbx_fit_code(char *fit_str, zbx_fit_t *fit, unsigned *k, char **error)
+int	zbx_fit_code(const char *fit_str, zbx_fit_t *fit, unsigned *k, char **error)
 {
 	if ('\0' == *fit_str || 0 == strcmp(fit_str, "linear"))
 	{
@@ -906,7 +906,7 @@ int	zbx_fit_code(char *fit_str, zbx_fit_t *fit, unsigned *k, char **error)
 	return SUCCEED;
 }
 
-int	zbx_mode_code(char *mode_str, zbx_mode_t *mode, char **error)
+int	zbx_mode_code(const char *mode_str, zbx_mode_t *mode, char **error)
 {
 	if ('\0' == *mode_str || 0 == strcmp(mode_str, "value"))
 	{
@@ -937,7 +937,7 @@ int	zbx_mode_code(char *mode_str, zbx_mode_t *mode, char **error)
 	return SUCCEED;
 }
 
-static void	zbx_log_expression(double now, zbx_fit_t fit, int k, zbx_matrix_t *coeffs)
+static void	zbx_log_expression(double now, zbx_fit_t fit, int k, const zbx_matrix_t *coeffs)
 {
 	/* x is item value, t is time in seconds counted from now */
 	if (FIT_LINEAR == fit)

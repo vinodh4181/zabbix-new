@@ -106,7 +106,7 @@ extern int		CONFIG_TIMER_FORKS;
 ZBX_SHMEM_FUNC_IMPL(__config, config_mem)
 
 static void	dc_maintenance_precache_nested_groups(void);
-static void	dc_item_reset_triggers(ZBX_DC_ITEM *item, ZBX_DC_TRIGGER *trigger_exclude);
+static void	dc_item_reset_triggers(ZBX_DC_ITEM *item, const ZBX_DC_TRIGGER *trigger_exclude);
 
 static char	*dc_expand_user_macros_dyn(const char *text, const zbx_uint64_t *hostids, int hostids_num, int env);
 
@@ -1145,7 +1145,7 @@ static void	DCsync_proxy_remove(ZBX_DC_PROXY *proxy)
 	zbx_hashset_remove_direct(&config->proxies, proxy);
 }
 
-static void	dc_host_deregister_proxy(ZBX_DC_HOST *host, zbx_uint64_t proxy_hostid, zbx_uint64_t revision)
+static void	dc_host_deregister_proxy(const ZBX_DC_HOST *host, zbx_uint64_t proxy_hostid, zbx_uint64_t revision)
 {
 	ZBX_DC_PROXY	*proxy;
 	int		i;
@@ -2001,7 +2001,7 @@ static void	substitute_host_interface_macros(ZBX_DC_INTERFACE *interface)
  * Parameters: interface - [IN]                                               *
  *                                                                            *
  ******************************************************************************/
-static void	dc_interface_snmpaddrs_remove(ZBX_DC_INTERFACE *interface)
+static void	dc_interface_snmpaddrs_remove(const ZBX_DC_INTERFACE *interface)
 {
 	ZBX_DC_INTERFACE_ADDR	*ifaddr, ifaddr_local;
 	int			index;
@@ -2363,7 +2363,7 @@ static void	DCsync_interfaces(zbx_dbsync_t *sync, zbx_uint64_t revision)
  * Parameters: interface - [IN] the item                                      *
  *                                                                            *
  ******************************************************************************/
-static void	dc_interface_snmpitems_remove(ZBX_DC_ITEM *item)
+static void	dc_interface_snmpitems_remove(const ZBX_DC_ITEM *item)
 {
 	ZBX_DC_INTERFACE_ITEM	*ifitem;
 	int			index;
@@ -3986,13 +3986,14 @@ static void	dc_schedule_trigger_timer(zbx_trigger_timer_t *timer, int now, const
  *          old trend function queue                                          *
  *                                                                            *
  ******************************************************************************/
-static void	dc_schedule_trigger_timers(zbx_hashset_t *trend_queue, int now)
+static void	dc_schedule_trigger_timers(const zbx_hashset_t *trend_queue, int now)
 {
-	ZBX_DC_FUNCTION		*function;
-	ZBX_DC_TRIGGER		*trigger;
-	zbx_trigger_timer_t	*timer, *old;
-	zbx_timespec_t		ts;
-	zbx_hashset_iter_t	iter;
+	ZBX_DC_FUNCTION			*function;
+	ZBX_DC_TRIGGER			*trigger;
+	zbx_trigger_timer_t		*timer;
+	const zbx_trigger_timer_t	*old;
+	zbx_timespec_t			ts;
+	zbx_hashset_iter_t		iter;
 
 	ts.ns = 0;
 
@@ -4017,7 +4018,7 @@ static void	dc_schedule_trigger_timers(zbx_hashset_t *trend_queue, int now)
 		if (NULL == (timer = dc_trigger_function_timer_create(function, now)))
 			continue;
 
-		if (NULL != trend_queue && NULL != (old = (zbx_trigger_timer_t *)zbx_hashset_search(trend_queue,
+		if (NULL != trend_queue && NULL != (old = (const zbx_trigger_timer_t *)zbx_hashset_search(trend_queue,
 				&timer->objectid)) && old->eval_ts.sec < now + 10 * SEC_PER_MIN)
 		{
 			/* if the trigger was scheduled during next 10 minutes         */
@@ -6241,7 +6242,7 @@ static void	dc_trigger_add_itemids(ZBX_DC_TRIGGER *trigger, const zbx_vector_uin
  *             trigger_exclude - the trigger to exclude                       *
  *                                                                            *
  ******************************************************************************/
-static void	dc_item_reset_triggers(ZBX_DC_ITEM *item, ZBX_DC_TRIGGER *trigger_exclude)
+static void	dc_item_reset_triggers(ZBX_DC_ITEM *item, const ZBX_DC_TRIGGER *trigger_exclude)
 {
 	ZBX_DC_TRIGGER	**trigger;
 
@@ -8866,7 +8867,7 @@ static void	DCget_item(DC_ITEM *dst_item, const ZBX_DC_ITEM *src_item, unsigned 
 	}
 }
 
-void	DCconfig_clean_items(DC_ITEM *items, int *errcodes, size_t num)
+void	DCconfig_clean_items(DC_ITEM *items, const int *errcodes, size_t num)
 {
 	size_t	i;
 
@@ -9040,7 +9041,7 @@ static void	DCclean_trigger(DC_TRIGGER *trigger)
  *             num      - [IN] number of elements in items, keys, errcodes    *
  *                                                                            *
  ******************************************************************************/
-void	DCconfig_get_items_by_keys(DC_ITEM *items, zbx_host_key_t *keys, int *errcodes, size_t num)
+void	DCconfig_get_items_by_keys(DC_ITEM *items, const zbx_host_key_t *keys, int *errcodes, size_t num)
 {
 	size_t			i;
 	const ZBX_DC_ITEM	*dc_item;
@@ -9417,7 +9418,7 @@ static void	dc_preproc_sync_masteritem(zbx_preproc_item_t *item, const ZBX_DC_MA
 	item->dep_itemids_num = masteritem->dep_itemids.values_num;
 }
 
-static void	dc_preproc_sync_item(zbx_hashset_t *items, ZBX_DC_ITEM *dc_item, zbx_uint64_t revision)
+static void	dc_preproc_sync_item(zbx_hashset_t *items, const ZBX_DC_ITEM *dc_item, zbx_uint64_t revision)
 {
 	zbx_preproc_item_t	*pp_item;
 
@@ -9687,7 +9688,7 @@ void	DCconfig_get_functions_by_functionids(DC_FUNCTION *functions, zbx_uint64_t 
 	UNLOCK_CACHE;
 }
 
-void	DCconfig_clean_functions(DC_FUNCTION *functions, int *errcodes, size_t num)
+void	DCconfig_clean_functions(DC_FUNCTION *functions, const int *errcodes, size_t num)
 {
 	size_t	i;
 
@@ -9700,7 +9701,7 @@ void	DCconfig_clean_functions(DC_FUNCTION *functions, int *errcodes, size_t num)
 	}
 }
 
-void	DCconfig_clean_triggers(DC_TRIGGER *triggers, int *errcodes, size_t num)
+void	DCconfig_clean_triggers(DC_TRIGGER *triggers, const int *errcodes, size_t num)
 {
 	size_t	i;
 
@@ -9805,7 +9806,8 @@ next:;
  *             triggerids_out - [OUT] ids of locked triggers                  *
  *                                                                            *
  ******************************************************************************/
-void	DCconfig_lock_triggers_by_triggerids(zbx_vector_uint64_t *triggerids_in, zbx_vector_uint64_t *triggerids_out)
+void	DCconfig_lock_triggers_by_triggerids(const zbx_vector_uint64_t *triggerids_in,
+		zbx_vector_uint64_t *triggerids_out)
 {
 	int		i;
 	ZBX_DC_TRIGGER	*dc_trigger;
@@ -10063,7 +10065,7 @@ void	zbx_dc_get_triggers_by_timers(zbx_hashset_t *trigger_info, zbx_vector_ptr_t
  *               FAIL    - otherwise                                          *
  *                                                                            *
  ******************************************************************************/
-static int	trigger_timer_validate(zbx_trigger_timer_t *timer, ZBX_DC_TRIGGER **dc_trigger)
+static int	trigger_timer_validate(const zbx_trigger_timer_t *timer, ZBX_DC_TRIGGER **dc_trigger)
 {
 	ZBX_DC_FUNCTION		*dc_function;
 
@@ -10249,7 +10251,7 @@ void	zbx_dc_get_trigger_timers(zbx_vector_ptr_t *timers, int now, int soft_limit
  * Comments: Triggers are unlocked by DCconfig_unlock_triggers()              *
  *                                                                            *
  ******************************************************************************/
-static void	dc_reschedule_trigger_timers(zbx_vector_ptr_t *timers, int now)
+static void	dc_reschedule_trigger_timers(const zbx_vector_ptr_t *timers, int now)
 {
 	int	i;
 
@@ -10607,7 +10609,7 @@ static void	dc_requeue_item(ZBX_DC_ITEM *dc_item, const ZBX_DC_HOST *dc_host, co
  *             nextcheck - [IN] the scheduled time                            *
  *                                                                            *
  ******************************************************************************/
-static void	dc_requeue_item_at(ZBX_DC_ITEM *dc_item, ZBX_DC_HOST *dc_host, int nextcheck)
+static void	dc_requeue_item_at(ZBX_DC_ITEM *dc_item, const ZBX_DC_HOST *dc_host, int nextcheck)
 {
 	unsigned char	old_poller_type;
 	int		old_nextcheck;
@@ -11650,7 +11652,7 @@ static void	DCconfig_sort_triggers_topologically(void)
  *          configuration cache after committed to database                   *
  *                                                                            *
  ******************************************************************************/
-void	DCconfig_triggers_apply_changes(zbx_vector_ptr_t *trigger_diff)
+void	DCconfig_triggers_apply_changes(const zbx_vector_ptr_t *trigger_diff)
 {
 	int			i;
 	zbx_trigger_diff_t	*diff;
@@ -12723,7 +12725,7 @@ void	dc_get_hostids_by_functionids(const zbx_uint64_t *functionids, int function
  *             hostids     - [OUT]                                            *
  *                                                                            *
  ******************************************************************************/
-void	DCget_hostids_by_functionids(zbx_vector_uint64_t *functionids, zbx_vector_uint64_t *hostids)
+void	DCget_hostids_by_functionids(const zbx_vector_uint64_t *functionids, zbx_vector_uint64_t *hostids)
 {
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
@@ -13882,7 +13884,8 @@ int	zbx_dc_get_proxy_name_type_by_id(zbx_uint64_t proxyid, int *status, char **n
  *                               errcodes arrays                              *
  *                                                                            *
  ******************************************************************************/
-void	zbx_dc_items_update_nextcheck(DC_ITEM *items, zbx_agent_value_t *values, int *errcodes, size_t values_num)
+void	zbx_dc_items_update_nextcheck(const DC_ITEM *items, const zbx_agent_value_t *values, const int *errcodes,
+		size_t values_num)
 {
 	size_t			i;
 	ZBX_DC_ITEM		*dc_item;
@@ -14273,7 +14276,7 @@ void	zbx_dc_reschedule_items(const zbx_vector_uint64_t *itemids, int nextcheck, 
  * Parameter: subscriptions - [IN] the array of trigger id and time of values *
  *                                                                            *
  ******************************************************************************/
-void	zbx_dc_proxy_update_nodata(zbx_vector_uint64_pair_t *subscriptions)
+void	zbx_dc_proxy_update_nodata(const zbx_vector_uint64_pair_t *subscriptions)
 {
 	ZBX_DC_PROXY		*proxy = NULL;
 	int			i;
@@ -14620,7 +14623,7 @@ void	zbx_dc_cleanup_autoreg_host(void)
 	UNLOCK_CACHE;
 }
 
-static void	zbx_gather_item_tags(ZBX_DC_ITEM *item, zbx_vector_ptr_t *item_tags)
+static void	zbx_gather_item_tags(const ZBX_DC_ITEM *item, zbx_vector_ptr_t *item_tags)
 {
 	zbx_dc_item_tag_t	*dc_tag;
 	zbx_item_tag_t		*tag;

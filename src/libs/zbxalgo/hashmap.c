@@ -22,7 +22,7 @@
 
 #include "zbxcommon.h"
 
-static void	__hashmap_ensure_free_entry(zbx_hashmap_t *hm, ZBX_HASHMAP_SLOT_T *slot);
+static void	__hashmap_ensure_free_entry(const zbx_hashmap_t *hm, ZBX_HASHMAP_SLOT_T *slot);
 
 #define	CRIT_LOAD_FACTOR	5/1
 #define	SLOT_GROWTH_FACTOR	3/2
@@ -33,7 +33,7 @@ static void	__hashmap_ensure_free_entry(zbx_hashmap_t *hm, ZBX_HASHMAP_SLOT_T *s
 
 /* private hashmap functions */
 
-static void	__hashmap_ensure_free_entry(zbx_hashmap_t *hm, ZBX_HASHMAP_SLOT_T *slot)
+static void	__hashmap_ensure_free_entry(const zbx_hashmap_t *hm, ZBX_HASHMAP_SLOT_T *slot)
 {
 	if (NULL == slot->entries)
 	{

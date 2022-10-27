@@ -423,7 +423,7 @@ static void	DCdump_trapitem(const ZBX_DC_TRAPITEM *trapitem)
 	zabbix_log(LOG_LEVEL_TRACE, "  trapper_hosts:'%s'", trapitem->trapper_hosts);
 }
 
-static void	DCdump_logitem(ZBX_DC_LOGITEM *logitem)
+static void	DCdump_logitem(const ZBX_DC_LOGITEM *logitem)
 {
 	zabbix_log(LOG_LEVEL_TRACE, "  logtimefmt:'%s'", logitem->logtimefmt);
 }
@@ -983,7 +983,7 @@ static void	DCdump_actions(void)
 	zabbix_log(LOG_LEVEL_TRACE, "End of %s()", __func__);
 }
 
-static void	DCdump_corr_conditions(zbx_dc_correlation_t *correlation)
+static void	DCdump_corr_conditions(const zbx_dc_correlation_t *correlation)
 {
 	int			i;
 	zbx_vector_ptr_t	index;
@@ -1026,7 +1026,7 @@ static void	DCdump_corr_conditions(zbx_dc_correlation_t *correlation)
 	zbx_vector_ptr_destroy(&index);
 }
 
-static void	DCdump_corr_operations(zbx_dc_correlation_t *correlation)
+static void	DCdump_corr_operations(const zbx_dc_correlation_t *correlation)
 {
 	int			i;
 	zbx_vector_ptr_t	index;
@@ -1153,7 +1153,7 @@ static void	DCdump_host_group_index(void)
 	zabbix_log(LOG_LEVEL_TRACE, "End of %s()", __func__);
 }
 
-static void	DCdump_maintenance_groups(zbx_dc_maintenance_t *maintenance)
+static void	DCdump_maintenance_groups(const zbx_dc_maintenance_t *maintenance)
 {
 	int			i;
 	zbx_vector_uint64_t	index;
@@ -1174,7 +1174,7 @@ static void	DCdump_maintenance_groups(zbx_dc_maintenance_t *maintenance)
 	zbx_vector_uint64_destroy(&index);
 }
 
-static void	DCdump_maintenance_hosts(zbx_dc_maintenance_t *maintenance)
+static void	DCdump_maintenance_hosts(const zbx_dc_maintenance_t *maintenance)
 {
 	int			i;
 	zbx_vector_uint64_t	index;
@@ -1212,7 +1212,7 @@ static int	maintenance_tag_compare(const void *v1, const void *v2)
 	return 0;
 }
 
-static void	DCdump_maintenance_tags(zbx_dc_maintenance_t *maintenance)
+static void	DCdump_maintenance_tags(const zbx_dc_maintenance_t *maintenance)
 {
 	int			i;
 	zbx_vector_ptr_t	index;
@@ -1237,7 +1237,7 @@ static void	DCdump_maintenance_tags(zbx_dc_maintenance_t *maintenance)
 	zbx_vector_ptr_destroy(&index);
 }
 
-static void	DCdump_maintenance_periods(zbx_dc_maintenance_t *maintenance)
+static void	DCdump_maintenance_periods(const zbx_dc_maintenance_t *maintenance)
 {
 	int			i;
 	zbx_vector_ptr_t	index;

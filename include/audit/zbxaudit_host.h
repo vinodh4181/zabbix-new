@@ -130,8 +130,8 @@ void	zbx_audit_host_update_json_delete_tag(zbx_uint64_t hostid, zbx_uint64_t tag
 void	zbx_audit_hostgroup_update_json_add_group(zbx_uint64_t hostid, zbx_uint64_t hostgroupid, zbx_uint64_t groupid);
 void	zbx_audit_hostgroup_update_json_delete_group(zbx_uint64_t hostid, zbx_uint64_t hostgroupid,
 		zbx_uint64_t groupid);
-void	zbx_audit_host_hostgroup_delete(zbx_uint64_t hostid, const char* hostname, zbx_vector_uint64_t *hostgroupids,
-		zbx_vector_uint64_t *groupids);
+void	zbx_audit_host_hostgroup_delete(zbx_uint64_t hostid, const char* hostname,
+		const zbx_vector_uint64_t *hostgroupids, const zbx_vector_uint64_t *groupids);
 void	zbx_audit_host_del(zbx_uint64_t hostid, const char *hostname);
 void	zbx_audit_host_update_json_add_details(zbx_uint64_t hostid, const char *host, zbx_uint64_t proxy_hostid,
 		int ipmi_authtype, int ipmi_privilege, const char *ipmi_username, const char *ipmi_password,

@@ -446,8 +446,8 @@ void	zbx_audit_hostgroup_update_json_delete_group(zbx_uint64_t hostid, zbx_uint6
 			NULL, NULL);
 }
 
-void	zbx_audit_host_hostgroup_delete(zbx_uint64_t hostid, const char* hostname, zbx_vector_uint64_t *hostgroupids,
-		zbx_vector_uint64_t *groupids)
+void	zbx_audit_host_hostgroup_delete(zbx_uint64_t hostid, const char* hostname,
+		const zbx_vector_uint64_t *hostgroupids, const zbx_vector_uint64_t *groupids)
 {
 	char	buf[AUDIT_DETAILS_KEY_LEN];
 	int	i;

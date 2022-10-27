@@ -94,7 +94,7 @@ const char	*get_program_name(const char *path)
  * Return value: returns a pointer to the newly allocated memory              *
  *                                                                            *
  ******************************************************************************/
-void	*zbx_calloc2(const char *filename, int line, void *old, size_t nmemb, size_t size)
+void	*zbx_calloc2(const char *filename, int line, const void *old, size_t nmemb, size_t size)
 {
 	int	max_attempts;
 	void	*ptr = NULL;
@@ -129,7 +129,7 @@ void	*zbx_calloc2(const char *filename, int line, void *old, size_t nmemb, size_
  * Return value: returns a pointer to the newly allocated memory              *
  *                                                                            *
  ******************************************************************************/
-void	*zbx_malloc2(const char *filename, int line, void *old, size_t size)
+void	*zbx_malloc2(const char *filename, int line, const void *old, size_t size)
 {
 	int	max_attempts;
 	void	*ptr = NULL;

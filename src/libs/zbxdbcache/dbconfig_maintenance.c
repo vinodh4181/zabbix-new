@@ -1031,7 +1031,7 @@ static void	dc_get_host_maintenances_by_ids(const zbx_vector_uint64_t *maintenan
  *             updates           - [OUT] updates to be applied                *
  *                                                                            *
  ******************************************************************************/
-static void	dc_get_host_maintenance_updates(zbx_hashset_t *host_maintenances, zbx_vector_ptr_t *updates)
+static void	dc_get_host_maintenance_updates(const zbx_hashset_t *host_maintenances, zbx_vector_ptr_t *updates)
 {
 	zbx_hashset_iter_t		iter;
 	ZBX_DC_HOST			*host;

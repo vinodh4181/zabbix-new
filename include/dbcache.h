@@ -745,12 +745,12 @@ void	free_configuration_cache(void);
 
 void	DCconfig_get_triggers_by_triggerids(DC_TRIGGER *triggers, const zbx_uint64_t *triggerids, int *errcode,
 		size_t num);
-void	DCconfig_clean_items(DC_ITEM *items, int *errcodes, size_t num);
+void	DCconfig_clean_items(DC_ITEM *items, const int *errcodes, size_t num);
 int	DCget_host_by_hostid(DC_HOST *host, zbx_uint64_t hostid);
 int	DCconfig_get_hostid_by_name(const char *host, zbx_uint64_t *hostid);
 void	DCconfig_get_hosts_by_itemids(DC_HOST *hosts, const zbx_uint64_t *itemids, int *errcodes, size_t num);
 void	DCconfig_get_hosts_by_hostids(DC_HOST *hosts, const zbx_uint64_t *hostids, int *errcodes, int num);
-void	DCconfig_get_items_by_keys(DC_ITEM *items, zbx_host_key_t *keys, int *errcodes, size_t num);
+void	DCconfig_get_items_by_keys(DC_ITEM *items, const zbx_host_key_t *keys, int *errcodes, size_t num);
 void	DCconfig_get_items_by_itemids(DC_ITEM *items, const zbx_uint64_t *itemids, int *errcodes, size_t num);
 void	DCconfig_get_items_by_itemids_partial(DC_ITEM *items, const zbx_uint64_t *itemids, int *errcodes, int num,
 		unsigned int mode);
@@ -759,10 +759,11 @@ void	DCconfig_get_active_items_by_hostid(DC_ITEM *items, zbx_uint64_t hostid, in
 void	DCconfig_get_preprocessable_items(zbx_hashset_t *items, zbx_uint64_t *revision);
 void	DCconfig_get_functions_by_functionids(DC_FUNCTION *functions,
 		zbx_uint64_t *functionids, int *errcodes, size_t num);
-void	DCconfig_clean_functions(DC_FUNCTION *functions, int *errcodes, size_t num);
-void	DCconfig_clean_triggers(DC_TRIGGER *triggers, int *errcodes, size_t num);
+void	DCconfig_clean_functions(DC_FUNCTION *functions, const int *errcodes, size_t num);
+void	DCconfig_clean_triggers(DC_TRIGGER *triggers, const int *errcodes, size_t num);
 int	DCconfig_lock_triggers_by_history_items(zbx_vector_ptr_t *history_items, zbx_vector_uint64_t *triggerids);
-void	DCconfig_lock_triggers_by_triggerids(zbx_vector_uint64_t *triggerids_in, zbx_vector_uint64_t *triggerids_out);
+void	DCconfig_lock_triggers_by_triggerids(const zbx_vector_uint64_t *triggerids_in,
+		zbx_vector_uint64_t *triggerids_out);
 void	DCconfig_unlock_triggers(const zbx_vector_uint64_t *triggerids);
 void	DCconfig_unlock_all_triggers(void);
 void	DCconfig_get_triggers_by_itemids(zbx_hashset_t *trigger_info, zbx_vector_ptr_t *trigger_order,
@@ -805,7 +806,7 @@ int	DCconfig_deactivate_host(DC_ITEM *item, int now);
 
 int	DCconfig_check_trigger_dependencies(zbx_uint64_t triggerid);
 
-void	DCconfig_triggers_apply_changes(zbx_vector_ptr_t *trigger_diff);
+void	DCconfig_triggers_apply_changes(const zbx_vector_ptr_t *trigger_diff);
 void	DCconfig_items_apply_changes(const zbx_vector_ptr_t *item_diff);
 
 void	DCconfig_update_inventory_values(const zbx_vector_ptr_t *inventory_values);
@@ -878,7 +879,7 @@ void	DCget_expressions_by_name(zbx_vector_ptr_t *expressions, const char *name);
 
 int	DCget_data_expected_from(zbx_uint64_t itemid, int *seconds);
 
-void	DCget_hostids_by_functionids(zbx_vector_uint64_t *functionids, zbx_vector_uint64_t *hostids);
+void	DCget_hostids_by_functionids(const zbx_vector_uint64_t *functionids, zbx_vector_uint64_t *hostids);
 void	DCget_hosts_by_functionids(const zbx_vector_uint64_t *functionids, zbx_hashset_t *hosts);
 
 int	DCget_proxy_nodata_win(zbx_uint64_t hostid, zbx_proxy_suppress_t *nodata_win, int *lastaccess);
@@ -971,12 +972,13 @@ typedef struct
 }
 zbx_agent_value_t;
 
-void	zbx_dc_items_update_nextcheck(DC_ITEM *items, zbx_agent_value_t *values, int *errcodes, size_t values_num);
+void	zbx_dc_items_update_nextcheck(const DC_ITEM *items, const zbx_agent_value_t *values, const int *errcodes,
+		size_t values_num);
 int	zbx_dc_get_host_interfaces(zbx_uint64_t hostid, DC_INTERFACE2 **interfaces, int *n);
 
 void	zbx_dc_update_proxy(zbx_proxy_diff_t *diff);
 void	zbx_dc_get_proxy_lastaccess(zbx_vector_uint64_pair_t *lastaccess);
-void	zbx_dc_proxy_update_nodata(zbx_vector_uint64_pair_t *subscriptions);
+void	zbx_dc_proxy_update_nodata(const zbx_vector_uint64_pair_t *subscriptions);
 
 typedef struct
 {

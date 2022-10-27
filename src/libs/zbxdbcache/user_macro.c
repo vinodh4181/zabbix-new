@@ -55,7 +55,7 @@ zbx_um_update_cause_t;
  *           cached objects and incrementing their reference counters.           *
  *                                                                               *
  *********************************************************************************/
-static zbx_um_cache_t	*um_cache_dup(zbx_um_cache_t *cache)
+static zbx_um_cache_t	*um_cache_dup(const zbx_um_cache_t *cache)
 {
 	zbx_um_cache_t		*dup;
 	zbx_um_host_t		**phost;
@@ -210,7 +210,7 @@ void	um_cache_release(zbx_um_cache_t *cache)
  * Purpose: duplicate user macro                                                 *
  *                                                                               *
  *********************************************************************************/
-static zbx_um_macro_t	*um_macro_dup(zbx_um_macro_t *macro)
+static zbx_um_macro_t	*um_macro_dup(const zbx_um_macro_t *macro)
 {
 	zbx_um_macro_t	*dup;
 
@@ -234,7 +234,7 @@ static zbx_um_macro_t	*um_macro_dup(zbx_um_macro_t *macro)
  * Comment: macro references are copied over with incremented reference counters.*
  *                                                                               *
  *********************************************************************************/
-static zbx_um_host_t	*um_host_dup(zbx_um_host_t *host)
+static zbx_um_host_t	*um_host_dup(const zbx_um_host_t *host)
 {
 	zbx_um_host_t	*dup;
 	int		i;
@@ -321,7 +321,7 @@ static zbx_um_host_t	*um_cache_create_host(zbx_um_cache_t *cache, zbx_uint64_t h
  * Comments: If the host is used by other processes it will be duplicated.       *
  *                                                                               *
  *********************************************************************************/
-static zbx_um_host_t	*um_cache_acquire_host(zbx_um_cache_t *cache, zbx_uint64_t hostid,
+static zbx_um_host_t	*um_cache_acquire_host(const zbx_um_cache_t *cache, zbx_uint64_t hostid,
 		zbx_um_update_cause_t cause)
 {
 	zbx_uint64_t	*phostid = &hostid;
@@ -359,7 +359,7 @@ static zbx_um_host_t	*um_cache_acquire_host(zbx_um_cache_t *cache, zbx_uint64_t 
  * Purpose: remove user macro from the host                                      *
  *                                                                               *
  *********************************************************************************/
-static void	um_host_remove_macro(zbx_um_host_t *host, zbx_um_macro_t *macro)
+static void	um_host_remove_macro(zbx_um_host_t *host, const zbx_um_macro_t *macro)
 {
 	int	i;
 
@@ -428,7 +428,7 @@ static void	dc_kvs_path_remove(zbx_dc_kvs_path_t *kvs_path)
  *          elements when necessary                                              *
  *                                                                               *
  *********************************************************************************/
-static void	um_macro_kv_remove(zbx_um_macro_t *macro, zbx_dc_macro_kv_t *mkv)
+static void	um_macro_kv_remove(const zbx_um_macro_t *macro, zbx_dc_macro_kv_t *mkv)
 {
 	int			i;
 	zbx_uint64_pair_t	pair = {macro->hostid, macro->macroid};
@@ -1382,7 +1382,7 @@ static void	um_cache_check_used_templates(const zbx_um_cache_t *cache, zbx_uint6
  *                                     templates                                 *
  *                                                                               *
  *********************************************************************************/
-void	um_cache_get_unused_templates(zbx_um_cache_t *cache, zbx_hashset_t *templates,
+void	um_cache_get_unused_templates(const zbx_um_cache_t *cache, zbx_hashset_t *templates,
 		const zbx_vector_uint64_t *hostids, zbx_vector_uint64_t *templateids)
 {
 	zbx_hashset_iter_t	iter;

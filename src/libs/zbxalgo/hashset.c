@@ -23,7 +23,7 @@
 #include "zbxcommon.h"
 #include "log.h"
 
-static void	__hashset_free_entry(zbx_hashset_t *hs, ZBX_HASHSET_ENTRY_T *entry);
+static void	__hashset_free_entry(const zbx_hashset_t *hs, ZBX_HASHSET_ENTRY_T *entry);
 
 #define	CRIT_LOAD_FACTOR	4/5
 #define	SLOT_GROWTH_FACTOR	3/2
@@ -32,7 +32,7 @@ static void	__hashset_free_entry(zbx_hashset_t *hs, ZBX_HASHSET_ENTRY_T *entry);
 
 /* private hashset functions */
 
-static void	__hashset_free_entry(zbx_hashset_t *hs, ZBX_HASHSET_ENTRY_T *entry)
+static void	__hashset_free_entry(const zbx_hashset_t *hs, ZBX_HASHSET_ENTRY_T *entry)
 {
 	if (NULL != hs->clean_func)
 		hs->clean_func(entry->data);

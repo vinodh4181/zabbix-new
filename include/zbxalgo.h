@@ -272,10 +272,10 @@ void			zbx_binary_heap_create_ext(zbx_binary_heap_t *heap, zbx_compare_func_t co
 							zbx_mem_free_func_t mem_free_func);
 void			zbx_binary_heap_destroy(zbx_binary_heap_t *heap);
 
-int			zbx_binary_heap_empty(zbx_binary_heap_t *heap);
+int			zbx_binary_heap_empty(const zbx_binary_heap_t *heap);
 zbx_binary_heap_elem_t	*zbx_binary_heap_find_min(zbx_binary_heap_t *heap);
-void			zbx_binary_heap_insert(zbx_binary_heap_t *heap, zbx_binary_heap_elem_t *elem);
-void			zbx_binary_heap_update_direct(zbx_binary_heap_t *heap, zbx_binary_heap_elem_t *elem);
+void			zbx_binary_heap_insert(zbx_binary_heap_t *heap, const zbx_binary_heap_elem_t *elem);
+void			zbx_binary_heap_update_direct(zbx_binary_heap_t *heap, const zbx_binary_heap_elem_t *elem);
 void			zbx_binary_heap_remove_min(zbx_binary_heap_t *heap);
 void			zbx_binary_heap_remove_direct(zbx_binary_heap_t *heap, zbx_uint64_t key);
 
@@ -655,8 +655,8 @@ typedef enum
 }
 zbx_mode_t;
 
-int	zbx_fit_code(char *fit_str, zbx_fit_t *fit, unsigned *k, char **error);
-int	zbx_mode_code(char *mode_str, zbx_mode_t *mode, char **error);
+int	zbx_fit_code(const char *fit_str, zbx_fit_t *fit, unsigned *k, char **error);
+int	zbx_mode_code(const char *mode_str, zbx_mode_t *mode, char **error);
 double	zbx_forecast(double *t, double *x, int n, double now, double time, zbx_fit_t fit, unsigned k, zbx_mode_t mode);
 double	zbx_timeleft(double *t, double *x, int n, double now, double threshold, zbx_fit_t fit, unsigned k);
 
@@ -673,7 +673,7 @@ zbx_queue_ptr_t;
 
 #define zbx_queue_ptr_empty(queue)	((queue)->head_pos == (queue)->tail_pos ? SUCCEED : FAIL)
 
-int	zbx_queue_ptr_values_num(zbx_queue_ptr_t *queue);
+int	zbx_queue_ptr_values_num(const zbx_queue_ptr_t *queue);
 void	zbx_queue_ptr_reserve(zbx_queue_ptr_t *queue, int num);
 void	zbx_queue_ptr_compact(zbx_queue_ptr_t *queue);
 void	zbx_queue_ptr_create(zbx_queue_ptr_t *queue);

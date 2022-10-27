@@ -30,7 +30,7 @@
  * Return value: The number of values in queue                                *
  *                                                                            *
  ******************************************************************************/
-int	zbx_queue_ptr_values_num(zbx_queue_ptr_t *queue)
+int	zbx_queue_ptr_values_num(const zbx_queue_ptr_t *queue)
 {
 	int	values_num;
 

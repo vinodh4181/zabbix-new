@@ -72,7 +72,8 @@ ZBX_PTR_VECTOR_DECL(availability_ptr, zbx_interface_availability_t *)
 
 #define ZBX_IPC_SERVICE_AVAILABILITY	"availability"
 
-void	zbx_availability_send(zbx_uint32_t code, unsigned char *data, zbx_uint32_t size, zbx_ipc_message_t *response);
+void	zbx_availability_send(zbx_uint32_t code, const unsigned char *data, zbx_uint32_t size,
+		zbx_ipc_message_t *response);
 void	zbx_availabilities_flush(const zbx_vector_availability_ptr_t *interface_availabilities);
 
 typedef struct
@@ -105,7 +106,7 @@ zbx_proxy_hostdata_t;
 
 ZBX_PTR_VECTOR_DECL(proxy_hostdata_ptr, zbx_proxy_hostdata_t *)
 
-void	zbx_availability_serialize_json_hostdata(zbx_vector_proxy_hostdata_ptr_t *hostdata, struct zbx_json *j);
+void	zbx_availability_serialize_json_hostdata(const zbx_vector_proxy_hostdata_ptr_t *hostdata, struct zbx_json *j);
 int	zbx_get_active_agent_availability(zbx_uint64_t hostid);
 
 void	zbx_interface_availability_init(zbx_interface_availability_t *availability, zbx_uint64_t interfaceid);
@@ -138,12 +139,12 @@ void	zbx_availability_deserialize_active_status_request(const unsigned char *dat
 zbx_uint32_t	zbx_availability_serialize_active_status_response(unsigned char **data, int status);
 void	zbx_availability_deserialize_active_status_response(const unsigned char *data, int *status);
 
-zbx_uint32_t	zbx_availability_serialize_proxy_hostdata(unsigned char **data, zbx_vector_proxy_hostdata_ptr_t *hosts,
-		zbx_uint64_t proxy_hostid);
+zbx_uint32_t	zbx_availability_serialize_proxy_hostdata(unsigned char **data,
+		const zbx_vector_proxy_hostdata_ptr_t *hosts, zbx_uint64_t proxy_hostid);
 void		zbx_availability_deserialize_proxy_hostdata(const unsigned char *data, zbx_vector_proxy_hostdata_ptr_t *hostdata,
 		zbx_uint64_t *proxy_hostid);
 
-zbx_uint32_t	zbx_availability_serialize_hostids(unsigned char **data, zbx_vector_uint64_t *hostids);
+zbx_uint32_t	zbx_availability_serialize_hostids(unsigned char **data, const zbx_vector_uint64_t *hostids);
 void	zbx_availability_deserialize_hostids(const unsigned char *data, zbx_vector_uint64_t *hostids);
 
 zbx_uint32_t	zbx_availability_serialize_active_proxy_hb_update(unsigned char **data, zbx_uint64_t hostid);

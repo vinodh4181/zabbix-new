@@ -379,8 +379,9 @@ void	zbx_db_init_autoincrement_options(void)
  *               ZBX_DB_FAIL - failed to connect                              *
  *                                                                            *
  ******************************************************************************/
-int	zbx_db_connect(char *host, char *user, char *password, char *dbname, char *dbschema, char *dbsocket, int port,
-			char *tls_connect, char *cert, char *key, char *ca, char *cipher, char *cipher_13)
+int	zbx_db_connect(const char *host, const char *user, const char *password, const char *dbname,
+			const char *dbschema, const char *dbsocket, int port, const char *tls_connect,
+			const char *cert, const char *key, const char *ca, const char *cipher, const char *cipher_13)
 {
 	int		ret = ZBX_DB_OK, last_txn_error, last_txn_level;
 #if defined(HAVE_MYSQL)
@@ -2544,7 +2545,7 @@ int	zbx_db_version_check(const char *database, zbx_uint32_t current_version, zbx
  *              info                     - [IN] info to serialize             *
  *                                                                            *
  ******************************************************************************/
-void	zbx_db_version_json_create(struct zbx_json *json, struct zbx_db_version_info_t *info)
+void	zbx_db_version_json_create(struct zbx_json *json, const struct zbx_db_version_info_t *info)
 {
 	zbx_json_addobject(json, NULL);
 	zbx_json_addstring(json, "database", info->database, ZBX_JSON_TYPE_STRING);

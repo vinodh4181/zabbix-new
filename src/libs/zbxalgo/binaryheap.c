@@ -206,7 +206,7 @@ void	zbx_binary_heap_destroy(zbx_binary_heap_t *heap)
 	heap->mem_free_func = NULL;
 }
 
-int	zbx_binary_heap_empty(zbx_binary_heap_t *heap)
+int	zbx_binary_heap_empty(const zbx_binary_heap_t *heap)
 {
 	return (0 == heap->elems_num ? SUCCEED : FAIL);
 }
@@ -222,7 +222,7 @@ zbx_binary_heap_elem_t	*zbx_binary_heap_find_min(zbx_binary_heap_t *heap)
 	return &heap->elems[0];
 }
 
-void	zbx_binary_heap_insert(zbx_binary_heap_t *heap, zbx_binary_heap_elem_t *elem)
+void	zbx_binary_heap_insert(zbx_binary_heap_t *heap, const zbx_binary_heap_elem_t *elem)
 {
 	int	index;
 
@@ -243,7 +243,7 @@ void	zbx_binary_heap_insert(zbx_binary_heap_t *heap, zbx_binary_heap_elem_t *ele
 		zbx_hashmap_set(heap->key_index, elem->key, index);
 }
 
-void	zbx_binary_heap_update_direct(zbx_binary_heap_t *heap, zbx_binary_heap_elem_t *elem)
+void	zbx_binary_heap_update_direct(zbx_binary_heap_t *heap, const zbx_binary_heap_elem_t *elem)
 {
 	int	index;
 

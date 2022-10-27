@@ -124,7 +124,7 @@ static void	OPENSSL_cleanup(void)
 
 #if defined(HAVE_OPENSSL) && OPENSSL_VERSION_NUMBER >= 0x1010000fL && !defined(LIBRESSL_VERSION_NUMBER)
 /* OpenSSL 1.1.0 or newer, not LibreSSL */
-static int	zbx_openssl_init_ssl(int opts, void *settings)
+static int	zbx_openssl_init_ssl(int opts, const void *settings)
 {
 	return OPENSSL_init_ssl(opts, settings);
 }
@@ -748,7 +748,7 @@ static void	zbx_log_ciphersuites(const char *title1, const char *title2, gnutls_
  *     ciphers - [IN] stack of ciphersuites                                   *
  *                                                                            *
  ******************************************************************************/
-static void	zbx_log_ciphersuites(const char *title1, const char *title2, SSL_CTX *ciphers)
+static void	zbx_log_ciphersuites(const char *title1, const char *title2, const SSL_CTX *ciphers)
 {
 	if (SUCCEED == ZBX_CHECK_LOG_LEVEL(LOG_LEVEL_DEBUG))
 	{
@@ -1069,7 +1069,7 @@ small_buf:
  *     writing into BIOs and then turn results into memory buffers.           *
  *                                                                            *
  ******************************************************************************/
-static int	zbx_x509_dn_gets(X509_NAME *dn, char *buf, size_t size, char **error)
+static int	zbx_x509_dn_gets(const X509_NAME *dn, char *buf, size_t size, char **error)
 {
 	BIO		*bio;
 	const char	*data;
@@ -1804,7 +1804,7 @@ void	zbx_tls_init_child(const zbx_config_tls_t *zbx_config_tls, zbx_get_program_
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);
 }
 #elif defined(HAVE_OPENSSL)
-static const char	*zbx_ctx_name(SSL_CTX *param)
+static const char	*zbx_ctx_name(const SSL_CTX *param)
 {
 	if (ctx_cert == param)
 		return "certificate-based encryption";
