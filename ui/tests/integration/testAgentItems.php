@@ -872,6 +872,8 @@ class testAgentItems extends CIntegrationTest {
 			$this->fail('No metrics for item "'.$item['component'].':'.$item['key'].'"');
 		}
 
+		$this->assertEquals(1,0,json_encode(self::$results).'.; and key: '.$item['component'].':'.$item['key']);
+
 		$value = $data[$item['component'].':'.$item['key']];
 		$result = self::$results[$item['component'].':'.$item['key']];
 
