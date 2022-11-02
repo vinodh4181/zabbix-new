@@ -67,6 +67,11 @@ window.http_step_popup = new class {
 					if (type === 'variables' || type === 'headers' || type === 'post_fields') {
 						e.target.querySelector('[data-type="value"]').setAttribute('maxlength', 2000);
 					}
+
+					jQuery(e.target).sortable({disabled: e.target.querySelectorAll('.sortable').length < 2});
+				})
+				.on('afterremove.dynamicRows', (e) => {
+					jQuery(e.target).sortable({disabled: e.target.querySelectorAll('.sortable').length < 2});
 				});
 
 			if (type === 'variables') {
@@ -82,6 +87,16 @@ window.http_step_popup = new class {
 					handle: 'div.' + ZBX_STYLE_DRAG_ICON,
 					tolerance: 'pointer',
 					opacity: 0.6,
+					disabled: elem.querySelectorAll('.sortable').length < 2,
+					helper: function(e, ui) {
+						ui.children().each(function() {
+							var td = $(this);
+
+							td.width(td.width());
+						});
+
+						return ui;
+					},
 					start: (e, ui) => {
 						ui.placeholder.height(ui.item.height());
 					}
@@ -133,7 +148,7 @@ window.http_step_popup = new class {
 				);
 
 				// clear event
-				jQuery(document.querySelector('.httpconf-dynamic-table[data-type=post_fields]')).off();
+				jQuery(document.querySelector('.httpconf-dynamic-table[data-type=post_fields]')).dynamicRows('destroy');
 
 				jQuery(document.querySelector('.httpconf-dynamic-table[data-type=post_fields]'))
 					.dynamicRows({
@@ -143,11 +158,10 @@ window.http_step_popup = new class {
 						dataCallback: (data) => {
 							return {...data, ...{type: 'post_fields', index: this.row_id++}};
 						}
-					})
+					});
 			}
 		}
 
-		// jQuery(this.pairs.post_fields).sortable('option', 'disabled', is_disabled);
 		this.pairs.post_fields.classList.toggle('disabled', is_disabled);
 
 		[...this.pairs.post_fields.querySelectorAll('input, button')].map((elem) => elem.disabled = is_disabled);
@@ -161,6 +175,7 @@ window.http_step_popup = new class {
 		const fields = getFormFields(this.form);
 
 		fields.name = fields.name.trim();
+		fields.old_name = fields.old_name.trim();
 		if ('posts' in fields) {
 			fields.posts = fields.posts.trim();
 		}
@@ -170,19 +185,23 @@ window.http_step_popup = new class {
 
 		const pairs = [];
 
-		for (const value of Object.values(fields.pairs)) {
-			value.name = value.name.trim();
-			value.value = value.value.trim();
+		if ('pairs' in fields) {
+			for (const value of Object.values(fields.pairs)) {
+				value.name = value.name.trim();
+				value.value = value.value.trim();
 
-			pairs.push(value);
+				pairs.push(value);
+			}
 		}
 
-		for (const value of Object.values(fields.query_fields)) {
-			value.name = value.name.trim();
-			value.value = value.value.trim();
-			value.type = 'query_fields';
+		if ('query_fields' in fields) {
+			for (const value of Object.values(fields.query_fields)) {
+				value.name = value.name.trim();
+				value.value = value.value.trim();
+				value.type = 'query_fields';
 
-			pairs.push(value);
+				pairs.push(value);
+			}
 		}
 
 		fields.pairs = pairs;

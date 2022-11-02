@@ -868,6 +868,21 @@ function getConditionFormula(conditions, evalType) {
 	 * @param options
 	 */
 	$.fn.dynamicRows = function(options) {
+		var methods = {
+			destroy: function() {
+				var table = $(this);
+
+				table.off('click', options.add);
+				table.off('click', options.remove);
+				table.off('click', options.disable);
+				table.removeData('dynamicRows')
+			}
+		};
+
+		if (methods[options]) {
+			return methods[options].apply(this, Array.prototype.slice.call(arguments, 1));
+		}
+
 		options = $.extend({}, {
 			template: '',
 			row: '.form_row',

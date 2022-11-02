@@ -178,8 +178,9 @@ $scenario_tab
 // Step tab.
 $steps_tab = new CFormGrid();
 $steps_table = (new CTable())
-	->addClass('httpconf-steps-dynamic-row')
 	->addClass('httpconf-dynamic-table')
+	->addClass('httpconf-steps-dynamic-table')
+	->addClass('list-numbered')
 	->setHeader([
 		(new CColHeader())->setWidth('15'),
 		(new CColHeader())->setWidth('15'),

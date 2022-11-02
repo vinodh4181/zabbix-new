@@ -203,10 +203,8 @@ elseif (hasRequest('add') || hasRequest('update')) {
 
 		$steps = getRequest('steps', []);
 		$field_names = ['headers', 'variables', 'post_fields', 'query_fields'];
-		$i = 1;
 
 		foreach ($steps as &$step) {
-			$step['no'] = $i++;
 			$step['follow_redirects'] = $step['follow_redirects']
 				? HTTPTEST_STEP_FOLLOW_REDIRECTS_ON
 				: HTTPTEST_STEP_FOLLOW_REDIRECTS_OFF;
@@ -582,7 +580,6 @@ if (isset($_REQUEST['form'])) {
 			}
 		}
 		unset($step);
-
 	}
 	else {
 		if (isset($_REQUEST['form_refresh'])) {

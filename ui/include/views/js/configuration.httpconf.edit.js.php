@@ -27,10 +27,8 @@
 <script type="text/x-jquery-tmpl" id="scenario-step-row-templated-tmpl">
 	<?= (new CRow([
 			'',
-			(new CSpan('#{no}:'))->setAttribute('data-row-num', ''),
-			(new CLink('#{name}', 'javascript:;'))
-				->setAttribute('data-row-name', '#{name}')
-				->setAttribute('onclick', 'view.open(this)'),
+			(new CSpan(':'))->addClass('list-numbered-item'),
+			(new CLink('#{name}', 'javascript:;'))->addClass('js-httpconf-steps-dynamic-row-action-open'),
 			'#{timeout}',
 			(new CSpan('#{url_short}'))->setHint('#{url}', '', true, 'word-break: break-all;')
 				->setAttribute('data-hintbox', '#{enabled_hint}'),
@@ -39,6 +37,7 @@
 			''
 		]))
 			->addClass('form_row')
+			->setAttribute('data-row-name', '#{name}')
 			->toString()
 	?>
 </script>
@@ -46,23 +45,21 @@
 <script type="text/x-jquery-tmpl" id="scenario-step-row-tmpl">
 	<?= (new CRow([
 			(new CCol((new CDiv())->addClass(ZBX_STYLE_DRAG_ICON)))->addClass(ZBX_STYLE_TD_DRAG_ICON),
-			(new CSpan('#{no}:'))->setAttribute('data-row-num', '#{no}'),
-			(new CLink('#{name}', 'javascript:;'))
-				->setAttribute('data-row-name', '#{name}')
-				->setAttribute('onclick', 'view.open(this)'),
+			(new CSpan(':'))->addClass('list-numbered-item'),
+			(new CLink('#{name}', 'javascript:;'))->addClass('js-httpconf-steps-dynamic-row-action-open'),
 			'#{timeout}',
 			(new CSpan('#{url_short}'))->setHint('#{url}', '', true, 'word-break: break-all;')
 				->setAttribute('data-hintbox', '#{enabled_hint}'),
 			'#{required}',
 			'#{status_codes}',
 			(new CCol((new CButton(null, _('Remove')))
-				->setAttribute('onclick', 'view.removeStepRow(this)')
 				->addClass(ZBX_STYLE_BTN_LINK)
-				->addClass('element-table-remove')
+				->addClass('js-httpconf-steps-dynamic-row-action-remove')
 			))->addClass(ZBX_STYLE_NOWRAP)
 		]))
 			->addClass('sortable')
 			->addClass('form_row')
+			->setAttribute('data-row-name', '#{name}')
 			->toString()
 	?>
 </script>
@@ -116,7 +113,7 @@
 		init({form_name, templated, pairs, steps}) {
 			this.form_name = form_name;
 			this.form = document.querySelector("form[name='" + this.form_name + "']");
-			this.steps = null; // Initialized in initStepsTab function.
+			this.steps = {}; // Initialized in initStepsTab function.
 			this.templated = templated;
 			this.row_id = 1;
 
@@ -141,6 +138,24 @@
 
 				this.form.appendChild(hidden_form);
 			});
+
+			document
+				.querySelector('.httpconf-steps-dynamic-table')
+				.addEventListener('click', (event) => {
+					if (event.target.classList.contains('js-httpconf-steps-dynamic-row-action-open')) {
+						this.open(event.target);
+					}
+
+					if (event.target.classList.contains('js-httpconf-steps-dynamic-row-action-remove')) {
+						StepsTableManager.deleteRow(event.target);
+					}
+				});
+
+			document
+				.querySelector('.httpconf-steps-dynamic-table')
+				.addEventListener('sort.update', (event) => {
+					this.stepSortOrderUpdate();
+				});
 
 			this._update();
 		}
@@ -195,6 +210,11 @@
 							if (type === 'variables' || type === 'headers') {
 								e.target.querySelector('[data-type="value"]').setAttribute('maxlength', 2000);
 							}
+
+							jQuery(e.target).sortable({disabled: e.target.querySelectorAll('.sortable').length < 2});
+						})
+						.on('afterremove.dynamicRows', (e) => {
+							jQuery(e.target).sortable({disabled: e.target.querySelectorAll('.sortable').length < 2});
 						});
 
 					if (type === 'variables') {
@@ -209,6 +229,7 @@
 						handle: 'div.' + ZBX_STYLE_DRAG_ICON,
 						tolerance: 'pointer',
 						opacity: 0.6,
+						disabled: elem.querySelectorAll('.sortable').length < 2,
 						start: (e, ui) => {
 							ui.placeholder.height(ui.item.height());
 						}
@@ -218,9 +239,15 @@
 		}
 
 		initStepsTab(steps) {
-			const container = document.querySelector('.httpconf-steps-dynamic-row');
+			const container = document.querySelector('.httpconf-steps-dynamic-table');
 
-			this.steps = Object.values(steps).sort((a, b) => a.no > b.no);
+			for (const value of Object.values(steps).sort((a, b) => a.no > b.no)) {
+				value.url = value.url ?? '';
+				value.enabled_hint = value.url.length > URL_MAX_LENGTH ? 1 : 0;
+				value.url_short = ScenarioHelper.urlShortener(value.url);
+
+				this.steps[value.name] = value;
+			}
 
 			this.tableHandler(container);
 
@@ -234,10 +261,24 @@
 						handle: 'div.' + ZBX_STYLE_DRAG_ICON,
 						tolerance: 'pointer',
 						opacity: 0.6,
+						disabled: container.querySelectorAll('[data-row-name]').length < 2,
+						helper: function(e, ui) {
+							ui.children().each(function() {
+								var td = $(this);
+
+								td.width(td.width());
+							});
+
+							return ui;
+						},
 						start: (e, ui) => {
 							ui.placeholder.height(ui.item.height());
 						},
-						update: this.stepSortOrderUpdate.bind(this)
+						update: () => {
+							document
+								.querySelector('.httpconf-steps-dynamic-table')
+								.dispatchEvent(new CustomEvent('sort.update'));
+						}
 					});
 			}
 		}
@@ -245,14 +286,10 @@
 		tableHandler(container) {
 			const templated = this.templated;
 			const tmpl = templated ? '#scenario-step-row-templated-tmpl' : '#scenario-step-row-tmpl';
-			const conainer_row = container.querySelector('tbody tr');
+			const container_row = container.querySelector('tbody tr');
 
-			for (const index in this.steps) {
-				if (!this.steps.hasOwnProperty(index)) {
-					continue;
-				}
-
-				this.addStepRow(this.steps[index], conainer_row, tmpl);
+			for (const name of Object.keys(this.steps)) {
+				StepsTableManager.addRow(this.steps[name], container_row, tmpl);
 			}
 
 			container
@@ -262,71 +299,26 @@
 				});
 		}
 
-		addStepRow(data, container, tmpl = '#scenario-step-row-tmpl') {
-			data.url = data.url ?? '';
-			data.enabled_hint = data.url.length > URL_MAX_LENGTH ? 1 : 0;
-			data.url_short = ScenarioHelper.urlShortener(data.url);
-
-			container.insertAdjacentHTML('beforeBegin',
-				new Template(document.querySelector(tmpl).innerHTML).evaluate(data)
-			);
-		}
-
-		removeStepRow(elem) {
-			const row = elem.closest('tr');
-			const index = row.querySelector('[data-row-num]').dataset.rowNum;
-
-			row.remove();
-
-			this.steps.splice(index - 1, 1);
-			this.stepSortOrderUpdate();
-		}
-
-		updateStepRow(data, no) {
-			this.steps = this.steps.map((value) => {
-				if (value.no == no) {
-					return data;
-				}
-
-				return value;
-			});
-
-			const elem = this.form.querySelector(`[data-row-num='${no}']`).closest('tr');
-
-			data.url = data.url ?? '';
-			data.enabled_hint = data.url.length > URL_MAX_LENGTH ? 1 : 0;
-			data.url_short = ScenarioHelper.urlShortener(data.url);
-
-			const el = document.createElement('tr');
-			el.innerHTML = new Template(document.querySelector('#scenario-step-row-tmpl').innerHTML).evaluate(data);
-			el.classList.add('sortable', 'form_row');
-			elem.replaceWith(el);
-		}
-
 		open(elem) {
-			let index = -1;
+			let name = '';
 
-			if (elem) {
-				index = elem.closest('tr').querySelector('[data-row-num]').dataset.rowNum;
+			if (elem instanceof HTMLElement) {
+				name = elem.closest('[data-row-name]').dataset.rowName;
 			}
 
-			const overlay = this.openPopup(index,
-				document
-					.querySelector('.httpconf-steps-dynamic-row')
-					.querySelector('[data-index="' + index + '"] a')
-			);
+			const overlay = this.openPopup(name, document.querySelector('.httpconf-steps-dynamic-table'));
 
 			overlay.$dialogue[0].addEventListener('dialogue.submit', this.savePopup.bind(this));
 		}
 
-		openPopup(index, trigger_element) {
-			const data = this.steps.hasOwnProperty(index - 1)
-				? {...this.steps[index - 1], ...{
-						no: index, templated: this.templated ? 1 : 0, steps_names: this.getStepNames()
+		openPopup(name, trigger_element) {
+			const data = name in this.steps
+				? {...this.steps[name], ...{
+						templated: this.templated ? 1 : 0, steps_names: this.getStepNames()
 					}}
 				: {steps_names: this.getStepNames()};
 
-			if (this.steps.hasOwnProperty(index - 1)) {
+			if (name in this.steps) {
 				data.old_name = data.name;
 			}
 
@@ -341,10 +333,11 @@
 
 		savePopup(e) {
 			const tmpl = this.templated ? '#scenario-step-row-templated-tmpl' : '#scenario-step-row-tmpl';
-			const container = document.querySelector('.httpconf-steps-dynamic-row tbody tr:last-child');
+			const container = document.querySelector('.httpconf-steps-dynamic-table');
+			const row = container.querySelector('tbody tr:last-child');
 
-			e.detail.httpstepid = 0;
-			e.detail.old_name = e.detail.name;
+			e.detail.enabled_hint = e.detail.url.length > URL_MAX_LENGTH ? 1 : 0;
+			e.detail.url_short = ScenarioHelper.urlShortener(e.detail.url);
 
 			const pairs = {query_fields: [], post_fields: [], variables: [], headers: []};
 
@@ -355,44 +348,34 @@
 			e.detail.pairs = pairs;
 
 			if (e.detail.no > 0) {
-				this.updateStepRow(e.detail, e.detail.no);
-				return;
+				StepsTableManager.editRow(e.detail);
+			}
+			else {
+				StepsTableManager.addRow(e.detail, row, tmpl);
 			}
 
-			e.detail.no = this.steps.length + 1;
+			this.steps[e.detail.name] = e.detail;
 
-			this.steps.push(e.detail);
-			this.addStepRow(e.detail, container, tmpl);
+			if (e.detail.old_name != '' && e.detail.old_name != e.detail.name) {
+				delete this.steps[e.detail.old_name];
+			}
+
+			container.dispatchEvent(new CustomEvent('sort.update'));
 		}
 
 		getStepNames() {
-			const names = [];
-
-			this.steps.map((value) => names.push(value.name));
-
-			return names;
+			return Object.values(this.steps).map((value) => value.name);
 		}
 
 		stepSortOrderUpdate() {
 			let sort_index = 1;
 
-			[...document.querySelectorAll('.httpconf-steps-dynamic-row .form_row')].map((elem) => {
-				const numb = sort_index++;
-				const name = elem.querySelector('[data-row-name]').dataset.rowName;
-				const old_numb = elem.querySelector('[data-row-num]').dataset.rowNum;
+			[...document.querySelectorAll('.httpconf-steps-dynamic-table [data-row-name]')].map((elem) => {
+				this.steps[elem.dataset.rowName].no = sort_index++;
+			});
 
-				elem.querySelector('[data-row-num]').dataset.rowNum = numb;
-				elem.querySelector('[data-row-num]').innerText = numb + ':';
-
-				if (numb != old_numb) {
-					this.steps = this.steps.map((value) => {
-						if (value.name == name && value.no == old_numb) {
-							value.no = numb;
-						}
-
-						return value;
-					});
-				}
+			jQuery(document.querySelector('.httpconf-steps-dynamic-table')).sortable({
+				disabled: document.querySelectorAll('.httpconf-steps-dynamic-table [data-row-name]').length < 2
 			});
 		}
 
@@ -400,7 +383,7 @@
 			const frag = document.createDocumentFragment();
 			let iter_step = 0;
 
-			for (const value of this.steps) {
+			for (const value of Object.values(this.steps)) {
 				let iter_pair = 0;
 				let prefix_step = 'steps[' + (iter_step ++) + ']';
 				let prefix_pair;
@@ -448,6 +431,48 @@
 			return frag;
 		}
 	};
+
+	class StepsTableManager {
+
+		static addRow(data, container, tmpl = '#scenario-step-row-tmpl') {
+			container.insertAdjacentHTML('beforeBegin',
+				new Template(document.querySelector(tmpl).innerHTML).evaluate(data)
+			);
+		}
+
+		static editRow(data) {
+			const old_name = 'old_name' in data ? data.old_name : data.name;
+			const old_elem = document
+				.querySelector('.httpconf-steps-dynamic-table')
+				.querySelector(`[data-row-name='${old_name}']`);
+
+			if (!(old_elem instanceof HTMLElement)) {
+				return;
+			}
+
+			const new_elem = document.createElement('tr');
+			new_elem.innerHTML = new Template(
+				document.querySelector('#scenario-step-row-tmpl').innerHTML
+			).evaluate(data);
+			new_elem.classList.add('sortable', 'form_row');
+			new_elem.dataset.rowName = data.name;
+
+			old_elem.replaceWith(new_elem);
+		}
+
+		static deleteRow(elem) {
+			const row = elem.closest('[data-row-name]');
+			const name = row.dataset.rowName;
+
+			row.remove();
+
+			delete view.steps[name];
+
+			document
+				.querySelector('.httpconf-steps-dynamic-table')
+				.dispatchEvent(new CustomEvent('sort.update'));
+		}
+	}
 
 	class ScenarioHelper {
 

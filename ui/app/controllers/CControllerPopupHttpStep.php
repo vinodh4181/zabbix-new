@@ -83,7 +83,7 @@ class CControllerPopupHttpStep extends CController {
 			'status_codes' => $this->getInput('status_codes', ''),
 			'old_name' => $this->getInput('old_name', ''),
 			'httpstepid' => $this->getInput('httpstepid', 0),
-			'no' => $this->getInput('no', -1),
+			'no' => $this->getInput('no', '-1'),
 			'steps_names' => $this->getInput('steps_names', []),
 			'pairs' => $this->getInput('pairs', []),
 			'follow_redirects' => $this->getInput('follow_redirects', HTTPTEST_STEP_FOLLOW_REDIRECTS_OFF),
@@ -139,6 +139,7 @@ class CControllerPopupHttpStep extends CController {
 				// Return valid response.
 				$params = [
 					'name' => $page_options['name'],
+					'old_name' => $page_options['old_name'],
 					'timeout' => $page_options['timeout'],
 					'url' => $page_options['url'],
 					'post_type' => $page_options['post_type'],

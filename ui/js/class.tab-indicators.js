@@ -755,12 +755,12 @@ class StepsTabIndicatorItem extends TabIndicatorItem {
 
 	getValue() {
 		return document
-			.querySelectorAll('.httpconf-steps-dynamic-row .form_row')
+			.querySelectorAll('.httpconf-steps-dynamic-table .form_row')
 			.length;
 	}
 
 	initObserver() {
-		const target_node = document.querySelector('.httpconf-steps-dynamic-row tbody');
+		const target_node = document.querySelector('.httpconf-steps-dynamic-table tbody');
 
 		if (target_node !== null) {
 			const observer = new MutationObserver(() => {
