@@ -241,12 +241,12 @@
 		initStepsTab(steps) {
 			const container = document.querySelector('.httpconf-steps-dynamic-table');
 
-			for (const value of Object.values(steps).sort((a, b) => a.no > b.no)) {
-				value.url = value.url ?? '';
-				value.enabled_hint = value.url.length > URL_MAX_LENGTH ? 1 : 0;
-				value.url_short = ScenarioHelper.urlShortener(value.url);
+			for (const step of Object.values(steps)) {
+				step.url = step.url ?? '';
+				step.enabled_hint = step.url.length > URL_MAX_LENGTH ? 1 : 0;
+				step.url_short = ScenarioHelper.urlShortener(step.url);
 
-				this.steps[value.name] = value;
+				this.steps[step.name] = step;
 			}
 
 			this.tableHandler(container);
@@ -284,12 +284,11 @@
 		}
 
 		tableHandler(container) {
-			const templated = this.templated;
-			const tmpl = templated ? '#scenario-step-row-templated-tmpl' : '#scenario-step-row-tmpl';
+			const tmpl = this.templated ? '#scenario-step-row-templated-tmpl' : '#scenario-step-row-tmpl';
 			const container_row = container.querySelector('tbody tr');
 
-			for (const name of Object.keys(this.steps)) {
-				StepsTableManager.addRow(this.steps[name], container_row, tmpl);
+			for (const step of Object.values(this.steps).sort((a, b) => a.no - b.no)) {
+				StepsTableManager.addRow(step, container_row, tmpl);
 			}
 
 			container
