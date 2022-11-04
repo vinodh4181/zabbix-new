@@ -103,7 +103,7 @@ window.http_step_popup = new class {
 				});
 
 			this.pairs[type] = elem;
-		};
+		}
 
 		this.radio_retrieve_mode = document.getElementById('retrieve_mode');
 		this.textarea_raw_post = document.getElementById('posts');
@@ -139,7 +139,7 @@ window.http_step_popup = new class {
 			this.textarea_raw_post.value = ScenarioHelper.parsePostPairsToRaw(this.pairs.post_fields);
 		}
 		else {
-			if (this.textarea_raw_post.value != '') {
+			if (this.textarea_raw_post.value !== '') {
 				this.data.pairs.post_fields = ScenarioHelper.parsePostRawToPairs(this.textarea_raw_post.value);
 
 				// clear table
@@ -206,9 +206,9 @@ window.http_step_popup = new class {
 
 		fields.pairs = pairs;
 
-		for (const elem of this.form.parentNode.children) {
-			if (elem.matches('.msg-good, .msg-bad, .msg-warning')) {
-				elem.parentNode.removeChild(elem);
+		for (const element of this.form.parentNode.children) {
+			if (element.matches('.msg-good, .msg-bad, .msg-warning')) {
+				element.parentNode.removeChild(element);
 			}
 		}
 
@@ -288,10 +288,10 @@ window.http_step_popup = new class {
 		}
 		else {
 			overlayDialogue({
-				'title': <?= json_encode(_('Error')); ?>,
+				'title': <?= json_encode(_('Error')) ?>,
 				'class': 'modal-popup position-middle',
 				'content': $('<span>').html(<?=
-					json_encode(_('Failed to parse URL.').'<br><br>'._('URL is not properly encoded.'));
+					json_encode(_('Failed to parse URL.').'<br><br>'._('URL is not properly encoded.'))
 				?>),
 				'buttons': [
 					{

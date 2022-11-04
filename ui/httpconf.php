@@ -620,7 +620,7 @@ if (isset($_REQUEST['form'])) {
 	}
 
 	$i = 1;
-	foreach($data['steps'] as $stepid => $step) {
+	foreach ($data['steps'] as $stepid => $step) {
 		$pairs_grouped = [
 			'query_fields' => [],
 			'post_fields' => [],

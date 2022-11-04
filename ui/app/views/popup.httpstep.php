@@ -233,7 +233,6 @@ $form
 	->addItem(
 		(new CScriptTag('
 			http_step_popup.init('.json_encode([
-				'no' => $options['no'],
 				'data' => $options
 			]).');
 		'))->setOnDocumentReady()
