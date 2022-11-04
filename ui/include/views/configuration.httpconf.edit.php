@@ -29,7 +29,7 @@ $this->includeJsFile('configuration.httpconf.edit.js.php');
 $widget = (new CWidget())->setTitle(_('Web monitoring'));
 
 // Append host summary to widget header.
-if ($data['hostid'] == 0) {
+if ($data['hostid'] != 0) {
 	$widget->setNavigation(getHostNavigation('web', $data['hostid']));
 }
 
