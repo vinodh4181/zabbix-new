@@ -22,6 +22,8 @@
 require_once dirname(__FILE__) . '/../../include/CWebTest.php';
 require_once dirname(__FILE__).'/../../include/helpers/CDataHelper.php';
 require_once dirname(__FILE__).'/../traits/TableTrait.php';
+require_once dirname(__FILE__).'/../behaviors/CMessageBehavior.php';
+
 
 /**
  * @backup widget
@@ -30,6 +32,17 @@ require_once dirname(__FILE__).'/../traits/TableTrait.php';
  */
 
 class testDashboardClockWidget extends CWebTest {
+
+	/**
+	 * Attach MessageBehavior to the test.
+	 *
+	 * @return array
+	 */
+	public function getBehaviors() {
+		return [
+			'class' => CMessageBehavior::class
+		];
+	}
 
 	use TableTrait;
 
@@ -79,13 +92,52 @@ class testDashboardClockWidget extends CWebTest {
 		// Check that it's possible to select host items, when time type is "Host Time".
 		$form->fill(['Time type' => 'Host time']);
 		$this->assertTrue($this->query('button:Select')->waitUntilVisible()->one()->isClickable());
+		$form->fill(['Time type' => 'Server time']);
 
 		// Check that it's possible to change the status of "Show header" checkbox.
 		$this->assertTrue($form->query('xpath://input[contains(@id, "show_header")]')->one()->isSelected());
 
-		// Check if Apply and Cancel button are clickable.
-		foreach(['Apply', 'Cancel'] as $button) {
-			$this->assertTrue($this->query('button', $button)->one()->isClickable());
+		// Check if "Apply" and "Cancel" buttons are clickable.
+		foreach($form->query('button', ['Add', 'Cancel'])->all() as $button) {
+			$this->assertTrue($button->isClickable());
+		}
+
+		// Select Digital and check if "Analog" and "Digital" buttons are selectable.
+		$form->fill(['Clock type' => 'Digital']);
+		foreach($form->query('button', ['Analog', 'Digital'])->all() as $button) {
+			$this->assertTrue($button->isSelected());
+		}
+
+		// Check that there are three options what should Digital Clock widget show and select them as "Yes".
+		$form->fill(['id:show_1' => true, 'id:show_2' => true, 'id:show_3' => true]);
+		foreach($form->query('button', ['Date', 'Time', 'Time zone'])->all() as $button) {
+			$this->assertTrue($button->isSelected());
+		}
+
+		// Select "Advanced configuration" checkbox.
+		$form->fill(['Advanced configuration' => true]);
+		$this->assertTrue($form->query('id:adv_conf')->one()->asCheckbox()->isChecked(True));
+
+		// Check default values with "Advanced configuration" = true.
+		$default = [
+			'Background color' => null,
+			'id:date_size' => '20',
+			'id:date_bold' => false,
+			'id:date_color' => null,
+			'id:time_size' => '30',
+			'id:time_bold' => false,
+			'id:time_color' => null,
+			'id:time_sec' => true,
+			'id:time_format_0' => true,
+			'id:tzone_size' => '20',
+			'id:tzone_bold' => false,
+			'id:tzone_color' => null,
+			'id:label-tzone_timezone' => null,
+			'id:tzone_format_0' => true
+		];
+
+		foreach ($default as $field => $value) {
+			$this->assertEquals($value, $form->getField($field)->getValue());
 		}
 	}
 
@@ -222,31 +274,36 @@ class testDashboardClockWidget extends CWebTest {
 						'id:show_3' => true
 					]
 				]
+			],
+			[
+				[
+					'Fields' => [
+						'Type' => 'Clock',
+						'Name' => 'FrontendDigitalClock',
+						'Refresh interval' => 'Default (15 minutes)',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'xpath://button[@id="lbl_bg_color"]/..' => 'C2185B',
+						'id:date_size' => '20',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '7F3700',
+						'id:time_size' => '30',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => 'FFEB3B',
+						'id:time_sec' => true,
+						'id:time_format_0' => false,
+						'id:time_format_1' => true,
+						'id:tzone_size' => '20',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => '37474F',
+						'id:tzone_format_0' => true
+					]
+				]
 			]
-//			[
-//				[
-//					'Fields' => [
-//						'Type' => 'Clock',
-//						'Name' => 'FrontendDigitalClock',
-//						'Refresh interval' => 'Default (15 minutes)',
-//						'Time type' => 'Local time',
-//						'Clock type' => 'Digital',
-//						'id:show_1' => true,
-//						'id:show_2' => true,
-//						'id:show_3' => true
-//						,
-//						'Advanced configuration' => true,
-//						'Background color' => '#C2185B',
-//						'Time' => [
-//							'Size' => '35',
-//							'Bold' => true,
-//							'Color' => 'D',
-//							'Seconds' => true,
-//							'Format' => '24-hour'
-//						]
-//					]
-//				]
-//			]
 		];
 	}
 
