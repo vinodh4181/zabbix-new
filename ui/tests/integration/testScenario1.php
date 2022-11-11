@@ -1,7 +1,7 @@
 <?php
 /*
 ** Zabbix
-** Copyright (C) 2001-2022 Zabbix SIA
+** Copyright (C) 2001-2021 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -18,21 +18,35 @@
 ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 **/
 
-require_once dirname(__FILE__).'/testScenario1.php';
-require_once dirname(__FILE__).'/testScenario2.php';
+require_once dirname(__FILE__).'/../include/CIntegrationTest.php';
 
-use PHPUnit\Framework\TestSuite;
+/**
+ * Create host.
+ *
+ * @required-components server
+ *
+ */
+class testScenario1 extends CIntegrationTest {
+	public function testScenario1_createHost() {
+		$response = $this->call('host.create', [
+			[
+				'host' => self::HOSTNAME,
+				'interfaces' => [
+					'type' => 1,
+					'main' => 1,
+					'useip' => 1,
+					'ip' => '127.0.0.1',
+					'dns' => '',
+					'port' => '10000'
+				],
+				'groups' => [['groupid' => 4]],
+				'status' => HOST_STATUS_MONITORED
+			]
+		]);
 
-class IntegrationTests {
-	public static function suite() {
-		$suite = new TestSuite('Integration');
+		$this->assertArrayHasKey('hostids', $response['result']);
+		$this->assertArrayHasKey(0, $response['result']['hostids']);
 
-		if  (substr(getenv('DB'), 0, 4) === "tsdb" ) {
-			$suite->addTestSuite('testTimescaleDb');
-		}
-		$suite->addTestSuite('testScenario1');
-		$suite->addTestSuite('testScenario2');
-
-		return $suite;
+		return true;
 	}
 }
