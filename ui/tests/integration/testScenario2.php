@@ -32,7 +32,7 @@ class testScenario2 extends CIntegrationTest {
 			'output' => 'extend'
 		]);
 		var_dump($response);
-		$this->assertCount(0, $response['result']);
+		$this->assertCount(1, $response['result']);
 
 		return true;
 	}

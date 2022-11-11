@@ -30,7 +30,7 @@ class testScenario1 extends CIntegrationTest {
 	public function testScenario1_createHost() {
 		$response = $this->call('host.create', [
 			[
-				'host' => self::HOSTNAME,
+				'host' => 'host',
 				'interfaces' => [
 					'type' => 1,
 					'main' => 1,
