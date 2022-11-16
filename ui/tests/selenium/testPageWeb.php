@@ -125,7 +125,7 @@ class testPageWeb extends CWebTest {
 		$this->page->assertTitle('Web monitoring');
 		$this->page->assertHeader('Web monitoring');
 		$this->assertEquals(['Host', 'Name', 'Number of steps', 'Last check', 'Status', 'Tags'], $table->getHeadersText());
-		$this->assertEquals(['Host groups', 'Hosts', 'Tags'], $form->getLabels()->asText());$this->assertEquals(['Host', 'Name', 'Number of steps', 'Last check', 'Status', 'Tags'], $table->getHeadersText());
+		$this->assertEquals(['Host groups', 'Hosts', 'Tags'], $form->getLabels()->asText());
 
 		// Check if Apply and Reset button are clickable.
 		foreach(['Apply', 'Reset'] as $button) {
@@ -135,7 +135,7 @@ class testPageWeb extends CWebTest {
 		// Check filter collapse/expand.
 		foreach (['true', 'false'] as $status) {
 			$this->assertTrue($this->query('xpath://li[@aria-expanded='.CXPathHelper::escapeQuotes($status).']')
-				->one()->isPresent()
+					->one()->isPresent()
 			);
 			$this->query('xpath://a[@class="filter-trigger ui-tabs-anchor"]')->one()->click();
 		}
@@ -143,7 +143,7 @@ class testPageWeb extends CWebTest {
 		// Check fields maximum length.
 		foreach(['filter_tags[0][tag]', 'filter_tags[0][value]'] as $field) {
 			$this->assertEquals(255, $form->query('xpath:.//input[@name="'.$field.'"]')
-				->one()->getAttribute('maxlength'));
+					->one()->getAttribute('maxlength'));
 		}
 
 		// Check if links to Hosts and to Web scenarios are clickable.
@@ -253,7 +253,8 @@ class testPageWeb extends CWebTest {
 		$this->assertTrue($popup->hasItems($data['titles']));
 		foreach ($data['disabled'] as $disabled) {
 			$this->assertTrue($popup->query('xpath://a[@aria-label="View, '.
-				$disabled.'" and @class="menu-popup-item disabled"]')->one()->isPresent());
+					$disabled.'" and @class="menu-popup-item disabled"]')->one()->isPresent()
+			);
 		}
 	}
 
@@ -418,7 +419,7 @@ class testPageWeb extends CWebTest {
 	public function testPageWeb_CheckLinks() {
 		$this->page->login()->open('zabbix.php?action=web.view');
 		$this->query('class:list-table')->asTable()->one()->findRow('Name', 'testFormWeb1')
-			->query('link', 'testFormWeb1')->one()->click();
+				->query('link', 'testFormWeb1')->one()->click();
 		$this->page->waitUntilReady();
 		$this->page->assertHeader('Details of web scenario: testFormWeb1');
 	}
