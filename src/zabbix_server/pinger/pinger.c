@@ -58,7 +58,7 @@ static void	process_value(zbx_uint64_t itemid, zbx_uint64_t *value_ui64, double 
 	DCconfig_get_items_by_itemids(&item, &itemid, &errcode, 1);
 
 	if (SUCCEED != errcode)
-		goto clean;
+		return;
 
 	if (ITEM_STATUS_ACTIVE != item.status)
 		goto clean;
