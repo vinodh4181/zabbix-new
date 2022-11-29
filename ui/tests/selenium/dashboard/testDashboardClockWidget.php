@@ -24,7 +24,6 @@ require_once dirname(__FILE__).'/../../include/helpers/CDataHelper.php';
 require_once dirname(__FILE__).'/../traits/TableTrait.php';
 require_once dirname(__FILE__).'/../behaviors/CMessageBehavior.php';
 
-
 /**
  * @backup widget
  * @backup profiles
@@ -33,18 +32,16 @@ require_once dirname(__FILE__).'/../behaviors/CMessageBehavior.php';
 
 class testDashboardClockWidget extends CWebTest {
 
+	private static $name = 'UpdateClock';
+
 	/**
 	 * Attach MessageBehavior to the test.
 	 *
 	 * @return array
 	 */
 	public function getBehaviors() {
-		return [
-			'class' => CMessageBehavior::class
-		];
+		return ['class' => CMessageBehavior::class];
 	}
-
-	use TableTrait;
 
 	/**
 	 * SQL query to get widget and widget_field tables to compare hash values, but without widget_fieldid
@@ -55,34 +52,36 @@ class testDashboardClockWidget extends CWebTest {
 	' w.width, w.height'.
 	' FROM widget_field wf'.
 	' INNER JOIN widget w'.
-	' ON w.widgetid=wf.widgetid ORDER BY wf.widgetid, wf.name, wf.value_int, wf.value_str, wf.value_groupid, wf.value_hostid,'.
+	' ON w.widgetid=wf.widgetid ORDER BY wf.widgetid, wf.name, wf.value_int, wf.value_str, wf.value_groupid,'.
 	' wf.value_itemid, wf.value_graphid';
 
 	/**
 	 * Check clock widgets layout.
 	 */
 	public function testDashboardClockWidget_CheckLayout() {
-		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.DEV-2236 dashboard');
+		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
 		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
 		$dashboard = CDashboardElement::find()->one();
-		$form = $dashboard->getWidget('Server')->edit();
+		$form = $dashboard->getWidget('LayoutClock')->edit();
 
 		// Check edit forms header.
 		$this->assertEquals('Edit widget',
-			$form->query('xpath://h4[contains(@id, "dashboard-widget-head-title-widget_properties")]')->one()->getText());
+			$form->query('xpath://h4[@id="dashboard-widget-head-title-widget_properties"]')->one()->getText());
 
 		// Check if widget type is selected as "Clock".
-		$this->assertEquals('Clock', $form->query('xpath:.//button[contains(@class, "focusable")]')->one()->getText());
+		$form->checkValue(['Type' => 'Clock']);
 
 		// Check "Name" field max length.
 		$this->assertEquals('255', $form->query('id:name')->one()->getAttribute('maxlength'));
 
 		// Check fields "Refresh interval" values.
-		$refreshinterval_values = ['Default (15 minutes)', 'No refresh', '10 seconds', '30 seconds', '1 minute',
-			'2 minutes', '10 minutes', '15 minutes'];
+		$this->assertEquals(['Default (15 minutes)', 'No refresh', '10 seconds', '30 seconds', '1 minute', '2 minutes', '10 minutes', '15 minutes'],
+			$form->query('name', 'rf_rate')->asDropdown()->one()->getOptions()->asText()
+		);
 
-		$ri_dropdown = $form->query('name', 'rf_rate')->asDropdown()->one();
-		$this->assertEquals($refreshinterval_values, $ri_dropdown->getOptions()->asText());
+		$this->assertEquals(['Local time', 'Server time', 'Host time'],
+			$form->query('name', 'time_type')->asDropdown()->one()->getOptions()->asText()
+		);
 
 		// Check fields "Time type" values.
 		$timetype_values = ['Local time', 'Server time', 'Host time'];
@@ -91,27 +90,61 @@ class testDashboardClockWidget extends CWebTest {
 
 		// Check that it's possible to select host items, when time type is "Host Time".
 		$form->fill(['Time type' => 'Host time']);
-		$this->assertTrue($this->query('button:Select')->waitUntilVisible()->one()->isClickable());
-		$form->fill(['Time type' => 'Server time']);
+		$fields = ['Type', 'Name', 'Refresh interval', 'Time type', 'Clock type'];
+		foreach (['Local time', 'Server time', 'Host time', ] as $type) {
+			$form->fill(['Time type' => CFormElement::RELOADABLE_FILL($type)]);
+
+			// If "Time type" is selected as "Host time", then label "Item" is inserted
+			// in required position of $fields array.
+			if (($type === 'Host time') ? array_splice($fields, 4, 0, ['Item']) : $fields) {
+
+				// Filter only those labels which are visible in form and check if they are equal with previously defined
+				// array $fields.
+				$this->assertEquals($fields, $form->getLabels()->filter(new CElementFilter(CElementFilter::VISIBLE))->asText());
+			}
+			else {
+				$this->assertEquals($fields, $form->getLabels()->filter(new CElementFilter(CElementFilter::VISIBLE))->asText());
+			}
+		}
 
 		// Check that it's possible to change the status of "Show header" checkbox.
 		$this->assertTrue($form->query('xpath://input[contains(@id, "show_header")]')->one()->isSelected());
 
-		// Check if "Apply" and "Cancel" buttons are clickable.
-		foreach($form->query('button', ['Add', 'Cancel'])->all() as $button) {
-			$this->assertTrue($button->isClickable());
+		// Check that clock widget with "Time Type" - "Host time", displays host name, when clock widget name is empty.
+		$form = $dashboard->getWidget('LayoutClock')->edit();
+		$form->fill(['Name' => '']);
+		$this->query('button', 'Apply')->waitUntilClickable()->one()->click();
+		$this->page->waitUntilReady();
+		$dashboard->save();
+		$hostname = $dashboard->getWidget('Host for clock widget')->getText();
+		$this->assertEquals("Host for clock widget", $hostname);
+
+		// Update widget back to it's original name.
+		$form = $dashboard->getWidget('Host for clock widget')->edit();
+		$form->fill(['Name' => 'LayoutClock']);
+		$this->query('button', 'Apply')->waitUntilClickable()->one()->click();
+		$this->page->waitUntilReady();
+		$dashboard->save();
+		$form = $dashboard->getWidget('LayoutClock')->edit();
+
+		// Check that "Clock type" buttons are present.
+		$dashboard->getWidget('LayoutClock')->edit();
+		foreach ($form->query('button', ['Analog', 'Digital']) as $button) {
+			$this->assertTrue($form->query('radio', $button)->one()->isPresent());
 		}
 
-		// Select Digital and check if "Analog" and "Digital" buttons are selectable.
-		$form->fill(['Clock type' => 'Digital']);
-		foreach($form->query('button', ['Analog', 'Digital'])->all() as $button) {
-			$this->assertTrue($button->isSelected());
+		// Check the default status of "Clock type" buttons.
+
+		foreach (['id:clock_type_0', 'id:clock_type_1'] as $selector) {
+			$this->assertTrue($this->query($selector)->exists());
 		}
 
 		// Check that there are three options what should Digital Clock widget show and select them as "Yes".
+		$form->fill(['Clock type' => 'Digital']);
 		$form->fill(['id:show_1' => true, 'id:show_2' => true, 'id:show_3' => true]);
-		foreach($form->query('button', ['Date', 'Time', 'Time zone'])->all() as $button) {
-			$this->assertTrue($button->isSelected());
+		$checkboxes = ['id:show_1', 'id:show_2', 'id:show_3'];
+		foreach ($form->query($checkboxes) as $checkbox) {
+			$this->query($checkbox)->asCheckbox()->one()->check();
 		}
 
 		// Select "Advanced configuration" checkbox.
@@ -129,6 +162,7 @@ class testDashboardClockWidget extends CWebTest {
 			'id:time_color' => null,
 			'id:time_sec' => true,
 			'id:time_format_0' => true,
+			'id:time_format_1' => false,
 			'id:tzone_size' => '20',
 			'id:tzone_bold' => false,
 			'id:tzone_color' => null,
@@ -139,15 +173,23 @@ class testDashboardClockWidget extends CWebTest {
 		foreach ($default as $field => $value) {
 			$this->assertEquals($value, $form->getField($field)->getValue());
 		}
+
+		// Check if "Apply" and "Cancel" button are clickable.
+		foreach (['Apply', 'Cancel'] as $button) {
+			$this->assertTrue($this->query('button', $button)->one()->isClickable());
+		}
 	}
 
 	public static function getCreateData() {
 		return [
 			[
 				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'First page',
 					'Fields' => [
 						'Type' => 'Clock',
-						'Name' => 'FrontendServerClock',
+						'Show header' => true,
+						'Name' => 'ServerTimeClock',
 						'Refresh interval' => 'No refresh',
 						'Time type' => 'Server time',
 						'Clock type' => 'Analog'
@@ -156,10 +198,13 @@ class testDashboardClockWidget extends CWebTest {
 			],
 			[
 				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'First page',
 					'Fields' => [
 						'Type' => 'Clock',
-						'Name' => 'FrontendLocalClock',
-						'Refresh interval' => 'Default (15 minutes)',
+						'Show header' => false,
+						'Name' => 'LocalTimeClock',
+						'Refresh interval' => '10 seconds',
 						'Time type' => 'Local time',
 						'Clock type' => 'Analog'
 					]
@@ -167,50 +212,98 @@ class testDashboardClockWidget extends CWebTest {
 			],
 			[
 				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'First page',
 					'Fields' => [
 						'Type' => 'Clock',
-						'Name' => 'FrontendHostClock',
-						'Refresh interval' => 'Default (15 minutes)',
+						'Show header' => true,
+						'Name' => 'HostTimeClock',
+						'Refresh interval' => '30 seconds',
 						'Time type' => 'Host time',
-						'Item' => 'DEV-2236 item',
+						'Item' => 'Item for clock widget',
 						'Clock type' => 'Analog'
 					]
 				]
 			],
 			[
 				[
+					'Expected' => TEST_BAD,
+					'Page Name' => 'First page',
 					'Fields' => [
 						'Type' => 'Clock',
-						'Name' => 'FrontendDigitalClock',
-						'Refresh interval' => 'Default (15 minutes)',
-						'Time type' => 'Local time',
-						'Clock type' => 'Digital',
-						'id:show_1' => true,
-						'id:show_2' => true,
-						'id:show_3' => true
+						'Show header' => false,
+						'Name' => 'ClockWithoutItem',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Host time',
+						'Clock type' => 'Analog'
 					]
 				]
 			],
 			[
 				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'First page',
 					'Fields' => [
 						'Type' => 'Clock',
-						'Name' => 'FrontendDigitalClock',
-						'Refresh interval' => 'Default (15 minutes)',
+						'Show header' => true,
+						'Name' => 'LocalTimeClock123',
+						'Refresh interval' => '30 seconds',
 						'Time type' => 'Local time',
-						'Clock type' => 'Digital',
-						'id:show_1' => true,
-						'id:show_2' => true,
-						'id:show_3' => false
+						'Clock type' => 'Analog'
 					]
 				]
 			],
 			[
 				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'First page',
 					'Fields' => [
 						'Type' => 'Clock',
-						'Name' => 'FrontendDigitalClock',
-						'Refresh interval' => 'Default (15 minutes)',
+						'Show header' => false,
+						'Name' => 'Symb0l$InN@m3Cl0ck',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Analog'
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'First page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => '1233212',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Analog'
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'First page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => false,
+						'Name' => '~@#$%^&*()_+|',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Analog'
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'First page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalClockSimpleShowDate',
+						'Refresh interval' => '30 seconds',
 						'Time type' => 'Local time',
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
@@ -221,27 +314,16 @@ class testDashboardClockWidget extends CWebTest {
 			],
 			[
 				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'First page',
 					'Fields' => [
 						'Type' => 'Clock',
-						'Name' => 'FrontendDigitalClock',
-						'Refresh interval' => 'Default (15 minutes)',
+						'Show header' => true,
+						'Name' => 'DigitalClockSimpleShowDateandTime',
+						'Refresh interval' => '30 seconds',
 						'Time type' => 'Local time',
 						'Clock type' => 'Digital',
-						'id:show_1' => false,
-						'id:show_2' => true,
-						'id:show_3' => true
-					]
-				]
-			],
-			[
-				[
-					'Fields' => [
-						'Type' => 'Clock',
-						'Name' => 'FrontendDigitalClock',
-						'Refresh interval' => 'Default (15 minutes)',
-						'Time type' => 'Local time',
-						'Clock type' => 'Digital',
-						'id:show_1' => false,
+						'id:show_1' => true,
 						'id:show_2' => true,
 						'id:show_3' => false
 					]
@@ -249,58 +331,330 @@ class testDashboardClockWidget extends CWebTest {
 			],
 			[
 				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'First page',
 					'Fields' => [
 						'Type' => 'Clock',
-						'Name' => 'FrontendDigitalClock',
-						'Refresh interval' => 'Default (15 minutes)',
+						'Show header' => true,
+						'Name' => 'DigitalClockSimpleShowAll',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'First page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalClockShowDateAdvancedDefault',
+						'Refresh interval' => '30 seconds',
 						'Time type' => 'Local time',
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
 						'id:show_2' => false,
-						'id:show_3' => true
+						'id:show_3' => false,
+						'Advanced configuration' => true
 					]
 				]
 			],
 			[
 				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'First page',
 					'Fields' => [
 						'Type' => 'Clock',
-						'Name' => 'FrontendDigitalClock',
-						'Refresh interval' => 'Default (15 minutes)',
+						'Show header' => true,
+						'Name' => 'DigitalClockShowDateAdvancedModifiedOne',
+						'Refresh interval' => '30 seconds',
 						'Time type' => 'Local time',
 						'Clock type' => 'Digital',
-						'id:show_1' => false,
+						'id:show_1' => true,
 						'id:show_2' => false,
-						'id:show_3' => true
+						'id:show_3' => false,
+						'Advanced configuration' => true,
+						'Background color' => 'FFEB3B',
+						'id:date_size' => '50',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => 'F57F17'
 					]
 				]
 			],
 			[
 				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
 					'Fields' => [
 						'Type' => 'Clock',
-						'Name' => 'FrontendDigitalClock',
-						'Refresh interval' => 'Default (15 minutes)',
+						'Show header' => true,
+						'Name' => 'DigitalClockShowDateAdvancedModifiedTwo',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => false,
+						'Advanced configuration' => true,
+						'Background color' => '7B1FA2',
+						'id:date_size' => '15',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '002B4D',
+						'id:time_size' => '30',
+						'id:time_bold' => false,
+						'xpath://button[@id="lbl_time_color"]/..' => '00897B',
+						'id:time_sec' => true,
+						'id:time_format_0' => true,
+						'id:time_format_1' => false
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalClockShowDateAdvancedModifiedThree',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => false,
+						'Advanced configuration' => true,
+						'Background color' => '43A047',
+						'id:date_size' => '55',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '64B5F6',
+						'id:time_size' => '25',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '180D49',
+						'id:time_sec' => false,
+						'id:time_format_0' => false,
+						'id:time_format_1' => true
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalClockShowDateAdvancedModifiedFour',
+						'Refresh interval' => '30 seconds',
 						'Time type' => 'Local time',
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
 						'id:show_2' => true,
 						'id:show_3' => true,
 						'Advanced configuration' => true,
-						'xpath://button[@id="lbl_bg_color"]/..' => 'C2185B',
-						'id:date_size' => '20',
+						'Background color' => 'C62828',
+						'id:date_size' => '40',
 						'id:date_bold' => true,
-						'xpath://button[@id="lbl_date_color"]/..' => '7F3700',
-						'id:time_size' => '30',
+						'xpath://button[@id="lbl_date_color"]/..' => 'FDD835',
+						'id:time_size' => '15',
 						'id:time_bold' => true,
-						'xpath://button[@id="lbl_time_color"]/..' => 'FFEB3B',
-						'id:time_sec' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1B5E20',
+						'id:time_sec' => false,
 						'id:time_format_0' => false,
 						'id:time_format_1' => true,
 						'id:tzone_size' => '20',
+						'id:tzone_bold' => false,
+						'xpath://button[@id="lbl_tzone_color"]/..' => '06081F',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Atlantic/Stanley'),
+						'id:tzone_format_0' => true,
+						'id:tzone_format_1' => false
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalClockShowDateAdvancedModifiedFive',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '33',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '12',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format_0' => false,
+						'id:time_format_1' => true,
+						'id:tzone_size' => '35',
 						'id:tzone_bold' => true,
-						'xpath://button[@id="lbl_tzone_color"]/..' => '37474F',
-						'id:tzone_format_0' => true
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
+						'id:tzone_format_0' => false,
+						'id:tzone_format_1' => true
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_BAD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalClockShowDateAdvancedModifiedSix',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '333',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '12',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format_0' => false,
+						'id:time_format_1' => true,
+						'id:tzone_size' => '35',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
+						'id:tzone_format_0' => false,
+						'id:tzone_format_1' => true
+					],
+					'Error message' => [
+						'Invalid parameter "Size": value must be one of 1-100.'
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_BAD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalClockShowDateAdvancedModifiedSeven',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '333',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '123',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format_0' => false,
+						'id:time_format_1' => true,
+						'id:tzone_size' => '35',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
+						'id:tzone_format_0' => false,
+						'id:tzone_format_1' => true
+					],
+					'Error message' => [
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.',
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_BAD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalClockShowDateAdvancedModifiedEight',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '333',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '123',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format_0' => false,
+						'id:time_format_1' => true,
+						'id:tzone_size' => '353',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
+						'id:tzone_format_0' => false,
+						'id:tzone_format_1' => true
+					],
+					'Error message' => [
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.',
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_BAD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalClockShowDateAdvancedModifiedTwelve',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Host time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '33',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '23',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format_0' => false,
+						'id:time_format_1' => true,
+						'id:tzone_size' => '33',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39'
+					],
+					'Error message' => [
+						'Invalid parameter "Item": cannot be empty.'
 					]
 				]
 			]
@@ -313,13 +667,51 @@ class testDashboardClockWidget extends CWebTest {
 	 * @dataProvider getCreateData
 	 */
 	public function testDashboardClockWidget_Create($data) {
-		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.DEV-2236 dashboard');
+		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
 		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
 		$dashboard = CDashboardElement::find()->one();
+
+		// If first page is already full with widgets, select second page.
+		if ($data['Page Name'] === 'Second page') {
+			$this->query('xpath://li[2]//div[1]')->one()->click();
+		}
 		$form = $dashboard->edit()->addWidget()->asForm();
 		$form->fill($data['Fields']);
-		$form->query('xpath://button[contains(@class, "dialogue-widget-save")]')->waitUntilClickable()->one()->click();
-		$dashboard->save();
+
+		if ($data['Expected'] === TEST_GOOD) {
+			$form->query('xpath://button[@class="dialogue-widget-save"]')->waitUntilReady()->one()->click();
+			$this->page->waitUntilReady();
+			$dashboard->save();
+			$this->assertMessage(TEST_GOOD, 'Dashboard updated');
+
+			// After saving dashboard, it returns you to first page, if widget created in 2nd page,
+			// then it needs to be opened.
+			if ($data['Page Name'] === 'Second page') {
+				$this->query('xpath://li[2]//div[1]')->one()->click();
+			}
+
+			// Get fields from saved widgets.
+			$fields = $dashboard->getWidget($data['Fields']['Name'])->edit()->getFields();
+			$original_widget = $fields->asValues();
+
+			// Check if added widgets are truly added and fields are filled as expected.
+			$created_widget = $fields->asValues();
+			$this->assertEquals($original_widget, $created_widget);
+		}
+		else {
+			if (($data['Fields']['Clock type'] === "Digital")) {
+				$form->query('xpath://button[@class="dialogue-widget-save"]')->waitUntilReady()->one()->click();
+				$this->assertMessage(TEST_BAD, null, $data['Error message']);
+				$form->getOverlayMessage()->close();
+				$this->query('button', 'Cancel')->waitUntilClickable()->one()->click();
+			}
+			else {
+				$form->query('xpath://button[@class="dialogue-widget-save"]')->waitUntilReady()->one()->click();
+				$this->assertMessage(TEST_BAD, null, 'Invalid parameter "Item": cannot be empty.');
+				$form->getOverlayMessage()->close();
+				$this->query('button', 'Cancel')->waitUntilClickable()->one()->click();
+			}
+		}
 	}
 
 	/**
@@ -327,13 +719,12 @@ class testDashboardClockWidget extends CWebTest {
 	 */
 	public function testDashboardClockWidget_SimpleUpdate() {
 		$old_hash = CDBHelper::getHash($this->sql);
-		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.DEV-2236 dashboard');
+		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
 		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
 		$dashboard = CDashboardElement::find()->one();
-		$form = $dashboard->getWidget('FrontendLocalClock')->edit();
-		$form->submit();
+		$dashboard->getWidget('CopyClock')->edit();
+		$this->query('button', 'Apply')->waitUntilClickable()->one()->click();
 		$this->page->waitUntilReady();
-		$dashboard->getWidget('FrontendLocalClock');
 		$dashboard->save();
 		$this->assertEquals($old_hash, CDBHelper::getHash($this->sql));
 	}
@@ -342,9 +733,480 @@ class testDashboardClockWidget extends CWebTest {
 		return [
 			[
 				[
-					'UpdateFields' => [
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
 						'Type' => 'Clock',
-						'Name' => 'UpdatedClockWidget'
+						'Show header' => true,
+						'Name' => 'ServerTimeClockForUpdate',
+						'Refresh interval' => 'No refresh',
+						'Time type' => 'Server time',
+						'Clock type' => 'Analog'
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'LocalTimeClockForUpdate',
+						'Refresh interval' => '10 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Analog'
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'HostTimeClockForUpdate',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Host time',
+						'Item' => 'Item for clock widget',
+						'Clock type' => 'Analog'
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'LocalTimeClock123ForUpdate',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Analog'
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'Symb0l$InN@m3Cl0ckForUpdate',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Analog'
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => '1233212ForUpdate',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Analog'
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => '~@#$%^&*()_+|ForUpdate',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Analog'
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_BAD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'ClockWithoutItemForUpdate',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Host time',
+						'Clock type' => 'Analog'
+					],
+					'Error message' => [
+						'Invalid parameter "Item": cannot be empty.'
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalUpdateClock',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => false,
+						'id:show_3' => false
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalUpdateClock2',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => false
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalUpdateClock3',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalUpdateClock4',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => false,
+						'id:show_3' => false,
+						'Advanced configuration' => true
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalUpdateClock5',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => false,
+						'id:show_3' => false,
+						'Advanced configuration' => true,
+						'Background color' => 'FFEB3B',
+						'id:date_size' => '50',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => 'F57F17'
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalUpdateClock6',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => false,
+						'Advanced configuration' => true,
+						'Background color' => '7B1FA2',
+						'id:date_size' => '15',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '002B4D',
+						'id:time_size' => '30',
+						'id:time_bold' => false,
+						'xpath://button[@id="lbl_time_color"]/..' => '00897B',
+						'id:time_sec' => true,
+						'id:time_format_0' => true,
+						'id:time_format_1' => false
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalUpdateClock7',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => false,
+						'Advanced configuration' => true,
+						'Background color' => '43A047',
+						'id:date_size' => '55',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '64B5F6',
+						'id:time_size' => '25',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '180D49',
+						'id:time_sec' => false,
+						'id:time_format_0' => false,
+						'id:time_format_1' => true
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalUpdateClock8',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => 'C62828',
+						'id:date_size' => '40',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => 'FDD835',
+						'id:time_size' => '15',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1B5E20',
+						'id:time_sec' => false,
+						'id:time_format_0' => false,
+						'id:time_format_1' => true,
+						'id:tzone_size' => '20',
+						'id:tzone_bold' => false,
+						'xpath://button[@id="lbl_tzone_color"]/..' => '06081F',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Atlantic/Stanley'),
+						'id:tzone_format_0' => true,
+						'id:tzone_format_1' => false
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_GOOD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalUpdateClock9',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '33',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '12',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format_0' => false,
+						'id:time_format_1' => true,
+						'id:tzone_size' => '35',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
+						'id:tzone_format_0' => false,
+						'id:tzone_format_1' => true
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_BAD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalUpdateClock10',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '333',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '12',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format_0' => false,
+						'id:time_format_1' => true,
+						'id:tzone_size' => '35',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
+						'id:tzone_format_0' => false,
+						'id:tzone_format_1' => true
+					],
+					'Error message' => [
+						'Invalid parameter "Size": value must be one of 1-100.'
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_BAD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalUpdateClock11',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '333',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '123',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format_0' => false,
+						'id:time_format_1' => true,
+						'id:tzone_size' => '35',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
+						'id:tzone_format_0' => false,
+						'id:tzone_format_1' => true
+					],
+					'Error message' => [
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.',
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_BAD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalUpdateClock12',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '333',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '123',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format_0' => false,
+						'id:time_format_1' => true,
+						'id:tzone_size' => '353',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
+						'id:tzone_format_0' => false,
+						'id:tzone_format_1' => true
+					],
+					'Error message' => [
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.',
+					]
+				]
+			],
+			[
+				[
+					'Expected' => TEST_BAD,
+					'Page Name' => 'Second page',
+					'Fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'DigitalUpdateClock13',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Host time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '33',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '23',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format_0' => false,
+						'id:time_format_1' => true,
+						'id:tzone_size' => '33',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39'
+					],
+					'Error message' => [
+						'Invalid parameter "Item": cannot be empty.'
 					]
 				]
 			]
@@ -357,76 +1219,73 @@ class testDashboardClockWidget extends CWebTest {
 	 * @dataProvider getUpdateData
 	 */
 	public function testDashboardClockWidget_Update($data) {
-		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.DEV-2236 dashboard');
-		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
-		$dashboard = CDashboardElement::find()->one();
-		$form = $dashboard->getWidget('FrontendLocalClock')->edit();
-		$form->fill($data['UpdateFields'])->waitUntilReady();
-		$form->submit();
-		$this->page->waitUntilReady();
-
-		// Check that a widget with the corresponding header exists.
-		$header = ($data['UpdateFields']['Name']);
-		$dashboard->getWidget($header);
-		$dashboard->save();
-
-		// Check that Dashboard has been saved and that widget has been added.
-		$message = CMessageElement::find()->waitUntilVisible()->one();
-		$this->assertTrue($message->isGood());
-		$this->assertEquals('Dashboard updated', $message->getTitle());
-		$this->assertEquals($dashboard->getWidget($header)->getText(), 'UpdatedClockWidget');
-	}
-
-	/**
-	 * Check clock widgets successful copy.
-	 */
-	public function testDashboardClockWidget_Copy() {
-		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.DEV-2236 dashboard');
+		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
 		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
 		$dashboard = CDashboardElement::find()->one();
 
-		// Get size of widget which will be copied;
-		$sql = "Select width, height from widget where name =".zbx_dbstr('Server')." ORDER BY widgetid DESC";
-		$original_size = CDBHelper::getRow($sql);
+		// Open second page, due to fact, that loading speed is huge for previously created clock widgets.
+		if ($data['Page Name'] === 'Second page') {
+			$this->query('xpath://li[2]//div[1]')->one()->click();
+		}
 
-		$dashboard->copyWidget('Server');
-		$dashboard->edit();
-		$dashboard->pasteWidget();
-		sleep(5);
-		$this->query('xpath://div[contains(@class, "is-loading")]')->waitUntilNotPresent();
-		$dashboard->save();
-		$this->page->waitUntilReady();
+		// Get widget fields before they are updated.
+		$fields = $dashboard->getWidget(self::$name)->edit()->getFields();
+		$original_widget = $fields->asValues();
 
-		// Get size of widget which has been copied;
-		$copied_size = CDBHelper::getRow($sql);
-		$this->assertEquals($original_size, $copied_size);
-	}
+		$form = $dashboard->getWidget(self::$name)->edit();
+		$form->fill($data['Fields']);
 
-	public static function getDeleteData() {
-		return [
-			[
-				[
-					'Fields' => [
-						'Type' => 'Clock',
-						'Name' => 'Local'
-					]
-				]
-			]
-		];
+		if ($data['Expected'] === TEST_GOOD) {
+			$this->query('button', 'Apply')->waitUntilReady()->one()->click();
+			$dashboard->save();
+			$this->assertMessage(TEST_GOOD, 'Dashboard updated');
+
+			// Use updated widget as next widget which will be updated.
+			if (array_key_exists('Name', $data['Fields'])) {
+				self::$name = $data['Fields']['Name'];
+			}
+
+			// After saving dashboard, it opens by default first page.
+			if ($data['Page Name'] === 'Second page') {
+				$this->query('xpath://li[2]//div[1]')->one()->click();
+			}
+
+			// Check if widget is added to the dashboard by header.
+			$this->assertEquals($dashboard->getWidget(self::$name)->getHeaderText(), self::$name);
+
+			// Get fields from updated widgets.
+			$fields = $dashboard->getWidget(self::$name)->edit()->getFields();
+			$updated_widget = $fields->asValues();
+
+			// Compare if widget fields are not equal with original widget fields.
+			$this->assertNotEquals($original_widget, $updated_widget);
+		}
+		else {
+			if (($data['Fields']['Clock type'] === "Digital")) {
+				$this->query('button', 'Apply')->waitUntilReady()->one()->click();
+				$this->assertMessage(TEST_BAD, null, $data['Error message']);
+				$form->getOverlayMessage()->close();
+				$this->query('button', 'Cancel')->waitUntilClickable()->one()->click();
+
+			}
+			else {
+				$this->query('button', 'Apply')->waitUntilReady()->one()->click();
+				$this->assertMessage(TEST_BAD, null, 'Invalid parameter "Item": cannot be empty.');
+				$form->getOverlayMessage()->close();
+			}
+		}
 	}
 
 	/**
 	 * Check clock widgets deletion.
-	 *
-	 * @dataProvider getDeleteData
 	 */
-	public function testDashboardClockWidget_Delete($data) {
-		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.DEV-2236 dashboard');
+	public function testDashboardClockWidget_Delete() {
+		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
 		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
 		$dashboard = CDashboardElement::find()->one();
-		$widget = $dashboard->edit()->getWidget($data['Fields']['Name']);
+		$widget = $dashboard->edit()->getWidget('DeleteClock');
 		$this->assertTrue($widget->isEditable());
-		$dashboard->deleteWidget($data['Fields']['Name']);
+		$dashboard->deleteWidget('DeleteClock');
 		$dashboard->save();
 		$this->page->waitUntilReady();
 		$message = CMessageElement::find()->waitUntilPresent()->one();
@@ -434,9 +1293,9 @@ class testDashboardClockWidget extends CWebTest {
 		$this->assertEquals('Dashboard updated', $message->getTitle());
 
 		// Check that widget is not present on dashboard and in DB.
-		$this->assertFalse($dashboard->getWidget($data['Fields']['Name'], false)->isValid());
+		$this->assertFalse($dashboard->getWidget('DeleteClock', false)->isValid());
 		$sql = 'SELECT * FROM widget_field wf LEFT JOIN widget w ON w.widgetid=wf.widgetid'.
-			' WHERE w.name='.zbx_dbstr($data['Fields']['Name']);
+			' WHERE w.name='.zbx_dbstr('DeleteClock');
 		$this->assertEquals(0, CDBHelper::getCount($sql));
 	}
 
@@ -465,26 +1324,27 @@ class testDashboardClockWidget extends CWebTest {
 	 */
 	public function testDashboardClockWidget_Cancel($data) {
 		$old_hash = CDBHelper::getHash($this->sql);
-		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.DEV-2236 dashboard');
+		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
 		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
 		$dashboard = CDashboardElement::find()->one();
 
 		// Start creating a widget.
 		$overlay = $dashboard->edit()->addWidget();
 		$form = $overlay->asForm();
-		$form->getField('Type')->fill('Clock');
-		$form->getField('Name')->fill('Widget to be cancelled');
+		$form->fill(['Type' => 'Clock', 'Name' => 'Widget to be cancelled']);
 		$widget = $dashboard->getWidgets()->last();
 
 		// Save or cancel widget.
 		if (CTestArrayHelper::get($data, 'save_widget', false)) {
 			$form->submit();
 			$this->page->waitUntilReady();
+
 			// Check that changes took place on the unsaved dashboard.
 			$this->assertTrue($dashboard->getWidget('Widget to be cancelled')->isVisible());
 		}
 		else {
 			$this->query('button:Cancel')->one()->click();
+
 			// Check that widget changes didn't take place after pressing "Cancel".
 			if (CTestArrayHelper::get($data, 'existing_widget', false)) {
 				$this->assertNotEquals('Widget to be cancelled', $widget->waitUntilReady()->getHeaderText());
@@ -498,6 +1358,10 @@ class testDashboardClockWidget extends CWebTest {
 				}
 			}
 		}
+
+		// Cancel update process of already existing widget.
+		$dashboard->edit()->getWidget('CancelClock')->edit();
+		$this->query('button', 'Cancel')->waitUntilClickable()->one()->click();
 
 		// Save or cancel dashboard update.
 		if (CTestArrayHelper::get($data, 'save_dashboard', false)) {
