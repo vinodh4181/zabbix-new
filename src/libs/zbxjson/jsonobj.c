@@ -336,6 +336,8 @@ int	zbx_jsonobj_open(const char *data, zbx_jsonobj_t *obj)
 	int	ret = FAIL;
 	char	*error = NULL;
 
+	SKIP_WHITESPACE(data);
+
 	switch (*data)
 	{
 		case '{':

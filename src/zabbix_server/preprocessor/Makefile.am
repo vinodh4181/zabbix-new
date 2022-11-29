@@ -13,7 +13,14 @@ libpreprocessor_a_SOURCES = \
 	preproc_worker.h \
 	preprocessing.c \
 	preprocessing.h \
-	preproc_cache.c
+	preproc_cache.c \
+	pp_manager.c \
+	pp_task.c \
+	pp_task.h \
+	pp_worker.c \
+	pp_worker.h \
+	pp_item.c \
+	pp_item.h
 
 libpreprocessor_a_CFLAGS = \
 	 $(LIBXML2_CFLAGS)
