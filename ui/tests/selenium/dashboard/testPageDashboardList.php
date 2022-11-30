@@ -85,7 +85,7 @@ class testPageDashboardList extends CWebTest {
 					'fields' => [
 						'Show' => 'Created by me'
 					],
-					'result_count' => 15
+					'result_count' => 16
 				]
 			],
 			[
@@ -103,7 +103,7 @@ class testPageDashboardList extends CWebTest {
 						'Name' => 'widget',
 						'Show' => 'Created by me'
 					],
-					'result_count' => 9
+					'result_count' => 10
 				]
 			],
 			[
