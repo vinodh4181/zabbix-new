@@ -324,15 +324,23 @@ static void	export_write(const char *buf, size_t count, zbx_export_file_t *file)
 	if (config_export->file_size <= count + (size_t)file_offset + 1)
 	{
 		char	filename_old[MAX_STRING_LEN];
+		FILE	*file_old;
+		int	ret;
 
 		zbx_strscpy(filename_old, file->name);
 		zbx_strlcat(filename_old, ".old", MAX_STRING_LEN);
 
-		if (0 == access(filename_old, F_OK) && 0 != remove(filename_old))
+		if (NULL != (file_old = fopen(filename_old, "r")))
 		{
-			error_msg = zbx_dsprintf(error_msg, "cannot remove export file '%s': %s",
-					filename_old, zbx_strerror(errno));
-			goto error;
+			ret = unlink(filename_old);
+			fclose(file_old);
+
+			if (0 != ret)
+			{
+				error_msg = zbx_dsprintf(error_msg, "cannot remove export file '%s': %s", filename_old,
+						zbx_strerror(errno));
+				goto error;
+			}
 		}
 
 		if (0 != fclose(file->file))
