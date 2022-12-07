@@ -18,6 +18,7 @@
 **/
 
 #include "pp_item.h"
+#include "zbxvariant.h"
 
 void	pp_value_free(zbx_pp_value_t *value)
 {
@@ -25,35 +26,46 @@ void	pp_value_free(zbx_pp_value_t *value)
 	zbx_free(value);
 }
 
-void	pp_item_init(zbx_pp_item_t *item, unsigned char type, unsigned char value_type)
+zbx_pp_item_preproc_t	*pp_item_preproc_create()
 {
-	item->refcount = 1;
-	item->type = type;
-	item->value_type = value_type;
-	item->mode = ZBX_PP_ITEM_PROCESS_PARALLEL;
+	zbx_pp_item_preproc_t	*preproc = zbx_malloc(NULL, sizeof(zbx_pp_item_preproc_t));
 
-	zbx_list_create(&item->values);
+	printf("pp_item_preproc_create() -> 0x%p\n", preproc);
+	preproc->refcount = 1;
+	return preproc;
 }
 
-void	pp_item_release(zbx_pp_item_t *item)
+void	pp_item_preproc_free(zbx_pp_item_preproc_t *preproc)
 {
-	zbx_pp_value_t	*value;
+	/* TODO: free preprocessing data */
 
-	if (0 != --item->refcount)
-		return;
+	printf("pp_item_preproc_free(0x%p)\n", preproc);
 
-	while (NULL != (value = (zbx_pp_value_t *)zbx_list_pop(&item->values)))
-		pp_value_free(value);
-	zbx_list_destroy(&item->values);
+	zbx_free(preproc);
+}
 
-	zbx_free(item);
+void	pp_item_preproc_release(zbx_pp_item_preproc_t *preproc)
+{
+	if (0 == --preproc->refcount)
+		pp_item_preproc_free(preproc);
+}
+
+void	pp_item_init(zbx_pp_item_t *item, unsigned char type, unsigned char value_type, zbx_pp_process_mode_t mode)
+{
+	item->type = type;
+	item->value_type = value_type;
+	item->mode = mode;
 }
 
 void	pp_item_clear(zbx_pp_item_t *item)
 {
-	while (NULL != (value = (zbx_pp_value_t *)zbx_list_pop(&item->values)))
-		pp_value_free(value);
-	zbx_list_destroy(&item->values);
+	printf("pp_item_clear(0x%p)\n", item);
+	pp_item_preproc_release(item->preproc);
 }
 
-#endif
+zbx_pp_item_preproc_t	*pp_item_copy_preproc(zbx_pp_item_t *item)
+{
+	item->preproc->refcount++;
+
+	return item->preproc;
+}

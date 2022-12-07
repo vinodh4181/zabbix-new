@@ -27,12 +27,47 @@
 #define PP_WORKER_INIT_NONE	0x00
 #define PP_WORKER_INIT_THREAD	0x01
 
+static zbx_pp_task_t	*pp_task_process_test(zbx_pp_task_t *in)
+{
+	zbx_pp_task_t	*task = pp_task_test_out_create(in);
+	sleep(1);
+
+	return task;
+}
+
+static zbx_pp_task_t	*pp_task_process_value(zbx_pp_task_t *in)
+{
+	zbx_pp_task_t	*task = pp_task_value_out_create(in);
+
+	sleep(1);
+
+	return task;
+}
+
+static zbx_pp_task_t	*pp_task_process_dependent(zbx_pp_task_t *in)
+{
+	zbx_pp_task_t	*task = pp_task_dependent_out_create(in);
+
+	sleep(1);
+
+	return task;
+}
+
+static zbx_pp_task_t	*pp_task_process_sequence(zbx_pp_task_t *in)
+{
+	zbx_pp_task_t	*task = pp_task_sequence_out_create(in);
+
+	sleep(1);
+
+	return task;
+}
+
 static void	*pp_worker_start(void *arg)
 {
 	zbx_pp_worker_t		*worker = (zbx_pp_worker_t *)arg;
 	zbx_pp_task_queue_t	*queue = worker->queue;
 	int			err;
-	zbx_pp_task_t		*task;
+	zbx_pp_task_t		*in, *out;
 
 	printf("[%lu] start worker\n", pthread_self());
 
@@ -43,19 +78,35 @@ static void	*pp_worker_start(void *arg)
 
 	while (0 == worker->stop)
 	{
-		if (NULL != (task = pp_task_queue_pop_pending(queue)))
+		if (NULL != (in = pp_task_queue_pop_new(queue)))
 		{
 			pp_task_queue_unlock(queue);
 
-			// TODO: process task
+			/* TODO: process task */
 
-			printf("[%lu] process task %llu\n", pthread_self(), (zbx_uint64_t)task->data);
+			printf("[%lu] process task type:%u itemid:%llu\n", pthread_self(), in->type, in->itemid);
 
-			pp_task_free(task);
+			switch (in->type)
+			{
+				case ZBX_PP_TASK_TEST_IN:
+					out = pp_task_process_test(in);
+					break;
+				case ZBX_PP_TASK_VALUE_IN:
+				case ZBX_PP_TASK_VALUE_SEQ_IN:
+					out = pp_task_process_value(in);
+					break;
+				case ZBX_PP_TASK_DEPENDENT_IN:
+					out = pp_task_process_dependent(in);
+					break;
+				case ZBX_PP_TASK_SEQUENCE_IN:
+					out = pp_task_process_sequence(in);
+					break;
+			}
 
-			// TODO: push either new pending tasks or finished results to queue
+			printf("[%lu] done\n", pthread_self());
 
 			pp_task_queue_lock(queue);
+			pp_task_queue_push_done(queue, out);
 
 			continue;
 		}

@@ -22,13 +22,15 @@
 
 #include "zbxcommon.h"
 #include "zbxalgo.h"
+#include "zbxvariant.h"
+#include "zbxtime.h"
 
 typedef enum
 {
-	ZBX_PP_ITEM_PROCESS_PARALLEL,
-	ZBX_PP_ITEM_PROCESS_SERIAL
+	ZBX_PP_PROCESS_PARALLEL,
+	ZBX_PP_PROCESS_SERIAL
 }
-zbx_pp_item_mode_t;
+zbx_pp_process_mode_t;
 
 typedef struct
 {
@@ -39,24 +41,33 @@ zbx_pp_value_t;
 
 typedef struct
 {
-	zbx_uint64_t	itemid;
-	unsigned char	type;
-	unsigned char	value_type;
-	unsigned char	mode;
+	zbx_uint32_t	refcount;
 
-	zbx_list_t	values;
-	zbx_uint64_t	refcount;
+	/* TODO: preprocessing data */
+}
+zbx_pp_item_preproc_t;
 
-	// TODO:
-	// preprocessing data;
+typedef struct
+{
+	zbx_uint64_t		itemid;
+	unsigned char		type;
+	unsigned char		value_type;
+	zbx_pp_process_mode_t	mode;
+
+	zbx_pp_item_preproc_t	*preproc;
+
+	/* TODO: history vault */
 
 }
 zbx_pp_item_t;
 
 void	pp_value_free(zbx_pp_value_t *value);
 
-zbx_pp_item_t	*pp_item_init(zbx_pp_item_t *item, unsigned char type, unsigned char value_type);
-void	pp_item_release(zbx_pp_item_t *item);
+void	pp_item_clear(zbx_pp_item_t *item);
+void	pp_item_init(zbx_pp_item_t *item, unsigned char type, unsigned char value_type, zbx_pp_process_mode_t mode);
 
+zbx_pp_item_preproc_t	*pp_item_preproc_create();
+void	pp_item_preproc_release(zbx_pp_item_preproc_t *preproc);
+zbx_pp_item_preproc_t	*pp_item_copy_preproc(zbx_pp_item_t *item);
 
 #endif
