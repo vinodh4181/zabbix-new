@@ -603,10 +603,11 @@ static int	DBget_item_value(zbx_uint64_t itemid, char **replace_to, int request)
 			if (SUCCEED == errcode)
 			{
 				zbx_substitute_macros_in_item_key(&dc_item, replace_to);
+
+				DCconfig_clean_items(&dc_item, &errcode, 1);
+
 				ret = SUCCEED;
 			}
-
-			DCconfig_clean_items(&dc_item, &errcode, 1);
 
 			return ret;
 	}
