@@ -17,26 +17,27 @@
 ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 **/
 
-#ifndef ZABBIX_PP_WORKER_H
-#define ZABBIX_PP_WORKER_H
+/* debug logging, remove for release */
 
-#include "pp_queue.h"
+#include "pp_log.h"
+#include "zbxcommon.h"
 
-typedef struct
+static __thread char	name[64];
+
+void	pp_log_init(const char *source)
 {
-	int		id;	/* TODO: for debug logging, remove */
-
-	zbx_uint32_t	init_flags;
-	int		stop;
-
-	zbx_pp_queue_t	*queue;
-	pthread_t	thread;
+	zbx_strlcpy(name, source, sizeof(name));
 }
-zbx_pp_worker_t;
 
-int	pp_worker_init(zbx_pp_worker_t *worker, zbx_pp_queue_t *queue, char **error);
-void	pp_worker_destroy(zbx_pp_worker_t *worker);
+void	pp_log(const char *format, ...)
+{
+	va_list	args;
+	char	buf[MAX_BUFFER_LEN];
 
+	va_start(args, format);
 
+	vsnprintf(buf, sizeof(buf), format, args);
+	printf("[%s] %s\n", name, buf);
 
-#endif
+	va_end(args);
+}

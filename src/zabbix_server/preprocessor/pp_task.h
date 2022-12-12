@@ -21,6 +21,7 @@
 #define ZABBIX_PP_TASK_H
 
 #include "pp_item.h"
+#include "pp_cache.h"
 
 #include "zbxcommon.h"
 #include "zbxalgo.h"
@@ -57,7 +58,6 @@ typedef struct
 	zbx_pp_item_preproc_t	*preproc;
 
 	/* TODO: output socket */
-	/* TODO: history vault */
 }
 zbx_pp_task_test_in_t;
 
@@ -65,14 +65,20 @@ typedef struct
 {
 	zbx_variant_t		value;
 	zbx_timespec_t		ts;
+	zbx_uint64_t		lastlogsize;
+	int			mtime;
+
 	zbx_pp_item_preproc_t	*preproc;
 
-	/* TODO: history vault */
+	zbx_pp_cache_t		*cache;
 }
 zbx_pp_task_value_in_t;
 
 typedef struct
 {
+	zbx_variant_t		value;
+	zbx_timespec_t		ts;
+	zbx_pp_item_preproc_t	*preproc;
 }
 zbx_pp_task_dependent_in_t;
 
@@ -91,62 +97,26 @@ zbx_pp_task_test_out_t;
 typedef struct
 {
 	zbx_pp_task_t	*in;
+	zbx_variant_t	value;
 }
 zbx_pp_task_value_out_t;
 
 typedef struct
 {
-	zbx_pp_task_t	*in;
+	zbx_pp_task_t		*in;
+
+	zbx_pp_cache_t	*cache;
 }
 zbx_pp_task_dependent_out_t;
 
 typedef struct
 {
 	zbx_pp_task_t	*in;
+	zbx_variant_t	value;
 }
 zbx_pp_task_sequence_out_t;
 
 #define PP_TASK_DATA(x)		(&x->data)
-
-typedef struct
-{
-	zbx_uint64_t	itemid;
-	zbx_pp_task_t	*task;
-}
-zbx_pp_task_sequence_t;
-
-typedef struct
-{
-	zbx_uint32_t	init_flags;
-	int		workers_num;
-
-	zbx_hashset_t	sequences;
-
-	zbx_list_t	pending;
-	zbx_list_t	immediate;
-	zbx_list_t	finished;
-
-	pthread_mutex_t	lock;
-	pthread_cond_t	event;
-}
-zbx_pp_task_queue_t;
-
-int	pp_task_queue_init(zbx_pp_task_queue_t *queue, char **error);
-void	pp_task_queue_destroy(zbx_pp_task_queue_t *queue);
-
-void	pp_task_queue_lock(zbx_pp_task_queue_t *queue);
-void	pp_task_queue_unlock(zbx_pp_task_queue_t *queue);
-void	pp_task_queue_register_worker(zbx_pp_task_queue_t *queue);
-void	pp_task_queue_deregister_worker(zbx_pp_task_queue_t *queue);
-
-int	pp_task_queue_wait(zbx_pp_task_queue_t *queue);
-void	pp_task_queue_notify_all(zbx_pp_task_queue_t *queue);
-
-void	pp_task_queue_push_new(zbx_pp_task_queue_t *queue, zbx_pp_item_t *item, zbx_pp_task_t *task);
-zbx_pp_task_t	*pp_task_queue_pop_new(zbx_pp_task_queue_t *queue);
-void	pp_task_queue_push_immediate(zbx_pp_task_queue_t *queue, zbx_pp_task_t *task);
-void	pp_task_queue_push_done(zbx_pp_task_queue_t *queue, zbx_pp_task_t *task);
-zbx_pp_task_t	*pp_task_queue_pop_done(zbx_pp_task_queue_t *queue);
 
 zbx_pp_task_t	*pp_task_test_out_create(zbx_pp_task_t *in);
 zbx_pp_task_t	*pp_task_value_out_create(zbx_pp_task_t *in);
@@ -156,7 +126,10 @@ zbx_pp_task_t	*pp_task_sequence_out_create(zbx_pp_task_t *in);
 void	pp_task_free(zbx_pp_task_t *task);
 
 zbx_pp_task_t	*pp_task_test_in_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts);
-zbx_pp_task_t	*pp_task_value_in_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts);
+zbx_pp_task_t	*pp_task_value_in_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts,
+		zbx_pp_cache_t *cache);
+zbx_pp_task_t	*pp_task_dependent_in_create(zbx_uint64_t itemid, zbx_pp_item_preproc_t *preproc,
+		const zbx_variant_t *value, zbx_timespec_t ts);
 zbx_pp_task_t	*pp_task_value_seq_in_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts);
 zbx_pp_task_t	*pp_task_sequence_in_create(zbx_uint64_t itemid);
 

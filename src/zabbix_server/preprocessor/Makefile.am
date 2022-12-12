@@ -20,7 +20,13 @@ libpreprocessor_a_SOURCES = \
 	pp_worker.c \
 	pp_worker.h \
 	pp_item.c \
-	pp_item.h
+	pp_item.h \
+	pp_queue.c \
+	pp_queue.h \
+	pp_cache.c \
+	pp_cache.h \
+	pp_log.c \
+	pp_log.h
 
 libpreprocessor_a_CFLAGS = \
 	 $(LIBXML2_CFLAGS)

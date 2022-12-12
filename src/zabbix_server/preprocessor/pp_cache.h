@@ -17,26 +17,25 @@
 ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 **/
 
-#ifndef ZABBIX_PP_WORKER_H
-#define ZABBIX_PP_WORKER_H
+#ifndef ZABBIX_PP_CACHE_H
+#define ZABBIX_PP_CACHE_H
 
-#include "pp_queue.h"
+#include "zbxcommon.h"
+#include "zbxvariant.h"
 
 typedef struct
 {
-	int		id;	/* TODO: for debug logging, remove */
+	zbx_uint32_t	refcount;
 
-	zbx_uint32_t	init_flags;
-	int		stop;
+	zbx_variant_t	value;
 
-	zbx_pp_queue_t	*queue;
-	pthread_t	thread;
+	unsigned char	type;
+	void		*data;
 }
-zbx_pp_worker_t;
+zbx_pp_cache_t;
 
-int	pp_worker_init(zbx_pp_worker_t *worker, zbx_pp_queue_t *queue, char **error);
-void	pp_worker_destroy(zbx_pp_worker_t *worker);
-
-
+zbx_pp_cache_t	*pp_cache_create(unsigned char type);
+void	pp_cache_release(zbx_pp_cache_t *cache);
+zbx_pp_cache_t	*pp_cache_copy(zbx_pp_cache_t *cache);
 
 #endif

@@ -19,13 +19,18 @@
 
 #include "pp_worker.h"
 #include "pp_task.h"
+#include "pp_log.h"
+#include "pp_cache.h"
+#include "pp_queue.h"
 
 #include "zbxcommon.h"
 #include "log.h"
 
-
 #define PP_WORKER_INIT_NONE	0x00
 #define PP_WORKER_INIT_THREAD	0x01
+
+/* WDN */
+/* #define sleep(x) */
 
 static zbx_pp_task_t	*pp_task_process_test(zbx_pp_task_t *in)
 {
@@ -46,7 +51,14 @@ static zbx_pp_task_t	*pp_task_process_value(zbx_pp_task_t *in)
 
 static zbx_pp_task_t	*pp_task_process_dependent(zbx_pp_task_t *in)
 {
-	zbx_pp_task_t	*task = pp_task_dependent_out_create(in);
+	zbx_pp_task_t			*task = pp_task_dependent_out_create(in);
+	zbx_pp_task_dependent_in_t	*d_in = (zbx_pp_task_dependent_in_t *)PP_TASK_DATA(in);
+	zbx_pp_task_dependent_out_t	*d_out = (zbx_pp_task_dependent_out_t *)PP_TASK_DATA(task);
+
+	d_out->cache = pp_cache_create(0);
+
+	/* TODO: set either created cache or the input value */
+	zbx_variant_copy(&d_out->cache->value, &d_in->value);
 
 	sleep(1);
 
@@ -64,12 +76,18 @@ static zbx_pp_task_t	*pp_task_process_sequence(zbx_pp_task_t *in)
 
 static void	*pp_worker_start(void *arg)
 {
-	zbx_pp_worker_t		*worker = (zbx_pp_worker_t *)arg;
-	zbx_pp_task_queue_t	*queue = worker->queue;
-	int			err;
-	zbx_pp_task_t		*in, *out;
+	zbx_pp_worker_t	*worker = (zbx_pp_worker_t *)arg;
+	zbx_pp_queue_t	*queue = worker->queue;
+	int		err;
+	zbx_pp_task_t	*in, *out;
 
-	printf("[%lu] start worker\n", pthread_self());
+	/* TODO: for debug logging, remove */
+	char	name[64];
+
+	zbx_snprintf(name, sizeof(name), "worker%02d", worker->id);
+	pp_log_init(name);
+
+	pp_log("starting ...");
 
 	worker->stop = 0;
 
@@ -84,7 +102,7 @@ static void	*pp_worker_start(void *arg)
 
 			/* TODO: process task */
 
-			printf("[%lu] process task type:%u itemid:%llu\n", pthread_self(), in->type, in->itemid);
+			pp_log("process task %p type:%u itemid:%llu", in, in->type, in->itemid);
 
 			switch (in->type)
 			{
@@ -103,7 +121,7 @@ static void	*pp_worker_start(void *arg)
 					break;
 			}
 
-			printf("[%lu] done\n", pthread_self());
+			pp_log("done");
 
 			pp_task_queue_lock(queue);
 			pp_task_queue_push_done(queue, out);
@@ -118,12 +136,12 @@ static void	*pp_worker_start(void *arg)
 	pp_task_queue_deregister_worker(queue);
 	pp_task_queue_unlock(queue);
 
-	printf("[%lu] stop worker\n", pthread_self());
+	pp_log("stop worker");
 
 	return (void *)0;
 }
 
-int	pp_worker_init(zbx_pp_worker_t *worker, zbx_pp_task_queue_t *queue, char **error)
+int	pp_worker_init(zbx_pp_worker_t *worker, zbx_pp_queue_t *queue, char **error)
 {
 	int	err, ret = FAIL;
 

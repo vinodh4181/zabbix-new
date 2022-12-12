@@ -17,26 +17,41 @@
 ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 **/
 
-#ifndef ZABBIX_PP_WORKER_H
-#define ZABBIX_PP_WORKER_H
+/* debug logging, remove for release */
 
-#include "pp_queue.h"
+#include "pp_cache.h"
+#include "zbxcommon.h"
 
-typedef struct
+zbx_pp_cache_t	*pp_cache_create(unsigned char type)
 {
-	int		id;	/* TODO: for debug logging, remove */
+	zbx_pp_cache_t	*cache = (zbx_pp_cache_t *)zbx_malloc(NULL, sizeof(zbx_pp_cache_t));
 
-	zbx_uint32_t	init_flags;
-	int		stop;
+	cache->type = type;
+	zbx_variant_set_none(&cache->value);
+	cache->data = NULL;
+	cache->refcount = 1;
 
-	zbx_pp_queue_t	*queue;
-	pthread_t	thread;
+	return cache;
 }
-zbx_pp_worker_t;
 
-int	pp_worker_init(zbx_pp_worker_t *worker, zbx_pp_queue_t *queue, char **error);
-void	pp_worker_destroy(zbx_pp_worker_t *worker);
+void	pp_cache_release(zbx_pp_cache_t *cache)
+{
+	if (0 != --cache->refcount)
+		return;
 
+	zbx_variant_clear(&cache->value);
 
+	/* TODO: free data */
 
-#endif
+	zbx_free(cache);
+}
+
+zbx_pp_cache_t	*pp_cache_copy(zbx_pp_cache_t *cache)
+{
+	if (NULL == cache)
+		return NULL;
+
+	cache->refcount++;
+
+	return cache;
+}

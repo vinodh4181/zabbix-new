@@ -18,28 +18,47 @@
 **/
 
 #include "pp_item.h"
+#include "pp_log.h"
 #include "zbxvariant.h"
 
-void	pp_value_free(zbx_pp_value_t *value)
+void	pp_data_free(zbx_pp_data_t *data)
 {
-	zbx_variant_clear(&value->var);
-	zbx_free(value);
+	zbx_variant_clear(&data->value);
+	zbx_free(data);
 }
 
-zbx_pp_item_preproc_t	*pp_item_preproc_create()
+zbx_pp_item_preproc_t	*pp_item_preproc_create(unsigned char type, unsigned char value_type, unsigned char flags)
 {
 	zbx_pp_item_preproc_t	*preproc = zbx_malloc(NULL, sizeof(zbx_pp_item_preproc_t));
 
-	printf("pp_item_preproc_create() -> 0x%p\n", preproc);
+	pp_log("pp_item_preproc_create() -> 0x%p", preproc);
 	preproc->refcount = 1;
+	preproc->steps_num = 0;
+	preproc->steps = NULL;
+	preproc->dep_itemids_num = 0;
+	preproc->dep_itemids = NULL;
+
+	preproc->type = type;
+	preproc->value_type = value_type;
+	preproc->flags = flags;
+
 	return preproc;
 }
 
 void	pp_item_preproc_free(zbx_pp_item_preproc_t *preproc)
 {
-	/* TODO: free preprocessing data */
+	int	i;
 
-	printf("pp_item_preproc_free(0x%p)\n", preproc);
+	for (i = 0; i < preproc->steps_num; i++)
+	{
+		zbx_free(preproc->steps[i].params);
+		zbx_free(preproc->steps[i].error_handler_params);
+	}
+
+	zbx_free(preproc->steps);
+	zbx_free(preproc->dep_itemids);
+
+	pp_log("pp_item_preproc_free(0x%p)", preproc);
 
 	zbx_free(preproc);
 }
@@ -50,22 +69,23 @@ void	pp_item_preproc_release(zbx_pp_item_preproc_t *preproc)
 		pp_item_preproc_free(preproc);
 }
 
-void	pp_item_init(zbx_pp_item_t *item, unsigned char type, unsigned char value_type, zbx_pp_process_mode_t mode)
+/* TODO: preprocessing mode must be calculated automatically after setting steps */
+void	pp_item_init(zbx_pp_item_t *item, unsigned char type, unsigned char value_type, unsigned char flags,
+		zbx_pp_process_mode_t mode)
 {
-	item->type = type;
-	item->value_type = value_type;
-	item->mode = mode;
+	item->preproc = pp_item_preproc_create(type, value_type, flags);
+	item->preproc->mode = mode;
 }
 
 void	pp_item_clear(zbx_pp_item_t *item)
 {
-	printf("pp_item_clear(0x%p)\n", item);
+	pp_log("pp_item_clear(0x%p)", item);
 	pp_item_preproc_release(item->preproc);
 }
 
-zbx_pp_item_preproc_t	*pp_item_copy_preproc(zbx_pp_item_t *item)
+zbx_pp_item_preproc_t	*pp_preproc_copy(zbx_pp_item_preproc_t *preproc)
 {
-	item->preproc->refcount++;
+	preproc->refcount++;
 
-	return item->preproc;
+	return preproc;
 }
