@@ -42,16 +42,17 @@ static zbx_pp_task_t	*pp_task_create(size_t size)
 
 
 /* TODO pass socket */
-zbx_pp_task_t	*pp_task_test_in_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts)
+zbx_pp_task_t	*pp_task_test_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts)
 {
-	zbx_pp_task_t		*task = pp_task_create(sizeof(zbx_pp_task_test_in_t));
-	zbx_pp_task_test_in_t	*d = (zbx_pp_task_test_in_t *)PP_TASK_DATA(task);
+	zbx_pp_task_t		*task = pp_task_create(sizeof(zbx_pp_task_test_t));
+	zbx_pp_task_test_t	*d = (zbx_pp_task_test_t *)PP_TASK_DATA(task);
 
-	pp_log("pp_task_test_in_create() -> %p", task);
+	pp_log("pp_task_test_create() -> %p", task);
 
 	task->itemid = item->itemid;
-	task->type = ZBX_PP_TASK_TEST_IN;
-	d->value = *value;
+	task->type = ZBX_PP_TASK_TEST;
+	zbx_variant_copy(&d->value, value);
+	zbx_variant_set_none(&d->result);
 	d->ts = ts;
 
 	d->preproc = pp_preproc_copy(item->preproc);
@@ -59,30 +60,32 @@ zbx_pp_task_t	*pp_task_test_in_create(zbx_pp_item_t *item, zbx_variant_t *value,
 	return task;
 }
 
-static void	pp_task_test_in_clear(zbx_pp_task_test_in_t *task)
+static void	pp_task_test_clear(zbx_pp_task_test_t *task)
 {
-	pp_log("pp_task_test_in_clear(%p)", task);
+	pp_log("pp_task_test_clear(%p)", task);
 
 	zbx_variant_clear(&task->value);
+	zbx_variant_clear(&task->result);
 	pp_item_preproc_release(task->preproc);
 }
 
-zbx_pp_task_t	*pp_task_value_in_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts,
+zbx_pp_task_t	*pp_task_value_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts,
 		zbx_pp_cache_t *cache)
 {
-	zbx_pp_task_t		*task = pp_task_create(sizeof(zbx_pp_task_value_in_t));
-	zbx_pp_task_value_in_t	*d = (zbx_pp_task_value_in_t *)PP_TASK_DATA(task);
+	zbx_pp_task_t		*task = pp_task_create(sizeof(zbx_pp_task_value_t));
+	zbx_pp_task_value_t	*d = (zbx_pp_task_value_t *)PP_TASK_DATA(task);
 
-	pp_log("pp_task_value_in_create(%lu) -> %p", item->itemid, task);
+	pp_log("pp_task_value_create(%lu) -> %p", item->itemid, task);
 
 	task->itemid = item->itemid;
-	task->type = ZBX_PP_TASK_VALUE_IN;
+	task->type = ZBX_PP_TASK_VALUE;
 
 	if (NULL != value)
 		zbx_variant_copy(&d->value, value);
 	else
 		zbx_variant_set_none(&d->value);
 
+	zbx_variant_set_none(&d->result);
 	d->cache = pp_cache_copy(cache);
 	d->ts = ts;
 
@@ -91,9 +94,51 @@ zbx_pp_task_t	*pp_task_value_in_create(zbx_pp_item_t *item, zbx_variant_t *value
 	return task;
 }
 
-static void	pp_task_value_in_clear(zbx_pp_task_value_in_t *task)
+static void	pp_task_value_clear(zbx_pp_task_value_t *task)
 {
 	pp_log("pp_task_value_in_clear(), value: %s", zbx_variant_value_desc(&task->value));
+
+	zbx_variant_clear(&task->value);
+	zbx_variant_clear(&task->result);
+	pp_item_preproc_release(task->preproc);
+
+	if (NULL != task->cache)
+		pp_cache_release(task->cache);
+}
+
+zbx_pp_task_t	*pp_task_value_seq_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts)
+{
+	zbx_pp_task_t	*task = pp_task_value_create(item, value, ts, NULL);
+
+	pp_log("pp_task_value_seq_in_create(%lu) -> %p", item->itemid, task);
+
+	task->type = ZBX_PP_TASK_VALUE_SEQ;
+
+	return task;
+}
+
+zbx_pp_task_t	*pp_task_dependent_create(zbx_uint64_t itemid, zbx_pp_item_preproc_t *preproc,
+		const zbx_variant_t *value, zbx_timespec_t ts)
+{
+	zbx_pp_task_t		*task = pp_task_create(sizeof(zbx_pp_task_dependent_t));
+	zbx_pp_task_dependent_t	*d = (zbx_pp_task_dependent_t *)PP_TASK_DATA(task);
+
+	pp_log("pp_task_dependent_create(%lu) -> %p", itemid, task);
+
+	task->itemid = itemid;
+	task->type = ZBX_PP_TASK_DEPENDENT;
+	zbx_variant_copy(&d->value, value);
+	d->cache = NULL;
+	d->ts = ts;
+
+	d->preproc = pp_preproc_copy(preproc);
+
+	return task;
+}
+
+static void	pp_task_dependent_clear(zbx_pp_task_dependent_t *task)
+{
+	pp_log("pp_task_dependent_in_clear(), value: %s", zbx_variant_value_desc(&task->value));
 
 	zbx_variant_clear(&task->value);
 	pp_item_preproc_release(task->preproc);
@@ -102,58 +147,21 @@ static void	pp_task_value_in_clear(zbx_pp_task_value_in_t *task)
 		pp_cache_release(task->cache);
 }
 
-zbx_pp_task_t	*pp_task_value_seq_in_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts)
+zbx_pp_task_t	*pp_task_sequence_create(zbx_uint64_t itemid)
 {
-	zbx_pp_task_t	*task = pp_task_value_in_create(item, value, ts, NULL);
+	zbx_pp_task_t		*task = pp_task_create(sizeof(zbx_pp_task_sequence_t));
+	zbx_pp_task_sequence_t	*d = (zbx_pp_task_sequence_t *)PP_TASK_DATA(task);
 
-	pp_log("pp_task_value_seq_in_create(%lu) -> %p", item->itemid, task);
-
-	task->type = ZBX_PP_TASK_VALUE_SEQ_IN;
-
-	return task;
-}
-
-zbx_pp_task_t	*pp_task_dependent_in_create(zbx_uint64_t itemid, zbx_pp_item_preproc_t *preproc,
-		const zbx_variant_t *value, zbx_timespec_t ts)
-{
-	zbx_pp_task_t			*task = pp_task_create(sizeof(zbx_pp_task_dependent_in_t));
-	zbx_pp_task_dependent_in_t	*d = (zbx_pp_task_dependent_in_t *)PP_TASK_DATA(task);
-
-	pp_log("pp_task_dependent_in_create(%lu) -> %p", itemid, task);
+	pp_log("pp_task_sequence_create(%lu) -> %p", itemid, task);
 
 	task->itemid = itemid;
-	task->type = ZBX_PP_TASK_DEPENDENT_IN;
-	zbx_variant_copy(&d->value, value);
-	d->ts = ts;
-
-	d->preproc = pp_preproc_copy(preproc);
-
-	return task;
-}
-
-static void	pp_task_dependent_in_clear(zbx_pp_task_dependent_in_t *task)
-{
-	pp_log("pp_task_dependent_in_clear(), value: %s", zbx_variant_value_desc(&task->value));
-
-	zbx_variant_clear(&task->value);
-	pp_item_preproc_release(task->preproc);
-}
-
-zbx_pp_task_t	*pp_task_sequence_in_create(zbx_uint64_t itemid)
-{
-	zbx_pp_task_t			*task = pp_task_create(sizeof(zbx_pp_task_sequence_in_t));
-	zbx_pp_task_sequence_in_t	*d = (zbx_pp_task_sequence_in_t *)PP_TASK_DATA(task);
-
-	pp_log("pp_task_sequence_in_create(%lu) -> %p", itemid, task);
-
-	task->itemid = itemid;
-	task->type = ZBX_PP_TASK_SEQUENCE_IN;
+	task->type = ZBX_PP_TASK_SEQUENCE;
 	zbx_list_create(&d->tasks);
 
 	return task;
 }
 
-static void	pp_task_sequence_in_clear(zbx_pp_task_sequence_in_t *seq)
+static void	pp_task_sequence_clear(zbx_pp_task_sequence_t *seq)
 {
 	zbx_pp_task_t	*task;
 
@@ -165,96 +173,6 @@ static void	pp_task_sequence_in_clear(zbx_pp_task_sequence_in_t *seq)
 	zbx_list_destroy(&seq->tasks);
 }
 
-zbx_pp_task_t	*pp_task_test_out_create(zbx_pp_task_t *in)
-{
-	zbx_pp_task_t		*task = pp_task_create(sizeof(zbx_pp_task_test_out_t));
-	zbx_pp_task_test_out_t	*d = (zbx_pp_task_test_out_t *)PP_TASK_DATA(task);
-
-	pp_log("pp_task_test_out_create(%p) -> %p", in, task);
-
-	task->itemid = in->itemid;
-	task->type = ZBX_PP_TASK_TEST_OUT;
-	d->in = in;
-
-	return task;
-}
-
-static void	pp_task_test_out_clear(zbx_pp_task_test_out_t *task)
-{
-	pp_log("pp_task_test_out_clear(%p)", task);
-	pp_task_free(task->in);
-}
-
-zbx_pp_task_t	*pp_task_value_out_create(zbx_pp_task_t *in)
-{
-	zbx_pp_task_t		*task = pp_task_create(sizeof(zbx_pp_task_value_out_t));
-	zbx_pp_task_value_out_t	*d = (zbx_pp_task_value_out_t *)PP_TASK_DATA(task);
-
-	pp_log("pp_task_value_out_create(%p) -> %p", in, task);
-
-	task->itemid = in->itemid;
-	task->type = ZBX_PP_TASK_VALUE_OUT;
-	d->in = in;
-	zbx_variant_set_none(&d->value);
-
-	return task;
-}
-
-static void	pp_task_value_out_clear(zbx_pp_task_value_out_t *task)
-{
-	pp_log("pp_task_value_out_clear(), data:%p data->in:%p", task, task->in);
-	pp_task_free(task->in);
-	zbx_variant_clear(&task->value);
-}
-
-zbx_pp_task_t	*pp_task_dependent_out_create(zbx_pp_task_t *in)
-{
-	zbx_pp_task_t			*task = pp_task_create(sizeof(zbx_pp_task_dependent_out_t));
-	zbx_pp_task_dependent_out_t	*d = (zbx_pp_task_dependent_out_t *)PP_TASK_DATA(task);
-
-	pp_log("pp_task_dependent_out_create(%p) -> %p", in, task);
-
-	task->itemid = in->itemid;
-	task->type = ZBX_PP_TASK_DEPENDENT_OUT;
-	d->in = in;
-	d->cache = NULL;
-
-	return task;
-}
-
-static void	pp_task_dependent_out_clear(zbx_pp_task_dependent_out_t *task)
-{
-	pp_log("pp_task_dependent_out_clear(%p)", task);
-	pp_task_free(task->in);
-
-	if (NULL != task->cache)
-		pp_cache_release(task->cache);
-}
-
-zbx_pp_task_t	*pp_task_sequence_out_create(zbx_pp_task_t *in)
-{
-	zbx_pp_task_t			*task = pp_task_create(sizeof(zbx_pp_task_sequence_out_t));
-	zbx_pp_task_sequence_out_t	*d = (zbx_pp_task_sequence_out_t *)PP_TASK_DATA(task);
-
-	pp_log("pp_task_sequence_out_create(%p) -> %p", in, task);
-
-	task->itemid = in->itemid;
-	task->type = ZBX_PP_TASK_SEQUENCE_OUT;
-	d->in = in;
-	zbx_variant_set_none(&d->value);
-
-	return task;
-}
-
-static void	pp_task_sequence_out_clear(zbx_pp_task_sequence_out_t *task)
-{
-	pp_log("pp_task_sequence_out_clear(%p)", task);
-
-	pp_task_free(task->in);
-
-	zbx_variant_clear(&task->value);
-}
-
 void	pp_task_free(zbx_pp_task_t *task)
 {
 	pp_log("pp_task_free(%p)", task);
@@ -264,31 +182,18 @@ void	pp_task_free(zbx_pp_task_t *task)
 
 	switch (task->type)
 	{
-		case ZBX_PP_TASK_TEST_IN:
-			pp_task_test_in_clear((zbx_pp_task_test_in_t *)PP_TASK_DATA(task));
+		case ZBX_PP_TASK_TEST:
+			pp_task_test_clear((zbx_pp_task_test_t *)PP_TASK_DATA(task));
 			break;
-		case ZBX_PP_TASK_VALUE_IN:
-		case ZBX_PP_TASK_VALUE_SEQ_IN:
-			pp_task_value_in_clear((zbx_pp_task_value_in_t *)PP_TASK_DATA(task));
+		case ZBX_PP_TASK_VALUE:
+		case ZBX_PP_TASK_VALUE_SEQ:
+			pp_task_value_clear((zbx_pp_task_value_t *)PP_TASK_DATA(task));
 			break;
-		case ZBX_PP_TASK_DEPENDENT_IN:
-			pp_task_dependent_in_clear((zbx_pp_task_dependent_in_t *)PP_TASK_DATA(task));
+		case ZBX_PP_TASK_DEPENDENT:
+			pp_task_dependent_clear((zbx_pp_task_dependent_t *)PP_TASK_DATA(task));
 			break;
-		case ZBX_PP_TASK_SEQUENCE_IN:
-			pp_task_sequence_in_clear((zbx_pp_task_sequence_in_t *)PP_TASK_DATA(task));
-			break;
-		case ZBX_PP_TASK_TEST_OUT:
-			pp_task_test_out_clear((zbx_pp_task_test_out_t *)PP_TASK_DATA(task));
-			break;
-		case ZBX_PP_TASK_VALUE_OUT:
-		case ZBX_PP_TASK_VALUE_SEQ_OUT:
-			pp_task_value_out_clear((zbx_pp_task_value_out_t *)PP_TASK_DATA(task));
-			break;
-		case ZBX_PP_TASK_DEPENDENT_OUT:
-			pp_task_dependent_out_clear((zbx_pp_task_dependent_out_t *)PP_TASK_DATA(task));
-			break;
-		case ZBX_PP_TASK_SEQUENCE_OUT:
-			pp_task_sequence_out_clear((zbx_pp_task_sequence_out_t *)PP_TASK_DATA(task));
+		case ZBX_PP_TASK_SEQUENCE:
+			pp_task_sequence_clear((zbx_pp_task_sequence_t *)PP_TASK_DATA(task));
 			break;
 	}
 

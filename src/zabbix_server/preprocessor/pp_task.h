@@ -30,16 +30,11 @@
 
 typedef enum
 {
-	ZBX_PP_TASK_TEST_IN = 1,
-	ZBX_PP_TASK_VALUE_IN,
-	ZBX_PP_TASK_VALUE_SEQ_IN,
-	ZBX_PP_TASK_DEPENDENT_IN,
-	ZBX_PP_TASK_SEQUENCE_IN,
-	ZBX_PP_TASK_TEST_OUT,
-	ZBX_PP_TASK_VALUE_OUT,
-	ZBX_PP_TASK_VALUE_SEQ_OUT,
-	ZBX_PP_TASK_DEPENDENT_OUT,
-	ZBX_PP_TASK_SEQUENCE_OUT
+	ZBX_PP_TASK_TEST = 1,
+	ZBX_PP_TASK_VALUE,
+	ZBX_PP_TASK_VALUE_SEQ,
+	ZBX_PP_TASK_DEPENDENT,
+	ZBX_PP_TASK_SEQUENCE
 }
 zbx_pp_task_type_t;
 
@@ -47,6 +42,7 @@ typedef struct
 {
 	zbx_pp_task_type_t	type;
 	zbx_uint64_t		itemid;
+	zbx_uint64_t		hostid;
 	void			*data;
 }
 zbx_pp_task_t;
@@ -54,84 +50,53 @@ zbx_pp_task_t;
 typedef struct
 {
 	zbx_variant_t		value;
+	zbx_variant_t		result;
 	zbx_timespec_t		ts;
-	zbx_pp_item_preproc_t	*preproc;
+
+	zbx_pp_item_preproc_t	*preproc; /* created from the data provided in request */
 
 	/* TODO: output socket */
 }
-zbx_pp_task_test_in_t;
+zbx_pp_task_test_t;
 
 typedef struct
 {
 	zbx_variant_t		value;
+	zbx_variant_t		result;
 	zbx_timespec_t		ts;
 	zbx_uint64_t		lastlogsize;
 	int			mtime;
 
 	zbx_pp_item_preproc_t	*preproc;
-
 	zbx_pp_cache_t		*cache;
 }
-zbx_pp_task_value_in_t;
+zbx_pp_task_value_t;
 
 typedef struct
 {
 	zbx_variant_t		value;
 	zbx_timespec_t		ts;
 	zbx_pp_item_preproc_t	*preproc;
+	zbx_pp_cache_t		*cache;
 }
-zbx_pp_task_dependent_in_t;
+zbx_pp_task_dependent_t;
 
 typedef struct
 {
 	zbx_list_t	tasks;
 }
-zbx_pp_task_sequence_in_t;
-
-typedef struct
-{
-	zbx_pp_task_t	*in;
-}
-zbx_pp_task_test_out_t;
-
-typedef struct
-{
-	zbx_pp_task_t	*in;
-	zbx_variant_t	value;
-}
-zbx_pp_task_value_out_t;
-
-typedef struct
-{
-	zbx_pp_task_t		*in;
-
-	zbx_pp_cache_t	*cache;
-}
-zbx_pp_task_dependent_out_t;
-
-typedef struct
-{
-	zbx_pp_task_t	*in;
-	zbx_variant_t	value;
-}
-zbx_pp_task_sequence_out_t;
+zbx_pp_task_sequence_t;
 
 #define PP_TASK_DATA(x)		(&x->data)
 
-zbx_pp_task_t	*pp_task_test_out_create(zbx_pp_task_t *in);
-zbx_pp_task_t	*pp_task_value_out_create(zbx_pp_task_t *in);
-zbx_pp_task_t	*pp_task_dependent_out_create(zbx_pp_task_t *in);
-zbx_pp_task_t	*pp_task_sequence_out_create(zbx_pp_task_t *in);
-
 void	pp_task_free(zbx_pp_task_t *task);
 
-zbx_pp_task_t	*pp_task_test_in_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts);
-zbx_pp_task_t	*pp_task_value_in_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts,
+zbx_pp_task_t	*pp_task_test_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts);
+zbx_pp_task_t	*pp_task_value_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts,
 		zbx_pp_cache_t *cache);
-zbx_pp_task_t	*pp_task_dependent_in_create(zbx_uint64_t itemid, zbx_pp_item_preproc_t *preproc,
+zbx_pp_task_t	*pp_task_dependent_create(zbx_uint64_t itemid, zbx_pp_item_preproc_t *preproc,
 		const zbx_variant_t *value, zbx_timespec_t ts);
-zbx_pp_task_t	*pp_task_value_seq_in_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts);
-zbx_pp_task_t	*pp_task_sequence_in_create(zbx_uint64_t itemid);
-
+zbx_pp_task_t	*pp_task_value_seq_create(zbx_pp_item_t *item, zbx_variant_t *value, zbx_timespec_t ts);
+zbx_pp_task_t	*pp_task_sequence_create(zbx_uint64_t itemid);
 
 #endif

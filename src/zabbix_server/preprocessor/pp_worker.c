@@ -32,42 +32,46 @@
 /* WDN */
 /* #define sleep(x) */
 
-static zbx_pp_task_t	*pp_task_process_test(zbx_pp_task_t *in)
+static void	pp_task_process_test(zbx_pp_task_t *task)
 {
-	zbx_pp_task_t	*task = pp_task_test_out_create(in);
+	/* TODO: preprocess and send back result to the ipc client */
+	sleep(1);
+}
+
+static zbx_pp_task_t	*pp_task_process_value(zbx_pp_task_t *task)
+{
+	zbx_pp_task_value_t	*d = (zbx_pp_task_value_t *)PP_TASK_DATA(task);
+
+	zbx_variant_copy(&d->result, &d->value);
 	sleep(1);
 
 	return task;
 }
 
-static zbx_pp_task_t	*pp_task_process_value(zbx_pp_task_t *in)
+static zbx_pp_task_t	*pp_task_process_dependent(zbx_pp_task_t *task)
 {
-	zbx_pp_task_t	*task = pp_task_value_out_create(in);
+	zbx_pp_task_dependent_t	*d = (zbx_pp_task_dependent_t *)PP_TASK_DATA(task);
 
-	sleep(1);
-
-	return task;
-}
-
-static zbx_pp_task_t	*pp_task_process_dependent(zbx_pp_task_t *in)
-{
-	zbx_pp_task_t			*task = pp_task_dependent_out_create(in);
-	zbx_pp_task_dependent_in_t	*d_in = (zbx_pp_task_dependent_in_t *)PP_TASK_DATA(in);
-	zbx_pp_task_dependent_out_t	*d_out = (zbx_pp_task_dependent_out_t *)PP_TASK_DATA(task);
-
-	d_out->cache = pp_cache_create(0);
+	d->cache = pp_cache_create(0);
 
 	/* TODO: set either created cache or the input value */
-	zbx_variant_copy(&d_out->cache->value, &d_in->value);
+	zbx_variant_copy(&d->cache->value, &d->value);
 
 	sleep(1);
 
 	return task;
 }
 
-static zbx_pp_task_t	*pp_task_process_sequence(zbx_pp_task_t *in)
+static zbx_pp_task_t	*pp_task_process_sequence(zbx_pp_task_t *task)
 {
-	zbx_pp_task_t	*task = pp_task_sequence_out_create(in);
+	zbx_pp_task_sequence_t	*d_seq = (zbx_pp_task_sequence_t *)PP_TASK_DATA(task);
+	zbx_pp_task_t		*task_value;
+
+	if (SUCCEED == zbx_list_peek(&d_seq->tasks, (void **)&task_value))
+	{
+		zbx_pp_task_value_t	*d = (zbx_pp_task_value_t *)PP_TASK_DATA(task_value);
+		zbx_variant_copy(&d->result, &d->value);
+	}
 
 	sleep(1);
 
@@ -78,8 +82,7 @@ static void	*pp_worker_start(void *arg)
 {
 	zbx_pp_worker_t	*worker = (zbx_pp_worker_t *)arg;
 	zbx_pp_queue_t	*queue = worker->queue;
-	int		err;
-	zbx_pp_task_t	*in, *out;
+	zbx_pp_task_t	*in;
 
 	/* TODO: for debug logging, remove */
 	char	name[64];
@@ -106,25 +109,25 @@ static void	*pp_worker_start(void *arg)
 
 			switch (in->type)
 			{
-				case ZBX_PP_TASK_TEST_IN:
-					out = pp_task_process_test(in);
+				case ZBX_PP_TASK_TEST:
+					pp_task_process_test(in);
 					break;
-				case ZBX_PP_TASK_VALUE_IN:
-				case ZBX_PP_TASK_VALUE_SEQ_IN:
-					out = pp_task_process_value(in);
+				case ZBX_PP_TASK_VALUE:
+				case ZBX_PP_TASK_VALUE_SEQ:
+					pp_task_process_value(in);
 					break;
-				case ZBX_PP_TASK_DEPENDENT_IN:
-					out = pp_task_process_dependent(in);
+				case ZBX_PP_TASK_DEPENDENT:
+					pp_task_process_dependent(in);
 					break;
-				case ZBX_PP_TASK_SEQUENCE_IN:
-					out = pp_task_process_sequence(in);
+				case ZBX_PP_TASK_SEQUENCE:
+					pp_task_process_sequence(in);
 					break;
 			}
 
 			pp_log("done");
 
 			pp_task_queue_lock(queue);
-			pp_task_queue_push_done(queue, out);
+			pp_task_queue_push_done(queue, in);
 
 			continue;
 		}

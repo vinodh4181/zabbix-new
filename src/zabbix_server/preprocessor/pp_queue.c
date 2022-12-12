@@ -35,11 +35,11 @@ typedef struct
 	zbx_uint64_t	itemid;
 	zbx_pp_task_t	*task;
 }
-zbx_pp_task_sequence_t;
+zbx_pp_item_task_sequence_t;
 
 static void	pp_task_sequence_clear(void *d)
 {
-	zbx_pp_task_sequence_t	*seq = (zbx_pp_task_sequence_t *)d;
+	zbx_pp_item_task_sequence_t	*seq = (zbx_pp_item_task_sequence_t *)d;
 
 	pp_task_free(seq->task);
 }
@@ -124,27 +124,27 @@ void	pp_task_queue_push_immediate(zbx_pp_queue_t *queue, zbx_pp_task_t *task)
 
 static zbx_pp_task_t	*pp_task_queue_add_sequence(zbx_pp_queue_t *queue, zbx_pp_task_t *task)
 {
-	zbx_pp_task_sequence_t	*sequence;
-	zbx_pp_task_t		*new_task;
+	zbx_pp_item_task_sequence_t	*sequence;
+	zbx_pp_task_t			*new_task;
 
-	if (NULL == (sequence = (zbx_pp_task_sequence_t *)zbx_hashset_search(&queue->sequences, &task->itemid)))
+	if (NULL == (sequence = (zbx_pp_item_task_sequence_t *)zbx_hashset_search(&queue->sequences, &task->itemid)))
 	{
-		zbx_pp_task_sequence_t	sequence_local = {.itemid = task->itemid};
+		zbx_pp_item_task_sequence_t	sequence_local = {.itemid = task->itemid};
 
 		pp_log("create sequence for task %p", task);
 
-		sequence = (zbx_pp_task_sequence_t *)zbx_hashset_insert(&queue->sequences, &sequence_local,
+		sequence = (zbx_pp_item_task_sequence_t *)zbx_hashset_insert(&queue->sequences, &sequence_local,
 				sizeof(sequence_local));
 
-		sequence->task = pp_task_sequence_in_create(task->itemid);
+		sequence->task = pp_task_sequence_create(task->itemid);
 		new_task = sequence->task;
 	}
 	else
 		new_task = NULL;
 
-	zbx_pp_task_sequence_in_t	*seq_task = (zbx_pp_task_sequence_in_t *)PP_TASK_DATA(sequence->task);
+	zbx_pp_task_sequence_t	*d_seq = (zbx_pp_task_sequence_t *)PP_TASK_DATA(sequence->task);
 
-	zbx_list_append(&seq_task->tasks, task, NULL);
+	zbx_list_append(&d_seq->tasks, task, NULL);
 
 	return new_task;
 }
@@ -156,7 +156,7 @@ void	pp_task_queue_remove_sequence(zbx_pp_queue_t *queue, zbx_uint64_t itemid)
 
 void	pp_task_queue_push_new(zbx_pp_queue_t *queue, zbx_pp_item_t *item, zbx_pp_task_t *task)
 {
-	if (ZBX_PP_TASK_TEST_IN == task->type)
+	if (ZBX_PP_TASK_TEST == task->type)
 	{
 		pp_log("queue immediate test task %p", task);
 		zbx_list_append(&queue->immediate, task, NULL);
@@ -172,7 +172,7 @@ void	pp_task_queue_push_new(zbx_pp_queue_t *queue, zbx_pp_item_t *item, zbx_pp_t
 		return;
 	}
 
-	if (ZBX_PP_TASK_VALUE_IN == task->type)
+	if (ZBX_PP_TASK_VALUE == task->type)
 	{
 		pp_log("queue immediate internal task %p", task);
 		zbx_list_append(&queue->immediate, task, NULL);
@@ -190,19 +190,12 @@ zbx_pp_task_t	*pp_task_queue_pop_new(zbx_pp_queue_t *queue)
 	zbx_pp_task_t	*task = NULL;
 
 	if (SUCCEED == zbx_list_pop(&queue->immediate, (void **)&task))
-	{
-		pp_log("try immediate task %p", task);
 		return (zbx_pp_task_t *)task;
-	}
 
 	while (SUCCEED == zbx_list_pop(&queue->pending, (void **)&task))
 	{
-		pp_log("try pending task %p", task);
-		if (ZBX_PP_TASK_VALUE_SEQ_IN == task->type)
-		{
+		if (ZBX_PP_TASK_VALUE_SEQ == task->type)
 			task = pp_task_queue_add_sequence(queue, task);
-			pp_log("process seq in -> %p", task);
-		}
 
 		if (NULL != task)
 			return task;
