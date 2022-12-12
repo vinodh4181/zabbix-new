@@ -472,6 +472,7 @@ class CHttpTest extends CApiService {
 				'value' =>				['type' => API_STRING_UTF8, 'length' => DB::getFieldLength('httptest_tag', 'value'), 'default' => DB::getDefault('httptest_tag', 'value')]
 			]]
 		]];
+
 		if (!CApiInputValidator::validate($api_input_rules, $httptests, '/', $error)) {
 			self::exception(ZBX_API_ERROR_PARAMETERS, $error);
 		}

@@ -121,8 +121,16 @@ class CControllerPopupHttpStep extends CController {
 			foreach ($page_options['pairs'] as $i => $pair) {
 				if ($pair['name'] === '' && $pair['value'] !== '') {
 					error(_s('Incorrect value for field "%1$s": %2$s.', '/'.$pair['type'].'/'.($i + 1).'/name',
-						_('cannot be empty'))
-					);
+						_('cannot be empty')
+					));
+				}
+
+				if ($pair['type'] === 'variables') {
+					if (preg_match('/^{[^{}]+}$/', $pair['name']) !== 1) {
+						error(_s('Invalid parameter "%1$s": %2$s.', '/'.$pair['type'].'/'.($i + 1).'/name',
+							_('is not enclosed in {} or is malformed')
+						));
+					}
 				}
 			}
 
