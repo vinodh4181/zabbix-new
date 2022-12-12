@@ -82,6 +82,7 @@
 				->setWidth(ZBX_TEXTAREA_HTTP_PAIR_VALUE_WIDTH),
 			(new CCol([
 				(new CButton(null, _('Remove')))
+					->setEnabled(false)
 					->addClass(ZBX_STYLE_BTN_LINK)
 					->addClass('element-table-remove'),
 				new CVar('pairs[#{index}][type]', '#{type}', '')
@@ -212,9 +213,20 @@
 							}
 
 							jQuery(e.target).sortable({disabled: e.target.querySelectorAll('.sortable').length < 2});
+
+							const remove_bttns = e.target.querySelectorAll('.element-table-remove');
+							if (remove_bttns.length > 1) {
+								[...remove_bttns].map((elem) => {
+									elem.disabled = false;
+								});
+							}
 						})
 						.on('afterremove.dynamicRows', (e) => {
 							jQuery(e.target).sortable({disabled: e.target.querySelectorAll('.sortable').length < 2});
+
+							if (e.target.querySelectorAll('.element-table-remove').length === 1) {
+								e.target.querySelector('.element-table-remove').disabled = true;
+							}
 						});
 
 					if (type === 'variables') {
@@ -264,7 +276,7 @@
 						disabled: container.querySelectorAll('[data-row-name]').length < 2,
 						helper: function(e, ui) {
 							ui.children().each(function() {
-								var td = $(this);
+								var td = jQuery(this);
 
 								td.width(td.width());
 							});

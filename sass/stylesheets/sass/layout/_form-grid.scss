@@ -83,6 +83,10 @@
 			top: 5px;
 			left: 3px;
 		}
+
+		.ui-sortable-disabled .drag-icon {
+			cursor: default;
+		}
 	}
 
 	&.form-grid-1-1 {

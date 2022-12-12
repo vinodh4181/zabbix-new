@@ -69,9 +69,20 @@ window.http_step_popup = new class {
 					}
 
 					jQuery(e.target).sortable({disabled: e.target.querySelectorAll('.sortable').length < 2});
+
+					const remove_bttns = e.target.querySelectorAll('.element-table-remove');
+					if (remove_bttns.length > 1) {
+						[...remove_bttns].map((elem) => {
+							elem.disabled = false;
+						});
+					}
 				})
 				.on('afterremove.dynamicRows', (e) => {
 					jQuery(e.target).sortable({disabled: e.target.querySelectorAll('.sortable').length < 2});
+
+					if (e.target.querySelectorAll('.element-table-remove').length === 1) {
+						e.target.querySelector('.element-table-remove').disabled = true;
+					}
 				});
 
 			if (type === 'variables') {
@@ -90,7 +101,7 @@ window.http_step_popup = new class {
 					disabled: elem.querySelectorAll('.sortable').length < 2,
 					helper: function(e, ui) {
 						ui.children().each(function() {
-							var td = $(this);
+							var td = jQuery(this);
 
 							td.width(td.width());
 						});
@@ -118,6 +129,21 @@ window.http_step_popup = new class {
 		});
 
 		this.input_url = document.getElementById('url');
+
+		const query_fields_table = document.querySelector('.js-tbl-editable table');
+		const query_fields_callback = () => {
+			if (query_fields_table.dataset.templated == '1') {
+				return;
+			}
+
+			const rows = query_fields_table.querySelectorAll('.js-editable-row-remove');
+			[...rows].map((elem) => {
+				elem.disabled = rows.length == 1;
+			});
+		};
+
+		jQuery(query_fields_table).on('editabletable.add', query_fields_callback);
+		jQuery(query_fields_table).on('editabletable.remove', query_fields_callback);
 
 		this._update();
 	}
@@ -164,7 +190,7 @@ window.http_step_popup = new class {
 
 		this.pairs.post_fields.classList.toggle('disabled', is_disabled);
 
-		[...this.pairs.post_fields.querySelectorAll('input, button')].map((elem) => elem.disabled = is_disabled);
+		[...this.pairs.post_fields.querySelectorAll('input')].map((elem) => elem.disabled = is_disabled);
 
 		if (!is_disabled) {
 			jQuery(this.pairs.post_fields).trigger('tableupdate.dynamicRows', this);
@@ -273,8 +299,8 @@ window.http_step_popup = new class {
 				table.addRows(url.pairs);
 				table.getTableRows()
 					.map(function() {
-						const empty = $(this).find('input[type="text"]').map(function() {
-							return ($(this).val() === '') ? this : null;
+						const empty = jQuery(this).find('input[type="text"]').map(function() {
+							return (jQuery(this).val() === '') ? this : null;
 						});
 
 						return (empty.length == 2) ? this : null;
@@ -290,7 +316,7 @@ window.http_step_popup = new class {
 			overlayDialogue({
 				'title': <?= json_encode(_('Error')) ?>,
 				'class': 'modal-popup position-middle',
-				'content': $('<span>').html(<?=
+				'content': jQuery('<span>').html(<?=
 					json_encode(_('Failed to parse URL.').'<br><br>'._('URL is not properly encoded.'))
 				?>),
 				'buttons': [

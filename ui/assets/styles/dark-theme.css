@@ -698,6 +698,8 @@ footer {
     position: absolute;
     top: 5px;
     left: 3px; }
+  .form-grid .form-field .ui-sortable-disabled .drag-icon {
+    cursor: default; }
   .form-grid.form-grid-1-1 {
     grid-template-columns: repeat(2, minmax(15%, max-content) auto); }
     .form-grid.form-grid-1-1.label-width-true {

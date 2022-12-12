@@ -117,6 +117,8 @@
 
 				setSortableState();
 
+				table.trigger('editabletable.add');
+
 				return new_row;
 			}
 
@@ -149,6 +151,8 @@
 						$(this).find('[name*="sortorder"]').val(i++);
 					});
 				}
+
+				table.trigger('editabletable.remove');
 			}
 
 			return {

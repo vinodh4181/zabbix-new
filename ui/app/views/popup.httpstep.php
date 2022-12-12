@@ -74,8 +74,9 @@ $popup_grid = (new CFormGrid())
 				(new CTable())
 					->setAttribute('style', 'width: 100%;')
 					->setAttribute('data-type', 'query_fields')
+					->setAttribute('data-templated', $options['templated'])
 					->setHeader(['', _('Name'), '', _('Value'), ''])
-					->addRow((new CRow)->setAttribute('data-insert-point', 'append'))
+					->addRow((new CRow())->setAttribute('data-insert-point', 'append'))
 					->setFooter(new CRow(
 						(new CCol(
 							(new CButton(null, _('Add')))
@@ -99,6 +100,7 @@ $popup_grid = (new CFormGrid())
 							->setWidth(ZBX_TEXTAREA_HTTP_PAIR_VALUE_WIDTH),
 						(new CButton(null, _('Remove')))
 							->addClass(ZBX_STYLE_BTN_LINK)
+							->addClass('js-editable-row-remove')
 							->setEnabled(!(bool) $options['templated'])
 							->setAttribute('data-row-action', 'remove_row')
 					])),
