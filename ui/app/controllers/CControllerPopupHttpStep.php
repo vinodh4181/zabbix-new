@@ -126,7 +126,9 @@ class CControllerPopupHttpStep extends CController {
 				}
 
 				if ($pair['type'] === 'variables') {
-					if (preg_match('/^{[^{}]+}$/', $pair['name']) !== 1) {
+
+					if (($pair['name'] !== '' || $pair['value'] !== '')
+							&& preg_match('/^{[^{}]+}$/', $pair['name']) !== 1) {
 						error(_s('Invalid parameter "%1$s": %2$s.', '/'.$pair['type'].'/'.($i + 1).'/name',
 							_('is not enclosed in {} or is malformed')
 						));
