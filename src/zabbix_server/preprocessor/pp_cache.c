@@ -36,7 +36,7 @@ zbx_pp_cache_t	*pp_cache_create(unsigned char type)
 
 void	pp_cache_release(zbx_pp_cache_t *cache)
 {
-	if (0 != --cache->refcount)
+	if (NULL == cache || 0 != --cache->refcount)
 		return;
 
 	zbx_variant_clear(&cache->value);

@@ -23,7 +23,9 @@
 #define ZABBIX_PP_LOG
 
 
-void	pp_log_init(const char *source);
-void	pp_log(const char *format, ...);
+void	pp_log_init(const char *source, int level);
+void	pp_debugf(const char *format, ...);
+void	pp_warnf(const char *format, ...);
+void	pp_infof(const char *format, ...);
 
 #endif

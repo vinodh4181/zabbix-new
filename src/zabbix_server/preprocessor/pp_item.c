@@ -31,7 +31,7 @@ zbx_pp_item_preproc_t	*pp_item_preproc_create(unsigned char type, unsigned char 
 {
 	zbx_pp_item_preproc_t	*preproc = zbx_malloc(NULL, sizeof(zbx_pp_item_preproc_t));
 
-	pp_log("pp_item_preproc_create() -> 0x%p", preproc);
+	pp_debugf("pp_item_preproc_create() -> 0x%p", preproc);
 	preproc->refcount = 1;
 	preproc->steps_num = 0;
 	preproc->steps = NULL;
@@ -45,7 +45,7 @@ zbx_pp_item_preproc_t	*pp_item_preproc_create(unsigned char type, unsigned char 
 	return preproc;
 }
 
-void	pp_item_preproc_free(zbx_pp_item_preproc_t *preproc)
+static void	pp_item_preproc_free(zbx_pp_item_preproc_t *preproc)
 {
 	int	i;
 
@@ -58,15 +58,27 @@ void	pp_item_preproc_free(zbx_pp_item_preproc_t *preproc)
 	zbx_free(preproc->steps);
 	zbx_free(preproc->dep_itemids);
 
-	pp_log("pp_item_preproc_free(0x%p)", preproc);
+	pp_debugf("pp_item_preproc_free(0x%p)", preproc);
 
 	zbx_free(preproc);
 }
 
+zbx_pp_item_preproc_t	*pp_item_preproc_copy(zbx_pp_item_preproc_t *preproc)
+{
+	if (NULL == preproc)
+		return NULL;
+
+	preproc->refcount++;
+
+	return preproc;
+}
+
 void	pp_item_preproc_release(zbx_pp_item_preproc_t *preproc)
 {
-	if (0 == --preproc->refcount)
-		pp_item_preproc_free(preproc);
+	if (NULL == preproc || 0 != --preproc->refcount)
+		return;
+
+	pp_item_preproc_free(preproc);
 }
 
 /* TODO: preprocessing mode must be calculated automatically after setting steps */
@@ -79,13 +91,6 @@ void	pp_item_init(zbx_pp_item_t *item, unsigned char type, unsigned char value_t
 
 void	pp_item_clear(zbx_pp_item_t *item)
 {
-	pp_log("pp_item_clear(0x%p)", item);
+	pp_debugf("pp_item_clear(0x%p)", item);
 	pp_item_preproc_release(item->preproc);
-}
-
-zbx_pp_item_preproc_t	*pp_preproc_copy(zbx_pp_item_preproc_t *preproc)
-{
-	preproc->refcount++;
-
-	return preproc;
 }

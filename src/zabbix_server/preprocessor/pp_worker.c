@@ -51,11 +51,12 @@ static zbx_pp_task_t	*pp_task_process_value(zbx_pp_task_t *task)
 static zbx_pp_task_t	*pp_task_process_dependent(zbx_pp_task_t *task)
 {
 	zbx_pp_task_dependent_t	*d = (zbx_pp_task_dependent_t *)PP_TASK_DATA(task);
+	zbx_pp_task_value_t	*d_first = (zbx_pp_task_value_t *)PP_TASK_DATA(d->first_task);
 
 	d->cache = pp_cache_create(0);
 
 	/* TODO: set either created cache or the input value */
-	zbx_variant_copy(&d->cache->value, &d->value);
+	zbx_variant_copy(&d->cache->value, &d_first->value);
 
 	sleep(1);
 
@@ -88,9 +89,9 @@ static void	*pp_worker_start(void *arg)
 	char	name[64];
 
 	zbx_snprintf(name, sizeof(name), "worker%02d", worker->id);
-	pp_log_init(name);
+	pp_log_init(name, 3);
 
-	pp_log("starting ...");
+	pp_infof("starting ...");
 
 	worker->stop = 0;
 
@@ -105,7 +106,7 @@ static void	*pp_worker_start(void *arg)
 
 			/* TODO: process task */
 
-			pp_log("process task %p type:%u itemid:%llu", in, in->type, in->itemid);
+			pp_warnf("process task %p type:%u itemid:%llu", in, in->type, in->itemid);
 
 			switch (in->type)
 			{
@@ -124,8 +125,6 @@ static void	*pp_worker_start(void *arg)
 					break;
 			}
 
-			pp_log("done");
-
 			pp_task_queue_lock(queue);
 			pp_task_queue_push_done(queue, in);
 
@@ -139,7 +138,7 @@ static void	*pp_worker_start(void *arg)
 	pp_task_queue_deregister_worker(queue);
 	pp_task_queue_unlock(queue);
 
-	pp_log("stop worker");
+	pp_infof("stop worker");
 
 	return (void *)0;
 }

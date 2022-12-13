@@ -46,8 +46,8 @@ int	pp_manager_init(zbx_pp_manager_t *manager, int workers_num, char **error)
 	struct timespec	poll_delay = {0, 1e8};
 
 	/* TODO: for debug logging, remove */
-	pp_log_init("manager");
-	pp_log("starting ...");
+	pp_log_init("manager", 3);
+	pp_infof("starting ...");
 
 	memset(manager, 0, sizeof(zbx_pp_manager_t));
 
@@ -88,7 +88,7 @@ int	pp_manager_init(zbx_pp_manager_t *manager, int workers_num, char **error)
 		nanosleep(&poll_delay, NULL);
 	}
 
-	pp_log("workers started");
+	pp_infof("workers started");
 
 	ret = SUCCEED;
 out:
@@ -126,7 +126,7 @@ void	pp_manager_queue_test(zbx_pp_manager_t *manager, zbx_uint64_t itemid, zbx_v
 
 	zbx_timespec(&ts);
 
-	task = pp_task_test_create(item, value, ts);
+	task = pp_task_test_create(item->itemid, item->preproc, value, ts);
 	pp_task_queue_push_new(&manager->queue, item, task);
 	pp_task_queue_notify(&manager->queue);
 }
@@ -141,19 +141,50 @@ void	pp_manager_queue_preproc(zbx_pp_manager_t *manager, zbx_uint64_t itemid, zb
 		return;
 
 	if (ZBX_PP_PROCESS_PARALLEL == item->preproc->mode)
-		task = pp_task_value_create(item, value, ts, NULL);
+		task = pp_task_value_create(item->itemid, item->preproc, value, ts, NULL);
 	else
-		task = pp_task_value_seq_create(item, value, ts);
+		task = pp_task_value_seq_create(item->itemid, item->preproc, value, ts);
 
 	pp_task_queue_push_new(&manager->queue, item, task);
 	pp_task_queue_notify(&manager->queue);
 }
 
-void	pp_manager_requeue_dependent_task(zbx_pp_manager_t *manager, zbx_pp_task_t *task)
+void	pp_manager_requeue_value_task(zbx_pp_manager_t *manager, zbx_pp_task_t *task)
+{
+	zbx_pp_task_value_t	*d = (zbx_pp_task_value_t *)PP_TASK_DATA(task);
+
+	if (0 != d->preproc->dep_itemids_num)
+	{
+		zbx_pp_task_t		*dep_task;
+		zbx_pp_item_t		*item;
+		zbx_pp_item_preproc_t	*preproc;
+
+		dep_task = pp_task_dependent_create(task->itemid, d->preproc);
+
+		if (NULL != (item = (zbx_pp_item_t *)zbx_hashset_search(&manager->items, &d->preproc->dep_itemids[0])))
+			preproc = item->preproc;
+		else
+			preproc = NULL;
+
+		zbx_pp_task_dependent_t	*d_dep = (zbx_pp_task_dependent_t *)PP_TASK_DATA(dep_task);
+
+		d_dep->first_task = pp_task_value_create(d->preproc->dep_itemids[0], preproc, &d->result, d->ts,
+				d->cache);
+
+		pp_task_queue_push_immediate(&manager->queue, dep_task);
+		pp_task_queue_notify(&manager->queue);
+	}
+}
+
+zbx_pp_task_t	*pp_manager_requeue_dependent_task(zbx_pp_manager_t *manager, zbx_pp_task_t *task)
 {
 	int	i;
 
 	zbx_pp_task_dependent_t	*d = (zbx_pp_task_dependent_t *)PP_TASK_DATA(task);
+	zbx_pp_task_t		*task_value = d->first_task;
+	zbx_pp_task_value_t	*d_first = (zbx_pp_task_value_t *)PP_TASK_DATA(task_value);
+
+	pp_manager_requeue_value_task(manager, d->first_task);
 
 	for (i = 1; i < d->preproc->dep_itemids_num; i++)
 	{
@@ -162,11 +193,17 @@ void	pp_manager_requeue_dependent_task(zbx_pp_manager_t *manager, zbx_pp_task_t 
 		if (NULL == (item = (zbx_pp_item_t *)zbx_hashset_search(&manager->items, &d->preproc->dep_itemids[i])))
 			continue;
 
-		zbx_pp_task_t	*task_value = pp_task_value_create(item, NULL, d->ts, d->cache);
+		zbx_pp_task_t	*task_value = pp_task_value_create(item->itemid, item->preproc, NULL, d_first->ts,
+				d->cache);
 		pp_task_queue_push_immediate(&manager->queue, task_value);
 	}
 
 	pp_task_queue_notify_all(&manager->queue);
+
+	d->first_task = NULL;
+	pp_task_free(task);
+
+	return task_value;
 }
 
 zbx_pp_task_t	*pp_manager_requeue_sequence_task(zbx_pp_manager_t *manager, zbx_pp_task_t *task)
@@ -175,18 +212,7 @@ zbx_pp_task_t	*pp_manager_requeue_sequence_task(zbx_pp_manager_t *manager, zbx_p
 	zbx_pp_task_t		*value_task = NULL, *tmp_task;
 
 	if (SUCCEED == zbx_list_pop(&d_seq->tasks, (void **)&value_task))
-	{
-		zbx_pp_task_value_t	*d = (zbx_pp_task_value_t *)PP_TASK_DATA(value_task);
-
-		if (0 != d->preproc->dep_itemids_num)
-		{
-			zbx_pp_task_t	*dep_task;
-
-			dep_task = pp_task_dependent_create(task->itemid, d->preproc, &d->result, d->ts);
-			pp_task_queue_push_immediate(&manager->queue, dep_task);
-			pp_task_queue_notify(&manager->queue);
-		}
-	}
+		pp_manager_requeue_value_task(manager, value_task);
 
 	if (SUCCEED == zbx_list_peek(&d_seq->tasks, (void **)&tmp_task))
 	{
@@ -223,8 +249,11 @@ void	pp_manager_process_finished(zbx_pp_manager_t *manager)
 		{
 			switch (task->type)
 			{
+				case ZBX_PP_TASK_VALUE:
+					pp_manager_requeue_value_task(manager, task);
+					break;
 				case ZBX_PP_TASK_DEPENDENT:
-					pp_manager_requeue_dependent_task(manager, task);
+					task = pp_manager_requeue_dependent_task(manager, task);
 					break;
 				case ZBX_PP_TASK_SEQUENCE:
 					task = pp_manager_requeue_sequence_task(manager, task);
@@ -245,6 +274,12 @@ void	pp_manager_process_finished(zbx_pp_manager_t *manager)
 	}
 
 	pp_task_queue_unlock(&manager->queue);
+
+	for (int i = 0; i < tasks.values_num; i++)
+	{
+		pp_warnf("flush task %p type:%u itemid:%llu", tasks.values[i], tasks.values[i]->type,
+				tasks.values[i]->itemid);
+	}
 
 	zbx_vector_pp_task_clear_ext(&tasks, pp_task_free);
 	zbx_vector_pp_task_destroy(&tasks);
@@ -306,16 +341,24 @@ static void	test_tasks(zbx_pp_manager_t * manager)
 {
 	zbx_variant_t	value;
 	zbx_timespec_t	ts;
-	zbx_pp_item_t	*item;
+	zbx_pp_item_t	*item, *item2;
 
 	item = pp_manager_add_item(manager, 1001, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_SERIAL);
-	pp_manager_add_item(manager, 1002, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_PARALLEL);
+	item2 = pp_manager_add_item(manager, 1002, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_PARALLEL);
 	pp_manager_add_item(manager, 1003, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_PARALLEL);
 	pp_manager_add_item(manager, 1004, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_PARALLEL);
 
 	pp_add_item_dep(item, 1002);
 	pp_add_item_dep(item, 1003);
 	pp_add_item_dep(item, 1004);
+
+	pp_manager_add_item(manager, 1005, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_PARALLEL);
+	pp_manager_add_item(manager, 1006, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_PARALLEL);
+	pp_manager_add_item(manager, 1007, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_PARALLEL);
+
+	pp_add_item_dep(item2, 1005);
+	pp_add_item_dep(item2, 1006);
+	pp_add_item_dep(item2, 1007);
 
 	zbx_variant_set_ui64(&value, 1);
 	zbx_timespec(&ts);
@@ -327,7 +370,7 @@ static void	test_tasks(zbx_pp_manager_t * manager)
 	pp_task_queue_unlock(&manager->queue);
 	pp_task_queue_notify_all(&manager->queue);
 
-	for (int i = 0; i < 7; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		printf("==== iteration: %d\n", i);
 		pp_manager_process_finished(manager);
@@ -413,15 +456,15 @@ int	test_pp(void)
 	zbx_pp_manager_t	manager;
 	char			*error = NULL;
 
-	if (SUCCEED != pp_manager_init(&manager, 5, &error))
+	if (SUCCEED != pp_manager_init(&manager, 2, &error))
 	{
 		printf("Failed to initialize preprocessing subsystem: %s\n", error);
 		zbx_free(error);
 		exit(EXIT_FAILURE);
 	}
 
-	test_perf(&manager);
-	/* test_tasks(&manager); */
+	/* test_perf(&manager) */
+	test_tasks(&manager);
 
 	printf("==== shutting down...\n");
 	pp_manager_destroy(&manager);
