@@ -466,24 +466,28 @@ static void	test_preproc(zbx_pp_manager_t * manager)
 
 	item = pp_manager_add_item(manager, 1001, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_SERIAL);
 
-	pp_add_item_preproc(item, ZBX_PREPROC_TRIM, "xz", 0, NULL);
-	pp_add_item_preproc(item, ZBX_PREPROC_MULTIPLIER, "10", 0, NULL);
-	pp_add_item_preproc(item, ZBX_PREPROC_VALIDATE_NOT_SUPPORTED, "", 2, "33");
-	//pp_add_item_preproc(item, ZBX_PREPROC_TRIM, "13", 0, NULL);
-	pp_add_item_preproc(item, ZBX_PREPROC_MULTIPLIER, "100", 0, NULL);
+	pp_add_item_preproc(item, ZBX_PREPROC_DELTA_VALUE, "", 0, NULL);
 
-	/* zbx_variant_set_ui64(&value, 1); */
-	zbx_variant_set_str(&value, "xyz");
+	zbx_variant_set_ui64(&value, 1);
+	/*zbx_variant_set_str(&value, "xyz"); */
 	zbx_timespec(&ts);
 
 	pp_task_queue_lock(&manager->queue);
 
 	pp_manager_queue_preproc(manager, 1001, &value, ts);
+	zbx_variant_set_ui64(&value, 2);
+	pp_manager_queue_preproc(manager, 1001, &value, ts);
+	zbx_variant_set_ui64(&value, 4);
+	pp_manager_queue_preproc(manager, 1001, &value, ts);
+	zbx_variant_set_ui64(&value, 2);
+	pp_manager_queue_preproc(manager, 1001, &value, ts);
+	zbx_variant_set_ui64(&value, 6);
+	pp_manager_queue_preproc(manager, 1001, &value, ts);
 
 	pp_task_queue_unlock(&manager->queue);
 	pp_task_queue_notify_all(&manager->queue);
 
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 12; i++)
 	{
 		printf("==== iteration: %d\n", i);
 		pp_manager_process_finished(manager);
@@ -496,7 +500,7 @@ int	test_pp(void)
 	zbx_pp_manager_t	manager;
 	char			*error = NULL;
 
-	if (SUCCEED != pp_manager_init(&manager, 2, &error))
+	if (SUCCEED != pp_manager_init(&manager, 1, &error))
 	{
 		printf("Failed to initialize preprocessing subsystem: %s\n", error);
 		zbx_free(error);

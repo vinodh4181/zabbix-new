@@ -61,5 +61,7 @@ void	zbx_preproc_cache_clear(zbx_preproc_cache_t *cache);
 int	item_preproc_multiplier_variant(unsigned char value_type, zbx_variant_t *value, const char *params,
 		char **errmsg);
 int	item_preproc_trim(zbx_variant_t *value, unsigned char op_type, const char *params, char **errmsg);
+int	item_preproc_delta(unsigned char value_type, zbx_variant_t *value, const zbx_timespec_t *ts,
+		unsigned char op_type, zbx_variant_t *history_value, zbx_timespec_t *history_ts, char **errmsg);
 
 #endif

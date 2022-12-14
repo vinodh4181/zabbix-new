@@ -47,8 +47,10 @@ void	pp_history_add(zbx_pp_history_t *history, int index, zbx_variant_t *value, 
 	zbx_pp_step_history_t	step_history;
 
 	step_history.index = index;
-	zbx_variant_copy(&step_history.value, value);
+	step_history.value = *value;
 	step_history.ts = ts;
+
+	zbx_variant_set_none(value);
 
 	zbx_vector_pp_step_history_append_ptr(&history->step_history, &step_history);
 }
@@ -66,6 +68,8 @@ void	pp_history_pop(zbx_pp_history_t *history, int index, zbx_variant_t *value, 
 				*value = history->step_history.values[i].value;
 				*ts = history->step_history.values[i].ts;
 				zbx_vector_pp_step_history_remove_noorder(&history->step_history, i);
+
+				return;
 			}
 		}
 	}

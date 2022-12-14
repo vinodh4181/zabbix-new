@@ -91,6 +91,35 @@ static int	pp_check_not_error(const zbx_variant_t *value)
 	return SUCCEED;
 }
 
+static const char	*pp_delta_desc(unsigned char type)
+{
+	switch (type)
+	{
+		case ZBX_PREPROC_DELTA_VALUE:
+			return "simple change";
+		case ZBX_PREPROC_DELTA_SPEED:
+			return "speed per second";
+		default:
+			return "";
+	}
+}
+
+static int	pp_execute_delta(unsigned char type, unsigned char value_type, zbx_variant_t *value, zbx_timespec_t ts,
+		zbx_variant_t *history_value, zbx_timespec_t history_ts)
+{
+	char	*errmsg = NULL;
+
+	if (SUCCEED == item_preproc_delta(value_type, value, &ts, type, history_value, &history_ts, &errmsg))
+		return SUCCEED;
+
+	zbx_variant_clear(value);
+	zbx_variant_set_error(value, zbx_dsprintf(NULL,  "cannot calculate delta (%s) for value of type"
+				" \"%s\": %s", pp_delta_desc(type), zbx_variant_type_desc(value), errmsg));
+	zbx_free(errmsg);
+
+	return FAIL;
+}
+
 static int	pp_execute_step(zbx_pp_cache_t *cache, unsigned char value_type, zbx_variant_t *value,
 		zbx_timespec_t ts, zbx_pp_step_t *step, zbx_variant_t *history_value, zbx_timespec_t history_ts)
 {
@@ -104,6 +133,9 @@ static int	pp_execute_step(zbx_pp_cache_t *cache, unsigned char value_type, zbx_
 			return pp_execute_trim(step->type, value, step->params);
 		case ZBX_PREPROC_VALIDATE_NOT_SUPPORTED:
 			return pp_check_not_error(value);
+		case ZBX_PREPROC_DELTA_VALUE:
+		case ZBX_PREPROC_DELTA_SPEED:
+			return pp_execute_delta(step->type, value_type, value, ts, history_value, history_ts);
 		default:
 			zbx_variant_clear(value);
 			zbx_variant_set_error(value, zbx_dsprintf(NULL, "unknown preprocessing step"));
@@ -160,13 +192,13 @@ void	pp_execute(zbx_pp_item_preproc_t *preproc, zbx_pp_cache_t *cache, zbx_varia
 
 		pp_result_set(results + results_num++, value_out, action);
 
-		zbx_variant_clear(&history_value);
-
-		if (NULL != history && ZBX_VARIANT_NONE != value_out->type && ZBX_VARIANT_ERR != value_out->type)
+		if (NULL != history && ZBX_VARIANT_NONE != history_value.type && ZBX_VARIANT_ERR != value_out->type)
 		{
 			if (SUCCEED == pp_preproc_uses_history(preproc->steps[i].type))
-				pp_history_add(history, i, value_out, ts);
+				pp_history_add(history, i, &history_value, ts);
 		}
+
+		zbx_variant_clear(&history_value);
 
 		cache = NULL;
 	}
