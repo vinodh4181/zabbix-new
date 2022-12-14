@@ -31,6 +31,11 @@ void	pp_log_init(const char *source, int level)
 	log_level = level;
 }
 
+int	pp_get_level()
+{
+	return log_level;
+}
+
 static void	pp_log(const char *format, va_list args)
 {
 	char	buf[MAX_BUFFER_LEN];

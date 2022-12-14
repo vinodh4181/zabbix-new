@@ -22,10 +22,28 @@
 #ifndef ZABBIX_PP_LOG
 #define ZABBIX_PP_LOG
 
-
 void	pp_log_init(const char *source, int level);
 void	pp_debugf(const char *format, ...);
 void	pp_warnf(const char *format, ...);
 void	pp_infof(const char *format, ...);
+
+#undef zabbix_log
+
+#	define zabbix_log(level, format, ...)								\
+	do												\
+	{	switch (level) {									\
+			case LOG_LEVEL_DEBUG:								\
+				pp_warnf(format, __VA_ARGS__);						\
+				break;									\
+			case LOG_LEVEL_WARNING:								\
+				pp_warnf(format, __VA_ARGS__);						\
+				break;									\
+			case LOG_LEVEL_INFORMATION:							\
+				pp_infof(format, __VA_ARGS__);						\
+				break;									\
+			default:									\
+				break;									\
+		}											\
+	} while (0)
 
 #endif

@@ -17,25 +17,33 @@
 ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 **/
 
-#ifndef ZABBIX_PP_CACHE_H
-#define ZABBIX_PP_CACHE_H
+#ifndef ZABBIX_PP_HISTORY_H
+#define ZABBIX_PP_HISTORY_H
 
-#include "pp_item.h"
+#include "zbxalgo.h"
 #include "zbxvariant.h"
+#include "zbxtime.h"
 
 typedef struct
 {
-	zbx_uint32_t	refcount;
-
+	int		index;
 	zbx_variant_t	value;
-
-	unsigned char	type;
-	void		*data;
+	zbx_timespec_t	ts;
 }
-zbx_pp_cache_t;
+zbx_pp_step_history_t;
 
-zbx_pp_cache_t	*pp_cache_create(zbx_pp_item_preproc_t *preproc);
-void	pp_cache_release(zbx_pp_cache_t *cache);
-zbx_pp_cache_t	*pp_cache_copy(zbx_pp_cache_t *cache);
+ZBX_VECTOR_DECL(pp_step_history, zbx_pp_step_history_t);
+
+typedef struct
+{
+	zbx_vector_pp_step_history_t	step_history;
+}
+zbx_pp_history_t;
+
+zbx_pp_history_t	*pp_history_create(int history_num);
+void	pp_history_free(zbx_pp_history_t *history);
+
+void	pp_history_add(zbx_pp_history_t *history, int index, zbx_variant_t *value, zbx_timespec_t ts);
+void	pp_history_pop(zbx_pp_history_t *history, int index, zbx_variant_t *value, zbx_timespec_t *ts);
 
 #endif

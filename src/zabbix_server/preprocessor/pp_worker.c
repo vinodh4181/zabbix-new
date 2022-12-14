@@ -22,6 +22,7 @@
 #include "pp_log.h"
 #include "pp_cache.h"
 #include "pp_queue.h"
+#include "pp_execute.h"
 
 #include "zbxcommon.h"
 #include "log.h"
@@ -34,16 +35,19 @@
 
 static void	pp_task_process_test(zbx_pp_task_t *task)
 {
-	/* TODO: preprocess and send back result to the ipc client */
-	sleep(1);
+	zbx_pp_task_test_t	*d = (zbx_pp_task_test_t *)PP_TASK_DATA(task);
+	zbx_variant_t		result;
+
+	pp_execute(d->preproc, NULL, &d->value, d->ts, &result);
+
+	/* TODO: send back result to the ipc client */
 }
 
 static zbx_pp_task_t	*pp_task_process_value(zbx_pp_task_t *task)
 {
 	zbx_pp_task_value_t	*d = (zbx_pp_task_value_t *)PP_TASK_DATA(task);
 
-	zbx_variant_copy(&d->result, &d->value);
-	sleep(1);
+	pp_execute(d->preproc, d->cache, &d->value, d->ts, &d->value);
 
 	return task;
 }
@@ -53,12 +57,8 @@ static zbx_pp_task_t	*pp_task_process_dependent(zbx_pp_task_t *task)
 	zbx_pp_task_dependent_t	*d = (zbx_pp_task_dependent_t *)PP_TASK_DATA(task);
 	zbx_pp_task_value_t	*d_first = (zbx_pp_task_value_t *)PP_TASK_DATA(d->first_task);
 
-	d->cache = pp_cache_create(0);
-
-	/* TODO: set either created cache or the input value */
-	zbx_variant_copy(&d->cache->value, &d_first->value);
-
-	sleep(1);
+	d->cache = pp_cache_create(d_first->preproc);
+	pp_execute(d_first->preproc, d->cache, &d_first->value, d_first->ts, &d_first->result);
 
 	return task;
 }
@@ -71,10 +71,8 @@ static zbx_pp_task_t	*pp_task_process_sequence(zbx_pp_task_t *task)
 	if (SUCCEED == zbx_list_peek(&d_seq->tasks, (void **)&task_value))
 	{
 		zbx_pp_task_value_t	*d = (zbx_pp_task_value_t *)PP_TASK_DATA(task_value);
-		zbx_variant_copy(&d->result, &d->value);
+		pp_execute(d->preproc, NULL, &d->value, d->ts, &d->result);
 	}
-
-	sleep(1);
 
 	return task;
 }

@@ -195,8 +195,6 @@ static int	zbx_db_mock_field_append(zbx_db_mock_field_t *field, const char *text
 	return SUCCEED;
 }
 
-
-
 /******************************************************************************
  *                                                                            *
  * Purpose: formats preprocessing error message                               *

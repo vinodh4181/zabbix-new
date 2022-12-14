@@ -17,25 +17,12 @@
 ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 **/
 
-#ifndef ZABBIX_PP_CACHE_H
-#define ZABBIX_PP_CACHE_H
+#ifndef ZABBIX_PP_EXECUTE_H
+#define ZABBIX_PP_EXECUTE_H
 
-#include "pp_item.h"
-#include "zbxvariant.h"
+#include "pp_cache.h"
 
-typedef struct
-{
-	zbx_uint32_t	refcount;
-
-	zbx_variant_t	value;
-
-	unsigned char	type;
-	void		*data;
-}
-zbx_pp_cache_t;
-
-zbx_pp_cache_t	*pp_cache_create(zbx_pp_item_preproc_t *preproc);
-void	pp_cache_release(zbx_pp_cache_t *cache);
-zbx_pp_cache_t	*pp_cache_copy(zbx_pp_cache_t *cache);
+void	pp_execute(zbx_pp_item_preproc_t *preproc, zbx_pp_cache_t *cache, zbx_variant_t *value_in, zbx_timespec_t ts,
+		zbx_variant_t *value_out);
 
 #endif

@@ -20,10 +20,8 @@
 #ifndef ZABBIX_PP_ITEM_H
 #define ZABBIX_PP_ITEM_H
 
+#include "pp_history.h"
 #include "zbxcommon.h"
-#include "zbxalgo.h"
-#include "zbxvariant.h"
-#include "zbxtime.h"
 
 typedef enum
 {
@@ -31,15 +29,6 @@ typedef enum
 	ZBX_PP_PROCESS_SERIAL
 }
 zbx_pp_process_mode_t;
-
-typedef struct
-{
-	zbx_variant_t	value;
-	zbx_timespec_t	ts;
-	zbx_uint64_t	lastlogsize;
-	int		mtime;
-}
-zbx_pp_data_t;
 
 typedef struct
 {
@@ -65,6 +54,9 @@ typedef struct
 	unsigned char		flags;
 	zbx_pp_process_mode_t	mode;
 
+	zbx_pp_history_t	*history;
+	int			history_num;
+
 	/* TODO: history vault */
 }
 zbx_pp_item_preproc_t;
@@ -78,8 +70,6 @@ typedef struct
 }
 zbx_pp_item_t;
 
-void	pp_data_free(zbx_pp_data_t *value);
-
 void	pp_item_clear(zbx_pp_item_t *item);
 void	pp_item_init(zbx_pp_item_t *item, unsigned char type, unsigned char value_type, unsigned char flags,
 		zbx_pp_process_mode_t mode);
@@ -87,5 +77,6 @@ void	pp_item_init(zbx_pp_item_t *item, unsigned char type, unsigned char value_t
 zbx_pp_item_preproc_t	*pp_item_preproc_create(unsigned char type, unsigned char value_type, unsigned char flags);
 void	pp_item_preproc_release(zbx_pp_item_preproc_t *preproc);
 zbx_pp_item_preproc_t	*pp_item_preproc_copy(zbx_pp_item_preproc_t *preproc);
+int	pp_preproc_uses_history(unsigned char type);
 
 #endif

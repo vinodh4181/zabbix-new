@@ -19,13 +19,8 @@
 
 #include "pp_item.h"
 #include "pp_log.h"
+#include "pp_history.h"
 #include "zbxvariant.h"
-
-void	pp_data_free(zbx_pp_data_t *data)
-{
-	zbx_variant_clear(&data->value);
-	zbx_free(data);
-}
 
 zbx_pp_item_preproc_t	*pp_item_preproc_create(unsigned char type, unsigned char value_type, unsigned char flags)
 {
@@ -42,6 +37,9 @@ zbx_pp_item_preproc_t	*pp_item_preproc_create(unsigned char type, unsigned char 
 	preproc->value_type = value_type;
 	preproc->flags = flags;
 
+	preproc->history = NULL;
+	preproc->history_num = 0;
+
 	return preproc;
 }
 
@@ -57,6 +55,9 @@ static void	pp_item_preproc_free(zbx_pp_item_preproc_t *preproc)
 
 	zbx_free(preproc->steps);
 	zbx_free(preproc->dep_itemids);
+
+	if (NULL != preproc->history)
+		pp_history_free(preproc->history);
 
 	pp_debugf("pp_item_preproc_free(0x%p)", preproc);
 
@@ -79,6 +80,22 @@ void	pp_item_preproc_release(zbx_pp_item_preproc_t *preproc)
 		return;
 
 	pp_item_preproc_free(preproc);
+}
+
+int	pp_preproc_uses_history(unsigned char type)
+{
+	switch (type)
+	{
+		case ZBX_PREPROC_DELTA_VALUE:
+		case ZBX_PREPROC_DELTA_SPEED:
+		case ZBX_PREPROC_THROTTLE_VALUE:
+		case ZBX_PREPROC_THROTTLE_TIMED_VALUE:
+		case ZBX_PREPROC_SCRIPT:
+			return SUCCEED;
+		default:
+			return FAIL;
+
+	}
 }
 
 /* TODO: preprocessing mode must be calculated automatically after setting steps */

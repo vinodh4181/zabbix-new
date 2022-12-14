@@ -22,11 +22,14 @@
 #include "pp_cache.h"
 #include "zbxcommon.h"
 
-zbx_pp_cache_t	*pp_cache_create(unsigned char type)
+zbx_pp_cache_t	*pp_cache_create(zbx_pp_item_preproc_t *preproc)
 {
+	if (0 == preproc->steps_num)
+		return NULL;
+
 	zbx_pp_cache_t	*cache = (zbx_pp_cache_t *)zbx_malloc(NULL, sizeof(zbx_pp_cache_t));
 
-	cache->type = type;
+	cache->type = preproc->steps[0].type;
 	zbx_variant_set_none(&cache->value);
 	cache->data = NULL;
 	cache->refcount = 1;

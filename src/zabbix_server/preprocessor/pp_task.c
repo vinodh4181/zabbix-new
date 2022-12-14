@@ -53,7 +53,6 @@ zbx_pp_task_t	*pp_task_test_create(zbx_uint64_t itemid, zbx_pp_item_preproc_t *p
 	task->itemid = itemid;
 	task->type = ZBX_PP_TASK_TEST;
 	zbx_variant_copy(&d->value, value);
-	zbx_variant_set_none(&d->result);
 	d->ts = ts;
 
 	d->preproc = pp_item_preproc_copy(preproc);
@@ -66,7 +65,6 @@ static void	pp_task_test_clear(zbx_pp_task_test_t *task)
 	pp_debugf("pp_task_test_clear(%p)", task);
 
 	zbx_variant_clear(&task->value);
-	zbx_variant_clear(&task->result);
 	pp_item_preproc_release(task->preproc);
 }
 

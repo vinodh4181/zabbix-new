@@ -169,7 +169,7 @@ void	pp_manager_requeue_value_task(zbx_pp_manager_t *manager, zbx_pp_task_t *tas
 		zbx_pp_task_dependent_t	*d_dep = (zbx_pp_task_dependent_t *)PP_TASK_DATA(dep_task);
 
 		d_dep->first_task = pp_task_value_create(d->preproc->dep_itemids[0], preproc, &d->result, d->ts,
-				d->cache);
+				NULL);
 
 		pp_task_queue_push_immediate(&manager->queue, dep_task);
 		pp_task_queue_notify(&manager->queue);
@@ -301,7 +301,8 @@ static zbx_pp_item_t	*pp_manager_add_item(zbx_pp_manager_t *manager, zbx_uint64_
 	return item;
 }
 
-static void	pp_add_item_preproc(zbx_pp_item_t *item, unsigned char type, const char *params)
+static void	pp_add_item_preproc(zbx_pp_item_t *item, unsigned char type, const char *params,
+		unsigned char error_handler, const char *error_handler_params)
 {
 	int	last = item->preproc->steps_num++;
 
@@ -310,8 +311,15 @@ static void	pp_add_item_preproc(zbx_pp_item_t *item, unsigned char type, const c
 
 	item->preproc->steps[last].type = type;
 	item->preproc->steps[last].params = zbx_strdup(NULL, params);
-	item->preproc->steps[last].error_handler = 0;
-	item->preproc->steps[last].error_handler_params = NULL;
+	item->preproc->steps[last].error_handler = error_handler;
+
+	if (NULL != error_handler_params)
+		item->preproc->steps[last].error_handler_params = zbx_strdup(NULL, error_handler_params);
+	else
+		item->preproc->steps[last].error_handler_params = NULL;
+
+	if (SUCCEED == pp_preproc_uses_history(type))
+		item->preproc->history_num++;
 }
 
 static void	pp_add_item_dep(zbx_pp_item_t *item, zbx_uint64_t dep_itemid)
@@ -448,7 +456,39 @@ static void	test_perf(zbx_pp_manager_t *manager)
 
 	printf("RESULT %d values in %.3f seconds (%.3f values/sec)\n",
 			pp_processed_total, secs, (double)pp_processed_total / secs);
+}
 
+static void	test_preproc(zbx_pp_manager_t * manager)
+{
+	zbx_variant_t	value;
+	zbx_timespec_t	ts;
+	zbx_pp_item_t	*item;
+
+	item = pp_manager_add_item(manager, 1001, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_SERIAL);
+
+	pp_add_item_preproc(item, ZBX_PREPROC_TRIM, "xz", 0, NULL);
+	pp_add_item_preproc(item, ZBX_PREPROC_MULTIPLIER, "10", 0, NULL);
+	pp_add_item_preproc(item, ZBX_PREPROC_VALIDATE_NOT_SUPPORTED, "", 2, "33");
+	//pp_add_item_preproc(item, ZBX_PREPROC_TRIM, "13", 0, NULL);
+	pp_add_item_preproc(item, ZBX_PREPROC_MULTIPLIER, "100", 0, NULL);
+
+	/* zbx_variant_set_ui64(&value, 1); */
+	zbx_variant_set_str(&value, "xyz");
+	zbx_timespec(&ts);
+
+	pp_task_queue_lock(&manager->queue);
+
+	pp_manager_queue_preproc(manager, 1001, &value, ts);
+
+	pp_task_queue_unlock(&manager->queue);
+	pp_task_queue_notify_all(&manager->queue);
+
+	for (int i = 0; i < 2; i++)
+	{
+		printf("==== iteration: %d\n", i);
+		pp_manager_process_finished(manager);
+		sleep(1);
+	}
 }
 
 int	test_pp(void)
@@ -464,7 +504,8 @@ int	test_pp(void)
 	}
 
 	/* test_perf(&manager) */
-	test_tasks(&manager);
+	/* test_tasks(&manager); */
+	test_preproc(&manager);
 
 	printf("==== shutting down...\n");
 	pp_manager_destroy(&manager);

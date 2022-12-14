@@ -25,6 +25,12 @@ libpreprocessor_a_SOURCES = \
 	pp_queue.h \
 	pp_cache.c \
 	pp_cache.h \
+	pp_history.c \
+	pp_history.h \
+	pp_execute.c \
+	pp_execute.h \
+	pp_error.c \
+	pp_error.h \
 	pp_log.c \
 	pp_log.h
 

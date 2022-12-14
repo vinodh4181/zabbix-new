@@ -138,7 +138,7 @@ int	zbx_item_preproc_convert_value_to_numeric(zbx_variant_t *value_num, const zb
  *               FAIL - otherwise, errmsg contains the error message          *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_multiplier_variant(unsigned char value_type, zbx_variant_t *value, const char *params,
+int	item_preproc_multiplier_variant(unsigned char value_type, zbx_variant_t *value, const char *params,
 		char **errmsg)
 {
 	zbx_uint64_t	multiplier_ui64, value_ui64;
@@ -484,7 +484,7 @@ static void	unescape_param(int op_type, const char *in, int len, char *out)
  *               FAIL - otherwise                                             *
  *                                                                            *
  ******************************************************************************/
-static int item_preproc_trim(zbx_variant_t *value, unsigned char op_type, const char *params, char **errmsg)
+int	item_preproc_trim(zbx_variant_t *value, unsigned char op_type, const char *params, char **errmsg)
 {
 	char	params_raw[ITEM_PREPROC_PARAMS_LEN * ZBX_MAX_BYTES_IN_UTF8_CHAR + 1];
 

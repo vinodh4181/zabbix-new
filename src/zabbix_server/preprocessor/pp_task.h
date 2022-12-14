@@ -50,7 +50,6 @@ zbx_pp_task_t;
 typedef struct
 {
 	zbx_variant_t		value;
-	zbx_variant_t		result;
 	zbx_timespec_t		ts;
 
 	zbx_pp_item_preproc_t	*preproc; /* created from the data provided in request */
