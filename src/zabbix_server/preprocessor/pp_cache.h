@@ -34,8 +34,10 @@ typedef struct
 }
 zbx_pp_cache_t;
 
-zbx_pp_cache_t	*pp_cache_create(zbx_pp_item_preproc_t *preproc);
+zbx_pp_cache_t	*pp_cache_create(zbx_pp_item_preproc_t *preproc, zbx_variant_t *value);
 void	pp_cache_release(zbx_pp_cache_t *cache);
 zbx_pp_cache_t	*pp_cache_copy(zbx_pp_cache_t *cache);
+
+void	pp_cache_get_value(zbx_pp_cache_t *cache, zbx_variant_t *value);
 
 #endif

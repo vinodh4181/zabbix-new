@@ -58,6 +58,8 @@ void	zbx_preproc_cache_put(zbx_preproc_cache_t *cache, unsigned char type, void 
 void	zbx_preproc_cache_init(zbx_preproc_cache_t *cache);
 void	zbx_preproc_cache_clear(zbx_preproc_cache_t *cache);
 
+int	item_preproc_convert_value(zbx_variant_t *value, unsigned char type, char **errmsg);
+
 int	item_preproc_multiplier_variant(unsigned char value_type, zbx_variant_t *value, const char *params,
 		char **errmsg);
 int	item_preproc_trim(zbx_variant_t *value, unsigned char op_type, const char *params, char **errmsg);

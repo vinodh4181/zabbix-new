@@ -193,9 +193,9 @@ zbx_pp_task_t	*pp_manager_requeue_dependent_task(zbx_pp_manager_t *manager, zbx_
 		if (NULL == (item = (zbx_pp_item_t *)zbx_hashset_search(&manager->items, &d->preproc->dep_itemids[i])))
 			continue;
 
-		zbx_pp_task_t	*task_value = pp_task_value_create(item->itemid, item->preproc, NULL, d_first->ts,
+		zbx_pp_task_t	*new_task = pp_task_value_create(item->itemid, item->preproc, NULL, d_first->ts,
 				d->cache);
-		pp_task_queue_push_immediate(&manager->queue, task_value);
+		pp_task_queue_push_immediate(&manager->queue, new_task);
 	}
 
 	pp_task_queue_notify_all(&manager->queue);
@@ -462,32 +462,31 @@ static void	test_preproc(zbx_pp_manager_t * manager)
 {
 	zbx_variant_t	value;
 	zbx_timespec_t	ts;
-	zbx_pp_item_t	*item;
+	zbx_pp_item_t	*item1, *item2, *item3;
 
-	item = pp_manager_add_item(manager, 1001, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_SERIAL);
+	item1 = pp_manager_add_item(manager, 1001, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_STR, ZBX_PP_PROCESS_SERIAL);
+	item2 = pp_manager_add_item(manager, 1002, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_STR, ZBX_PP_PROCESS_PARALLEL);
+	item3 = pp_manager_add_item(manager, 1003, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_STR, ZBX_PP_PROCESS_PARALLEL);
 
-	pp_add_item_preproc(item, ZBX_PREPROC_DELTA_VALUE, "", 0, NULL);
+	pp_add_item_dep(item1, 1002);
+	pp_add_item_dep(item1, 1003);
 
-	zbx_variant_set_ui64(&value, 1);
-	/*zbx_variant_set_str(&value, "xyz"); */
+	pp_add_item_preproc(item2, ZBX_PREPROC_TRIM, " ", 0, NULL);
+	pp_add_item_preproc(item2, ZBX_PREPROC_JSONPATH, "$[?(@.id==1)].name.first()", 0, NULL);
+	pp_add_item_preproc(item3, ZBX_PREPROC_JSONPATH, "$[?(@.id==2)].name.first()", 0, NULL);
+
+	/* zbx_variant_set_ui64(&value, 1); */
+	zbx_variant_set_str(&value, "[{\"id\":1,\"name\":\"one\"},{\"id\":2,\"name\":\"two\"}]");
 	zbx_timespec(&ts);
 
 	pp_task_queue_lock(&manager->queue);
 
 	pp_manager_queue_preproc(manager, 1001, &value, ts);
-	zbx_variant_set_ui64(&value, 2);
-	pp_manager_queue_preproc(manager, 1001, &value, ts);
-	zbx_variant_set_ui64(&value, 4);
-	pp_manager_queue_preproc(manager, 1001, &value, ts);
-	zbx_variant_set_ui64(&value, 2);
-	pp_manager_queue_preproc(manager, 1001, &value, ts);
-	zbx_variant_set_ui64(&value, 6);
-	pp_manager_queue_preproc(manager, 1001, &value, ts);
 
 	pp_task_queue_unlock(&manager->queue);
 	pp_task_queue_notify_all(&manager->queue);
 
-	for (int i = 0; i < 12; i++)
+	for (int i = 0; i < 6; i++)
 	{
 		printf("==== iteration: %d\n", i);
 		pp_manager_process_finished(manager);

@@ -49,7 +49,7 @@ static int	jsonpath_query_array(zbx_jsonpath_context_t *ctx, zbx_jsonobj_t *arra
 static int	jsonpath_str_copy_value(char **str, size_t *str_alloc, size_t *str_offset, zbx_jsonobj_t *obj);
 
 /* define token groups and precedence */
-static zbx_jsonpath_token_def_t	jsonpath_tokens[] = {
+static const zbx_jsonpath_token_def_t	jsonpath_tokens[] = {
 	{0, 0},
 	{ZBX_JSONPATH_TOKEN_GROUP_OPERAND, 0},		/* ZBX_JSONPATH_TOKEN_PATH_ABSOLUTE */
 	{ZBX_JSONPATH_TOKEN_GROUP_OPERAND, 0},		/* ZBX_JSONPATH_TOKEN_PATH_RELATIVE */

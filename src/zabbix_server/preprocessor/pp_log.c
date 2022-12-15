@@ -22,8 +22,8 @@
 #include "pp_log.h"
 #include "zbxcommon.h"
 
-static __thread char	name[64];
-static __thread int	log_level;
+static __THREAD char	name[64];
+static __THREAD int	log_level;
 
 void	pp_log_init(const char *source, int level)
 {

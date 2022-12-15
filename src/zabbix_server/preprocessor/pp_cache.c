@@ -20,21 +20,56 @@
 /* debug logging, remove for release */
 
 #include "pp_cache.h"
-#include "zbxcommon.h"
+#include "zbxjson.h"
 
-zbx_pp_cache_t	*pp_cache_create(zbx_pp_item_preproc_t *preproc)
+/******************************************************************************
+ *                                                                            *
+ * Purpose: create preprocessing cache                                        *
+ *                                                                            *
+ * Parameters: preproc  - [IN] the preprocessing data                         *
+ *             value    - [IN/OUT] the input value - it will copied to cache  *
+ *                                 and cleared                                *
+ *                                                                            *
+ * Return value: The created preprocessing cache                              *
+ *                                                                            *
+ ******************************************************************************/
+zbx_pp_cache_t	*pp_cache_create(zbx_pp_item_preproc_t *preproc, zbx_variant_t *value)
 {
-	if (0 == preproc->steps_num)
-		return NULL;
-
 	zbx_pp_cache_t	*cache = (zbx_pp_cache_t *)zbx_malloc(NULL, sizeof(zbx_pp_cache_t));
 
-	cache->type = preproc->steps[0].type;
-	zbx_variant_set_none(&cache->value);
+	cache->type = (0 != preproc->steps_num ? preproc->steps[0].type : ZBX_PREPROC_NONE);
+	cache->value = *value;
+	zbx_variant_set_none(value);
 	cache->data = NULL;
 	cache->refcount = 1;
 
 	return cache;
+}
+
+static void	pp_cache_jsonpath_free(void *data)
+{
+	zbx_jsonobj_t	*obj = (zbx_jsonobj_t *)data;
+
+	zbx_jsonobj_clear(obj);
+}
+
+static void	pp_cache_free(zbx_pp_cache_t *cache)
+{
+	zbx_variant_clear(&cache->value);
+
+	if (NULL != cache->data)
+	{
+		switch (cache->type)
+		{
+			case ZBX_PREPROC_JSONPATH:
+				pp_cache_jsonpath_free(cache->data);
+				break;
+		}
+
+		zbx_free(cache->data);
+	}
+
+	zbx_free(cache);
 }
 
 void	pp_cache_release(zbx_pp_cache_t *cache)
@@ -42,11 +77,7 @@ void	pp_cache_release(zbx_pp_cache_t *cache)
 	if (NULL == cache || 0 != --cache->refcount)
 		return;
 
-	zbx_variant_clear(&cache->value);
-
-	/* TODO: free data */
-
-	zbx_free(cache);
+	pp_cache_free(cache);
 }
 
 zbx_pp_cache_t	*pp_cache_copy(zbx_pp_cache_t *cache)
@@ -57,4 +88,13 @@ zbx_pp_cache_t	*pp_cache_copy(zbx_pp_cache_t *cache)
 	cache->refcount++;
 
 	return cache;
+}
+
+void	pp_cache_get_value(zbx_pp_cache_t *cache, zbx_variant_t *value)
+{
+	if (NULL != cache)
+	{
+		zbx_variant_clear(value);
+		zbx_variant_copy(value, &cache->value);
+	}
 }

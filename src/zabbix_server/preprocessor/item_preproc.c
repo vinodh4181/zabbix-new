@@ -69,7 +69,7 @@ static int	item_preproc_numeric_type_hint(unsigned char value_type)
  *               FAIL - otherwise, errmsg contains the error message          *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_convert_value(zbx_variant_t *value, unsigned char type, char **errmsg)
+int	item_preproc_convert_value(zbx_variant_t *value, unsigned char type, char **errmsg)
 {
 	if (FAIL == zbx_variant_convert(value, type))
 	{

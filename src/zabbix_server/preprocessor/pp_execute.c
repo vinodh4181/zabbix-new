@@ -18,6 +18,7 @@
 **/
 
 #include "pp_execute.h"
+#include "pp_cache.h"
 #include "pp_error.h"
 #include "log.h"
 #include "pp_log.h"
@@ -120,22 +121,128 @@ static int	pp_execute_delta(unsigned char type, unsigned char value_type, zbx_va
 	return FAIL;
 }
 
+/******************************************************************************
+ *                                                                            *
+ * Purpose: execute jsonpath query                                            *
+ *                                                                            *
+ * Parameters: cache  - [IN] the preprocessing cache                          *
+ *             value  - [IN/OUT] the value to process                         *
+ *             params - [IN] the operation parameters                         *
+ *             errmsg - [OUT] error message                                   *
+ *                                                                            *
+ * Return value: SUCCEED - the value was processed successfully               *
+ *               FAIL - otherwise                                             *
+ *                                                                            *
+ ******************************************************************************/
+static int	pp_excute_jsonpath_step(zbx_pp_cache_t *cache, zbx_variant_t *value, const char *params, char **errmsg)
+{
+	char	*data = NULL;
+
+	if (NULL == cache || ZBX_PREPROC_JSONPATH != cache->type)
+	{
+		zbx_jsonobj_t	obj;
+
+		pp_cache_get_value(cache, value);
+
+		if (FAIL == item_preproc_convert_value(value, ZBX_VARIANT_STR, errmsg))
+			return FAIL;
+
+		if (FAIL == zbx_jsonobj_open(value->data.str, &obj))
+		{
+			*errmsg = zbx_strdup(*errmsg, zbx_json_strerror());
+			return FAIL;
+		}
+
+		if (FAIL == zbx_jsonobj_query(&obj, params, &data))
+		{
+			zbx_jsonobj_clear(&obj);
+			*errmsg = zbx_strdup(*errmsg, zbx_json_strerror());
+			return FAIL;
+		}
+
+		zbx_jsonobj_clear(&obj);
+	}
+	else
+	{
+		zbx_jsonobj_t	*obj;
+
+		if (NULL == (obj = (zbx_jsonobj_t *)cache->data))
+		{
+			pp_cache_get_value(cache, value);
+
+			if (FAIL == item_preproc_convert_value(value, ZBX_VARIANT_STR, errmsg))
+				return FAIL;
+
+			obj = (zbx_jsonobj_t *)zbx_malloc(NULL, sizeof(zbx_jsonobj_t));
+
+			if (SUCCEED != zbx_jsonobj_open(value->data.str, obj))
+			{
+				*errmsg = zbx_strdup(*errmsg, zbx_json_strerror());
+				zbx_free(obj);
+				return FAIL;
+			}
+
+			cache->data = (void *)obj;
+		}
+
+		if (FAIL == zbx_jsonobj_query(obj, params, &data))
+		{
+			*errmsg = zbx_strdup(*errmsg, zbx_json_strerror());
+			return FAIL;
+		}
+	}
+
+	if (NULL == data)
+	{
+		*errmsg = zbx_strdup(*errmsg, "no data matches the specified path");
+		return FAIL;
+	}
+
+	zbx_variant_clear(value);
+	zbx_variant_set_str(value, data);
+
+	return SUCCEED;
+}
+
+static int	pp_execute_jsonpath(zbx_pp_cache_t *cache, zbx_variant_t *value, const char *params)
+{
+	char	*errmsg = NULL;
+
+	if (SUCCEED == pp_excute_jsonpath_step(cache, value, params, &errmsg))
+		return SUCCEED;
+
+	zbx_variant_set_error(value, zbx_dsprintf(NULL, "cannot extract value from json by path \"%s\": %s", params,
+			errmsg));
+
+	zbx_free(errmsg);
+
+	return FAIL;
+}
+
 static int	pp_execute_step(zbx_pp_cache_t *cache, unsigned char value_type, zbx_variant_t *value,
 		zbx_timespec_t ts, zbx_pp_step_t *step, zbx_variant_t *history_value, zbx_timespec_t history_ts)
 {
 	switch (step->type)
 	{
 		case ZBX_PREPROC_MULTIPLIER:
+			pp_cache_get_value(cache, value);
 			return pp_execute_multiply(value_type, value, step->params);
 		case ZBX_PREPROC_RTRIM:
 		case ZBX_PREPROC_LTRIM:
 		case ZBX_PREPROC_TRIM:
+			pp_cache_get_value(cache, value);
 			return pp_execute_trim(step->type, value, step->params);
 		case ZBX_PREPROC_VALIDATE_NOT_SUPPORTED:
+			pp_cache_get_value(cache, value);
 			return pp_check_not_error(value);
 		case ZBX_PREPROC_DELTA_VALUE:
 		case ZBX_PREPROC_DELTA_SPEED:
+			pp_cache_get_value(cache, value);
 			return pp_execute_delta(step->type, value_type, value, ts, history_value, history_ts);
+		case ZBX_PREPROC_JSONPATH:
+			return pp_execute_jsonpath(cache, value, step->params);
+			break;
+
 		default:
 			zbx_variant_clear(value);
 			zbx_variant_set_error(value, zbx_dsprintf(NULL, "unknown preprocessing step"));
