@@ -8,7 +8,7 @@ The template to monitor Kubernetes nodes that work without any external scripts.
 It works without external scripts and uses the script item to make HTTP requests to the Kubernetes API.
 Install the Zabbix Helm Chart (https://git.zabbix.com/projects/ZT/repos/kubernetes-helm/browse?at=refs%2Fheads%2Fmaster) in your Kubernetes cluster.
 
-Set the `{$KUBE.API.ENDPOINT.URL}` such as `<scheme>://<host>:<port>/api`.
+Set the `{$KUBE.API.URL}` such as `<scheme>://<host>:<port>`.
 
 Get the generated service account token using the command
 
@@ -30,7 +30,7 @@ This template was tested on:
 
 Install the [Zabbix Helm Chart](https://git.zabbix.com/projects/ZT/repos/kubernetes-helm/browse?at=refs%2Fheads%2Fmaster) in your Kubernetes cluster.
 
-Set the `{$KUBE.API.ENDPOINT.URL}` such as `<scheme>://<host>:<port>/api`.
+Set the `{$KUBE.API.URL}` such as `<scheme>://<host>:<port>`.
 
 Get the generated service account token using the command
 
@@ -82,8 +82,8 @@ No specific Zabbix configuration is required.
 
 |Name|Description|Default|
 |----|-----------|-------|
-|{$KUBE.API.ENDPOINT.URL} |<p>Kubernetes API endpoint URL in the format <scheme>://<host>:<port>/api</p> |`https://localhost:6443/api` |
 |{$KUBE.API.TOKEN} |<p>Service account bearer token</p> |`` |
+|{$KUBE.API.URL} |<p>Kubernetes API URL in the format <scheme>://<host>:<port></p> |`https://localhost:6443` |
 |{$KUBE.LLD.FILTER.NODE.MATCHES} |<p>Filter of discoverable nodes</p> |`.*` |
 |{$KUBE.LLD.FILTER.NODE.NOT_MATCHES} |<p>Filter to exclude discovered nodes</p> |`CHANGE_IF_NEEDED` |
 |{$KUBE.LLD.FILTER.NODE.ROLE.MATCHES} |<p>Filter of discoverable nodes by role</p> |`.*` |

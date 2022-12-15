@@ -44,7 +44,7 @@ zabbix_export:
                   pods_limit: 1000,
             
                   setParams: function (params) {
-                      ['api_endpoint', 'token', 'endpoint_name'].forEach(function (field) {
+                      ['token', 'api_url', 'endpoint_name'].forEach(function (field) {
                           if (typeof params !== 'object' || typeof params[field] === 'undefined'
                               || params[field] === '') {
                               throw 'Required param is not set: "' + field + '".';
@@ -52,15 +52,12 @@ zabbix_export:
                       });
             
                       Kube.params = params;
-                      if (typeof Kube.params.api_endpoint === 'string' && !Kube.params.api_endpoint.endsWith('/')) {
-                          Kube.params.api_endpoint += '/';
-                      }
                   },
             
                   request: function (query) {
                       var response,
                           request = new HttpRequest(),
-                          url = Kube.params.api_endpoint + query;
+                          url = Kube.params.api_url + query;
             
                       request.addHeader('Content-Type: application/json');
                       request.addHeader('Authorization: Bearer ' + Kube.params.token);
@@ -91,7 +88,7 @@ zabbix_export:
                   },
             
                   getNodes: function () {
-                      var result = Kube.request('v1/nodes');
+                      var result = Kube.request('/api/v1/nodes');
             
                       if (typeof result.response !== 'object'
                           || typeof result.response.items === 'undefined'
@@ -107,7 +104,7 @@ zabbix_export:
                           continue_token;
             
                       while (continue_token !== '') {
-                          var data = Kube.request('v1/pods?limit=' + Kube.pods_limit
+                          var data = Kube.request('/api/v1/pods?limit=' + Kube.pods_limit
                               + ((typeof continue_token !== 'undefined') ? '&continue=' + continue_token : ''));
             
                           if (typeof data.response !== 'object'
@@ -124,7 +121,7 @@ zabbix_export:
                   },
             
                   getEndpointIPs: function () {
-                      var result = Kube.request('v1/endpoints'),
+                      var result = Kube.request('/api/v1/endpoints'),
                           epIPs = {};
             
                       if (typeof result.response !== 'object'
@@ -284,11 +281,11 @@ zabbix_export:
           timeout: 10s
           parameters:
             -
-              name: api_endpoint
-              value: '{$KUBE.API.ENDPOINT.URL}'
-            -
               name: token
               value: '{$KUBE.API.TOKEN}'
+            -
+              name: api_url
+              value: '{$KUBE.API.URL}'
             -
               name: endpoint_name
               value: '{$KUBE.NODES.ENDPOINT.NAME}'
@@ -384,19 +381,19 @@ zabbix_export:
                   try {
                       var input = JSON.parse(value),
                           output = [];
-                          api_url = '{$KUBE.API.ENDPOINT.URL}',
-                          hostname = api_url.match(/\/\/(.+):/);
-                  
-                      if (typeof hostname[1] === 'undefined') {
-                          Zabbix.log(4, '[ Kubernetes ] Received incorrect Kubernetes API url: ' + api_url + '. Expected format: <scheme>://<host>:<port>');
-                          throw 'Cannot get hostname from Kubernetes API url. Check debug log for more information.';
-                      };
-                  
                       if (typeof input !== 'object' || typeof input.items === 'undefined') {
                           Zabbix.log(4, '[ Kubernetes ] Received incorrect JSON: ' + value);
                           throw 'Incorrect JSON. Check debug log for more information.';
                       }
-                  
+
+                      const api_url = '{$KUBE.API.URL}';
+                      var match = api_url.match(/(?:(https?):\/\/)([^:/]+)(?::(\d+))/);
+                      if (!match) {
+                          Zabbix.log(4, '[ Kubernetes ] Received incorrect Kubernetes API url: ' + api_url + '. Expected format: <scheme>://<host>:<port>');
+                          throw 'Cannot get hostname from Kubernetes API url. Check debug log for more information.';
+                      };
+                      const api_hostname = match[2];
+
                       var filterLabels = parseFilters('{$KUBE.NODE.FILTER.LABELS}'),
                           filterAnnotations = parseFilters('{$KUBE.NODE.FILTER.ANNOTATIONS}');
                   
@@ -418,7 +415,7 @@ zabbix_export:
                                       '{#ROLES}': node.status.roles,
                                       '{#ARCH}': node.metadata.labels['kubernetes.io/arch'] || '',
                                       '{#OS}': node.metadata.labels['kubernetes.io/os'] || '',
-                                      '{#CLUSTER_HOSTNAME}': hostname[1]
+                                      '{#CLUSTER_HOSTNAME}': api_hostname
                                   });
                               }
                               else {
@@ -1942,9 +1939,9 @@ zabbix_export:
           value: 'kubernetes nodes'
       macros:
         -
-          macro: '{$KUBE.API.ENDPOINT.URL}'
-          value: 'https://localhost:6443/api'
-          description: 'Kubernetes API endpoint URL in the format <scheme>://<host>:<port>/api'
+          macro: '{$KUBE.API.URL}'
+          value: 'https://localhost:6443'
+          description: 'Kubernetes API endpoint URL in the format <scheme>://<host>:<port>'
         -
           macro: '{$KUBE.API.TOKEN}'
           description: 'Service account bearer token'
