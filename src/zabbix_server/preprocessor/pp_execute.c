@@ -256,8 +256,9 @@ void	pp_execute(zbx_pp_item_preproc_t *preproc, zbx_pp_cache_t *cache, zbx_varia
 	zbx_pp_result_t		*results;
 	zbx_pp_history_t	*history;
 
-	zabbix_log(LOG_LEVEL_DEBUG, "In %s(): value:%s type:%s", __func__, zbx_variant_value_desc(value_in),
-			zbx_variant_type_desc(value_in));
+	zabbix_log(LOG_LEVEL_DEBUG, "In %s(): value:%s type:%s", __func__,
+			zbx_variant_value_desc(NULL == cache ? value_in : &cache->value),
+			zbx_variant_type_desc(NULL == cache ? value_in : &cache->value));
 
 	if (NULL == cache)
 		zbx_variant_copy(value_out, value_in);
@@ -269,7 +270,7 @@ void	pp_execute(zbx_pp_item_preproc_t *preproc, zbx_pp_cache_t *cache, zbx_varia
 		if (NULL != cache)
 			zbx_variant_copy(value_out, &cache->value);
 
-		return;
+		goto out;
 	}
 
 	results = (zbx_pp_result_t *)zbx_malloc(NULL, sizeof(zbx_pp_result_t) * preproc->steps_num);
@@ -340,7 +341,7 @@ void	pp_execute(zbx_pp_item_preproc_t *preproc, zbx_pp_cache_t *cache, zbx_varia
 
 	if (0 != results_num)
 		pp_free_results(results, results_num);
-
+out:
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s(): value:'%s' type:%s", __func__, zbx_variant_value_desc(value_out),
 			zbx_variant_type_desc(value_out));
 
