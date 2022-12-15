@@ -66,7 +66,7 @@ zabbix_export:
                 params: {},
 
                 setParams: function (params) {
-                    ['token', 'api_url', 'api_server_scheme', 'api_server_port',
+                    ['api_token', 'api_url', 'api_server_scheme', 'api_server_port',
                      'controller_scheme', 'controller_port',
                      'scheduler_scheme', 'scheduler_port'].forEach(function (field) {
                         if (typeof params !== 'object' || typeof params[field] === 'undefined'
@@ -84,8 +84,8 @@ zabbix_export:
                         url = Kube.params.api_url + query;
 
                     request.addHeader('Content-Type: application/json');
-                    request.addHeader('Authorization: Bearer ' + Kube.params.token);
-            
+                    request.addHeader('Authorization: Bearer ' + Kube.params.api_token);
+
                     Zabbix.log(4, '[ Kubernetes ] Sending request: ' + url);
             
                     response = request.get(url);
@@ -123,7 +123,7 @@ zabbix_export:
                     return result.response;
                 },
             };
-            
+
             try {
                 Kube.setParams(JSON.parse(value));
             
@@ -178,7 +178,7 @@ zabbix_export:
           timeout: 10s
           parameters:
             -
-              name: token
+              name: api_token
               value: '{$KUBE.API.TOKEN}'
             -
               name: api_url
@@ -387,7 +387,7 @@ zabbix_export:
                 params: {},
 
                 setParams: function (params) {
-                    ['token', 'api_url', 'kubelet_scheme', 'kubelet_port'].forEach(function (field) {
+                    ['api_token', 'api_url', 'kubelet_scheme', 'kubelet_port'].forEach(function (field) {
                         if (typeof params !== 'object' || typeof params[field] === 'undefined'
                             || params[field] === '') {
                             throw 'Required param is not set: "' + field + '".';
@@ -403,8 +403,8 @@ zabbix_export:
                         url = Kube.params.api_url + query;
 
                     request.addHeader('Content-Type: application/json');
-                    request.addHeader('Authorization: Bearer ' + Kube.params.token);
-            
+                    request.addHeader('Authorization: Bearer ' + Kube.params.api_token);
+
                     Zabbix.log(4, '[ Kubernetes ] Sending request: ' + url);
             
                     response = request.get(url);
@@ -442,7 +442,7 @@ zabbix_export:
                     return result.response;
                 },
             };
-            
+
             try {
                 Kube.setParams(JSON.parse(value));
 
@@ -488,7 +488,7 @@ zabbix_export:
           timeout: 10s
           parameters:
             -
-              name: token
+              name: api_token
               value: '{$KUBE.API.TOKEN}'
             -
               name: api_url
@@ -576,7 +576,7 @@ zabbix_export:
                 metrics_endpoint: undefined,
 
                 setParams: function (params) {
-                    ['token', 'api_url', 'state_endpoint_name'].forEach(function (field) {
+                    ['api_token', 'api_url', 'state_endpoint_name'].forEach(function (field) {
                         if (typeof params !== 'object' || typeof params[field] === 'undefined'
                             || params[field] === '') {
                             throw 'Required param is not set: "' + field + '".';
@@ -592,8 +592,8 @@ zabbix_export:
                         url = Kube.params.api_url + query;
 
                     request.addHeader('Content-Type: application/json');
-                    request.addHeader('Authorization: Bearer ' + Kube.params.token);
-            
+                    request.addHeader('Authorization: Bearer ' + Kube.params.api_token);
+
                     Zabbix.log(4, '[ Kubernetes ] Sending request: ' + url);
             
                     response = request.get(url);
@@ -662,10 +662,10 @@ zabbix_export:
                     var response,
                         request = new HttpRequest(),
                         url = 'http://' + Kube.metrics_endpoint.address + ':' + Kube.metrics_endpoint.port + '/metrics';
-            
+
                     request.addHeader('Content-Type: application/json');
-                    request.addHeader('Authorization: Bearer ' + Kube.params.token);
-            
+                    request.addHeader('Authorization: Bearer ' + Kube.params.api_token);
+
                     Zabbix.log(4, '[ Kubernetes ] Sending request: ' + url);
             
                     response = request.get(url);
@@ -702,7 +702,7 @@ zabbix_export:
           timeout: 10s
           parameters:
             -
-              name: token
+              name: api_token
               value: '{$KUBE.API.TOKEN}'
             -
               name: api_url
