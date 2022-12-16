@@ -274,6 +274,16 @@ static int	variant_to_str(zbx_variant_t *value)
 	return SUCCEED;
 }
 
+static int	variant_to_err(zbx_variant_t *value)
+{
+	if (SUCCEED != variant_to_str(value))
+		return FAIL;
+
+	value->type = ZBX_VARIANT_ERR;
+
+	return SUCCEED;
+}
+
 int	zbx_variant_convert(zbx_variant_t *value, int type)
 {
 	switch(type)
@@ -284,6 +294,8 @@ int	zbx_variant_convert(zbx_variant_t *value, int type)
 			return variant_to_dbl(value);
 		case ZBX_VARIANT_STR:
 			return variant_to_str(value);
+		case ZBX_VARIANT_ERR:
+			return variant_to_err(value);
 		case ZBX_VARIANT_NONE:
 			zbx_variant_clear(value);
 			return SUCCEED;

@@ -67,5 +67,13 @@ int	item_preproc_delta(unsigned char value_type, zbx_variant_t *value, const zbx
 		unsigned char op_type, zbx_variant_t *history_value, zbx_timespec_t *history_ts, char **errmsg);
 int	item_preproc_regsub_op(zbx_variant_t *value, const char *params, char **errmsg);
 int	item_preproc_2dec(zbx_variant_t *value, unsigned char op_type, char **errmsg);
+int	item_preproc_validate_range(unsigned char value_type, const zbx_variant_t *value, const char *params,
+		char **errmsg);
+int	item_preproc_validate_regex(const zbx_variant_t *value, const char *params, char **error);
+int	item_preproc_validate_not_regex(const zbx_variant_t *value, const char *params, char **error);
+int	item_preproc_get_error_from_json(const zbx_variant_t *value, const char *params, char **error);
+int	item_preproc_get_error_from_xml(const zbx_variant_t *value, const char *params, char **error);
+int	item_preproc_get_error_from_regex(const zbx_variant_t *value, const char *params, char **error);
+
 
 #endif

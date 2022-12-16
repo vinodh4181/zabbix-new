@@ -1078,7 +1078,7 @@ static int	item_preproc_xpath(zbx_variant_t *value, const char *params, char **e
  *               FAIL - otherwise, errmsg contains the error message          *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_validate_range(unsigned char value_type, const zbx_variant_t *value, const char *params,
+int	item_preproc_validate_range(unsigned char value_type, const zbx_variant_t *value, const char *params,
 		char **errmsg)
 {
 	zbx_variant_t	value_num;
@@ -1154,7 +1154,7 @@ out:
  *               FAIL - otherwise, errmsg contains the error message          *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_validate_regex(const zbx_variant_t *value, const char *params, char **error)
+int	item_preproc_validate_regex(const zbx_variant_t *value, const char *params, char **error)
 {
 	zbx_variant_t	value_str;
 	int		ret = FAIL;
@@ -1209,7 +1209,7 @@ out:
  *               FAIL - otherwise, errmsg contains the error message          *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_validate_not_regex(const zbx_variant_t *value, const char *params, char **error)
+int	item_preproc_validate_not_regex(const zbx_variant_t *value, const char *params, char **error)
 {
 	zbx_variant_t	value_str;
 	int		ret = FAIL;
@@ -1271,7 +1271,7 @@ out:
  *           error, while returning SUCCEED.                                  *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_get_error_from_json(const zbx_variant_t *value, const char *params, char **error)
+int	item_preproc_get_error_from_json(const zbx_variant_t *value, const char *params, char **error)
 {
 	zbx_variant_t		value_str;
 	int			ret;
@@ -1299,8 +1299,6 @@ static int	item_preproc_get_error_from_json(const zbx_variant_t *value, const ch
 		zbx_lrtrim(*error, ZBX_WHITESPACE);
 		if ('\0' == **error)
 			zbx_free(*error);
-		else
-			ret = FAIL;
 	}
 out:
 	zbx_variant_clear(&value_str);
@@ -1325,7 +1323,7 @@ out:
  *           error, while returning SUCCEED.                                  *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_get_error_from_xml(const zbx_variant_t *value, const char *params, char **error)
+int	item_preproc_get_error_from_xml(const zbx_variant_t *value, const char *params, char **error)
 {
 #ifndef HAVE_LIBXML2
 	ZBX_UNUSED(value);
@@ -1394,8 +1392,6 @@ static int	item_preproc_get_error_from_xml(const zbx_variant_t *value, const cha
 	zbx_lrtrim(*error, ZBX_WHITESPACE);
 	if ('\0' == **error)
 		zbx_free(*error);
-	else
-		ret = FAIL;
 out:
 	zbx_variant_clear(&value_str);
 
@@ -1429,7 +1425,7 @@ out:
  *           error, while returning SUCCEED.                                  *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_get_error_from_regex(const zbx_variant_t *value, const char *params, char **error)
+int	item_preproc_get_error_from_regex(const zbx_variant_t *value, const char *params, char **error)
 {
 	zbx_variant_t	value_str;
 	int		ret;
@@ -1465,8 +1461,6 @@ static int	item_preproc_get_error_from_regex(const zbx_variant_t *value, const c
 		zbx_lrtrim(*error, ZBX_WHITESPACE);
 		if ('\0' == **error)
 			zbx_free(*error);
-		else
-			ret = FAIL;
 	}
 out:
 	zbx_variant_clear(&value_str);

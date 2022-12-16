@@ -166,8 +166,6 @@ static int	pp_excute_jsonpath_step(zbx_pp_cache_t *cache, zbx_variant_t *value, 
 	{
 		zbx_jsonobj_t	obj;
 
-		pp_cache_get_value(cache, value);
-
 		if (FAIL == item_preproc_convert_value(value, ZBX_VARIANT_STR, errmsg))
 			return FAIL;
 
@@ -192,8 +190,6 @@ static int	pp_excute_jsonpath_step(zbx_pp_cache_t *cache, zbx_variant_t *value, 
 
 		if (NULL == (obj = (zbx_jsonobj_t *)cache->data))
 		{
-			pp_cache_get_value(cache, value);
-
 			if (FAIL == item_preproc_convert_value(value, ZBX_VARIANT_STR, errmsg))
 				return FAIL;
 
@@ -284,7 +280,7 @@ static int	pp_execute_xpath_step(zbx_variant_t *value, const char *params, char 
 	if (FAIL == item_preproc_convert_value(value, ZBX_VARIANT_STR, error))
 		return FAIL;
 
-	if (SUCCEED == pp_xml_query_xpath(value, params, &errmsg))
+	if (SUCCEED == zbx_query_xpath(value, params, &errmsg))
 		return SUCCEED;
 
 	*error = zbx_dsprintf(NULL, "cannot extract XML value with xpath \"%s\": %s", params, errmsg);
@@ -306,41 +302,133 @@ static int	pp_execute_xpath(zbx_variant_t *value, const char *params)
 	return FAIL;
 }
 
+static int	pp_validate_range(unsigned char value_type, zbx_variant_t *value, const char *params)
+{
+	char	*errmsg = NULL;
+
+	if (SUCCEED == item_preproc_validate_range(value_type, value, params, &errmsg))
+		return SUCCEED;
+
+	zbx_variant_clear(value);
+	zbx_variant_set_error(value, errmsg);
+
+	return FAIL;
+}
+
+static int	pp_validate_regex(zbx_variant_t *value, const char *params)
+{
+	char	*errmsg = NULL;
+
+	if (SUCCEED == item_preproc_validate_regex(value, params, &errmsg))
+		return SUCCEED;
+
+	zbx_variant_clear(value);
+	zbx_variant_set_error(value, errmsg);
+
+	return FAIL;
+}
+
+static int	pp_validate_not_regex(zbx_variant_t *value, const char *params)
+{
+	char	*errmsg = NULL;
+
+	if (SUCCEED == item_preproc_validate_not_regex(value, params, &errmsg))
+		return SUCCEED;
+
+	zbx_variant_clear(value);
+	zbx_variant_set_error(value, errmsg);
+
+	return FAIL;
+}
+
+static int	pp_error_from_json(zbx_variant_t *value, const char *params)
+{
+	char	*errmsg = NULL;
+	int	ret;
+
+	ret = item_preproc_get_error_from_json(value, params, &errmsg);
+
+	if (NULL != errmsg)
+	{
+		zbx_variant_clear(value);
+		zbx_variant_set_error(value, errmsg);
+	}
+
+	return ret;
+}
+
+static int	pp_error_from_xml(zbx_variant_t *value, const char *params)
+{
+	char	*errmsg = NULL;
+	int	ret;
+
+	ret = item_preproc_get_error_from_xml(value, params, &errmsg);
+
+	if (NULL != errmsg)
+	{
+		zbx_variant_clear(value);
+		zbx_variant_set_error(value, errmsg);
+	}
+
+	return ret;
+}
+
+static int	pp_error_from_regex(zbx_variant_t *value, const char *params)
+{
+	char	*errmsg = NULL;
+	int	ret;
+
+	ret = item_preproc_get_error_from_regex(value, params, &errmsg);
+
+	if (NULL != errmsg)
+	{
+		zbx_variant_clear(value);
+		zbx_variant_set_error(value, errmsg);
+	}
+
+	return ret;
+}
+
 static int	pp_execute_step(zbx_pp_cache_t *cache, unsigned char value_type, zbx_variant_t *value,
 		zbx_timespec_t ts, zbx_pp_step_t *step, zbx_variant_t *history_value, zbx_timespec_t history_ts)
 {
+	pp_cache_copy_value(cache, step->type, value);
+
 	switch (step->type)
 	{
 		case ZBX_PREPROC_MULTIPLIER:
-			pp_cache_get_value(cache, value);
 			return pp_execute_multiply(value_type, value, step->params);
 		case ZBX_PREPROC_RTRIM:
 		case ZBX_PREPROC_LTRIM:
 		case ZBX_PREPROC_TRIM:
-			pp_cache_get_value(cache, value);
 			return pp_execute_trim(step->type, value, step->params);
 		case ZBX_PREPROC_REGSUB:
-			pp_cache_get_value(cache, value);
 			return pp_execute_regsub(value, step->params);
 		case ZBX_PREPROC_BOOL2DEC:
 		case ZBX_PREPROC_OCT2DEC:
 		case ZBX_PREPROC_HEX2DEC:
-			pp_cache_get_value(cache, value);
 			return pp_execute_2dec(step->type, value);
 		case ZBX_PREPROC_VALIDATE_NOT_SUPPORTED:
-			pp_cache_get_value(cache, value);
 			return pp_check_not_error(value);
 		case ZBX_PREPROC_DELTA_VALUE:
 		case ZBX_PREPROC_DELTA_SPEED:
-			pp_cache_get_value(cache, value);
 			return pp_execute_delta(step->type, value_type, value, ts, history_value, history_ts);
 		case ZBX_PREPROC_XPATH:
-			pp_cache_get_value(cache, value);
 			return pp_execute_xpath(value, step->params);
 		case ZBX_PREPROC_JSONPATH:
 			return pp_execute_jsonpath(cache, value, step->params);
-			break;
-
+		case ZBX_PREPROC_VALIDATE_RANGE:
+			return pp_validate_range(value_type, value, step->params);
+		case ZBX_PREPROC_VALIDATE_REGEX:
+			return pp_validate_regex(value, step->params);
+		case ZBX_PREPROC_VALIDATE_NOT_REGEX:
+			return pp_validate_not_regex(value, step->params);
+		case ZBX_PREPROC_ERROR_FIELD_JSON:
+			return pp_error_from_json(value, step->params);
+		case ZBX_PREPROC_ERROR_FIELD_XML:
+			return pp_error_from_xml(value, step->params);
+		case ZBX_PREPROC_ERROR_FIELD_REGEX:
+			return pp_error_from_regex(value, step->params);
 		default:
 			zbx_variant_clear(value);
 			zbx_variant_set_error(value, zbx_dsprintf(NULL, "unknown preprocessing step"));
@@ -390,11 +478,14 @@ void	pp_execute(zbx_pp_item_preproc_t *preproc, zbx_pp_cache_t *cache, zbx_varia
 		if (SUCCEED != pp_execute_step(cache, preproc->value_type, value_out, ts, preproc->steps + i,
 				&history_value, history_ts))
 		{
-			pp_error_on_fail(value_out, preproc->steps + i);
-			action = preproc->steps[i].error_handler;
+			action = pp_error_on_fail(value_out, preproc->steps + i);
 		}
 		else
-			action = ZBX_PREPROC_FAIL_DEFAULT;
+		{	if (ZBX_VARIANT_ERR == value_out->type)
+				action = ZBX_PREPROC_FAIL_FORCE_ERROR;
+			else
+				action = ZBX_PREPROC_FAIL_DEFAULT;
+		}
 
 		pp_result_set(results + results_num++, value_out, action);
 

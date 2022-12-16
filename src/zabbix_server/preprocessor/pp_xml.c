@@ -22,50 +22,18 @@
 
 #ifdef HAVE_LIBXML2
 
-#ifndef LIBXML_THREAD_ENABLED
-static pthread_mutex_t	xml_lock;
-#endif
-
 void	pp_xml_init(void)
 {
-#ifndef LIBXML_THREAD_ENABLED
-	pthread_mutex_init(&xml_lock, NULL);
-#endif
+#ifdef HAVE_LIBXML2
 	xmlInitParser();
+#endif
 }
 
 void	pp_xml_destroy(void)
 {
+#ifdef HAVE_LIBXML2
 	xmlCleanupParser();
-
-#ifndef LIBXML_THREAD_ENABLED
-	pthread_mutex_destroy(&xml_lock);
 #endif
-}
-
-int	pp_xml_query_xpath(zbx_variant_t *value, const char *params, char **errmsg)
-{
-#ifndef LIBXML_THREAD_ENABLED
-	pthread_mutex_lock(&xml_lock);
-#endif
-
-	return zbx_query_xpath(value, params, errmsg);
-
-#ifndef LIBXML_THREAD_ENABLED
-	pthread_mutex_unlock(&xml_lock);
-#endif
-}
-
-
-#else
-
-void	pp_xml_init(void)
-{
-}
-
-int	pp_xml_query_xpath(zbx_variant_t *value, const char *params, char **errmsg)
-{
-	return zbx_query_xpath(value, params, errmsg);
 }
 
 #endif

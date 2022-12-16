@@ -90,9 +90,22 @@ zbx_pp_cache_t	*pp_cache_copy(zbx_pp_cache_t *cache)
 	return cache;
 }
 
-void	pp_cache_get_value(zbx_pp_cache_t *cache, zbx_variant_t *value)
+/******************************************************************************
+ *                                                                            *
+ * Purpose: copy value from cache if needed                                   *
+ *                                                                            *
+ * Parameters: cache     - [IN] the preprocessing cache                       *
+ *             step_type - [IN] the preprocessing step type                   *
+ *             value     - [OUT] the output value                             *
+ *                                                                            *
+ * Comments: The value is copied from preprocessing cache if cache exists and *
+ *           cache is not initialized or wrong preprocessing step type is     *
+ *           cached.                                                          *
+ *                                                                            *
+ ******************************************************************************/
+void	pp_cache_copy_value(zbx_pp_cache_t *cache, unsigned char step_type, zbx_variant_t *value)
 {
-	if (NULL != cache)
+	if (NULL != cache && (NULL == cache->data || step_type != cache->type))
 	{
 		zbx_variant_clear(value);
 		zbx_variant_copy(value, &cache->value);

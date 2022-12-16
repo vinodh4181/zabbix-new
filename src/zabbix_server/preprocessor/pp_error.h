@@ -35,7 +35,7 @@ void	pp_result_set(zbx_pp_result_t *result, zbx_variant_t *value, unsigned char 
 void	pp_free_results(zbx_pp_result_t *results, int results_num);
 
 void	pp_format_error(const zbx_variant_t *value, zbx_pp_result_t *results, int results_num, char **error);
-void	pp_error_on_fail(zbx_variant_t *value, const zbx_pp_step_t *step);
+int	pp_error_on_fail(zbx_variant_t *value, const zbx_pp_step_t *step);
 
 
 #endif
