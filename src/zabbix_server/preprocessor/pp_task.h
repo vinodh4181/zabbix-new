@@ -95,7 +95,7 @@ zbx_pp_task_t	*pp_task_value_create(zbx_uint64_t itemid, zbx_pp_item_preproc_t *
 		zbx_timespec_t ts, zbx_pp_cache_t *cache);
 zbx_pp_task_t	*pp_task_dependent_create(zbx_uint64_t itemid, zbx_pp_item_preproc_t *preproc);
 zbx_pp_task_t	*pp_task_value_seq_create(zbx_uint64_t itemid, zbx_pp_item_preproc_t *preproc, zbx_variant_t *value,
-		zbx_timespec_t ts);
+		zbx_timespec_t ts, zbx_pp_cache_t *cache);
 zbx_pp_task_t	*pp_task_sequence_create(zbx_uint64_t itemid);
 
 #endif

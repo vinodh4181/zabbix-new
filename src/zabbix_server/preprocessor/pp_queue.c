@@ -116,11 +116,6 @@ void	pp_task_queue_deregister_worker(zbx_pp_queue_t *queue)
 	queue->workers_num--;
 }
 
-void	pp_task_queue_push_immediate(zbx_pp_queue_t *queue, zbx_pp_task_t *task)
-{
-	zbx_list_append(&queue->immediate, task, NULL);
-}
-
 static zbx_pp_task_t	*pp_task_queue_add_sequence(zbx_pp_queue_t *queue, zbx_pp_task_t *task)
 {
 	zbx_pp_item_task_sequence_t	*sequence;
@@ -144,6 +139,17 @@ static zbx_pp_task_t	*pp_task_queue_add_sequence(zbx_pp_queue_t *queue, zbx_pp_t
 	zbx_list_append(&d_seq->tasks, task, NULL);
 
 	return new_task;
+}
+
+void	pp_task_queue_push_immediate(zbx_pp_queue_t *queue, zbx_pp_task_t *task)
+{
+	if (ZBX_PP_TASK_VALUE_SEQ == task->type || ZBX_PP_TASK_DEPENDENT == task->type)
+	{
+		if (NULL == (task = pp_task_queue_add_sequence(queue, task)))
+			return;
+	}
+
+	zbx_list_append(&queue->immediate, task, NULL);
 }
 
 void	pp_task_queue_remove_sequence(zbx_pp_queue_t *queue, zbx_uint64_t itemid)

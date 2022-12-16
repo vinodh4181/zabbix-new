@@ -43,38 +43,43 @@ static void	pp_task_process_test(zbx_pp_task_t *task)
 	/* TODO: send back result to the ipc client */
 }
 
-static zbx_pp_task_t	*pp_task_process_value(zbx_pp_task_t *task)
+static void	pp_task_process_value(zbx_pp_task_t *task)
 {
 	zbx_pp_task_value_t	*d = (zbx_pp_task_value_t *)PP_TASK_DATA(task);
 
-	pp_execute(d->preproc, d->cache, &d->value, d->ts, &d->value);
-
-	return task;
+	pp_execute(d->preproc, d->cache, &d->value, d->ts, &d->result);
 }
 
-static zbx_pp_task_t	*pp_task_process_dependent(zbx_pp_task_t *task)
+static void	pp_task_process_dependent(zbx_pp_task_t *task)
 {
 	zbx_pp_task_dependent_t	*d = (zbx_pp_task_dependent_t *)PP_TASK_DATA(task);
 	zbx_pp_task_value_t	*d_first = (zbx_pp_task_value_t *)PP_TASK_DATA(d->first_task);
 
 	d->cache = pp_cache_create(d_first->preproc, &d_first->value);
 	pp_execute(d_first->preproc, d->cache, &d_first->value, d_first->ts, &d_first->result);
-
-	return task;
 }
 
-static zbx_pp_task_t	*pp_task_process_sequence(zbx_pp_task_t *task)
+static	void	pp_task_process_sequence(zbx_pp_task_t *task_seq)
 {
-	zbx_pp_task_sequence_t	*d_seq = (zbx_pp_task_sequence_t *)PP_TASK_DATA(task);
-	zbx_pp_task_t		*task_value;
+	zbx_pp_task_sequence_t	*d_seq = (zbx_pp_task_sequence_t *)PP_TASK_DATA(task_seq);
+	zbx_pp_task_t		*task;
 
-	if (SUCCEED == zbx_list_peek(&d_seq->tasks, (void **)&task_value))
+	if (SUCCEED == zbx_list_peek(&d_seq->tasks, (void **)&task))
 	{
-		zbx_pp_task_value_t	*d = (zbx_pp_task_value_t *)PP_TASK_DATA(task_value);
-		pp_execute(d->preproc, NULL, &d->value, d->ts, &d->result);
+		switch (task->type)
+		{
+			case ZBX_PP_TASK_VALUE:
+			case ZBX_PP_TASK_VALUE_SEQ:
+				pp_task_process_value(task);
+				break;
+			case ZBX_PP_TASK_DEPENDENT:
+				pp_task_process_dependent(task);
+				break;
+			default:
+				THIS_SHOULD_NEVER_HAPPEN;
+				break;
+		}
 	}
-
-	return task;
 }
 
 static void	*pp_worker_start(void *arg)

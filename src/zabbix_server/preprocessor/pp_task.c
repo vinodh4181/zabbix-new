@@ -104,9 +104,9 @@ static void	pp_task_value_clear(zbx_pp_task_value_t *task)
 }
 
 zbx_pp_task_t	*pp_task_value_seq_create(zbx_uint64_t itemid, zbx_pp_item_preproc_t *preproc, zbx_variant_t *value,
-		zbx_timespec_t ts)
+		zbx_timespec_t ts, zbx_pp_cache_t *cache)
 {
-	zbx_pp_task_t	*task = pp_task_value_create(itemid, preproc, value, ts, NULL);
+	zbx_pp_task_t	*task = pp_task_value_create(itemid, preproc, value, ts, cache);
 
 	pp_debugf("pp_task_value_seq_in_create(%lu) -> %p", itemid, task);
 
