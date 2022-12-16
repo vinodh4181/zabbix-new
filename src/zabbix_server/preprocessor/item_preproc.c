@@ -1482,7 +1482,7 @@ out:
  *               FAIL - otherwise                                             *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_throttle_value(zbx_variant_t *value, const zbx_timespec_t *ts,
+int	item_preproc_throttle_value(zbx_variant_t *value, const zbx_timespec_t *ts,
 		zbx_variant_t *history_value, zbx_timespec_t *history_ts)
 {
 	int	ret;
@@ -1515,7 +1515,7 @@ static int	item_preproc_throttle_value(zbx_variant_t *value, const zbx_timespec_
  *               FAIL - otherwise                                             *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_throttle_timed_value(zbx_variant_t *value, const zbx_timespec_t *ts, const char *params,
+int	item_preproc_throttle_timed_value(zbx_variant_t *value, const zbx_timespec_t *ts, const char *params,
 		zbx_variant_t *history_value, zbx_timespec_t *history_ts, char **errmsg)
 {
 	int	ret, timeout, period = 0;

@@ -389,6 +389,20 @@ static int	pp_error_from_regex(zbx_variant_t *value, const char *params)
 	return ret;
 }
 
+static int	pp_throttle_timed_value(zbx_variant_t *value, zbx_timespec_t ts, const char *params,
+		zbx_variant_t *history_value, zbx_timespec_t history_ts)
+{
+	char	*errmsg = NULL;
+
+	if (SUCCEED == item_preproc_throttle_timed_value(value, &ts, params, history_value, &history_ts, &errmsg))
+		return SUCCEED;
+
+	zbx_variant_clear(value);
+	zbx_variant_set_error(value, errmsg);
+
+	return FAIL;
+}
+
 static int	pp_execute_step(zbx_pp_cache_t *cache, unsigned char value_type, zbx_variant_t *value,
 		zbx_timespec_t ts, zbx_pp_step_t *step, zbx_variant_t *history_value, zbx_timespec_t history_ts)
 {
@@ -429,6 +443,10 @@ static int	pp_execute_step(zbx_pp_cache_t *cache, unsigned char value_type, zbx_
 			return pp_error_from_xml(value, step->params);
 		case ZBX_PREPROC_ERROR_FIELD_REGEX:
 			return pp_error_from_regex(value, step->params);
+		case ZBX_PREPROC_THROTTLE_VALUE:
+			return item_preproc_throttle_value(value, &ts, history_value, &history_ts);
+		case ZBX_PREPROC_THROTTLE_TIMED_VALUE:
+			return pp_throttle_timed_value(value, ts, step->params, history_value, history_ts);
 		default:
 			zbx_variant_clear(value);
 			zbx_variant_set_error(value, zbx_dsprintf(NULL, "unknown preprocessing step"));

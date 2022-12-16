@@ -495,26 +495,35 @@ static void	test_preproc(zbx_pp_manager_t * manager)
 	pp_add_item_dep(item1, 1003);
 	*/
 
-	pp_add_item_preproc(item1, ZBX_PREPROC_ERROR_FIELD_REGEX, ".*error: *([0-9]+)\n\\1", 0, NULL);
+	pp_add_item_preproc(item1, ZBX_PREPROC_THROTTLE_TIMED_VALUE, "1m", 0, NULL);
 
 	/*zbx_variant_set_str(&value, "regex validation error"); */
 	/* zbx_variant_set_str(&value, "[{\"id\":1,\"name\":\"one\"},{\"id\":2,\"name\":\"two\"}]"); */
 	/* zbx_variant_set_str(&value, "{\"error\":\"error from the json\""); */
 	/* zbx_variant_set_str(&value, "<root><el><id>1</id><name>one</name></el><el><id>2</id><name>two</name></el></root>"); */
-	zbx_variant_set_str(&value, "error: 123");
+	zbx_variant_set_str(&value, "VALUE 1");
 
 	zbx_timespec(&ts);
 
 	pp_task_queue_lock(&manager->queue);
 
 	pp_manager_queue_preproc(manager, 1001, &value, ts);
-	zbx_variant_set_str(&value, "value: 4");
+	zbx_variant_set_str(&value, "VALUE 1");
+	pp_manager_queue_preproc(manager, 1001, &value, ts);
+	ts.sec += SEC_PER_MIN;
+	zbx_variant_set_str(&value, "VALUE 1");
+	pp_manager_queue_preproc(manager, 1001, &value, ts);
+	zbx_variant_set_str(&value, "VALUE 1");
+	pp_manager_queue_preproc(manager, 1001, &value, ts);
+	zbx_variant_set_str(&value, "VALUE 2");
+	pp_manager_queue_preproc(manager, 1001, &value, ts);
+	zbx_variant_set_str(&value, "VALUE 2");
 	pp_manager_queue_preproc(manager, 1001, &value, ts);
 
 	pp_task_queue_unlock(&manager->queue);
 	pp_task_queue_notify_all(&manager->queue);
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 8; i++)
 	{
 		printf("==== iteration: %d\n", i);
 		pp_manager_process_finished(manager);
