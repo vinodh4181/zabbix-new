@@ -128,6 +128,9 @@ window.http_step_popup = new class {
 			elem.addEventListener('change', () => this._update());
 		});
 
+		this.radio_post_type.querySelector('input#post_type_0').addEventListener('change', this.rawEvent.bind(this));
+		this.radio_post_type.querySelector('input#post_type_1').addEventListener('change', this.rawEvent.bind(this));
+
 		this.input_url = document.getElementById('url');
 
 		const query_fields_table = document.querySelector('.js-tbl-editable table');
@@ -161,33 +164,6 @@ window.http_step_popup = new class {
 		[...this.form.querySelectorAll('.js-raw-post')].map((elem) => elem.style.display = is_raw ? 'block' : 'none');
 		[...this.form.querySelectorAll('.js-post-fields')].map((elem) => elem.style.display = is_raw ? 'none' : 'block');
 
-		if (is_raw) {
-			this.textarea_raw_post.value = ScenarioHelper.parsePostPairsToRaw(this.pairs.post_fields);
-		}
-		else {
-			if (this.textarea_raw_post.value !== '') {
-				this.data.pairs.post_fields = ScenarioHelper.parsePostRawToPairs(this.textarea_raw_post.value);
-
-				// clear table
-				[...document.querySelectorAll('.httpconf-dynamic-table[data-type=post_fields] .form_row')].map(
-					elem => elem.remove()
-				);
-
-				// clear event
-				jQuery(document.querySelector('.httpconf-dynamic-table[data-type=post_fields]')).dynamicRows('destroy');
-
-				jQuery(document.querySelector('.httpconf-dynamic-table[data-type=post_fields]'))
-					.dynamicRows({
-						template: '#scenario-pair-row-tmpl',
-						rows: this.data.pairs.post_fields,
-						counter: 0,
-						dataCallback: (data) => {
-							return {...data, ...{type: 'post_fields', index: this.row_id++}};
-						}
-					});
-			}
-		}
-
 		this.pairs.post_fields.classList.toggle('disabled', is_disabled);
 
 		[...this.pairs.post_fields.querySelectorAll('input')].map((elem) => elem.disabled = is_disabled);
@@ -195,6 +171,35 @@ window.http_step_popup = new class {
 		if (!is_disabled) {
 			jQuery(this.pairs.post_fields).trigger('tableupdate.dynamicRows', this);
 		}
+	}
+
+	rawEvent() {
+		const is_raw = this.radio_post_type.querySelector('input:checked').value == ZBX_POSTTYPE_RAW;
+
+		if (is_raw) {
+			this.textarea_raw_post.value = ScenarioHelper.parsePostPairsToRaw(this.pairs.post_fields);
+			return;
+		}
+
+		this.data.pairs.post_fields = ScenarioHelper.parsePostRawToPairs(this.textarea_raw_post.value);
+
+		// clear table
+		[...document.querySelectorAll('.httpconf-dynamic-table[data-type=post_fields] .form_row')].map(
+			elem => elem.remove()
+		);
+
+		// clear event
+		jQuery(document.querySelector('.httpconf-dynamic-table[data-type=post_fields]')).dynamicRows('destroy');
+
+		jQuery(document.querySelector('.httpconf-dynamic-table[data-type=post_fields]'))
+			.dynamicRows({
+				template: '#scenario-pair-row-tmpl',
+				rows: this.data.pairs.post_fields,
+				counter: 0,
+				dataCallback: (data) => {
+					return {...data, ...{type: 'post_fields', index: this.row_id++}};
+				}
+			});
 	}
 
 	submit() {
