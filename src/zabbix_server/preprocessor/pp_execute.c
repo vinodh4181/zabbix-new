@@ -20,6 +20,7 @@
 #include "pp_execute.h"
 #include "pp_cache.h"
 #include "pp_error.h"
+#include "pp_xml.h"
 #include "log.h"
 #include "pp_log.h"
 #include "item_preproc.h"
@@ -121,6 +122,29 @@ static int	pp_execute_delta(unsigned char type, unsigned char value_type, zbx_va
 	return FAIL;
 }
 
+static int	pp_execute_regsub(zbx_variant_t *value, const char *params)
+{
+	char	*errmsg = NULL, *ptr;
+	int	len;
+
+	if (SUCCEED == item_preproc_regsub_op(value, params, &errmsg))
+		return SUCCEED;
+
+	if (NULL == (ptr = strchr(params, '\n')))
+		len = strlen(params);
+	else
+		len = ptr - params;
+
+	zbx_variant_clear(value);
+	zbx_variant_set_error(value, zbx_dsprintf(NULL, "cannot perform regular expression \"%.*s\""
+			" match for value of type \"%s\": %s",
+			len, params, zbx_variant_type_desc(value), errmsg));
+
+	zbx_free(errmsg);
+
+	return FAIL;
+}
+
 /******************************************************************************
  *                                                                            *
  * Purpose: execute jsonpath query                                            *
@@ -211,10 +235,73 @@ static int	pp_execute_jsonpath(zbx_pp_cache_t *cache, zbx_variant_t *value, cons
 	if (SUCCEED == pp_excute_jsonpath_step(cache, value, params, &errmsg))
 		return SUCCEED;
 
+	zbx_variant_clear(value);
 	zbx_variant_set_error(value, zbx_dsprintf(NULL, "cannot extract value from json by path \"%s\": %s", params,
 			errmsg));
 
 	zbx_free(errmsg);
+
+	return FAIL;
+}
+
+static const char	*pp_2dec_desc(unsigned char type)
+{
+	switch (type)
+	{
+		case ZBX_PREPROC_BOOL2DEC:
+			return "boolean";
+		case ZBX_PREPROC_OCT2DEC:
+			return "octal";
+		case ZBX_PREPROC_HEX2DEC:
+			return "hexadecimal";
+		default:
+			return "";
+	}
+}
+
+static int	pp_execute_2dec(unsigned char type, zbx_variant_t *value)
+{
+	char	*errmsg = NULL, *value_desc;
+
+	if (SUCCEED == item_preproc_2dec(value, type, &errmsg))
+		return SUCCEED;
+
+	value_desc = zbx_strdup(NULL, zbx_variant_value_desc(value));
+	zbx_variant_clear(value);
+	zbx_variant_set_error(value, zbx_dsprintf(NULL, "cannot convert value  \"%s\" from %s to decimal format: %s",
+			value_desc, pp_2dec_desc(type), errmsg));
+
+	zbx_free(value_desc);
+	zbx_free(errmsg);
+
+	return FAIL;
+}
+
+static int	pp_execute_xpath_step(zbx_variant_t *value, const char *params, char **error)
+{
+	char	*errmsg = NULL;
+
+	if (FAIL == item_preproc_convert_value(value, ZBX_VARIANT_STR, error))
+		return FAIL;
+
+	if (SUCCEED == pp_xml_query_xpath(value, params, &errmsg))
+		return SUCCEED;
+
+	*error = zbx_dsprintf(NULL, "cannot extract XML value with xpath \"%s\": %s", params, errmsg);
+	zbx_free(errmsg);
+
+	return FAIL;
+}
+
+static int	pp_execute_xpath(zbx_variant_t *value, const char *params)
+{
+	char	*errmsg = NULL;
+
+	if (SUCCEED == pp_execute_xpath_step(value, params, &errmsg))
+		return SUCCEED;
+
+	zbx_variant_clear(value);
+	zbx_variant_set_error(value, errmsg);
 
 	return FAIL;
 }
@@ -232,6 +319,14 @@ static int	pp_execute_step(zbx_pp_cache_t *cache, unsigned char value_type, zbx_
 		case ZBX_PREPROC_TRIM:
 			pp_cache_get_value(cache, value);
 			return pp_execute_trim(step->type, value, step->params);
+		case ZBX_PREPROC_REGSUB:
+			pp_cache_get_value(cache, value);
+			return pp_execute_regsub(value, step->params);
+		case ZBX_PREPROC_BOOL2DEC:
+		case ZBX_PREPROC_OCT2DEC:
+		case ZBX_PREPROC_HEX2DEC:
+			pp_cache_get_value(cache, value);
+			return pp_execute_2dec(step->type, value);
 		case ZBX_PREPROC_VALIDATE_NOT_SUPPORTED:
 			pp_cache_get_value(cache, value);
 			return pp_check_not_error(value);
@@ -239,6 +334,9 @@ static int	pp_execute_step(zbx_pp_cache_t *cache, unsigned char value_type, zbx_
 		case ZBX_PREPROC_DELTA_SPEED:
 			pp_cache_get_value(cache, value);
 			return pp_execute_delta(step->type, value_type, value, ts, history_value, history_ts);
+		case ZBX_PREPROC_XPATH:
+			pp_cache_get_value(cache, value);
+			return pp_execute_xpath(value, step->params);
 		case ZBX_PREPROC_JSONPATH:
 			return pp_execute_jsonpath(cache, value, step->params);
 			break;

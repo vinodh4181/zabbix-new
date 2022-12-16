@@ -709,7 +709,7 @@ static int	is_uhex(const char *str)
  *               FAIL - otherwise                                             *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_2dec(zbx_variant_t *value, unsigned char op_type, char **errmsg)
+int	item_preproc_2dec(zbx_variant_t *value, unsigned char op_type, char **errmsg)
 {
 #define OCT2UINT64(uint, string) sscanf(string, ZBX_FS_UO64, &uint)
 #define HEX2UINT64(uint, string) sscanf(string, ZBX_FS_UX64, &uint)
@@ -855,7 +855,7 @@ static int	item_preproc_hex2dec(zbx_variant_t *value, char **errmsg)
  *               FAIL - otherwise                                             *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_regsub_op(zbx_variant_t *value, const char *params, char **errmsg)
+int	item_preproc_regsub_op(zbx_variant_t *value, const char *params, char **errmsg)
 {
 	char		pattern[ITEM_PREPROC_PARAMS_LEN * ZBX_MAX_BYTES_IN_UTF8_CHAR + 1];
 	char		*output, *new_value = NULL;

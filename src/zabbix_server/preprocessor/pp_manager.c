@@ -21,7 +21,7 @@
 #include "pp_log.h"
 #include "pp_queue.h"
 #include "pp_item.h"
-
+#include "pp_xml.h"
 #include "pp_task.h"
 #include "zbxcommon.h"
 #include "zbxalgo.h"
@@ -48,6 +48,8 @@ int	pp_manager_init(zbx_pp_manager_t *manager, int workers_num, char **error)
 	/* TODO: for debug logging, remove */
 	pp_log_init("manager", 3);
 	pp_infof("starting ...");
+
+	pp_xml_init();
 
 	memset(manager, 0, sizeof(zbx_pp_manager_t));
 
@@ -99,6 +101,8 @@ out:
 
 		pp_task_queue_destroy(&manager->queue);
 	}
+
+	pp_xml_destroy();
 
 	return ret;
 }
@@ -489,22 +493,24 @@ static void	test_preproc(zbx_pp_manager_t * manager)
 	pp_add_item_dep(item1, 1002);
 	pp_add_item_dep(item1, 1003);
 
-	pp_add_item_preproc(item2, ZBX_PREPROC_TRIM, " ", 0, NULL);
-	pp_add_item_preproc(item2, ZBX_PREPROC_JSONPATH, "$[?(@.id==1)].name.first()", 0, NULL);
-	pp_add_item_preproc(item3, ZBX_PREPROC_JSONPATH, "$[?(@.id==2)].name.first()", 0, NULL);
+	pp_add_item_preproc(item2, ZBX_PREPROC_XPATH, "//el[id=1]/name/text()", 0, NULL);
+	pp_add_item_preproc(item3, ZBX_PREPROC_XPATH, "//el[id=2]/name/text()", 0, NULL);
 
 	/* zbx_variant_set_ui64(&value, 1); */
-	zbx_variant_set_str(&value, "[{\"id\":1,\"name\":\"one\"},{\"id\":2,\"name\":\"two\"}]");
+	/* zbx_variant_set_str(&value, "[{\"id\":1,\"name\":\"one\"},{\"id\":2,\"name\":\"two\"}]"); */
+	zbx_variant_set_str(&value, "<root><el><id>1</id><name>one</name></el><el><id>2</id><name>two</name></el></root>");
 	zbx_timespec(&ts);
 
 	pp_task_queue_lock(&manager->queue);
 
 	pp_manager_queue_preproc(manager, 1001, &value, ts);
+	zbx_variant_set_str(&value, "99");
+	pp_manager_queue_preproc(manager, 1001, &value, ts);
 
 	pp_task_queue_unlock(&manager->queue);
 	pp_task_queue_notify_all(&manager->queue);
 
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < 5; i++)
 	{
 		printf("==== iteration: %d\n", i);
 		pp_manager_process_finished(manager);

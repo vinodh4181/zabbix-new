@@ -44,13 +44,11 @@ struct _zbx_xml_node_t
 
 ZBX_PTR_VECTOR_IMPL(xml_node_ptr, zbx_xml_node_t *)
 
-static char	data_static[ZBX_MAX_B64_LEN];
+static __THREAD char	data_static[ZBX_MAX_B64_LEN];
 
 /******************************************************************************
  *                                                                            *
  * Purpose: get DATA from <tag>DATA</tag>                                     *
- *                                                                            *
- * !!! Attention: static !!! Not thread-safe                                  *
  *                                                                            *
  ******************************************************************************/
 int	zbx_xml_get_data_dyn(const char *xml, const char *tag, char **data)
@@ -85,8 +83,6 @@ int	zbx_xml_get_data_dyn(const char *xml, const char *tag, char **data)
 }
 
 /******************************************************************************
- *                                                                            *
- * !!! Attention: static !!! Not thread-safe                                  *
  *                                                                            *
  ******************************************************************************/
 void	zbx_xml_free_data_dyn(char **data)
