@@ -21,6 +21,7 @@
 
 #include "pp_cache.h"
 #include "zbxjson.h"
+#include "zbxprometheus.h"
 
 /******************************************************************************
  *                                                                            *
@@ -46,13 +47,6 @@ zbx_pp_cache_t	*pp_cache_create(zbx_pp_item_preproc_t *preproc, zbx_variant_t *v
 	return cache;
 }
 
-static void	pp_cache_jsonpath_free(void *data)
-{
-	zbx_jsonobj_t	*obj = (zbx_jsonobj_t *)data;
-
-	zbx_jsonobj_clear(obj);
-}
-
 static void	pp_cache_free(zbx_pp_cache_t *cache)
 {
 	zbx_variant_clear(&cache->value);
@@ -62,7 +56,10 @@ static void	pp_cache_free(zbx_pp_cache_t *cache)
 		switch (cache->type)
 		{
 			case ZBX_PREPROC_JSONPATH:
-				pp_cache_jsonpath_free(cache->data);
+				zbx_jsonobj_clear((zbx_jsonobj_t *)cache->data);
+				break;
+			case ZBX_PREPROC_PROMETHEUS_PATTERN:
+				zbx_prometheus_clear((zbx_prometheus_t *)cache->data);
 				break;
 		}
 

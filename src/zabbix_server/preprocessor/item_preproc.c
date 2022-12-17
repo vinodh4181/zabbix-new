@@ -1698,7 +1698,7 @@ out:
  *               FAIL - otherwise                                             *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_prometheus_to_json(zbx_variant_t *value, const char *params, char **errmsg)
+int	item_preproc_prometheus_to_json(zbx_variant_t *value, const char *params, char **errmsg)
 {
 	char	*value_out = NULL, *err = NULL;
 

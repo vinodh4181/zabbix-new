@@ -21,9 +21,11 @@
 #include "pp_cache.h"
 #include "pp_error.h"
 #include "pp_xml.h"
+#include "../db_lengths.h"
 #include "log.h"
 #include "pp_log.h"
 #include "item_preproc.h"
+#include "zbxprometheus.h"
 
 static int	pp_execute_multiply(unsigned char value_type, zbx_variant_t *value, const char *params)
 {
@@ -417,6 +419,114 @@ static int	pp_execute_script(zbx_pp_context_t *ctx, zbx_variant_t *value, const 
 	return FAIL;
 }
 
+/******************************************************************************
+ *                                                                            *
+ * Purpose: parse Prometheus format metrics                                   *
+ *                                                                            *
+ * Parameters: cache  - [IN] the preprocessing cache                          *
+ *             value  - [IN/OUT] the value to process                         *
+ *             params - [IN] the operation parameters                         *
+ *             errmsg - [OUT] error message                                   *
+ *                                                                            *
+ * Return value: SUCCEED - the value was processed successfully               *
+ *               FAIL - otherwise                                             *
+ *                                                                            *
+ ******************************************************************************/
+static int	pp_execute_prometheus_pattern_step(zbx_pp_cache_t *cache, zbx_variant_t *value, const char *params,
+		char **errmsg)
+{
+	char	pattern[ITEM_PREPROC_PARAMS_LEN * ZBX_MAX_BYTES_IN_UTF8_CHAR + 1], *request, *output, *value_out = NULL,
+		*err = NULL;
+	int	ret = FAIL;
+
+	zbx_strlcpy(pattern, params, sizeof(pattern));
+
+	if (NULL == (request = strchr(pattern, '\n')))
+	{
+		*errmsg = zbx_strdup(*errmsg, "cannot find second parameter");
+		return FAIL;
+	}
+	*request++ = '\0';
+
+	if (NULL == (output = strchr(request, '\n')))
+	{
+		*errmsg = zbx_strdup(*errmsg, "cannot find third parameter");
+		return FAIL;
+	}
+	*output++ = '\0';
+
+	if (NULL == cache || ZBX_PREPROC_PROMETHEUS_PATTERN != cache->type)
+	{
+		if (FAIL == item_preproc_convert_value(value, ZBX_VARIANT_STR, errmsg))
+			return FAIL;
+
+		pp_warnf("RAW");
+		ret = zbx_prometheus_pattern(value->data.str, pattern, request, output, &value_out, &err);
+	}
+	else
+	{
+		zbx_prometheus_t	*prom_cache;
+
+		if (NULL == (prom_cache = (zbx_prometheus_t *)cache->data))
+		{
+			prom_cache = (zbx_prometheus_t *)zbx_malloc(NULL, sizeof(zbx_prometheus_t));
+
+			if (FAIL == item_preproc_convert_value(value, ZBX_VARIANT_STR, errmsg))
+				return FAIL;
+
+			if (SUCCEED != zbx_prometheus_init(prom_cache, value->data.str, &err))
+			{
+				zbx_free(prom_cache);
+				goto out;
+			}
+
+			pp_warnf("CACHE...");
+			cache->data = (void *)prom_cache;
+		}
+
+		pp_warnf("CACHED");
+		ret = zbx_prometheus_pattern_ex(prom_cache, pattern, request, output, &value_out, &err);
+	}
+out:
+	if (FAIL == ret)
+	{
+		*errmsg = zbx_dsprintf(*errmsg, "cannot apply Prometheus pattern: %s", err);
+		zbx_free(err);
+		return FAIL;
+	}
+
+	zbx_variant_clear(value);
+	zbx_variant_set_str(value, value_out);
+
+	return SUCCEED;
+}
+
+static int	pp_execute_prometheus_pattern(zbx_pp_cache_t *cache, zbx_variant_t *value, const char *params)
+{
+	char	*errmsg = NULL;
+
+	if (SUCCEED == pp_execute_prometheus_pattern_step(cache, value, params, &errmsg))
+		return SUCCEED;
+
+	zbx_variant_clear(value);
+	zbx_variant_set_error(value, errmsg);
+
+	return FAIL;
+}
+
+static int	pp_execute_prometheus_to_json(zbx_variant_t *value, const char *params)
+{
+	char	*errmsg = NULL;
+
+	if (SUCCEED == item_preproc_prometheus_to_json(value, params, &errmsg))
+		return SUCCEED;
+
+	zbx_variant_clear(value);
+	zbx_variant_set_error(value, errmsg);
+
+	return FAIL;
+}
+
 static int	pp_execute_step(zbx_pp_context_t *ctx, zbx_pp_cache_t *cache, unsigned char value_type,
 		zbx_variant_t *value, zbx_timespec_t ts, zbx_pp_step_t *step, zbx_variant_t *history_value, zbx_timespec_t history_ts)
 {
@@ -463,6 +573,10 @@ static int	pp_execute_step(zbx_pp_context_t *ctx, zbx_pp_cache_t *cache, unsigne
 			return pp_throttle_timed_value(value, ts, step->params, history_value, history_ts);
 		case ZBX_PREPROC_SCRIPT:
 			return pp_execute_script(ctx, value, step->params, history_value);
+		case ZBX_PREPROC_PROMETHEUS_PATTERN:
+			return pp_execute_prometheus_pattern(cache, value, step->params);
+		case ZBX_PREPROC_PROMETHEUS_TO_JSON:
+			return pp_execute_prometheus_to_json(value, step->params);
 		default:
 			zbx_variant_clear(value);
 			zbx_variant_set_error(value, zbx_dsprintf(NULL, "unknown preprocessing step"));

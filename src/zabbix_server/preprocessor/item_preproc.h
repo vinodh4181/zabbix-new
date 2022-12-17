@@ -81,5 +81,6 @@ int	item_preproc_throttle_timed_value(zbx_variant_t *value, const zbx_timespec_t
 		zbx_variant_t *history_value, zbx_timespec_t *history_ts, char **errmsg);
 int	item_preproc_script(zbx_es_t *es, zbx_variant_t *value, const char *params, zbx_variant_t *bytecode,
 		char **errmsg);
+int	item_preproc_prometheus_to_json(zbx_variant_t *value, const char *params, char **errmsg);
 
 #endif

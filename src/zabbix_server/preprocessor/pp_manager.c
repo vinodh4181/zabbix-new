@@ -495,7 +495,9 @@ static void	test_preproc(zbx_pp_manager_t * manager)
 	pp_add_item_dep(item1, 1003);
 	*/
 
-	pp_add_item_preproc(item1, ZBX_PREPROC_SCRIPT, "console.warn(value);if (value == '1') throw 'denied';return '> ' + value", 0, NULL);
+	pp_add_item_preproc(item1, ZBX_PREPROC_PROMETHEUS_TO_JSON,
+			"node_disk_usage_bytes", 0, NULL);
+
 
 	/*zbx_variant_set_str(&value, "regex validation error"); */
 	/* zbx_variant_set_str(&value, "[{\"id\":1,\"name\":\"one\"},{\"id\":2,\"name\":\"two\"}]"); */
@@ -507,8 +509,12 @@ static void	test_preproc(zbx_pp_manager_t * manager)
 
 	pp_task_queue_lock(&manager->queue);
 
-	pp_manager_queue_preproc(manager, 1001, &value, ts);
-	zbx_variant_set_str(&value, "2");
+	zbx_variant_set_str(&value,
+			"node_disk_usage_bytes{path=\"/var/cache\"} 2.1766144e+09\n"
+			"node_disk_usage_bytes{path=\"/var/db\"} 20480\n"
+			"node_disk_usage_bytes{path=\"/var/dpkg\"} 8192\n"
+			"node_disk_usage_bytes{path=\"/var/empty\"} 4096\n"
+			);
 	pp_manager_queue_preproc(manager, 1001, &value, ts);
 
 	pp_task_queue_unlock(&manager->queue);
