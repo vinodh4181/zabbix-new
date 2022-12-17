@@ -21,8 +21,20 @@
 #define ZABBIX_PP_EXECUTE_H
 
 #include "pp_cache.h"
+#include "zbxembed.h"
 
-void	pp_execute(zbx_pp_item_preproc_t *preproc, zbx_pp_cache_t *cache, zbx_variant_t *value_in, zbx_timespec_t ts,
-		zbx_variant_t *value_out);
+typedef struct
+{
+	int		es_initialized;
+	zbx_es_t	es_engine;
+}
+zbx_pp_context_t;
+
+void	pp_context_init(zbx_pp_context_t *ctx);
+void	pp_context_destroy(zbx_pp_context_t *ctx);
+zbx_es_t	*pp_context_es_engine(zbx_pp_context_t *ctx);
+
+void	pp_execute(zbx_pp_context_t *ctx, zbx_pp_item_preproc_t *preproc, zbx_pp_cache_t *cache,
+		zbx_variant_t *value_in, zbx_timespec_t ts, zbx_variant_t *value_out);
 
 #endif

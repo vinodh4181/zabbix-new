@@ -21,22 +21,24 @@
 #define ZABBIX_PP_WORKER_H
 
 #include "pp_queue.h"
+#include "pp_execute.h"
+#include "zbxembed.h"
 
 typedef struct
 {
-	int		id;	/* TODO: for debug logging, remove */
+	int			id;	/* TODO: for debug logging, remove */
 
-	zbx_uint32_t	init_flags;
-	int		stop;
+	zbx_uint32_t		init_flags;
+	int			stop;
 
-	zbx_pp_queue_t	*queue;
-	pthread_t	thread;
+	zbx_pp_queue_t		*queue;
+	pthread_t		thread;
+
+	zbx_pp_context_t	execute_ctx;
 }
 zbx_pp_worker_t;
 
 int	pp_worker_init(zbx_pp_worker_t *worker, zbx_pp_queue_t *queue, char **error);
 void	pp_worker_destroy(zbx_pp_worker_t *worker);
-
-
 
 #endif

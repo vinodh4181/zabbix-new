@@ -1556,7 +1556,8 @@ int	item_preproc_throttle_timed_value(zbx_variant_t *value, const zbx_timespec_t
  *               FAIL - otherwise                                             *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_script(zbx_variant_t *value, const char *params, zbx_variant_t *bytecode, char **errmsg)
+int	item_preproc_script(zbx_es_t *es, zbx_variant_t *value, const char *params, zbx_variant_t *bytecode,
+		char **errmsg)
 {
 	char	*code, *output = NULL, *error = NULL;
 	int	size;
@@ -1564,15 +1565,15 @@ static int	item_preproc_script(zbx_variant_t *value, const char *params, zbx_var
 	if (FAIL == item_preproc_convert_value(value, ZBX_VARIANT_STR, errmsg))
 		return FAIL;
 
-	if (SUCCEED != zbx_es_is_env_initialized(&es_engine))
+	if (SUCCEED != zbx_es_is_env_initialized(es))
 	{
-		if (SUCCEED != zbx_es_init_env(&es_engine, errmsg))
+		if (SUCCEED != zbx_es_init_env(es, errmsg))
 			return FAIL;
 	}
 
 	if (ZBX_VARIANT_BIN != bytecode->type)
 	{
-		if (SUCCEED != zbx_es_compile(&es_engine, params, &code, &size, errmsg))
+		if (SUCCEED != zbx_es_compile(es, params, &code, &size, errmsg))
 			goto fail;
 
 		zbx_variant_clear(bytecode);
@@ -1582,7 +1583,7 @@ static int	item_preproc_script(zbx_variant_t *value, const char *params, zbx_var
 
 	size = zbx_variant_data_bin_get(bytecode->data.bin, (void **)&code);
 
-	if (SUCCEED == zbx_es_execute(&es_engine, params, code, size, value->data.str, &output, errmsg))
+	if (SUCCEED == zbx_es_execute(es, params, code, size, value->data.str, &output, errmsg))
 	{
 		zbx_variant_clear(value);
 
@@ -1592,9 +1593,9 @@ static int	item_preproc_script(zbx_variant_t *value, const char *params, zbx_var
 		return SUCCEED;
 	}
 fail:
-	if (SUCCEED == zbx_es_fatal_error(&es_engine))
+	if (SUCCEED == zbx_es_fatal_error(es))
 	{
-		if (SUCCEED != zbx_es_destroy_env(&es_engine, &error))
+		if (SUCCEED != zbx_es_destroy_env(es, &error))
 		{
 			zabbix_log(LOG_LEVEL_WARNING,
 					"Cannot destroy embedded scripting engine environment: %s", error);
@@ -2215,7 +2216,7 @@ int	zbx_item_preproc(zbx_preproc_cache_t *cache, unsigned char value_type, zbx_v
 					error);
 			break;
 		case ZBX_PREPROC_SCRIPT:
-			ret = item_preproc_script(value, op->params, history_value, error);
+			ret = item_preproc_script(&es_engine, value, op->params, history_value, error);
 			break;
 		case ZBX_PREPROC_PROMETHEUS_PATTERN:
 			ret = item_preproc_prometheus_pattern(cache, value, op->params, error);

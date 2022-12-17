@@ -33,33 +33,33 @@
 /* WDN */
 /* #define sleep(x) */
 
-static void	pp_task_process_test(zbx_pp_task_t *task)
+static void	pp_task_process_test(zbx_pp_context_t *ctx, zbx_pp_task_t *task)
 {
 	zbx_pp_task_test_t	*d = (zbx_pp_task_test_t *)PP_TASK_DATA(task);
 	zbx_variant_t		result;
 
-	pp_execute(d->preproc, NULL, &d->value, d->ts, &result);
+	pp_execute(ctx, d->preproc, NULL, &d->value, d->ts, &result);
 
 	/* TODO: send back result to the ipc client */
 }
 
-static void	pp_task_process_value(zbx_pp_task_t *task)
+static void	pp_task_process_value(zbx_pp_context_t *ctx, zbx_pp_task_t *task)
 {
 	zbx_pp_task_value_t	*d = (zbx_pp_task_value_t *)PP_TASK_DATA(task);
 
-	pp_execute(d->preproc, d->cache, &d->value, d->ts, &d->result);
+	pp_execute(ctx, d->preproc, d->cache, &d->value, d->ts, &d->result);
 }
 
-static void	pp_task_process_dependent(zbx_pp_task_t *task)
+static void	pp_task_process_dependent(zbx_pp_context_t *ctx, zbx_pp_task_t *task)
 {
 	zbx_pp_task_dependent_t	*d = (zbx_pp_task_dependent_t *)PP_TASK_DATA(task);
 	zbx_pp_task_value_t	*d_first = (zbx_pp_task_value_t *)PP_TASK_DATA(d->first_task);
 
 	d->cache = pp_cache_create(d_first->preproc, &d_first->value);
-	pp_execute(d_first->preproc, d->cache, &d_first->value, d_first->ts, &d_first->result);
+	pp_execute(ctx, d_first->preproc, d->cache, &d_first->value, d_first->ts, &d_first->result);
 }
 
-static	void	pp_task_process_sequence(zbx_pp_task_t *task_seq)
+static	void	pp_task_process_sequence(zbx_pp_context_t *ctx, zbx_pp_task_t *task_seq)
 {
 	zbx_pp_task_sequence_t	*d_seq = (zbx_pp_task_sequence_t *)PP_TASK_DATA(task_seq);
 	zbx_pp_task_t		*task;
@@ -70,10 +70,10 @@ static	void	pp_task_process_sequence(zbx_pp_task_t *task_seq)
 		{
 			case ZBX_PP_TASK_VALUE:
 			case ZBX_PP_TASK_VALUE_SEQ:
-				pp_task_process_value(task);
+				pp_task_process_value(ctx, task);
 				break;
 			case ZBX_PP_TASK_DEPENDENT:
-				pp_task_process_dependent(task);
+				pp_task_process_dependent(ctx, task);
 				break;
 			default:
 				THIS_SHOULD_NEVER_HAPPEN;
@@ -114,17 +114,17 @@ static void	*pp_worker_start(void *arg)
 			switch (in->type)
 			{
 				case ZBX_PP_TASK_TEST:
-					pp_task_process_test(in);
+					pp_task_process_test(&worker->execute_ctx, in);
 					break;
 				case ZBX_PP_TASK_VALUE:
 				case ZBX_PP_TASK_VALUE_SEQ:
-					pp_task_process_value(in);
+					pp_task_process_value(&worker->execute_ctx, in);
 					break;
 				case ZBX_PP_TASK_DEPENDENT:
-					pp_task_process_dependent(in);
+					pp_task_process_dependent(&worker->execute_ctx, in);
 					break;
 				case ZBX_PP_TASK_SEQUENCE:
-					pp_task_process_sequence(in);
+					pp_task_process_sequence(&worker->execute_ctx, in);
 					break;
 			}
 
@@ -159,6 +159,8 @@ int	pp_worker_init(zbx_pp_worker_t *worker, zbx_pp_queue_t *queue, char **error)
 	}
 	worker->init_flags |= PP_WORKER_INIT_THREAD;
 
+	pp_context_init(&worker->execute_ctx);
+
 	ret = SUCCEED;
 out:
 	if (FAIL == ret)
@@ -177,6 +179,8 @@ void	pp_worker_destroy(zbx_pp_worker_t *worker)
 		pthread_cond_broadcast(&worker->queue->event);
 		pthread_join(worker->thread, &retval);
 	}
+
+	pp_context_destroy(&worker->execute_ctx);
 
 	worker->init_flags = PP_WORKER_INIT_NONE;
 }

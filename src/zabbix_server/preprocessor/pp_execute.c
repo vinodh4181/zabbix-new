@@ -403,8 +403,22 @@ static int	pp_throttle_timed_value(zbx_variant_t *value, zbx_timespec_t ts, cons
 	return FAIL;
 }
 
-static int	pp_execute_step(zbx_pp_cache_t *cache, unsigned char value_type, zbx_variant_t *value,
-		zbx_timespec_t ts, zbx_pp_step_t *step, zbx_variant_t *history_value, zbx_timespec_t history_ts)
+static int	pp_execute_script(zbx_pp_context_t *ctx, zbx_variant_t *value, const char *params,
+		zbx_variant_t *history_value)
+{
+	char	*errmsg = NULL;
+
+	if (SUCCEED == item_preproc_script(pp_context_es_engine(ctx), value, params, history_value, &errmsg))
+		return SUCCEED;
+
+	zbx_variant_clear(value);
+	zbx_variant_set_error(value, errmsg);
+
+	return FAIL;
+}
+
+static int	pp_execute_step(zbx_pp_context_t *ctx, zbx_pp_cache_t *cache, unsigned char value_type,
+		zbx_variant_t *value, zbx_timespec_t ts, zbx_pp_step_t *step, zbx_variant_t *history_value, zbx_timespec_t history_ts)
 {
 	pp_cache_copy_value(cache, step->type, value);
 
@@ -447,6 +461,8 @@ static int	pp_execute_step(zbx_pp_cache_t *cache, unsigned char value_type, zbx_
 			return item_preproc_throttle_value(value, &ts, history_value, &history_ts);
 		case ZBX_PREPROC_THROTTLE_TIMED_VALUE:
 			return pp_throttle_timed_value(value, ts, step->params, history_value, history_ts);
+		case ZBX_PREPROC_SCRIPT:
+			return pp_execute_script(ctx, value, step->params, history_value);
 		default:
 			zbx_variant_clear(value);
 			zbx_variant_set_error(value, zbx_dsprintf(NULL, "unknown preprocessing step"));
@@ -454,8 +470,8 @@ static int	pp_execute_step(zbx_pp_cache_t *cache, unsigned char value_type, zbx_
 		}
 }
 
-void	pp_execute(zbx_pp_item_preproc_t *preproc, zbx_pp_cache_t *cache, zbx_variant_t *value_in, zbx_timespec_t ts,
-		zbx_variant_t *value_out)
+void	pp_execute(zbx_pp_context_t *ctx, zbx_pp_item_preproc_t *preproc, zbx_pp_cache_t *cache,
+		zbx_variant_t *value_in, zbx_timespec_t ts, zbx_variant_t *value_out)
 {
 	zbx_pp_result_t		*results;
 	zbx_pp_history_t	*history;
@@ -493,7 +509,7 @@ void	pp_execute(zbx_pp_item_preproc_t *preproc, zbx_pp_cache_t *cache, zbx_varia
 
 		pp_history_pop(preproc->history, i, &history_value, &history_ts);
 
-		if (SUCCEED != pp_execute_step(cache, preproc->value_type, value_out, ts, preproc->steps + i,
+		if (SUCCEED != pp_execute_step(ctx, cache, preproc->value_type, value_out, ts, preproc->steps + i,
 				&history_value, history_ts))
 		{
 			action = pp_error_on_fail(value_out, preproc->steps + i);
@@ -552,4 +568,26 @@ out:
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s(): value:'%s' type:%s", __func__, zbx_variant_value_desc(value_out),
 			zbx_variant_type_desc(value_out));
 
+}
+
+void	pp_context_init(zbx_pp_context_t *ctx)
+{
+	memset(ctx, 0, sizeof(zbx_pp_context_t));
+}
+
+void	pp_context_destroy(zbx_pp_context_t *ctx)
+{
+	if (0 != ctx->es_initialized)
+		zbx_es_destroy(&ctx->es_engine);
+}
+
+zbx_es_t	*pp_context_es_engine(zbx_pp_context_t *ctx)
+{
+	if (0 == ctx->es_initialized)
+	{
+		zbx_es_init(&ctx->es_engine);
+		ctx->es_initialized = 1;
+	}
+
+	return &ctx->es_engine;
 }
