@@ -1804,7 +1804,7 @@ static int	item_preproc_csv_to_json_add_field(struct zbx_json *json, char ***nam
  *               FAIL - otherwise                                             *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_csv_to_json(zbx_variant_t *value, const char *params, char **errmsg)
+int	item_preproc_csv_to_json(zbx_variant_t *value, const char *params, char **errmsg)
 {
 #define CSV_STATE_FIELD		0
 #define CSV_STATE_DELIM		1
@@ -2059,7 +2059,7 @@ out:
  *               FAIL - otherwise                                             *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_xml_to_json(zbx_variant_t *value, char **errmsg)
+int	item_preproc_xml_to_json(zbx_variant_t *value, char **errmsg)
 {
 	char	*json = NULL;
 
@@ -2087,7 +2087,7 @@ static int	item_preproc_xml_to_json(zbx_variant_t *value, char **errmsg)
  *               FAIL - otherwise                                             *
  *                                                                            *
  ******************************************************************************/
-static int	item_preproc_str_replace(zbx_variant_t *value, const char *params, char **errmsg)
+int	item_preproc_str_replace(zbx_variant_t *value, const char *params, char **errmsg)
 {
 	unsigned int	len_search, len_replace;
 	const char	*ptr;

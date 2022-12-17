@@ -527,6 +527,45 @@ static int	pp_execute_prometheus_to_json(zbx_variant_t *value, const char *param
 	return FAIL;
 }
 
+static int	pp_execute_csv_to_json(zbx_variant_t *value, const char *params)
+{
+	char	*errmsg = NULL;
+
+	if (SUCCEED == item_preproc_csv_to_json(value, params, &errmsg))
+		return SUCCEED;
+
+	zbx_variant_clear(value);
+	zbx_variant_set_error(value, errmsg);
+
+	return FAIL;
+}
+
+static int	pp_execute_xml_to_json(zbx_variant_t *value)
+{
+	char	*errmsg = NULL;
+
+	if (SUCCEED == item_preproc_xml_to_json(value, &errmsg))
+		return SUCCEED;
+
+	zbx_variant_clear(value);
+	zbx_variant_set_error(value, errmsg);
+
+	return FAIL;
+}
+
+static int	pp_execute_str_replace(zbx_variant_t *value, const char *params)
+{
+	char	*errmsg = NULL;
+
+	if (SUCCEED == item_preproc_str_replace(value, params, &errmsg))
+		return SUCCEED;
+
+	zbx_variant_clear(value);
+	zbx_variant_set_error(value, errmsg);
+
+	return FAIL;
+}
+
 static int	pp_execute_step(zbx_pp_context_t *ctx, zbx_pp_cache_t *cache, unsigned char value_type,
 		zbx_variant_t *value, zbx_timespec_t ts, zbx_pp_step_t *step, zbx_variant_t *history_value, zbx_timespec_t history_ts)
 {
@@ -546,8 +585,6 @@ static int	pp_execute_step(zbx_pp_context_t *ctx, zbx_pp_cache_t *cache, unsigne
 		case ZBX_PREPROC_OCT2DEC:
 		case ZBX_PREPROC_HEX2DEC:
 			return pp_execute_2dec(step->type, value);
-		case ZBX_PREPROC_VALIDATE_NOT_SUPPORTED:
-			return pp_check_not_error(value);
 		case ZBX_PREPROC_DELTA_VALUE:
 		case ZBX_PREPROC_DELTA_SPEED:
 			return pp_execute_delta(step->type, value_type, value, ts, history_value, history_ts);
@@ -561,6 +598,8 @@ static int	pp_execute_step(zbx_pp_context_t *ctx, zbx_pp_cache_t *cache, unsigne
 			return pp_validate_regex(value, step->params);
 		case ZBX_PREPROC_VALIDATE_NOT_REGEX:
 			return pp_validate_not_regex(value, step->params);
+		case ZBX_PREPROC_VALIDATE_NOT_SUPPORTED:
+			return pp_check_not_error(value);
 		case ZBX_PREPROC_ERROR_FIELD_JSON:
 			return pp_error_from_json(value, step->params);
 		case ZBX_PREPROC_ERROR_FIELD_XML:
@@ -577,6 +616,12 @@ static int	pp_execute_step(zbx_pp_context_t *ctx, zbx_pp_cache_t *cache, unsigne
 			return pp_execute_prometheus_pattern(cache, value, step->params);
 		case ZBX_PREPROC_PROMETHEUS_TO_JSON:
 			return pp_execute_prometheus_to_json(value, step->params);
+		case ZBX_PREPROC_CSV_TO_JSON:
+			return pp_execute_csv_to_json(value, step->params);
+		case ZBX_PREPROC_XML_TO_JSON:
+			return pp_execute_xml_to_json(value);
+		case ZBX_PREPROC_STR_REPLACE:
+			return pp_execute_str_replace(value, step->params);
 		default:
 			zbx_variant_clear(value);
 			zbx_variant_set_error(value, zbx_dsprintf(NULL, "unknown preprocessing step"));
