@@ -173,7 +173,6 @@ zabbix_export:
                 return JSON.stringify(controlPlaneNodes);
             }
             catch (error) {
-                error += (String(error).endsWith('.')) ? '' : '.';
                 Zabbix.log(3, '[ Kubernetes ] ERROR: ' + error);
                 return JSON.stringify({ error: error });
             }
@@ -482,7 +481,6 @@ zabbix_export:
                 return JSON.stringify(kubeNodes);
             }
             catch (error) {
-                error += (String(error).endsWith('.')) ? '' : '.';
                 Zabbix.log(3, '[ Kubernetes ] ERROR: ' + error);
                 return JSON.stringify({ error: error });
             }
@@ -708,7 +706,6 @@ zabbix_export:
                 return stateMetrics;
             }
             catch (error) {
-                error += (String(error).endsWith('.')) ? '' : '.';
                 Zabbix.log(3, '[ Kubernetes ] ERROR: ' + error);
                 return JSON.stringify({ error: error });
             }
