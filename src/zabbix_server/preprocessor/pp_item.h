@@ -77,6 +77,6 @@ void	pp_item_init(zbx_pp_item_t *item, unsigned char type, unsigned char value_t
 zbx_pp_item_preproc_t	*pp_item_preproc_create(unsigned char type, unsigned char value_type, unsigned char flags);
 void	pp_item_preproc_release(zbx_pp_item_preproc_t *preproc);
 zbx_pp_item_preproc_t	*pp_item_preproc_copy(zbx_pp_item_preproc_t *preproc);
-int	pp_preproc_uses_history(unsigned char type);
+int	pp_preproc_has_history(unsigned char type);
 
 #endif

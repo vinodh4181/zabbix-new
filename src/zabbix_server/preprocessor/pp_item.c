@@ -82,7 +82,7 @@ void	pp_item_preproc_release(zbx_pp_item_preproc_t *preproc)
 	pp_item_preproc_free(preproc);
 }
 
-int	pp_preproc_uses_history(unsigned char type)
+int	pp_preproc_has_history(unsigned char type)
 {
 	switch (type)
 	{

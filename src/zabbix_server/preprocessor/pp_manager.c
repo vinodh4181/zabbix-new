@@ -340,7 +340,7 @@ static void	pp_add_item_preproc(zbx_pp_item_t *item, unsigned char type, const c
 	else
 		item->preproc->steps[last].error_handler_params = NULL;
 
-	if (SUCCEED == pp_preproc_uses_history(type))
+	if (SUCCEED == pp_preproc_has_history(type))
 		item->preproc->history_num++;
 }
 

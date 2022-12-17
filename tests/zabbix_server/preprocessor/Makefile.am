@@ -1,6 +1,7 @@
 if SERVER
 SERVER_tests = zbx_item_preproc
 SERVER_tests += item_preproc_csv_to_json
+SERVER_tests += pp_execute
 
 if HAVE_LIBXML2
 SERVER_tests +=	item_preproc_xpath
@@ -73,5 +74,15 @@ item_preproc_csv_to_json_LDADD += @SERVER_LIBS@
 item_preproc_csv_to_json_LDFLAGS = @SERVER_LDFLAGS@
 
 item_preproc_csv_to_json_CFLAGS = -I@top_srcdir@/tests @LIBXML2_CFLAGS@
+
+pp_execute_SOURCES = \
+	pp_execute.c
+
+pp_execute_LDADD = $(JSON_LIBS)
+
+pp_execute_LDADD += @SERVER_LIBS@
+pp_execute_LDFLAGS = @SERVER_LDFLAGS@
+
+pp_execute_CFLAGS = -I@top_srcdir@/tests @LIBXML2_CFLAGS@
 
 endif

@@ -26,6 +26,7 @@
 #include "pp_log.h"
 #include "item_preproc.h"
 #include "zbxprometheus.h"
+#include "zbxxml.h"
 
 static int	pp_execute_multiply(unsigned char value_type, zbx_variant_t *value, const char *params)
 {
@@ -36,8 +37,7 @@ static int	pp_execute_multiply(unsigned char value_type, zbx_variant_t *value, c
 
 	if (FAIL == zbx_is_double(buffer, NULL))
 	{
-		zbx_variant_set_str(value, zbx_dsprintf(NULL, "a numerical value is expected or the value is"
-				" out of range"));
+		error = zbx_dsprintf(NULL, "a numerical value is expected or the value is out of range");
 	}
 	else if (SUCCEED == item_preproc_multiplier_variant(value_type, value, buffer, &errmsg))
 	{
@@ -109,11 +109,11 @@ static const char	*pp_delta_desc(unsigned char type)
 }
 
 static int	pp_execute_delta(unsigned char type, unsigned char value_type, zbx_variant_t *value, zbx_timespec_t ts,
-		zbx_variant_t *history_value, zbx_timespec_t history_ts)
+		zbx_variant_t *history_value, zbx_timespec_t *history_ts)
 {
 	char	*errmsg = NULL;
 
-	if (SUCCEED == item_preproc_delta(value_type, value, &ts, type, history_value, &history_ts, &errmsg))
+	if (SUCCEED == item_preproc_delta(value_type, value, &ts, type, history_value, history_ts, &errmsg))
 		return SUCCEED;
 
 	zbx_variant_clear(value);
@@ -392,11 +392,11 @@ static int	pp_error_from_regex(zbx_variant_t *value, const char *params)
 }
 
 static int	pp_throttle_timed_value(zbx_variant_t *value, zbx_timespec_t ts, const char *params,
-		zbx_variant_t *history_value, zbx_timespec_t history_ts)
+		zbx_variant_t *history_value, zbx_timespec_t *history_ts)
 {
 	char	*errmsg = NULL;
 
-	if (SUCCEED == item_preproc_throttle_timed_value(value, &ts, params, history_value, &history_ts, &errmsg))
+	if (SUCCEED == item_preproc_throttle_timed_value(value, &ts, params, history_value, history_ts, &errmsg))
 		return SUCCEED;
 
 	zbx_variant_clear(value);
@@ -567,7 +567,8 @@ static int	pp_execute_str_replace(zbx_variant_t *value, const char *params)
 }
 
 static int	pp_execute_step(zbx_pp_context_t *ctx, zbx_pp_cache_t *cache, unsigned char value_type,
-		zbx_variant_t *value, zbx_timespec_t ts, zbx_pp_step_t *step, zbx_variant_t *history_value, zbx_timespec_t history_ts)
+		zbx_variant_t *value, zbx_timespec_t ts, zbx_pp_step_t *step, zbx_variant_t *history_value,
+		zbx_timespec_t *history_ts)
 {
 	pp_cache_copy_value(cache, step->type, value);
 
@@ -607,7 +608,7 @@ static int	pp_execute_step(zbx_pp_context_t *ctx, zbx_pp_cache_t *cache, unsigne
 		case ZBX_PREPROC_ERROR_FIELD_REGEX:
 			return pp_error_from_regex(value, step->params);
 		case ZBX_PREPROC_THROTTLE_VALUE:
-			return item_preproc_throttle_value(value, &ts, history_value, &history_ts);
+			return item_preproc_throttle_value(value, &ts, history_value, history_ts);
 		case ZBX_PREPROC_THROTTLE_TIMED_VALUE:
 			return pp_throttle_timed_value(value, ts, step->params, history_value, history_ts);
 		case ZBX_PREPROC_SCRIPT:
@@ -669,7 +670,7 @@ void	pp_execute(zbx_pp_context_t *ctx, zbx_pp_item_preproc_t *preproc, zbx_pp_ca
 		pp_history_pop(preproc->history, i, &history_value, &history_ts);
 
 		if (SUCCEED != pp_execute_step(ctx, cache, preproc->value_type, value_out, ts, preproc->steps + i,
-				&history_value, history_ts))
+				&history_value, &history_ts))
 		{
 			action = pp_error_on_fail(value_out, preproc->steps + i);
 		}
@@ -684,8 +685,8 @@ void	pp_execute(zbx_pp_context_t *ctx, zbx_pp_item_preproc_t *preproc, zbx_pp_ca
 
 		if (NULL != history && ZBX_VARIANT_NONE != history_value.type && ZBX_VARIANT_ERR != value_out->type)
 		{
-			if (SUCCEED == pp_preproc_uses_history(preproc->steps[i].type))
-				pp_history_add(history, i, &history_value, ts);
+			if (SUCCEED == pp_preproc_has_history(preproc->steps[i].type))
+				pp_history_add(history, i, &history_value, history_ts);
 		}
 
 		zbx_variant_clear(&history_value);

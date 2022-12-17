@@ -237,6 +237,7 @@ tests/zabbix_server/pinger/zbx_pinger_test
 tests/zabbix_server/poller/zbx_poller_test
 tests/zabbix_server/preprocessor/item_preproc_csv_to_json
 tests/zabbix_server/preprocessor/item_preproc_xpath
+tests/zabbix_server/preprocessor/pp_execute
 tests/zabbix_server/preprocessor/zbx_item_preproc
 tests/zabbix_server/service/service_get_rootcause_eventids
 tests/zabbix_server/service/service_get_main_status

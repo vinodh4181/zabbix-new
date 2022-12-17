@@ -25,6 +25,6 @@
 #include "zbxvariant.h"
 
 void	pp_xml_init(void);
-int	pp_xml_query_xpath(zbx_variant_t *value, const char *params, char **errmsg);
+void	pp_xml_destroy(void);
 
 #endif

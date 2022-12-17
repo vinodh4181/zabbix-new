@@ -253,7 +253,7 @@ void	pp_format_error(const zbx_variant_t *value, zbx_pp_result_t *results, int r
 	{
 		char	*ptr;
 
-		ptr = (*error) + zbx_db_strlen_n(*error, ZBX_ITEM_ERROR_LEN - 3);
+		ptr = (*error) + zbx_strlen_utf8_nchars(*error, ZBX_ITEM_ERROR_LEN - 3);
 		for (i = 0; i < 3; i++)
 			*ptr++ = '.';
 		*ptr = '\0';
