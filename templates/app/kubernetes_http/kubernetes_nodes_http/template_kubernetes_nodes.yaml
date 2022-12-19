@@ -121,31 +121,37 @@ zabbix_export:
                   },
             
                   getEndpointIPs: function () {
-                      var result = Kube.request('/api/v1/endpoints'),
-                          epIPs = {};
-            
+                      var result = Kube.apiRequest('/api/v1/endpoints');
                       if (typeof result.response !== 'object'
                           || typeof result.response.items === 'undefined'
                           || result.status != 200) {
                           throw 'Cannot get endpoints from Kubernetes API. Check debug log for more information.';
                       };
-            
+
+                      const epIPs = {};
                       result.response.items.forEach(function (ep) {
-                          if (ep.metadata.name === Kube.params.endpoint_name && Array.isArray(ep.subsets)) {
-                              ep.subsets.forEach(function (subset) {
-                                  if (Array.isArray(subset.addresses)) {
-                                      subset.addresses.forEach(function (addr) {
-                                          epIPs[addr.ip] = '';
-                                      });
-                                  }
-                              });
+                          if (ep.metadata.name !== Kube.params.endpoint_name) {
+                              return;
                           }
+                          if (!Array.isArray(ep.subsets)) {
+                              return;
+                          }
+
+                          ep.subsets.forEach(function (subset) {
+                              if (!Array.isArray(subset.addresses)) {
+                                  return;
+                              }
+
+                              subset.addresses.forEach(function (addr) {
+                                  epIPs[addr.ip] = '';
+                              });
+                          });
                       });
-            
+
                       return epIPs;
                   }
               },
-            
+
                   Fmt = {
                       factors: {
                           Ki: 1024, K: 1000,
@@ -398,34 +404,34 @@ zabbix_export:
 
                       var filterLabels = parseFilters('{$KUBE.NODE.FILTER.LABELS}'),
                           filterAnnotations = parseFilters('{$KUBE.NODE.FILTER.ANNOTATIONS}');
-                  
+
                       input.items.forEach(function (node) {
                           if (filter(node.metadata.name, node.metadata.labels, filterLabels)
                               && filter(node.metadata.name, node.metadata.annotations, filterAnnotations)) {
                               Zabbix.log(4, '[ Kubernetes discovery ] Filtered node "' + node.metadata.name + '"');
-                  
+
                               var internalIPs = node.status.addresses.filter(function (addr) {
                                   return addr.type === 'InternalIP';
                               });
-                  
+
                               var internalIP = internalIPs.length && internalIPs[0].address;
-                  
-                              if (internalIP in input.endpointIPs) {
-                                  output.push({
-                                      '{#NAME}': node.metadata.name,
-                                      '{#IP}': internalIP,
-                                      '{#ROLES}': node.status.roles,
-                                      '{#ARCH}': node.metadata.labels['kubernetes.io/arch'] || '',
-                                      '{#OS}': node.metadata.labels['kubernetes.io/os'] || '',
-                                      '{#CLUSTER_HOSTNAME}': api_hostname
-                                  });
-                              }
-                              else {
+
+                              if (!(internalIP in input.endpointIPs)) {
                                   Zabbix.log(4, '[ Kubernetes discovery ] Node "' + node.metadata.name + '" is not included in the list of endpoint IPs');
+                                  return;
                               }
+
+                              output.push({
+                                  '{#NAME}': node.metadata.name,
+                                  '{#IP}': internalIP,
+                                  '{#ROLES}': node.status.roles,
+                                  '{#ARCH}': node.metadata.labels['kubernetes.io/arch'] || '',
+                                  '{#OS}': node.metadata.labels['kubernetes.io/os'] || '',
+                                  '{#CLUSTER_HOSTNAME}': api_hostname
+                              });
                           }
                       });
-                  
+
                       return JSON.stringify(output);
                   }
                   catch (error) {
