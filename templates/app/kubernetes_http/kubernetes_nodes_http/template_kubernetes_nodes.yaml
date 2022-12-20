@@ -275,10 +275,8 @@ zabbix_export:
                       nodes.items[idx].status.roles = roles.join(', ');
                       nodes.items[idx].pods = nodePods;
                   }
-            
-                  nodes.endpointIPs = epIPs;
-            
-                  return JSON.stringify(nodes);
+
+                  return JSON.stringify({ nodes: nodes.items, endpointIPs: epIPs });
               }
               catch (error) {
                   error += (String(error).endsWith('.')) ? '' : '.';
@@ -389,9 +387,8 @@ zabbix_export:
                   }
                   
                   try {
-                      var input = JSON.parse(value),
-                          output = [];
-                      if (typeof input !== 'object' || typeof input.items === 'undefined') {
+                      var input = JSON.parse(value);
+                      if (typeof input !== 'object' || typeof input.nodes === 'undefined') {
                           Zabbix.log(4, '[ Kubernetes ] Received incorrect JSON: ' + value);
                           throw 'Incorrect JSON. Check debug log for more information.';
                       }
@@ -407,7 +404,8 @@ zabbix_export:
                       var filterLabels = parseFilters('{$KUBE.NODE.FILTER.LABELS}'),
                           filterAnnotations = parseFilters('{$KUBE.NODE.FILTER.ANNOTATIONS}');
 
-                      input.items.forEach(function (node) {
+                      const output = [];
+                      input.nodes.forEach(function (node) {
                           if (filter(node.metadata.name, node.metadata.labels, filterLabels)
                               && filter(node.metadata.name, node.metadata.annotations, filterAnnotations)) {
                               Zabbix.log(4, '[ Kubernetes discovery ] Filtered node "' + node.metadata.name + '"');
@@ -907,7 +905,7 @@ zabbix_export:
                 -
                   type: JSONPATH
                   parameters:
-                    - '$.items[?(@.metadata.name == "{#NAME}")].first()'
+                    - '$.nodes[?(@.metadata.name == "{#NAME}")].first()'
               master_item:
                 key: kube.nodes
               tags:
@@ -1760,7 +1758,7 @@ zabbix_export:
                 -
                   type: JSONPATH
                   parameters:
-                    - '$.items[?(@.metadata.name == "{#NODE}")].pods[?(@.name == "{#POD}")].first()'
+                    - '$.nodes[?(@.metadata.name == "{#NODE}")].pods[?(@.name == "{#POD}")].first()'
               master_item:
                 key: kube.nodes
               tags:
@@ -1898,27 +1896,26 @@ zabbix_export:
                   }
                   
                   try {
-                      var input = JSON.parse(value),
-                          output = [];
-                  
-                      if (typeof input !== 'object' || typeof input.items === 'undefined') {
+                      var input = JSON.parse(value);
+                      if (typeof input !== 'object' || typeof input.nodes === 'undefined') {
                           Zabbix.log(4, '[ Kubernetes ] Received incorrect JSON: ' + value);
                           throw 'Incorrect JSON. Check debug log for more information.';
                       }
-                  
+
                       var filterNodeLabels = parseFilters('{$KUBE.NODE.FILTER.LABELS}'),
                           filterNodeAnnotations = parseFilters('{$KUBE.NODE.FILTER.ANNOTATIONS}'),
                           filterPodLabels = parseFilters('{$KUBE.POD.FILTER.LABELS}'),
                           filterPodAnnotations = parseFilters('{$KUBE.POD.FILTER.ANNOTATIONS}');
-                  
-                      input.items.forEach(function (node) {
+
+                      const output = [];
+                      input.nodes.forEach(function (node) {
                           if (filter(node.metadata.name, node.metadata.labels, filterNodeLabels)
                               && filter(node.metadata.name, node.metadata.annotations, filterNodeAnnotations)) {
                               node.pods.forEach(function (pod) {
                                   if (filter(pod.name, pod.labels, filterPodLabels)
                                       && filter(pod.name, pod.annotations, filterPodAnnotations)) {
                                       Zabbix.log(4, '[ Kubernetes discovery ] Filtered pod "' + pod.name + '"');
-                  
+
                                       output.push({
                                           '{#POD}': pod.name,
                                           '{#NAMESPACE}': pod.namespace,
@@ -1928,7 +1925,7 @@ zabbix_export:
                               });
                           }
                       });
-                  
+
                       return JSON.stringify(output);
                   }
                   catch (error) {
