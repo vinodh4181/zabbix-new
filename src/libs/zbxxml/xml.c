@@ -44,7 +44,7 @@ struct _zbx_xml_node_t
 
 ZBX_PTR_VECTOR_IMPL(xml_node_ptr, zbx_xml_node_t *)
 
-static __THREAD char	data_static[ZBX_MAX_B64_LEN];
+static ZBX_THREAD_LOCAL char	data_static[ZBX_MAX_B64_LEN];
 
 /******************************************************************************
  *                                                                            *

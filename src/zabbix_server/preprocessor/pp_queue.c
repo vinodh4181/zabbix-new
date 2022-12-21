@@ -37,7 +37,7 @@ typedef struct
 }
 zbx_pp_item_task_sequence_t;
 
-static void	pp_task_sequence_clear(void *d)
+static void	pp_item_task_sequence_clear(void *d)
 {
 	zbx_pp_item_task_sequence_t	*seq = (zbx_pp_item_task_sequence_t *)d;
 
@@ -54,7 +54,7 @@ int	pp_task_queue_init(zbx_pp_queue_t *queue, char **error)
 	zbx_list_create(&queue->finished);
 
 	zbx_hashset_create_ext(&queue->sequences, 100, ZBX_DEFAULT_UINT64_HASH_FUNC, ZBX_DEFAULT_UINT64_COMPARE_FUNC,
-			pp_task_sequence_clear, ZBX_DEFAULT_MEM_MALLOC_FUNC, ZBX_DEFAULT_MEM_REALLOC_FUNC,
+			pp_item_task_sequence_clear, ZBX_DEFAULT_MEM_MALLOC_FUNC, ZBX_DEFAULT_MEM_REALLOC_FUNC,
 			ZBX_DEFAULT_MEM_FREE_FUNC);
 
 	if (0 != (err = pthread_mutex_init(&queue->lock, NULL)))

@@ -39,6 +39,34 @@ typedef struct
 }
 zbx_pp_manager_t;
 
+static void	pp_xml_init(void)
+{
+#ifdef HAVE_LIBXML2
+	xmlInitParser();
+#endif
+}
+
+static void	pp_xml_destroy(void)
+{
+#ifdef HAVE_LIBXML2
+	xmlCleanupParser();
+#endif
+}
+
+static void	pp_curl_init(void)
+{
+#ifdef HAVE_LIBCURL
+	curl_global_init(CURL_GLOBAL_DEFAULT);
+#endif
+}
+
+static void	pp_curl_destroy(void)
+{
+#ifdef HAVE_LIBCURL
+	curl_global_cleanup();
+#endif
+}
+
 int	pp_manager_init(zbx_pp_manager_t *manager, int workers_num, char **error)
 {
 	int		i, ret = FAIL, started_num = 0;
@@ -46,10 +74,11 @@ int	pp_manager_init(zbx_pp_manager_t *manager, int workers_num, char **error)
 	struct timespec	poll_delay = {0, 1e8};
 
 	/* TODO: for debug logging, remove */
-	pp_log_init("manager", 3);
+	pp_log_init("manager", 1);
 	pp_infof("starting ...");
 
 	pp_xml_init();
+	pp_curl_init();
 
 	memset(manager, 0, sizeof(zbx_pp_manager_t));
 
@@ -447,8 +476,12 @@ static void	test_perf(zbx_pp_manager_t *manager)
 
 	for (i = 0; i < PP_PERF_ITEMS; i++)
 	{
-		pp_manager_add_item(manager, 1001 + i, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64,
-				ZBX_PP_PROCESS_PARALLEL);
+		zbx_pp_item_t	*item;
+
+		item = pp_manager_add_item(manager, 1001 + i, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64,
+				ZBX_PP_PROCESS_SERIAL);
+
+		pp_add_item_preproc(item, ZBX_PREPROC_SCRIPT, "return value * 10", 0, NULL);
 	}
 
 	zbx_variant_set_ui64(&value, 1);
@@ -467,7 +500,7 @@ static void	test_perf(zbx_pp_manager_t *manager)
 		pp_manager_process_finished(manager);
 	}
 
-	printf("wait while finished: %d\n", pp_processed_total);
+	printf("wait while finished\n");
 
 	while (PP_PERF_ITEMS * PP_PERF_ITERATIONS != pp_processed_total)
 		pp_manager_process_finished(manager);
@@ -529,16 +562,16 @@ int	test_pp(void)
 	zbx_pp_manager_t	manager;
 	char			*error = NULL;
 
-	if (SUCCEED != pp_manager_init(&manager, 1, &error))
+	if (SUCCEED != pp_manager_init(&manager, 10, &error))
 	{
 		printf("Failed to initialize preprocessing subsystem: %s\n", error);
 		zbx_free(error);
 		exit(EXIT_FAILURE);
 	}
 
-	/* test_perf(&manager) */
+	test_perf(&manager);
 	/* test_tasks(&manager); */
-	test_preproc(&manager);
+	/* test_preproc(&manager); */
 
 	printf("==== shutting down...\n");
 	pp_manager_destroy(&manager);

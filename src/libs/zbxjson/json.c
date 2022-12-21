@@ -32,7 +32,7 @@
  ******************************************************************************/
 #define ZBX_JSON_MAX_STRERROR	255
 
-static __THREAD char	zbx_json_strerror_message[ZBX_JSON_MAX_STRERROR];
+static ZBX_THREAD_LOCAL char	zbx_json_strerror_message[ZBX_JSON_MAX_STRERROR];
 
 const char	*zbx_json_strerror(void)
 {

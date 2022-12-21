@@ -50,8 +50,8 @@ double	zbx_time(void)
  ******************************************************************************/
 void	zbx_timespec(zbx_timespec_t *ts)
 {
-	static __THREAD zbx_timespec_t	last_ts = {0, 0};
-	static __THREAD int		corr = 0;
+	static ZBX_THREAD_LOCAL zbx_timespec_t	last_ts = {0, 0};
+	static ZBX_THREAD_LOCAL int		corr = 0;
 #if defined(_WINDOWS) || defined(__MINGW32__)
 	static ZBX_THREAD_LOCAL LARGE_INTEGER	tickPerSecond = {0};
 	struct _timeb				tb;

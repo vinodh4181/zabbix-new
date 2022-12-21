@@ -31,8 +31,6 @@ libpreprocessor_a_SOURCES = \
 	pp_execute.h \
 	pp_error.c \
 	pp_error.h \
-	pp_xml.c \
-	pp_xml.h \
 	pp_log.c \
 	pp_log.h
 

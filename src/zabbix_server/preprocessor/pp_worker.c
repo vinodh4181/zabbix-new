@@ -92,7 +92,7 @@ static void	*pp_worker_start(void *arg)
 	char	name[64];
 
 	zbx_snprintf(name, sizeof(name), "worker%02d", worker->id);
-	pp_log_init(name, 4);
+	pp_log_init(name, 1);
 
 	pp_infof("starting ...");
 
