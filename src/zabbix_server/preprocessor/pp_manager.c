@@ -21,7 +21,6 @@
 #include "pp_log.h"
 #include "pp_queue.h"
 #include "pp_item.h"
-#include "pp_xml.h"
 #include "pp_task.h"
 #include "zbxcommon.h"
 #include "zbxalgo.h"

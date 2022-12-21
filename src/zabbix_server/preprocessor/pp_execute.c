@@ -20,7 +20,6 @@
 #include "pp_execute.h"
 #include "pp_cache.h"
 #include "pp_error.h"
-#include "pp_xml.h"
 #include "../db_lengths.h"
 #include "log.h"
 #include "pp_log.h"
