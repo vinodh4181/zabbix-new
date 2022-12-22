@@ -118,6 +118,7 @@ class CControllerPopupHttpStep extends CController {
 				}
 			}
 
+			$step = [];
 			$field_names = ['headers', 'variables', 'post_fields', 'query_fields'];
 
 			foreach ($field_names as $field_name) {
@@ -132,7 +133,6 @@ class CControllerPopupHttpStep extends CController {
 					}
 				}
 			}
-			unset($step['pairs']);
 
 			foreach ($field_names as $field_name) {
 				if (array_key_exists($field_name, $step)) {
