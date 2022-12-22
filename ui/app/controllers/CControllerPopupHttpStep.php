@@ -118,19 +118,39 @@ class CControllerPopupHttpStep extends CController {
 				}
 			}
 
-			foreach ($page_options['pairs'] as $i => $pair) {
-				if ($pair['name'] === '' && $pair['value'] !== '') {
-					error(_s('Incorrect value for field "%1$s": %2$s.', '/'.$pair['type'].'/'.($i + 1).'/name',
-						_('cannot be empty')
-					));
-				}
+			$field_names = ['headers', 'variables', 'post_fields', 'query_fields'];
 
-				if ($pair['type'] === 'variables') {
-					if (($pair['name'] !== '' || $pair['value'] !== '')
-							&& preg_match('/^{[^{}]+}$/', $pair['name']) !== 1) {
-						error(_s('Invalid parameter "%1$s": %2$s.', '/'.$pair['type'].'/'.($i + 1).'/name',
-							_('is not enclosed in {} or is malformed')
-						));
+			foreach ($field_names as $field_name) {
+				foreach ($page_options['pairs'] as $pair) {
+					if (array_key_exists('type', $pair) && $field_name === $pair['type'] &&
+						((array_key_exists('name', $pair) && $pair['name'] !== '') ||
+						(array_key_exists('value', $pair) && $pair['value'] !== ''))) {
+						$step[$field_name][] = [
+							'name' => (array_key_exists('name', $pair) ? $pair['name'] : ''),
+							'value' => (array_key_exists('value', $pair) ? $pair['value'] : '')
+						];
+					}
+				}
+			}
+			unset($step['pairs']);
+
+			foreach ($field_names as $field_name) {
+				if (array_key_exists($field_name, $step)) {
+					foreach ($step[$field_name] as $i => $pair) {
+						if ($pair['name'] === '' && $pair['value'] !== '') {
+							error(_s('Incorrect value for field "%1$s": %2$s.', '/'.$field_name.'/'.($i + 1).'/name',
+								_('cannot be empty')
+							));
+						}
+
+						if ($field_name === 'variables') {
+							if (($pair['name'] !== '' || $pair['value'] !== '')
+									&& preg_match('/^{[^{}]+}$/', $pair['name']) !== 1) {
+								error(_s('Invalid parameter "%1$s": %2$s.', '/'.$field_name.'/'.($i + 1).'/name',
+									_('is not enclosed in {} or is malformed')
+								));
+							}
+						}
 					}
 				}
 			}
