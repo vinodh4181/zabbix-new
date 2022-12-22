@@ -490,7 +490,7 @@
 				.querySelector('.httpconf-steps-dynamic-table')
 				.dispatchEvent(new CustomEvent('sort.update'));
 		}
-	}
+	};
 
 	class ScenarioHelper {
 

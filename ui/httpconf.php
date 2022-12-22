@@ -189,13 +189,12 @@ elseif (hasRequest('del_history') && hasRequest('httptestid')) {
 	show_messages($result, _('History cleared'), _('Cannot clear history'));
 }
 elseif (hasRequest('add') || hasRequest('update')) {
+	$messageTrue = _('Web scenario added');
+	$messageFalse = _('Cannot add web scenario');
+
 	if (hasRequest('update')) {
 		$messageTrue = _('Web scenario updated');
 		$messageFalse = _('Cannot update web scenario');
-	}
-	else {
-		$messageTrue = _('Web scenario added');
-		$messageFalse = _('Cannot add web scenario');
 	}
 
 	try {
