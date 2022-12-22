@@ -123,12 +123,12 @@ class CControllerPopupHttpStep extends CController {
 
 			foreach ($field_names as $field_name) {
 				foreach ($page_options['pairs'] as $pair) {
-					if (array_key_exists('type', $pair) && $field_name === $pair['type'] &&
-						((array_key_exists('name', $pair) && $pair['name'] !== '') ||
-						(array_key_exists('value', $pair) && $pair['value'] !== ''))) {
+					if (array_key_exists('type', $pair) && $field_name === $pair['type']
+							&& ((array_key_exists('name', $pair) && $pair['name'] !== '')
+								|| (array_key_exists('value', $pair) && $pair['value'] !== ''))) {
 						$step[$field_name][] = [
-							'name' => (array_key_exists('name', $pair) ? $pair['name'] : ''),
-							'value' => (array_key_exists('value', $pair) ? $pair['value'] : '')
+							'name' => array_key_exists('name', $pair) ? $pair['name'] : '',
+							'value' => array_key_exists('value', $pair) ? $pair['value'] : ''
 						];
 					}
 				}
