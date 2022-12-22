@@ -128,8 +128,14 @@ window.http_step_popup = new class {
 			elem.addEventListener('change', () => this._update());
 		});
 
-		this.radio_post_type.querySelector('input#post_type_0').addEventListener('change', this.rawEvent.bind(this));
-		this.radio_post_type.querySelector('input#post_type_1').addEventListener('change', this.rawEvent.bind(this));
+		this
+			.radio_post_type
+			.querySelector('input#post_type_0')
+			.addEventListener('change', this.rawEvent.bind(this));
+		this
+			.radio_post_type
+			.querySelector('input#post_type_1')
+			.addEventListener('change', this.rawEvent.bind(this));
 
 		this.input_url = document.getElementById('url');
 
