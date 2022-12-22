@@ -171,11 +171,14 @@ window.http_step_popup = new class {
 
 		this.pairs.post_fields.classList.toggle('disabled', is_disabled);
 		this.pairs.post_fields.querySelector('.element-table-add').disabled = is_disabled;
-		[...this.pairs.post_fields.querySelectorAll('input, .element-table-remove')].map(
-			(elem) => elem.disabled = is_disabled
+		[...this.pairs.post_fields.querySelectorAll('input')].map((elem) => elem.disabled = is_disabled);
+		[...this.pairs.post_fields.querySelectorAll('.element-table-remove')].map(
+			(elem) => elem.disabled = is_disabled || this.pairs.post_fields.querySelectorAll('.sortable').length < 2
 		);
 
-		jQuery(this.pairs.post_fields).sortable({disabled: is_disabled});
+		jQuery(this.pairs.post_fields).sortable({
+			disabled: is_disabled || this.pairs.post_fields.querySelectorAll('.sortable').length < 2
+		});
 
 		if (!is_disabled) {
 			jQuery(this.pairs.post_fields).trigger('tableupdate.dynamicRows', this);
