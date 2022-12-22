@@ -661,8 +661,7 @@ class testDashboardClockWidget extends CWebTest {
 			}
 
 			$dashboard->getWidgets()->last()->edit()->checkValue($data['fields']);
-		}
-		else {
+		} else {
 			$this->assertMessage(TEST_BAD, null, $data['Error message']);
 		}
 	}
@@ -1170,7 +1169,8 @@ class testDashboardClockWidget extends CWebTest {
 		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
 		$dashboard = CDashboardElement::find()->one();
 		$form = $dashboard->getWidgets()->last()->edit();
-		$form->fill($data['fields'])->submit();
+		$form->fill($data['fields']);
+		$form->query('xpath://button[normalize-space()="Apply"]')->waitUntilReady()->one()->click();
 
 		if ($data['expected'] === TEST_GOOD) {
 			$this->page->waitUntilReady();
@@ -1186,8 +1186,7 @@ class testDashboardClockWidget extends CWebTest {
 
 			// Check that widget updated.
 			$dashboard->getWidgets()->last()->edit()->checkValue($data['fields']);
-		}
-		else {
+		} else {
 			$this->assertMessage(TEST_BAD, null, $data['Error message']);
 		}
 	}
@@ -1264,8 +1263,7 @@ class testDashboardClockWidget extends CWebTest {
 		if (CTestArrayHelper::get($data, 'existing_widget', false)) {
 			$widget = $dashboard->getWidget($data['existing_widget']);
 			$form = $widget->edit();
-		}
-		else {
+		} else {
 			$overlay = $dashboard->edit()->addWidget();
 			$form = $overlay->asForm();
 			$form->fill(['Type' => 'Clock', 'Clock type' => 'Analog']);
@@ -1281,8 +1279,7 @@ class testDashboardClockWidget extends CWebTest {
 
 			// Check that changes took place on the unsaved dashboard.
 			$this->assertTrue($dashboard->getWidget('Widget to be cancelled')->isValid());
-		}
-		else {
+		} else {
 			$dialog = COverlayDialogElement::find()->one();
 			$dialog->query('button:Cancel')->one()->click();
 			$dialog->ensureNotPresent();
@@ -1290,8 +1287,7 @@ class testDashboardClockWidget extends CWebTest {
 			// Check that widget changes didn't take place after pressing "Cancel".
 			if (CTestArrayHelper::get($data, 'existing_widget', false)) {
 				$this->assertNotEquals('Widget to be cancelled', $widget->waitUntilReady()->getHeaderText());
-			}
-			else {
+			} else {
 				// If test fails and widget isn't canceled, need to wait until widget appears on the dashboard.
 				sleep(5);
 
@@ -1304,8 +1300,7 @@ class testDashboardClockWidget extends CWebTest {
 		// Save or cancel dashboard update.
 		if (CTestArrayHelper::get($data, 'save_dashboard', false)) {
 			$dashboard->save();
-		}
-		else {
+		} else {
 			$dashboard->cancelEditing();
 		}
 
