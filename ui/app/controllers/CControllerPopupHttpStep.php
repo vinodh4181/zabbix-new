@@ -141,14 +141,15 @@ class CControllerPopupHttpStep extends CController {
 							error(_s('Invalid parameter "%1$s": %2$s.', '/'.$field_name.'/'.($i + 1).'/name',
 								_('cannot be empty')
 							));
+							break;
 						}
 
 						if ($field_name === 'variables') {
-							if (($pair['name'] !== '' || $pair['value'] !== '')
-									&& preg_match('/^{[^{}]+}$/', $pair['name']) !== 1) {
+							if ($pair['name'] !== '' && preg_match('/^{[^{}]+}$/', $pair['name']) !== 1) {
 								error(_s('Invalid parameter "%1$s": %2$s.', '/'.$field_name.'/'.($i + 1).'/name',
 									_('is not enclosed in {} or is malformed')
 								));
+								break;
 							}
 						}
 					}
