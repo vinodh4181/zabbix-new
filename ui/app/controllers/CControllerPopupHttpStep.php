@@ -97,7 +97,7 @@ class CControllerPopupHttpStep extends CController {
 			$simple_interval_parser = new CSimpleIntervalParser(['usermacros' => true]);
 
 			if ($simple_interval_parser->parse($page_options['timeout']) != CParser::PARSE_SUCCESS) {
-				error(_s('Incorrect value for field "%1$s": %2$s.', '/timeout', _('a time unit is expected')));
+				error(_s('Invalid parameter "%1$s": %2$s.', '/timeout', _('a time unit is expected')));
 			}
 			elseif ($page_options['timeout'][0] !== '{') {
 				$seconds = timeUnitToSeconds($page_options['timeout']);
@@ -138,7 +138,7 @@ class CControllerPopupHttpStep extends CController {
 				if (array_key_exists($field_name, $step)) {
 					foreach ($step[$field_name] as $i => $pair) {
 						if ($pair['name'] === '' && $pair['value'] !== '') {
-							error(_s('Incorrect value for field "%1$s": %2$s.', '/'.$field_name.'/'.($i + 1).'/name',
+							error(_s('Invalid parameter "%1$s": %2$s.', '/'.$field_name.'/'.($i + 1).'/name',
 								_('cannot be empty')
 							));
 						}
