@@ -233,6 +233,13 @@
 						[...elem.querySelectorAll('.' + ZBX_STYLE_DRAG_ICON)].map((elem) => elem.remove());
 					}
 
+					const remove_bttns = elem.querySelectorAll('.element-table-remove');
+					if (remove_bttns.length > 1) {
+						[...remove_bttns].map((elem) => {
+							elem.disabled = false;
+						});
+					}
+
 					$elem.sortable({
 						items: 'tbody tr.sortable',
 						axis: 'y',
