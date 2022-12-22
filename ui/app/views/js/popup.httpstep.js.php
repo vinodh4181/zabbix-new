@@ -128,21 +128,13 @@ window.http_step_popup = new class {
 		this.radio_post_type = document.getElementById('post_type');
 
 		[...this.radio_post_type.querySelectorAll('input')].map((elem) => {
-			elem.addEventListener('change', () => this._update());
+			elem.addEventListener('change', this._update.bind(this));
+			elem.addEventListener('change', this.rawEvent.bind(this));
 		});
 
 		[...this.radio_retrieve_mode.querySelectorAll('input')].map((elem) => {
 			elem.addEventListener('change', () => this._update());
 		});
-
-		this
-			.radio_post_type
-			.querySelector('input#post_type_0')
-			.addEventListener('change', this.rawEvent.bind(this));
-		this
-			.radio_post_type
-			.querySelector('input#post_type_1')
-			.addEventListener('change', this.rawEvent.bind(this));
 
 		this.input_url = document.getElementById('url');
 
@@ -178,8 +170,12 @@ window.http_step_popup = new class {
 		[...this.form.querySelectorAll('.js-post-fields')].map((elem) => elem.style.display = is_raw ? 'none' : 'block');
 
 		this.pairs.post_fields.classList.toggle('disabled', is_disabled);
+		this.pairs.post_fields.querySelector('.element-table-add').disabled = is_disabled;
+		[...this.pairs.post_fields.querySelectorAll('input, .element-table-remove')].map(
+			(elem) => elem.disabled = is_disabled
+		);
 
-		[...this.pairs.post_fields.querySelectorAll('input')].map((elem) => elem.disabled = is_disabled);
+		jQuery(this.pairs.post_fields).sortable({disabled: is_disabled});
 
 		if (!is_disabled) {
 			jQuery(this.pairs.post_fields).trigger('tableupdate.dynamicRows', this);
