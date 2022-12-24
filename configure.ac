@@ -1979,6 +1979,7 @@ AC_CONFIG_FILES([
 	src/libs/zbxlog/Makefile
 	src/libs/zbxmedia/Makefile
 	src/libs/zbxmodules/Makefile
+	src/libs/zbxmonitor/Makefile
 	src/libs/zbxmutexs/Makefile
 	src/libs/zbxnix/Makefile
 	src/libs/zbxnum/Makefile

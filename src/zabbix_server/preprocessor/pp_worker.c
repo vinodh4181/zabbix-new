@@ -26,6 +26,7 @@
 
 #include "zbxcommon.h"
 #include "log.h"
+#include "zbxself.h"
 
 #define PP_WORKER_INIT_NONE	0x00
 #define PP_WORKER_INIT_THREAD	0x01
@@ -134,8 +135,12 @@ static void	*pp_worker_start(void *arg)
 			continue;
 		}
 
+		zbx_monitor_update(worker->monitor, worker->id - 1, ZBX_PROCESS_STATE_IDLE);
+
 		if (SUCCEED != pp_task_queue_wait(queue))
 			worker->stop = 1;
+
+		zbx_monitor_update(worker->monitor, worker->id - 1, ZBX_PROCESS_STATE_BUSY);
 	}
 
 	pp_task_queue_deregister_worker(queue);
@@ -146,15 +151,16 @@ static void	*pp_worker_start(void *arg)
 	return (void *)0;
 }
 
-int	pp_worker_init(zbx_pp_worker_t *worker, zbx_pp_queue_t *queue, char **error)
+int	pp_worker_init(zbx_pp_worker_t *worker, zbx_pp_queue_t *queue, zbx_monitor_t *monitor, char **error)
 {
 	int	err, ret = FAIL;
 
 	worker->queue = queue;
+	worker->monitor = monitor;
 
 	if (0 != (err = pthread_create(&worker->thread, NULL, pp_worker_start, (void *)worker)))
 	{
-		*error = zbx_dsprintf(NULL, "cannot craete thread: %s", zbx_strerror(err));
+		*error = zbx_dsprintf(NULL, "cannot create thread: %s", zbx_strerror(err));
 		goto out;
 	}
 	worker->init_flags |= PP_WORKER_INIT_THREAD;

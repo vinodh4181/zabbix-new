@@ -40,6 +40,7 @@ DIST_SUBDIRS = \
 	zbxlog \
 	zbxmedia \
 	zbxmodules \
+	zbxmonitor \
 	zbxmutexs \
 	zbxnix \
 	zbxnum \
@@ -90,6 +91,7 @@ SERVER_SUBDIRS = \
 	zbxip \
 	zbxkvs \
 	zbxmedia \
+	zbxmonitor \
 	zbxnum \
 	zbxparam \
 	zbxprometheus \
@@ -132,6 +134,7 @@ PROXY_SUBDIRS = \
 	zbxicmpping \
 	zbxip \
 	zbxkvs \
+	zbxmonitor \
 	zbxnum \
 	zbxparam \
 	zbxprometheus \

@@ -24,6 +24,8 @@
 #include "pp_task.h"
 #include "zbxcommon.h"
 #include "zbxalgo.h"
+#include "zbxmonitor.h"
+#include "zbxself.h"
 
 #define PP_STARTUP_TIMEOUT	10
 
@@ -34,7 +36,11 @@ typedef struct
 
 	zbx_hashset_t		items;
 
-	zbx_pp_queue_t	queue;
+	zbx_pp_queue_t		queue;
+
+	zbx_monitor_t		*monitor;
+	zbx_monitor_sync_t	monitor_sync;
+	pthread_mutex_t		monitor_lock;
 }
 zbx_pp_manager_t;
 
@@ -66,9 +72,23 @@ static void	pp_curl_destroy(void)
 #endif
 }
 
+static void	pp_manager_lock_monitor(void *data)
+{
+	pthread_mutex_t	*mutex = (pthread_mutex_t *)data;
+
+	pthread_mutex_lock(mutex);
+}
+
+static void	pp_manager_unlock_monitor(void *data)
+{
+	pthread_mutex_t	*mutex = (pthread_mutex_t *)data;
+
+	pthread_mutex_unlock(mutex);
+}
+
 int	pp_manager_init(zbx_pp_manager_t *manager, int workers_num, char **error)
 {
-	int		i, ret = FAIL, started_num = 0;
+	int		i, ret = FAIL, started_num = 0, err;
 	time_t		time_start;
 	struct timespec	poll_delay = {0, 1e8};
 
@@ -84,15 +104,25 @@ int	pp_manager_init(zbx_pp_manager_t *manager, int workers_num, char **error)
 	if (SUCCEED != pp_task_queue_init(&manager->queue, error))
 		goto out;
 
+	if (0 != (err = pthread_mutex_init(&manager->monitor_lock, NULL)))
+	{
+		*error = zbx_dsprintf(NULL, "cannot initialize monitor mutex: %s", zbx_strerror(err));
+		goto out;
+	}
+
+	zbx_monitor_sync_init(&manager->monitor_sync, pp_manager_lock_monitor, pp_manager_unlock_monitor,
+			(void *)&manager->monitor_lock);
+
+	manager->monitor = zbx_monitor_create(workers_num, &manager->monitor_sync);
+
 	manager->workers_num = workers_num;
 	manager->workers = (zbx_pp_worker_t *)zbx_calloc(NULL, workers_num, sizeof(zbx_pp_worker_t));
 
 	for (i = 0; i < workers_num; i++)
 	{
-		/* TODO: for debug logging, remove */
 		manager->workers[i].id = i + 1;
 
-		if (SUCCEED != pp_worker_init(&manager->workers[i], &manager->queue, error))
+		if (SUCCEED != pp_worker_init(&manager->workers[i], &manager->queue, manager->monitor, error))
 			goto out;
 	}
 
@@ -144,6 +174,9 @@ void	pp_manager_destroy(zbx_pp_manager_t *manager)
 
 	pp_task_queue_destroy(&manager->queue);
 	zbx_hashset_destroy(&manager->items);
+
+	zbx_monitor_destroy(manager->monitor);
+	pthread_mutex_destroy(&manager->monitor_lock);
 }
 
 /* TODO: add output socket/client to parameters */
@@ -399,16 +432,16 @@ static void	test_tasks(zbx_pp_manager_t * manager)
 {
 	zbx_variant_t	value;
 	zbx_timespec_t	ts;
-	zbx_pp_item_t	*item, *item2;
+	zbx_pp_item_t	*item1, *item2;
 
-	item = pp_manager_add_item(manager, 1001, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_SERIAL);
+	item1 = pp_manager_add_item(manager, 1001, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_SERIAL);
 	item2 = pp_manager_add_item(manager, 1002, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_PARALLEL);
 	pp_manager_add_item(manager, 1003, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_PARALLEL);
 	pp_manager_add_item(manager, 1004, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_PARALLEL);
 
-	pp_add_item_dep(item, 1002);
-	pp_add_item_dep(item, 1003);
-	pp_add_item_dep(item, 1004);
+	pp_add_item_dep(item1, 1002);
+	pp_add_item_dep(item1, 1003);
+	pp_add_item_dep(item1, 1004);
 
 	pp_manager_add_item(manager, 1005, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_PARALLEL);
 	pp_manager_add_item(manager, 1006, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64, ZBX_PP_PROCESS_PARALLEL);
@@ -433,6 +466,38 @@ static void	test_tasks(zbx_pp_manager_t * manager)
 		printf("==== iteration: %d\n", i);
 		pp_manager_process_finished(manager);
 		sleep(1);
+	}
+}
+
+static void	test_stat(zbx_monitor_t *monitor, const char *message, int unit, int count, unsigned char func,
+		unsigned char stat)
+{
+	double	value;
+	char	*error = NULL;
+
+	if (SUCCEED != zbx_monitor_get_stat(monitor, unit, count, func, stat, &value, &error))
+	{
+		pp_infof("%s: failed to get stat: %s", message, error);
+		zbx_free(error);
+	}
+
+	pp_infof("%s: %.3f", message, value);
+}
+
+static void	dump_stats(zbx_pp_manager_t *manager)
+{
+	test_stat(manager->monitor, "total idle (avg)", 0, 0, ZBX_MONITOR_AGGR_FUNC_AVG, ZBX_PROCESS_STATE_IDLE);
+	test_stat(manager->monitor, "total busy (avg)", 0, 0, ZBX_MONITOR_AGGR_FUNC_AVG, ZBX_PROCESS_STATE_BUSY);
+
+	for (int i = 0; i < manager->workers_num; i++)
+	{
+		char	message[1024];
+
+		zbx_snprintf(message, sizeof(message), "\t[%d] total idle (avg)", i);
+		test_stat(manager->monitor, message, i, 1, ZBX_MONITOR_AGGR_FUNC_AVG, ZBX_PROCESS_STATE_IDLE);
+
+		zbx_snprintf(message, sizeof(message), "\t[%d] total busy (avg)", i);
+		test_stat(manager->monitor, message, i, 1, ZBX_MONITOR_AGGR_FUNC_AVG, ZBX_PROCESS_STATE_BUSY);
 	}
 }
 
@@ -480,7 +545,8 @@ static void	test_perf(zbx_pp_manager_t *manager)
 		item = pp_manager_add_item(manager, 1001 + i, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_UINT64,
 				ZBX_PP_PROCESS_SERIAL);
 
-		pp_add_item_preproc(item, ZBX_PREPROC_SCRIPT, "return value * 10", 0, NULL);
+		//pp_add_item_preproc(item, ZBX_PREPROC_SCRIPT, "return value * 10", 0, NULL);
+		pp_add_item_preproc(item, ZBX_PREPROC_MULTIPLIER, "10", 0, NULL);
 	}
 
 	zbx_variant_set_ui64(&value, 1);
@@ -497,12 +563,40 @@ static void	test_perf(zbx_pp_manager_t *manager)
 
 		pp_task_queue_unlock(&manager->queue);
 		pp_manager_process_finished(manager);
+
+		{
+			static time_t	clock;
+			time_t		now;
+
+			now = time(NULL);
+			if (now != clock)
+			{
+				zbx_monitor_collect(manager->monitor);
+				clock = now;
+				pp_infof("collect");
+			}
+		}
 	}
 
 	printf("wait while finished\n");
 
 	while (PP_PERF_ITEMS * PP_PERF_ITERATIONS != pp_processed_total)
+	{
 		pp_manager_process_finished(manager);
+
+		{
+			static time_t	clock;
+			time_t		now;
+
+			now = time(NULL);
+			if (now != clock)
+			{
+				zbx_monitor_collect(manager->monitor);
+				clock = now;
+				pp_infof("collect");
+			}
+		}
+	}
 
 	snapshot_end(&s1);
 
@@ -510,24 +604,30 @@ static void	test_perf(zbx_pp_manager_t *manager)
 
 	printf("RESULT %d values in %.3f seconds (%.3f values/sec)\n",
 			pp_processed_total, secs, (double)pp_processed_total / secs);
+
+	dump_stats(manager);
 }
 
 static void	test_preproc(zbx_pp_manager_t * manager)
 {
 	zbx_variant_t	value;
 	zbx_timespec_t	ts;
-	zbx_pp_item_t	*item1, *item2, *item3;
+	zbx_pp_item_t	*item1, *item2, *item3, *item4;
 
 	item1 = pp_manager_add_item(manager, 1001, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_STR, ZBX_PP_PROCESS_SERIAL);
 	item2 = pp_manager_add_item(manager, 1002, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_STR, ZBX_PP_PROCESS_PARALLEL);
 	item3 = pp_manager_add_item(manager, 1003, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_STR, ZBX_PP_PROCESS_PARALLEL);
+	item4 = pp_manager_add_item(manager, 1004, ITEM_TYPE_TRAPPER, ITEM_VALUE_TYPE_STR, ZBX_PP_PROCESS_PARALLEL);
 
 	/*
 	pp_add_item_dep(item1, 1002);
 	pp_add_item_dep(item1, 1003);
 	*/
 
-	pp_add_item_preproc(item1, ZBX_PREPROC_STR_REPLACE, "xyz\n123", 0, NULL);
+	pp_add_item_preproc(item1, ZBX_PREPROC_SCRIPT, "Zabbix.sleep(500);return value + value", 0, NULL);
+	pp_add_item_preproc(item2, ZBX_PREPROC_SCRIPT, "Zabbix.sleep(500);return value + value", 0, NULL);
+	pp_add_item_preproc(item3, ZBX_PREPROC_SCRIPT, "Zabbix.sleep(500);return value + value", 0, NULL);
+	pp_add_item_preproc(item4, ZBX_PREPROC_SCRIPT, "Zabbix.sleep(500);return value + value", 0, NULL);
 
 
 	/*zbx_variant_set_str(&value, "regex validation error"); */
@@ -541,19 +641,31 @@ static void	test_preproc(zbx_pp_manager_t * manager)
 
 	pp_task_queue_lock(&manager->queue);
 
-	zbx_variant_set_str(&value, "string xyz to replace");
+	zbx_variant_set_str(&value, "1");
 
 	pp_manager_queue_preproc(manager, 1001, &value, ts);
 
 	pp_task_queue_unlock(&manager->queue);
 	pp_task_queue_notify_all(&manager->queue);
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		printf("==== iteration: %d\n", i);
 		pp_manager_process_finished(manager);
 		sleep(1);
+
+		pp_task_queue_lock(&manager->queue);
+		pp_manager_queue_preproc(manager, 1001, &value, ts);
+		pp_manager_queue_preproc(manager, 1002, &value, ts);
+		pp_manager_queue_preproc(manager, 1003, &value, ts);
+		pp_manager_queue_preproc(manager, 1004, &value, ts);
+		pp_task_queue_unlock(&manager->queue);
+		pp_task_queue_notify_all(&manager->queue);
+
+		zbx_monitor_collect(manager->monitor);
 	}
+
+	dump_stats(manager);
 }
 
 int	test_pp(void)
@@ -561,7 +673,7 @@ int	test_pp(void)
 	zbx_pp_manager_t	manager;
 	char			*error = NULL;
 
-	if (SUCCEED != pp_manager_init(&manager, 10, &error))
+	if (SUCCEED != pp_manager_init(&manager, 8, &error))
 	{
 		printf("Failed to initialize preprocessing subsystem: %s\n", error);
 		zbx_free(error);

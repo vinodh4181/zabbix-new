@@ -23,6 +23,7 @@
 #include "pp_queue.h"
 #include "pp_execute.h"
 #include "zbxembed.h"
+#include "zbxmonitor.h"
 
 typedef struct
 {
@@ -35,10 +36,12 @@ typedef struct
 	pthread_t		thread;
 
 	zbx_pp_context_t	execute_ctx;
+
+	zbx_monitor_t		*monitor;
 }
 zbx_pp_worker_t;
 
-int	pp_worker_init(zbx_pp_worker_t *worker, zbx_pp_queue_t *queue, char **error);
+int	pp_worker_init(zbx_pp_worker_t *worker, zbx_pp_queue_t *queue, zbx_monitor_t *monitor, char **error);
 void	pp_worker_destroy(zbx_pp_worker_t *worker);
 
 #endif

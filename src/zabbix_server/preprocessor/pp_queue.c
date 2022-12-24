@@ -59,14 +59,14 @@ int	pp_task_queue_init(zbx_pp_queue_t *queue, char **error)
 
 	if (0 != (err = pthread_mutex_init(&queue->lock, NULL)))
 	{
-		*error = zbx_dsprintf(NULL, "cannot initialize mutex: %s", zbx_strerror(err));
+		*error = zbx_dsprintf(NULL, "cannot initialize task queue mutex: %s", zbx_strerror(err));
 		goto out;
 	}
 	queue->init_flags |= PP_TASK_QUEUE_INIT_LOCK;
 
 	if (0 != (err = pthread_cond_init(&queue->event, NULL)))
 	{
-		*error = zbx_dsprintf(NULL, "cannot initialize conditional variable: %s", zbx_strerror(err));
+		*error = zbx_dsprintf(NULL, "cannot initialize task queue conditional variable: %s", zbx_strerror(err));
 		goto out;
 	}
 	queue->init_flags |= PP_TASK_QUEUE_INIT_EVENT;
