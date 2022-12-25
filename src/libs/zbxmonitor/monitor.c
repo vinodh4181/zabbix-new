@@ -266,7 +266,6 @@ out:
 size_t	zbx_monitor_get_size(int units_num)
 {
 #define MONITOR_ALIGN8(x) (((x) + 7) & (~7))
-
 	/* monitor size, units array size + overhead for 2 allocations: monitor and units array */
 	return MONITOR_ALIGN8(sizeof(zbx_monitor_t)) + MONITOR_ALIGN8(sizeof(zbx_monitor_unit_t)) * units_num +
 			4 * sizeof(zbx_uint64_t);
@@ -279,7 +278,7 @@ int	zbx_monitor_get_stat(zbx_monitor_t *monitor, int unit_index, int count, unsi
 	unsigned int	total = 0, counter = 0;
 	int		i, current, ret = FAIL;
 
-	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
+	zabbix_log(LOG_LEVEL_DEBUG, "In %s() index:%d count:%d", __func__, unit_index, count);
 
 	if (0 > unit_index || unit_index >= monitor->units_num)
 	{
@@ -362,11 +361,17 @@ out:
 	return ret;
 }
 
-void	zbx_monitor_get_all_stats(zbx_monitor_t *monitor, zbx_monitor_state_t *units, int units_num)
+zbx_monitor_state_t	*zbx_monitor_get_all_stats(zbx_monitor_t *monitor)
 {
-	int	current;
+	int			current, ret = FAIL;
+	zbx_monitor_state_t	*units;
+
+	units = (zbx_monitor_state_t *)zbx_malloc(NULL, (size_t)monitor->units_num * sizeof(zbx_monitor_state_t));
 
 	monitor->sync.lock(monitor->sync.data);
+
+	if (1 >= monitor->count)
+		goto unlock;
 
 	if (1 < monitor->count)
 	{
@@ -383,5 +388,12 @@ void	zbx_monitor_get_all_stats(zbx_monitor_t *monitor, zbx_monitor_state_t *unit
 		}
 	}
 
+	ret = SUCCEED;
+unlock:
 	monitor->sync.unlock(monitor->sync.data);
+
+	if (SUCCEED != ret)
+		zbx_free(units);
+
+	return units;
 }

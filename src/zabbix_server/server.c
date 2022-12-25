@@ -1132,7 +1132,7 @@ int	main(int argc, char **argv)
 
 
 	// WDN
-	test_pp();
+//	test_pp();
 
 	zbx_config_tls = zbx_config_tls_new();
 #if defined(PS_OVERWRITE_ARGV) || defined(PS_PSTAT_ARGV)
