@@ -138,7 +138,6 @@ void	zbx_monitor_update(zbx_monitor_t *monitor, int index, unsigned char state)
 	zbx_monitor_unit_t	*unit;
 	clock_t			ticks;
 	struct tms		buf;
-	int			i;
 
 	if (0 > index || index >= monitor->units_num)
 		return;
@@ -167,22 +166,22 @@ void	zbx_monitor_update(zbx_monitor_t *monitor, int index, unsigned char state)
 	{
 		monitor->sync.lock(monitor->sync.data);
 
-		for (i = 0; i < ZBX_PROCESS_STATE_COUNT; i++)
+		for (int s = 0; s < ZBX_PROCESS_STATE_COUNT; s++)
 		{
 			/* If process did not update selfmon counter during one self monitoring data   */
 			/* collection interval, then self monitor will collect statistics based on the */
 			/* current process state and the ticks passed since last self monitoring data  */
 			/* collection. This value is stored in counter_used and the local statistics   */
 			/* must be adjusted by this (already collected) value.                         */
-			if (unit->cache.counter[i] > unit->counter_used[i])
+			if (unit->cache.counter[s] > unit->counter_used[s])
 			{
-				unit->cache.counter[i] -= unit->counter_used[i];
-				unit->counter[i] += unit->cache.counter[i];
+				unit->cache.counter[s] -= unit->counter_used[s];
+				unit->counter[s] += unit->cache.counter[s];
 			}
 
 			/* reset current cache statistics */
-			unit->counter_used[i] = 0;
-			unit->cache.counter[i] = 0;
+			unit->counter_used[s] = 0;
+			unit->cache.counter[s] = 0;
 		}
 
 		unit->cache.ticks_flush = ticks;
@@ -247,14 +246,14 @@ void	zbx_monitor_collect(zbx_monitor_t *monitor)
 			unit->counter_used[unit->cache.state] += ticks_done;
 		}
 
-		for (int j = 0; j < ZBX_PROCESS_STATE_COUNT; j++)
+		for (int s = 0; s < ZBX_PROCESS_STATE_COUNT; s++)
 		{
 			/* The data is gathered as ticks spent in corresponding states during the */
 			/* self monitoring data collection interval. But in history the data are  */
 			/* stored as relative values. To achieve it we add the collected data to  */
 			/* the last values.                                                       */
-			unit->h_counter[j][index] = unit->h_counter[j][last] + unit->counter[j];
-			unit->counter[j] = 0;
+			unit->h_counter[s][index] = unit->h_counter[s][last] + unit->counter[s];
+			unit->counter[s] = 0;
 		}
 	}
 
@@ -363,12 +362,26 @@ out:
 	return ret;
 }
 
-void	zbx_monitor_get_all_stats(zbx_monitor_t *monitor, zbx_monitor_stats_t *stats, int stats_num)
+void	zbx_monitor_get_all_stats(zbx_monitor_t *monitor, zbx_monitor_state_t *units, int units_num)
 {
-	int	i;
+	int	current;
 
-	for (i = 0; i < monitor->units_num; i++)
+	monitor->sync.lock(monitor->sync.data);
+
+	if (1 < monitor->count)
 	{
+		if (MAX_HISTORY <= (current = (monitor->first + monitor->count - 1)))
+			current -= MAX_HISTORY;
 
+		for (int i = 0; i < monitor->units_num; i++)
+		{
+			for (int s = 0; s < ZBX_PROCESS_STATE_COUNT; s++)
+			{
+				units[i].counters[s] = (unsigned short)(monitor->units[i].h_counter[s][current] -
+						monitor->units[i].h_counter[s][monitor->first]);
+			}
+		}
 	}
+
+	monitor->sync.unlock(monitor->sync.data);
 }

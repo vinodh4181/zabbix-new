@@ -29,6 +29,10 @@
 #define ZBX_MONITOR_AGGR_FUNC_MAX	2
 #define ZBX_MONITOR_AGGR_FUNC_MIN	3
 
+#define ZBX_PROCESS_STATE_IDLE		0
+#define ZBX_PROCESS_STATE_BUSY		1
+#define ZBX_PROCESS_STATE_COUNT		2	/* number of process states */
+
 typedef struct zbx_monitor zbx_monitor_t;
 
 typedef struct
@@ -41,6 +45,12 @@ typedef struct
 	double	idle_avg;
 }
 zbx_monitor_stats_t;
+
+typedef struct
+{
+	unsigned short	counters[ZBX_PROCESS_STATE_COUNT];
+}
+zbx_monitor_state_t;
 
 typedef void (*zbx_monitor_sync_func_t)(void *data);
 
@@ -65,5 +75,6 @@ void	zbx_monitor_update(zbx_monitor_t *monitor, int index, unsigned char state);
 void	zbx_monitor_collect(zbx_monitor_t *monitor);
 int	zbx_monitor_get_stat(zbx_monitor_t *monitor, int unit_index, int count, unsigned char aggr_func,
 		unsigned char state, double *value, char **error);
+void	zbx_monitor_get_all_stats(zbx_monitor_t *monitor, zbx_monitor_state_t *units, int units_num);
 
 #endif

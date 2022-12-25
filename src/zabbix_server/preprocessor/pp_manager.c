@@ -496,6 +496,13 @@ static void	dump_stats(zbx_pp_manager_t *manager)
 		zbx_snprintf(message, sizeof(message), "\t[%d] total idle (avg)", i);
 		test_stat(manager->monitor, message, i, 1, ZBX_MONITOR_AGGR_FUNC_AVG, ZBX_PROCESS_STATE_IDLE);
 
+		zbx_snprintf(message, sizeof(message), "\t[%d] total idle (min)", i);
+		test_stat(manager->monitor, message, i, 1, ZBX_MONITOR_AGGR_FUNC_MIN, ZBX_PROCESS_STATE_IDLE);
+
+		zbx_snprintf(message, sizeof(message), "\t[%d] total idle (max)", i);
+		test_stat(manager->monitor, message, i, 1, ZBX_MONITOR_AGGR_FUNC_MAX, ZBX_PROCESS_STATE_IDLE);
+
+
 		zbx_snprintf(message, sizeof(message), "\t[%d] total busy (avg)", i);
 		test_stat(manager->monitor, message, i, 1, ZBX_MONITOR_AGGR_FUNC_AVG, ZBX_PROCESS_STATE_BUSY);
 	}
@@ -648,7 +655,7 @@ static void	test_preproc(zbx_pp_manager_t * manager)
 	pp_task_queue_unlock(&manager->queue);
 	pp_task_queue_notify_all(&manager->queue);
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 5; i++)
 	{
 		printf("==== iteration: %d\n", i);
 		pp_manager_process_finished(manager);
@@ -680,9 +687,9 @@ int	test_pp(void)
 		exit(EXIT_FAILURE);
 	}
 
-	test_perf(&manager);
+	/* test_perf(&manager); */
 	/* test_tasks(&manager); */
-	/* test_preproc(&manager); */
+	test_preproc(&manager);
 
 	printf("==== shutting down...\n");
 	pp_manager_destroy(&manager);
