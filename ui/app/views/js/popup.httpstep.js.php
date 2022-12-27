@@ -302,8 +302,6 @@ window.http_step_popup = new class {
 			});
 		}
 
-		console.log(pairs);
-
 		fields.pairs = pairs;
 
 		for (const element of this.form.parentNode.children) {
