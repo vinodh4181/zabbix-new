@@ -356,7 +356,7 @@
 			e.detail.pairs = pairs;
 
 			if (e.detail.no > 0) {
-				StepsTableManager.editRow(e.detail);
+				StepsTableManager.editRow(e.detail, tmpl);
 			}
 			else {
 				StepsTableManager.addRow(e.detail, row, tmpl);
@@ -461,7 +461,7 @@
 			);
 		}
 
-		static editRow(data) {
+		static editRow(data, tmpl = '#scenario-step-row-tmpl') {
 			const old_name = 'old_name' in data ? data.old_name : data.name;
 			const old_elem = document
 				.querySelector('.httpconf-steps-dynamic-table')
@@ -473,7 +473,7 @@
 
 			const new_elem = document.createElement('tr');
 			new_elem.innerHTML = new Template(
-				document.querySelector('#scenario-step-row-tmpl').innerHTML
+				document.querySelector(tmpl).innerHTML
 			).evaluate(data);
 			new_elem.classList.add('sortable', 'form_row');
 			new_elem.dataset.rowName = data.name;
