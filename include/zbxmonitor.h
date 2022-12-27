@@ -66,7 +66,7 @@ void	zbx_monitor_sync_init(zbx_monitor_sync_t *sync, zbx_monitor_sync_func_t loc
 		void *data);
 
 size_t	zbx_monitor_get_size(int units_num);
-zbx_monitor_t	*zbx_monitor_create_ext(int units_num, const zbx_monitor_sync_t *sync,
+zbx_monitor_t	*zbx_monitor_create_ext(int units_num, zbx_monitor_sync_t *sync,
 		zbx_mem_malloc_func_t mem_malloc_func, zbx_mem_realloc_func_t mem_realloc_func,
 		zbx_mem_free_func_t mem_free_func);
 zbx_monitor_t	*zbx_monitor_create(int units_num,  const zbx_monitor_sync_t *sync);
@@ -76,6 +76,6 @@ void	zbx_monitor_update(zbx_monitor_t *monitor, int index, unsigned char state);
 void	zbx_monitor_collect(zbx_monitor_t *monitor);
 int	zbx_monitor_get_stat(zbx_monitor_t *monitor, int unit_index, int count, unsigned char aggr_func,
 		unsigned char state, double *value, char **error);
-zbx_monitor_state_t	*zbx_monitor_get_all_stats(zbx_monitor_t *monitor);
+zbx_monitor_state_t	*zbx_monitor_get_counters(zbx_monitor_t *monitor);
 
 #endif

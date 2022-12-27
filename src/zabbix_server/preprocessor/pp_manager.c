@@ -27,6 +27,10 @@
 #include "zbxmonitor.h"
 #include "zbxself.h"
 
+#ifdef HAVE_LIBXML2
+#	include <libxml/xpath.h>
+#endif
+
 #define PP_STARTUP_TIMEOUT	10
 
 typedef struct
@@ -39,8 +43,6 @@ typedef struct
 	zbx_pp_queue_t		queue;
 
 	zbx_monitor_t		*monitor;
-	zbx_monitor_sync_t	monitor_sync;
-	pthread_mutex_t		monitor_lock;
 }
 zbx_pp_manager_t;
 
@@ -72,23 +74,9 @@ static void	pp_curl_destroy(void)
 #endif
 }
 
-static void	pp_manager_lock_monitor(void *data)
-{
-	pthread_mutex_t	*mutex = (pthread_mutex_t *)data;
-
-	pthread_mutex_lock(mutex);
-}
-
-static void	pp_manager_unlock_monitor(void *data)
-{
-	pthread_mutex_t	*mutex = (pthread_mutex_t *)data;
-
-	pthread_mutex_unlock(mutex);
-}
-
 int	pp_manager_init(zbx_pp_manager_t *manager, int workers_num, char **error)
 {
-	int		i, ret = FAIL, started_num = 0, err;
+	int		i, ret = FAIL, started_num = 0;
 	time_t		time_start;
 	struct timespec	poll_delay = {0, 1e8};
 
@@ -104,16 +92,7 @@ int	pp_manager_init(zbx_pp_manager_t *manager, int workers_num, char **error)
 	if (SUCCEED != pp_task_queue_init(&manager->queue, error))
 		goto out;
 
-	if (0 != (err = pthread_mutex_init(&manager->monitor_lock, NULL)))
-	{
-		*error = zbx_dsprintf(NULL, "cannot initialize monitor mutex: %s", zbx_strerror(err));
-		goto out;
-	}
-
-	zbx_monitor_sync_init(&manager->monitor_sync, pp_manager_lock_monitor, pp_manager_unlock_monitor,
-			(void *)&manager->monitor_lock);
-
-	manager->monitor = zbx_monitor_create(workers_num, &manager->monitor_sync);
+	manager->monitor = zbx_monitor_create(workers_num, NULL);
 
 	manager->workers_num = workers_num;
 	manager->workers = (zbx_pp_worker_t *)zbx_calloc(NULL, workers_num, sizeof(zbx_pp_worker_t));
@@ -176,7 +155,9 @@ void	pp_manager_destroy(zbx_pp_manager_t *manager)
 	zbx_hashset_destroy(&manager->items);
 
 	zbx_monitor_destroy(manager->monitor);
-	pthread_mutex_destroy(&manager->monitor_lock);
+
+	pp_xml_destroy();
+	pp_curl_destroy();
 }
 
 /* TODO: add output socket/client to parameters */
@@ -687,9 +668,9 @@ int	test_pp(void)
 		exit(EXIT_FAILURE);
 	}
 
-	/* test_perf(&manager); */
+	test_perf(&manager);
 	/* test_tasks(&manager); */
-	test_preproc(&manager);
+	/* test_preproc(&manager); */
 
 	printf("==== shutting down...\n");
 	pp_manager_destroy(&manager);

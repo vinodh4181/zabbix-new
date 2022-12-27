@@ -77,7 +77,8 @@ struct zbx_monitor
 	/* ticks of the last self monitoring sync (data gathering) */
 	clock_t			ticks_sync;
 
-	zbx_monitor_sync_t	sync;
+	zbx_monitor_sync_t	*sync;
+	int			sync_default;
 
 	zbx_mem_malloc_func_t	mem_malloc_func;
 	zbx_mem_realloc_func_t	mem_realloc_func;
@@ -92,7 +93,52 @@ void	zbx_monitor_sync_init(zbx_monitor_sync_t *sync, zbx_monitor_sync_func_t loc
 	sync->data = data;
 }
 
-zbx_monitor_t	*zbx_monitor_create_ext(int units_num, const zbx_monitor_sync_t *sync,
+
+static void	monitor_thread_lock(void *data)
+{
+	pthread_mutex_t	*mutex = (pthread_mutex_t *)data;
+
+	pthread_mutex_lock(mutex);
+}
+
+static void	monitor_thread_unlock(void *data)
+{
+	pthread_mutex_t	*mutex = (pthread_mutex_t *)data;
+
+	pthread_mutex_unlock(mutex);
+}
+
+
+static zbx_monitor_sync_t	*monitor_create_thread_sync()
+{
+	zbx_monitor_sync_t	*sync = (zbx_monitor_sync_t *)zbx_malloc(NULL, sizeof(zbx_monitor_sync_t));
+	pthread_mutex_t		*mutex;
+	int			err;
+
+	mutex = (pthread_mutex_t *)zbx_malloc(NULL, sizeof(pthread_mutex_t));
+	if (0 != (err = pthread_mutex_init(mutex, NULL)))
+	{
+		zabbix_log(LOG_LEVEL_CRIT, "cannot initialize monitor mutex: %s", zbx_strerror(err));
+		exit(EXIT_FAILURE);
+	}
+
+	sync->data = (void *)mutex;
+	sync->lock = monitor_thread_lock;
+	sync->unlock = monitor_thread_unlock;
+
+	return sync;
+}
+
+static void	monitor_free_thread_sync(zbx_monitor_sync_t *sync)
+{
+	pthread_mutex_t	*mutex = (pthread_mutex_t *)sync->data;
+
+	pthread_mutex_destroy(mutex);
+	zbx_free(mutex);
+	zbx_free(sync);
+}
+
+zbx_monitor_t	*zbx_monitor_create_ext(int units_num, zbx_monitor_sync_t *sync,
 		zbx_mem_malloc_func_t mem_malloc_func, zbx_mem_realloc_func_t mem_realloc_func,
 		zbx_mem_free_func_t mem_free_func)
 {
@@ -106,7 +152,17 @@ zbx_monitor_t	*zbx_monitor_create_ext(int units_num, const zbx_monitor_sync_t *s
 	monitor->count = 0;
 	monitor->ticks_per_sec = sysconf(_SC_CLK_TCK);
 	monitor->ticks_sync = 0;
-	monitor->sync = *sync;
+
+	if (NULL == sync)
+	{
+		sync = monitor_create_thread_sync();
+		monitor->sync_default = 1;
+	}
+	else
+		monitor->sync_default = 0;
+
+	monitor->sync = sync;
+
 
 	monitor->mem_malloc_func = mem_malloc_func;
 	monitor->mem_realloc_func = mem_realloc_func;
@@ -123,6 +179,9 @@ zbx_monitor_t	*zbx_monitor_create(int units_num,  const zbx_monitor_sync_t *sync
 
 void	zbx_monitor_destroy(zbx_monitor_t *monitor)
 {
+	if (0 != monitor->sync_default)
+		monitor_free_thread_sync(monitor->sync);
+
 	monitor->mem_free_func(monitor->units);
 	monitor->mem_free_func(monitor);
 }
@@ -164,7 +223,7 @@ void	zbx_monitor_update(zbx_monitor_t *monitor, int index, unsigned char state)
 
 	if (ZBX_MONITOR_FLUSH_DELAY < (double)(ticks - unit->cache.ticks_flush) / monitor->ticks_per_sec)
 	{
-		monitor->sync.lock(monitor->sync.data);
+		monitor->sync->lock(monitor->sync->data);
 
 		for (int s = 0; s < ZBX_PROCESS_STATE_COUNT; s++)
 		{
@@ -186,7 +245,7 @@ void	zbx_monitor_update(zbx_monitor_t *monitor, int index, unsigned char state)
 
 		unit->cache.ticks_flush = ticks;
 
-		monitor->sync.unlock(monitor->sync.data);
+		monitor->sync->unlock(monitor->sync->data);
 	}
 
 	/* update local self monitoring cache */
@@ -227,7 +286,7 @@ void	zbx_monitor_collect(zbx_monitor_t *monitor)
 	if (0 > (last = index - 1))
 		last += MAX_HISTORY;
 
-	monitor->sync.lock(monitor->sync.data);
+	monitor->sync->lock(monitor->sync->data);
 
 	ticks_done = ticks - monitor->ticks_sync;
 
@@ -258,7 +317,7 @@ void	zbx_monitor_collect(zbx_monitor_t *monitor)
 	}
 
 	monitor->ticks_sync = ticks;
-	monitor->sync.unlock(monitor->sync.data);
+	monitor->sync->unlock(monitor->sync->data);
 out:
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);
 }
@@ -303,7 +362,7 @@ int	zbx_monitor_get_stat(zbx_monitor_t *monitor, int unit_index, int count, unsi
 			goto out;
 	}
 
-	monitor->sync.lock(monitor->sync.data);
+	monitor->sync->lock(monitor->sync->data);
 
 	if (1 >= monitor->count)
 		goto unlock;
@@ -350,7 +409,7 @@ int	zbx_monitor_get_stat(zbx_monitor_t *monitor, int unit_index, int count, unsi
 	}
 
 unlock:
-	monitor->sync.unlock(monitor->sync.data);
+	monitor->sync->unlock(monitor->sync->data);
 
 	*value = (0 == total ? 0 : 100. * (double)counter / (double)total);
 
@@ -361,14 +420,14 @@ out:
 	return ret;
 }
 
-zbx_monitor_state_t	*zbx_monitor_get_all_stats(zbx_monitor_t *monitor)
+zbx_monitor_state_t	*zbx_monitor_get_counters(zbx_monitor_t *monitor)
 {
 	int			current, ret = FAIL;
 	zbx_monitor_state_t	*units;
 
 	units = (zbx_monitor_state_t *)zbx_malloc(NULL, (size_t)monitor->units_num * sizeof(zbx_monitor_state_t));
 
-	monitor->sync.lock(monitor->sync.data);
+	monitor->sync->lock(monitor->sync->data);
 
 	if (1 >= monitor->count)
 		goto unlock;
@@ -390,7 +449,7 @@ zbx_monitor_state_t	*zbx_monitor_get_all_stats(zbx_monitor_t *monitor)
 
 	ret = SUCCEED;
 unlock:
-	monitor->sync.unlock(monitor->sync.data);
+	monitor->sync->unlock(monitor->sync->data);
 
 	if (SUCCEED != ret)
 		zbx_free(units);

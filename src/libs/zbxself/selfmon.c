@@ -219,7 +219,7 @@ int	zbx_get_all_process_stats(zbx_process_info_t *stats)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	if (NULL == (units = zbx_monitor_get_all_stats(collector.monitor)))
+	if (NULL == (units = zbx_monitor_get_counters(collector.monitor)))
 		goto out;
 
 	for (proc_type = 0; proc_type < ZBX_PROCESS_TYPE_COUNT; proc_type++)
