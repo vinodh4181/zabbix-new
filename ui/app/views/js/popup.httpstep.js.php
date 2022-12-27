@@ -228,24 +228,81 @@ window.http_step_popup = new class {
 
 		const pairs = [];
 
-		if ('pairs' in fields) {
-			for (const value of Object.values(fields.pairs)) {
-				value.name = value.name.trim();
-				value.value = value.value.trim();
+		// Collect inputs value manual to save sorting.
+		const getPairValue = (elem, type) => {
+			const inputs = elem.querySelectorAll('input');
+
+			if (!inputs.length) {
+				return null;
+			}
+
+			const name = inputs[0].value;
+			const value = inputs[1].value;
+
+			if (name === '') {
+				return null;
+			}
+
+			return {
+				name,
+				value,
+				type
+			};
+		};
+
+		const posts_rows = this.form.querySelectorAll('[data-type=post_fields] tr');
+		if (posts_rows.length) {
+			[...posts_rows].map((row) => {
+				const value = getPairValue(row, 'post_fields');
+
+				if (value === null) {
+					return false;
+				}
 
 				pairs.push(value);
-			}
+			});
 		}
 
-		if ('query_fields' in fields) {
-			for (const value of Object.values(fields.query_fields)) {
-				value.name = value.name.trim();
-				value.value = value.value.trim();
-				value.type = 'query_fields';
+		const variable_rows = this.form.querySelectorAll('[data-type=variables] tr');
+		if (variable_rows.length) {
+			[...variable_rows].map((row) => {
+				const value = getPairValue(row, 'variables');
+
+				if (value === null) {
+					return false;
+				}
 
 				pairs.push(value);
-			}
+			});
 		}
+
+		const header_rows = this.form.querySelectorAll('[data-type=headers] tr');
+		if (header_rows.length) {
+			[...header_rows].map((row) => {
+				const value = getPairValue(row, 'headers');
+
+				if (value === null) {
+					return false;
+				}
+
+				pairs.push(value);
+			});
+		}
+
+		const query_rows = this.form.querySelectorAll('[data-type=query_fields] tr');
+		if (query_rows.length) {
+			[...query_rows].map((row) => {
+				const value = getPairValue(row, 'query_fields');
+
+				if (value === null) {
+					return false;
+				}
+
+				pairs.push(value);
+			});
+		}
+
+		console.log(pairs);
 
 		fields.pairs = pairs;
 

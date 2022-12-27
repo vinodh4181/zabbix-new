@@ -81,7 +81,6 @@ $popup_grid = (new CFormGrid())
 						(new CCol(
 							(new CButton(null, _('Add')))
 								->addClass(ZBX_STYLE_BTN_LINK)
-								->setEnabled(!(bool) $options['templated'])
 								->setAttribute('data-row-action', 'add_row')
 						))->setColSpan(5)
 					)),
@@ -91,17 +90,16 @@ $popup_grid = (new CFormGrid())
 						(new CCol(
 							(new CDiv())->addClass(ZBX_STYLE_DRAG_ICON)
 						))->addClass(ZBX_STYLE_TD_DRAG_ICON),
-						(new CTextBox('query_fields[#{index}][name]', '#{name}', (bool) $options['templated']))
+						(new CTextBox('query_fields[#{index}][name]', '#{name}'))
 							->setAttribute('placeholder', _('name'))
 							->setWidth(ZBX_TEXTAREA_HTTP_PAIR_NAME_WIDTH),
 						'&rArr;',
-						(new CTextBox('query_fields[#{index}][value]', '#{value}', (bool) $options['templated']))
+						(new CTextBox('query_fields[#{index}][value]', '#{value}'))
 							->setAttribute('placeholder', _('value'))
 							->setWidth(ZBX_TEXTAREA_HTTP_PAIR_VALUE_WIDTH),
 						(new CButton(null, _('Remove')))
 							->addClass(ZBX_STYLE_BTN_LINK)
 							->addClass('js-editable-row-remove')
-							->setEnabled(!(bool) $options['templated'])
 							->setAttribute('data-row-action', 'remove_row')
 					])),
 				$query_fields
