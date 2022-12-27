@@ -388,7 +388,6 @@
 		}
 
 		_submitForm() {
-			console.log('as');
 			var hidden_form = document.querySelector('#hidden-form');
 
 			hidden_form && hidden_form.remove();
