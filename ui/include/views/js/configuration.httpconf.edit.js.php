@@ -128,17 +128,7 @@
 			this.initScenarioTab(ScenarioHelper.sanitizePairs(pairs));
 			this.initStepsTab(steps);
 
-			this.form.addEventListener('submit', (e) => {
-				var hidden_form = document.querySelector('#hidden-form');
-
-				hidden_form && hidden_form.remove();
-				hidden_form = document.createElement('div');
-				hidden_form.id = 'hidden-form';
-
-				hidden_form.appendChild(this.stepsFragment());
-
-				this.form.appendChild(hidden_form);
-			});
+			this.form.addEventListener('submit', this._submitForm.bind(this));
 
 			document
 				.querySelector('.httpconf-steps-dynamic-table')
@@ -397,7 +387,20 @@
 			});
 		}
 
-		stepsFragment() {
+		_submitForm() {
+			console.log('as');
+			var hidden_form = document.querySelector('#hidden-form');
+
+			hidden_form && hidden_form.remove();
+			hidden_form = document.createElement('div');
+			hidden_form.id = 'hidden-form';
+
+			hidden_form.appendChild(this._stepsFragment());
+
+			this.form.appendChild(hidden_form);
+		}
+
+		_stepsFragment() {
 			const frag = document.createDocumentFragment();
 			let iter_step = 0;
 
