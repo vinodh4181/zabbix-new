@@ -140,10 +140,6 @@ window.http_step_popup = new class {
 
 		const query_fields_table = document.querySelector('.js-tbl-editable table');
 		const query_fields_callback = () => {
-			if (query_fields_table.dataset.templated == '1') {
-				return;
-			}
-
 			const rows = query_fields_table.querySelectorAll('.js-editable-row-remove');
 			[...rows].map((elem) => {
 				elem.disabled = rows.length == 1;
