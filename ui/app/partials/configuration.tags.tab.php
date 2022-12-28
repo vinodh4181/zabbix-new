@@ -133,7 +133,7 @@ if (in_array($data['source'], ['trigger', 'trigger_prototype', 'item', 'httptest
 
 		case 'httptest':
 			$btn_labels = [_('Scenario tags'), _('Inherited and scenario tags')];
-			$on_change = 'view._submitForm();this.form.submit()';
+			$on_change = 'view.createHiddenForm();this.form.submit()';
 			break;
 
 		case 'item':

@@ -128,7 +128,7 @@
 			this.initScenarioTab(ScenarioHelper.sanitizePairs(pairs));
 			this.initStepsTab(steps);
 
-			this.form.addEventListener('submit', this._submitForm.bind(this));
+			this.form.addEventListener('submit', this.createHiddenForm.bind(this));
 
 			document
 				.querySelector('.httpconf-steps-dynamic-table')
@@ -387,7 +387,7 @@
 			});
 		}
 
-		_submitForm() {
+		createHiddenForm() {
 			var hidden_form = document.querySelector('#hidden-form');
 
 			hidden_form && hidden_form.remove();
