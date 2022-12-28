@@ -228,7 +228,7 @@ window.http_step_popup = new class {
 
 		const pairs = [];
 
-		// Collect inputs value manual to save sorting.
+		// Collect input values manually to save sorting.
 		const getPairValue = (elem, type) => {
 			const inputs = elem.querySelectorAll('input');
 
