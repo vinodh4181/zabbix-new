@@ -978,7 +978,7 @@ function getConditionFormula(conditions, evalType) {
 			}
 
 			if (options.clearLastRow) {
-				$('input[type=text]', $row).on('keyup', (_) => {
+				$('input[type=text], textarea', $row).on('keyup', (_) => {
 					$(options.remove, $row).attr('disabled', false);
 				});
 			}
@@ -1014,7 +1014,7 @@ function getConditionFormula(conditions, evalType) {
 
 		if (options.clearLastRow) {
 			const $row = beforeRow.prev();
-			$('input[type=text]', $row).on('keyup', (_) => {
+			$('input[type=text], textarea', $row).on('keyup', (_) => {
 				$(options.remove, $row).attr('disabled', false);
 			});
 		}
@@ -1063,7 +1063,7 @@ function getConditionFormula(conditions, evalType) {
 	 */
 	function hasLastRowInputValue(table) {
 		const options = table.data('dynamicRows');
-		const $inputs = $(options.row + ' input[type=text]', table);
+		const $inputs = $(options.row + ' input[type=text],' + options.row + ' textarea', table);
 
 		for (const elem of $inputs) {
 			if (elem.value !== '') {
