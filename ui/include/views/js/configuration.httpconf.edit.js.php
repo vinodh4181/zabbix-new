@@ -82,7 +82,7 @@
 				->setWidth(ZBX_TEXTAREA_HTTP_PAIR_VALUE_WIDTH),
 			(new CCol([
 				(new CButton(null, _('Remove')))
-					->setEnabled(false)
+					->setEnabled(true)
 					->addClass(ZBX_STYLE_BTN_LINK)
 					->addClass('element-table-remove'),
 				new CVar('pairs[#{index}][type]', '#{type}', '')
@@ -111,6 +111,7 @@
 	const URL_MAX_LENGTH = 65;
 
 	const view = new class {
+
 		init({form_name, templated, pairs, steps}) {
 			this.form_name = form_name;
 			this.form = document.querySelector("form[name='" + this.form_name + "']");
@@ -189,6 +190,7 @@
 							template: '#scenario-pair-row-tmpl',
 							rows: pairs[type],
 							counter: 0,
+							clearLastRow: true,
 							dataCallback: (data) => {
 								return {...data, ...{type: type, index: this.row_id++}};
 							}
@@ -203,31 +205,13 @@
 							}
 
 							jQuery(e.target).sortable({disabled: e.target.querySelectorAll('.sortable').length < 2});
-
-							const remove_bttns = e.target.querySelectorAll('.element-table-remove');
-							if (remove_bttns.length > 1) {
-								[...remove_bttns].map((elem) => {
-									elem.disabled = false;
-								});
-							}
 						})
 						.on('afterremove.dynamicRows', (e) => {
 							jQuery(e.target).sortable({disabled: e.target.querySelectorAll('.sortable').length < 2});
-
-							if (e.target.querySelectorAll('.element-table-remove').length === 1) {
-								e.target.querySelector('.element-table-remove').disabled = true;
-							}
 						});
 
 					if (type === 'variables') {
 						[...elem.querySelectorAll('.' + ZBX_STYLE_DRAG_ICON)].map((elem) => elem.remove());
-					}
-
-					const remove_bttns = elem.querySelectorAll('.element-table-remove');
-					if (remove_bttns.length > 1) {
-						[...remove_bttns].map((elem) => {
-							elem.disabled = false;
-						});
 					}
 
 					$elem.sortable({

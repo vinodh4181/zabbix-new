@@ -858,6 +858,7 @@ function getConditionFormula(conditions, evalType) {
 	 * - counter 				- number to start row enumeration from
 	 * - dataCallback			- function to generate the data passed to the template
 	 * - remove_next_sibling	- remove also next element
+	 * - clearLastRow			- clear last row or remove
 	 *
 	 * Triggered events:
 	 * - tableupdate.dynamicRows 	- after adding or removing a row.
@@ -868,14 +869,22 @@ function getConditionFormula(conditions, evalType) {
 	 * @param options
 	 */
 	$.fn.dynamicRows = function(options) {
-		var methods = {
+		const methods = {
 			destroy: function() {
-				var table = $(this);
+				const table = $(this);
+				const settings = table.data('dynamicRows');
 
-				table.off('click', options.add);
-				table.off('click', options.remove);
-				table.off('click', options.disable);
+				table.off('click', settings.add);
+				table.off('click', settings.remove);
+				table.off('click', settings.disable);
 				table.removeData('dynamicRows')
+			},
+			addRow: function (data) {
+				const table = $(this);
+				const settings = table.data('dynamicRows');
+				const lastRow = $(settings.add, table).parents('tr');
+
+				return addRow(table, lastRow, data);
 			}
 		};
 
@@ -892,6 +901,7 @@ function getConditionFormula(conditions, evalType) {
 			disable: '.element-table-disable',
 			counter: null,
 			beforeRow: null,
+			clearLastRow: false,
 			rows: [],
 			dataCallback: function(data) {
 				return {};
@@ -900,11 +910,10 @@ function getConditionFormula(conditions, evalType) {
 
 		return this.each(function() {
 			var table = $(this);
+			options.counter = options.counter !== null ? options.counter : $(options.row, table).length
 
 			// If options.remove_next_sibling is true, counter counts each row making the next index twice as large (bug).
-			table.data('dynamicRows', {
-				counter: (options.counter !== null) ? options.counter : $(options.row, table).length
-			});
+			table.data('dynamicRows', options);
 
 			// add buttons
 			table.on('click', options.add, function() {
@@ -914,7 +923,7 @@ function getConditionFormula(conditions, evalType) {
 				var beforeRow = (options['beforeRow'] !== null)
 					? $(options['beforeRow'], table)
 					: $(this).closest('tr');
-				addRow(table, beforeRow, options);
+				addRow(table, beforeRow);
 
 				table.trigger('afteradd.dynamicRows', options);
 			});
@@ -922,7 +931,7 @@ function getConditionFormula(conditions, evalType) {
 			// remove buttons
 			table.on('click', options.remove, function() {
 				// remove the parent row
-				removeRow(table, $(this).closest(options.row), options);
+				removeRow(table, $(this).closest(options.row));
 			});
 
 			// disable buttons
@@ -936,7 +945,7 @@ function getConditionFormula(conditions, evalType) {
 					? $(options['beforeRow'], table)
 					: $(options.add, table).closest('tr');
 
-				initRows(table, before_row, options);
+				initRows(table, before_row);
 			}
 		});
 	};
@@ -946,34 +955,43 @@ function getConditionFormula(conditions, evalType) {
 	 *
 	 * @param {jQuery} table       Table jquery node.
 	 * @param {jQuery} before_row  Rendered rows will be inserted before this node.
-	 * @param {object} options     Object with options.
 	 */
-	function initRows(table, before_row, options) {
+	function initRows(table, before_row) {
+		const options = table.data('dynamicRows');
 		var template = new Template($(options.template).html()),
-			counter = table.data('dynamicRows').counter,
 			$row;
 
 		options.rows.forEach((data) => {
-			data.rowNum = counter;
+			data.rowNum = options.counter;
 			$row = $(template.evaluate($.extend(data, options.dataCallback(data))));
 
 			for (const name in data) {
 				// Set 'z-select' value.
 				$row
-					.find(`z-select[name$="[${counter}][${name}]"]`)
+					.find(`z-select[name$="[${options.counter}][${name}]"]`)
 					.val(data[name]);
 
 				// Set 'radio' value.
 				$row
-					.find(`[type="radio"][name$="[${counter}][${name}]"][value="${$.escapeSelector(data[name])}"]`)
+					.find(`[type="radio"][name$="[${options.counter}][${name}]"][value="${$.escapeSelector(data[name])}"]`)
 					.attr('checked', 'checked');
 			}
 
+			if (options.clearLastRow) {
+				$('input[type=text]', $row).on('keyup', (_) => {
+					$(options.remove, $row).attr('disabled', false);
+				});
+			}
+
 			before_row.before($row);
-			++counter;
+			++options.counter;
 		});
 
-		table.data('dynamicRows').counter = counter;
+		if (options.clearLastRow && options.counter === 1) {
+			$(options.remove, table).attr('disabled', !hasLastRowInputValue(table, options));
+		}
+
+		table.data('dynamicRows', options);
 	}
 
 	/**
@@ -981,17 +999,27 @@ function getConditionFormula(conditions, evalType) {
 	 *
 	 * @param {jQuery} table
 	 * @param {jQuery} beforeRow
-	 * @param {object} options
+	 * @param {object} data
 	 */
-	function addRow(table, beforeRow, options) {
-		var data = {
-			rowNum: table.data('dynamicRows').counter
-		};
+	function addRow(table, beforeRow, data = {}) {
+		const options = table.data('dynamicRows');
+		data.rowNum = options.counter;
 		data = $.extend(data, options.dataCallback(data));
 
 		var template = new Template($(options.template).html());
 		beforeRow.before(template.evaluate(data));
-		table.data('dynamicRows').counter++;
+		options.counter++;
+
+		$(options.remove, table).attr('disabled', false);
+
+		if (options.clearLastRow) {
+			const $row = beforeRow.prev();
+			$('input[type=text]', $row).on('keyup', (_) => {
+				$(options.remove, $row).attr('disabled', false);
+			});
+		}
+
+		table.data('dynamicRows', options);
 
 		table.trigger('tableupdate.dynamicRows', options);
 	}
@@ -1001,16 +1029,49 @@ function getConditionFormula(conditions, evalType) {
 	 *
 	 * @param {jQuery} table
 	 * @param {jQuery} row
-	 * @param {object} options
 	 */
-	function removeRow(table, row, options) {
+	function removeRow(table, row) {
+		const options = table.data('dynamicRows');
+
 		if (options.remove_next_sibling) {
 			row.next().remove();
 		}
-		row.remove();
+
+		if (options.clearLastRow && options.counter === 1) {
+			$('input', table).val('');
+			$(options.remove, table).attr('disabled', true);
+		}
+		else {
+			row.remove();
+			options.counter--;
+		}
+
+		if (options.clearLastRow && options.counter === 1) {
+			$(options.remove, table).attr('disabled', !hasLastRowInputValue(table));
+		}
+
+		table.data('dynamicRows', options);
 
 		table.trigger('tableupdate.dynamicRows', options);
 		table.trigger('afterremove.dynamicRows', options);
+	}
+
+	/**
+	 * Check if last row in table have input with value.
+	 *
+	 * @param {jQuery} table
+	 */
+	function hasLastRowInputValue(table) {
+		const options = table.data('dynamicRows');
+		const $inputs = $(options.row + ' input[type=text]', table);
+
+		for (const elem of $inputs) {
+			if (elem.value !== '') {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

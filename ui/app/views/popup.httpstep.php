@@ -72,41 +72,19 @@ $popup_grid = (new CFormGrid())
 		new CFormField(
 			(new CDiv([
 				(new CTable())
-					->setAttribute('style', 'width: 100%;')
+					->addClass('httpconf-dynamic-table')
+					->addStyle('width: 100%;')
 					->setAttribute('data-type', 'query_fields')
-					->setAttribute('data-templated', $options['templated'])
 					->setHeader(['', _('Name'), '', _('Value'), ''])
-					->addRow((new CRow())->setAttribute('data-insert-point', 'append'))
-					->setFooter(new CRow(
+					->addRow(new CRow(
 						(new CCol(
 							(new CButton(null, _('Add')))
+								->addClass('element-table-add')
 								->addClass(ZBX_STYLE_BTN_LINK)
-								->setAttribute('data-row-action', 'add_row')
 						))->setColSpan(5)
-					)),
-				(new CTag('script', true))
-					->setAttribute('type', 'text/x-jquery-tmpl')
-					->addItem(new CRow([
-						(new CCol(
-							(new CDiv())->addClass(ZBX_STYLE_DRAG_ICON)
-						))->addClass(ZBX_STYLE_TD_DRAG_ICON),
-						(new CTextBox('query_fields[#{index}][name]', '#{name}'))
-							->setAttribute('placeholder', _('name'))
-							->setWidth(ZBX_TEXTAREA_HTTP_PAIR_NAME_WIDTH),
-						'&rArr;',
-						(new CTextBox('query_fields[#{index}][value]', '#{value}'))
-							->setAttribute('placeholder', _('value'))
-							->setWidth(ZBX_TEXTAREA_HTTP_PAIR_VALUE_WIDTH),
-						(new CButton(null, _('Remove')))
-							->addClass(ZBX_STYLE_BTN_LINK)
-							->addClass('js-editable-row-remove')
-							->setAttribute('data-row-action', 'remove_row')
-					])),
-				$query_fields
+					))
 			]))
 				->addClass(ZBX_STYLE_TABLE_FORMS_SEPARATOR)
-				->addClass('js-tbl-editable')
-				->setAttribute('data-sortable-pairs-table', '1')
 				->addStyle('min-width: '.ZBX_TEXTAREA_BIG_WIDTH.'px;')
 		)
 	])

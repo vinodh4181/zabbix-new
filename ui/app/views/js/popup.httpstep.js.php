@@ -55,6 +55,7 @@ window.http_step_popup = new class {
 					template: '#scenario-pair-row-tmpl',
 					rows: this.data.pairs[type],
 					counter: 0,
+					clearLastRow: true,
 					dataCallback: (data) => {
 						return {...data, ...{type: type, index: this.row_id++}};
 					}
@@ -69,31 +70,13 @@ window.http_step_popup = new class {
 					}
 
 					jQuery(e.target).sortable({disabled: e.target.querySelectorAll('.sortable').length < 2});
-
-					const remove_bttns = e.target.querySelectorAll('.element-table-remove');
-					if (remove_bttns.length > 1) {
-						[...remove_bttns].map((elem) => {
-							elem.disabled = false;
-						});
-					}
 				})
 				.on('afterremove.dynamicRows', (e) => {
 					jQuery(e.target).sortable({disabled: e.target.querySelectorAll('.sortable').length < 2});
-
-					if (e.target.querySelectorAll('.element-table-remove').length === 1) {
-						e.target.querySelector('.element-table-remove').disabled = true;
-					}
 				});
 
 			if (type === 'variables') {
 				[...elem.querySelectorAll('.' + ZBX_STYLE_DRAG_ICON)].map((elem) => elem.remove());
-			}
-
-			const remove_bttns = elem.querySelectorAll('.element-table-remove');
-			if (remove_bttns.length > 1) {
-				[...remove_bttns].map((elem) => {
-					elem.disabled = false;
-				});
 			}
 
 			jQuery(elem)
@@ -137,17 +120,6 @@ window.http_step_popup = new class {
 		});
 
 		this.input_url = document.getElementById('url');
-
-		const query_fields_table = document.querySelector('.js-tbl-editable table');
-		const query_fields_callback = () => {
-			const rows = query_fields_table.querySelectorAll('.js-editable-row-remove');
-			[...rows].map((elem) => {
-				elem.disabled = rows.length == 1;
-			});
-		};
-
-		jQuery(query_fields_table).on('editabletable.add', query_fields_callback);
-		jQuery(query_fields_table).on('editabletable.remove', query_fields_callback);
 
 		this._update();
 	}
@@ -359,23 +331,16 @@ window.http_step_popup = new class {
 	}
 
 	parseUrl() {
-		const table = jQuery('.js-tbl-editable').data('editableTable');
+		const $table = jQuery('[data-type=query_fields]');
 		const url = parseUrlString(this.input_url.value);
 
 		if (typeof url === 'object') {
 			if (url.pairs.length) {
-				table.addRows(url.pairs);
-				table.getTableRows()
-					.map(function() {
-						const empty = jQuery(this).find('input[type="text"]').map(function() {
-							return (jQuery(this).val() === '') ? this : null;
-						});
-
-						return (empty.length == 2) ? this : null;
-					})
-					.map(function() {
-						table.removeRow(this);
-					});
+				// Clear table.
+				$table.find('.form_row').remove();
+				url.pairs.forEach((value) => {
+					$table.dynamicRows('addRow', value);
+				});
 			}
 
 			this.input_url.value = url.url;
