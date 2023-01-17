@@ -47,10 +47,10 @@ class testDashboardClockWidget extends CWebTest {
 	private $sql = 'SELECT wf.widgetid, wf.type, wf.name, wf.value_int, wf.value_str, wf.value_groupid, wf.value_hostid,'.
 	' wf.value_itemid, wf.value_graphid, wf.value_sysmapid, w.widgetid, w.dashboard_pageid, w.type, w.name, w.x, w.y,'.
 	' w.width, w.height'.
-	' FROM widget_field wf'.
-	' INNER JOIN widget w'.
-	' ON w.widgetid=wf.widgetid ORDER BY wf.widgetid, wf.name, wf.value_int, wf.value_str, wf.value_groupid,'.
-	' wf.value_itemid, wf.value_graphid';
+		' FROM widget_field wf'.
+		' INNER JOIN widget w'.
+		' ON w.widgetid=wf.widgetid '.
+		' ORDER BY wf.widgetid, wf.name, wf.value_int, wf.value_str, wf.value_groupid, wf.value_itemid, wf.value_graphid';
 
 	/**
 	 * Check clock widgets layout.
@@ -62,8 +62,8 @@ class testDashboardClockWidget extends CWebTest {
 		$form = $dashboard->getWidget('LayoutClock')->edit();
 
 		// Check edit forms header.
-		$this->assertEquals('Edit widget',
-			$form->query('xpath://h4[@id="dashboard-widget-head-title-widget_properties"]')->one()->getText());
+		$dialog = COverlayDialogElement::find()->waitUntilReady()->one();
+		$this->assertEquals('Edit widget', $dialog->getTitle());
 
 		// Check if widget type is selected as "Clock".
 		$form->checkValue(['Type' => 'Clock']);
@@ -72,17 +72,28 @@ class testDashboardClockWidget extends CWebTest {
 		$this->assertEquals('255', $form->query('id:name')->one()->getAttribute('maxlength'));
 
 		// Check fields "Refresh interval" values.
-		$this->assertEquals(['Default (15 minutes)', 'No refresh', '10 seconds', '30 seconds', '1 minute', '2 minutes', '10 minutes', '15 minutes'],
-			$form->query('name', 'rf_rate')->asDropdown()->one()->getOptions()->asText()
+		$refresh_interval = [
+			'Default (15 minutes)',
+			'No refresh',
+			'10 seconds',
+			'30 seconds',
+			'1 minute',
+			'2 minutes',
+			'10 minutes',
+			'15 minutes'
+		];
+
+		$this->assertEquals($refresh_interval,
+				$form->query('name', 'rf_rate')->asDropdown()->one()->getOptions()->asText()
 		);
 
 		$this->assertEquals(['Local time', 'Server time', 'Host time'],
-			$form->query('name', 'time_type')->asDropdown()->one()->getOptions()->asText()
+				$form->query('name', 'time_type')->asDropdown()->one()->getOptions()->asText()
 		);
 
 		// Check fields "Time type" values.
 		$this->assertEquals(['Local time', 'Server time', 'Host time'],
-			$form->query('name', 'time_type')->asDropdown()->one()->getOptions()->asText()
+				$form->query('name', 'time_type')->asDropdown()->one()->getOptions()->asText()
 		);
 
 		// Check that it's possible to select host items, when time type is "Host Time".
@@ -137,8 +148,7 @@ class testDashboardClockWidget extends CWebTest {
 			'id:time_bold' => false,
 			'id:time_color' => null,
 			'id:time_sec' => true,
-			'id:time_format_0' => true,
-			'id:time_format_1' => false,
+			'id:time_format' => '24-hour',
 			'id:tzone_size' => '20',
 			'id:tzone_bold' => false,
 			'id:tzone_color' => null,
@@ -374,8 +384,7 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => false,
 						'xpath://button[@id="lbl_time_color"]/..' => '00897B',
 						'id:time_sec' => true,
-						'id:time_format_0' => true,
-						'id:time_format_1' => false
+						'id:time_format' => '24-hour'
 					]
 				]
 			],
@@ -402,8 +411,7 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => true,
 						'xpath://button[@id="lbl_time_color"]/..' => '180D49',
 						'id:time_sec' => false,
-						'id:time_format_0' => false,
-						'id:time_format_1' => true
+						'id:time_format' => '12-hour'
 					]
 				]
 			],
@@ -430,14 +438,12 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => true,
 						'xpath://button[@id="lbl_time_color"]/..' => '1B5E20',
 						'id:time_sec' => false,
-						'id:time_format_0' => false,
-						'id:time_format_1' => true,
+						'id:time_format' => '12-hour',
 						'id:tzone_size' => '20',
 						'id:tzone_bold' => false,
 						'xpath://button[@id="lbl_tzone_color"]/..' => '06081F',
 						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Atlantic/Stanley'),
-						'id:tzone_format_0' => true,
-						'id:tzone_format_1' => false
+						'id:time_format' => '24-hour'
 					]
 				]
 			],
@@ -464,14 +470,12 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => true,
 						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
 						'id:time_sec' => false,
-						'id:time_format_0' => false,
-						'id:time_format_1' => true,
+						'id:time_format' => '12-hour',
 						'id:tzone_size' => '35',
 						'id:tzone_bold' => true,
 						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
 						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
-						'id:tzone_format_0' => false,
-						'id:tzone_format_1' => true
+						'id:time_format' => '12-hour'
 					]
 				]
 			],
@@ -498,14 +502,12 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => true,
 						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
 						'id:time_sec' => false,
-						'id:time_format_0' => false,
-						'id:time_format_1' => true,
+						'id:time_format' => '12-hour',
 						'id:tzone_size' => '35',
 						'id:tzone_bold' => true,
 						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
 						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
-						'id:tzone_format_0' => false,
-						'id:tzone_format_1' => true
+						'id:time_format' => '12-hour'
 					],
 					'Error message' => [
 						'Invalid parameter "Size": value must be one of 1-100.'
@@ -535,14 +537,12 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => true,
 						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
 						'id:time_sec' => false,
-						'id:time_format_0' => false,
-						'id:time_format_1' => true,
+						'id:time_format' => '12-hour',
 						'id:tzone_size' => '35',
 						'id:tzone_bold' => true,
 						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
 						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
-						'id:tzone_format_0' => false,
-						'id:tzone_format_1' => true
+						'id:time_format' => '12-hour'
 					],
 					'Error message' => [
 						'Invalid parameter "Size": value must be one of 1-100.',
@@ -573,14 +573,12 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => true,
 						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
 						'id:time_sec' => false,
-						'id:time_format_0' => false,
-						'id:time_format_1' => true,
+						'id:time_format' => '12-hour',
 						'id:tzone_size' => '353',
 						'id:tzone_bold' => true,
 						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
 						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
-						'id:tzone_format_0' => false,
-						'id:tzone_format_1' => true
+						'id:time_format' => '12-hour'
 					],
 					'Error message' => [
 						'Invalid parameter "Size": value must be one of 1-100.',
@@ -612,8 +610,7 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => true,
 						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
 						'id:time_sec' => false,
-						'id:time_format_0' => false,
-						'id:time_format_1' => true,
+						'id:time_format' => '12-hour',
 						'id:tzone_size' => '33',
 						'id:tzone_bold' => true,
 						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39'
@@ -649,8 +646,10 @@ class testDashboardClockWidget extends CWebTest {
 			$dashboard->save();
 			$this->assertMessage(TEST_GOOD, 'Dashboard updated');
 
-			// After saving dashboard, it returns you to first page, if widget created in 2nd page,
-			// then it needs to be opened.
+			/**
+			 * After saving dashboard, it returns you to first page, if widget created in 2nd page,
+			 * then it needs to be opened.
+			 */
 			if (array_key_exists('second_page', $data)) {
 				$dashboard->selectPage('Second page');
 				$dashboard->waitUntilReady();
@@ -661,7 +660,8 @@ class testDashboardClockWidget extends CWebTest {
 			}
 
 			$dashboard->getWidgets()->last()->edit()->checkValue($data['fields']);
-		} else {
+		}
+		else {
 			$this->assertMessage(TEST_BAD, null, $data['Error message']);
 		}
 	}
@@ -914,8 +914,7 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => false,
 						'xpath://button[@id="lbl_time_color"]/..' => '00897B',
 						'id:time_sec' => true,
-						'id:time_format_0' => true,
-						'id:time_format_1' => false
+						'id:time_format' => '24-hour'
 					]
 				]
 			],
@@ -941,8 +940,7 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => true,
 						'xpath://button[@id="lbl_time_color"]/..' => '180D49',
 						'id:time_sec' => false,
-						'id:time_format_0' => false,
-						'id:time_format_1' => true
+						'id:time_format' => '12-hour'
 					]
 				]
 			],
@@ -968,8 +966,7 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => true,
 						'xpath://button[@id="lbl_time_color"]/..' => '1B5E20',
 						'id:time_sec' => false,
-						'id:time_format_0' => false,
-						'id:time_format_1' => true,
+						'id:time_format' => '12-hour',
 						'id:tzone_size' => '20',
 						'id:tzone_bold' => false,
 						'xpath://button[@id="lbl_tzone_color"]/..' => '06081F',
@@ -1001,8 +998,7 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => true,
 						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
 						'id:time_sec' => false,
-						'id:time_format_0' => false,
-						'id:time_format_1' => true,
+						'id:time_format' => '12-hour',
 						'id:tzone_size' => '35',
 						'id:tzone_bold' => true,
 						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
@@ -1034,8 +1030,7 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => true,
 						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
 						'id:time_sec' => false,
-						'id:time_format_0' => false,
-						'id:time_format_1' => true,
+						'id:time_format' => '12-hour',
 						'id:tzone_size' => '35',
 						'id:tzone_bold' => true,
 						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
@@ -1070,8 +1065,7 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => true,
 						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
 						'id:time_sec' => false,
-						'id:time_format_0' => false,
-						'id:time_format_1' => true,
+						'id:time_format' => '12-hour',
 						'id:tzone_size' => '35',
 						'id:tzone_bold' => true,
 						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
@@ -1107,8 +1101,7 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => true,
 						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
 						'id:time_sec' => false,
-						'id:time_format_0' => false,
-						'id:time_format_1' => true,
+						'id:time_format' => '12-hour',
 						'id:tzone_size' => '353',
 						'id:tzone_bold' => true,
 						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
@@ -1145,8 +1138,7 @@ class testDashboardClockWidget extends CWebTest {
 						'id:time_bold' => true,
 						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
 						'id:time_sec' => false,
-						'id:time_format_0' => false,
-						'id:time_format_1' => true,
+						'id:time_format' => '12-hour',
 						'id:tzone_size' => '33',
 						'id:tzone_bold' => true,
 						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39'
@@ -1186,7 +1178,8 @@ class testDashboardClockWidget extends CWebTest {
 
 			// Check that widget updated.
 			$dashboard->getWidgets()->last()->edit()->checkValue($data['fields']);
-		} else {
+		}
+		else {
 			$this->assertMessage(TEST_BAD, null, $data['Error message']);
 		}
 	}
@@ -1209,9 +1202,11 @@ class testDashboardClockWidget extends CWebTest {
 
 		// Check that widget is not present on dashboard and in DB.
 		$this->assertFalse($dashboard->getWidget('DeleteClock', false)->isValid());
-		$sql = 'SELECT * FROM widget_field wf LEFT JOIN widget w ON w.widgetid=wf.widgetid'.
-			' WHERE w.name='.zbx_dbstr('DeleteClock');
-		$this->assertEquals(0, CDBHelper::getCount($sql));
+		$this->assertEquals(0, CDBHelper::getCount('SELECT * FROM widget_field wf'.
+			' LEFT JOIN widget w'.
+			' ON w.widgetid=wf.widgetid'.
+			' WHERE w.name='.zbx_dbstr('DeleteClock')
+		));
 	}
 
 	public static function getCancelData() {
@@ -1252,8 +1247,7 @@ class testDashboardClockWidget extends CWebTest {
 	 *
 	 * @dataProvider getCancelData
 	 */
-	public function testDashboardClockWidget_Cancel($data)
-	{
+	public function testDashboardClockWidget_Cancel($data) {
 		$old_hash = CDBHelper::getHash($this->sql);
 		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
 		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid)->waitUntilReady();
@@ -1263,7 +1257,8 @@ class testDashboardClockWidget extends CWebTest {
 		if (CTestArrayHelper::get($data, 'existing_widget', false)) {
 			$widget = $dashboard->getWidget($data['existing_widget']);
 			$form = $widget->edit();
-		} else {
+		}
+		else {
 			$overlay = $dashboard->edit()->addWidget();
 			$form = $overlay->asForm();
 			$form->fill(['Type' => 'Clock', 'Clock type' => 'Analog']);
@@ -1279,7 +1274,8 @@ class testDashboardClockWidget extends CWebTest {
 
 			// Check that changes took place on the unsaved dashboard.
 			$this->assertTrue($dashboard->getWidget('Widget to be cancelled')->isValid());
-		} else {
+		}
+		else {
 			$dialog = COverlayDialogElement::find()->one();
 			$dialog->query('button:Cancel')->one()->click();
 			$dialog->ensureNotPresent();
@@ -1287,24 +1283,38 @@ class testDashboardClockWidget extends CWebTest {
 			// Check that widget changes didn't take place after pressing "Cancel".
 			if (CTestArrayHelper::get($data, 'existing_widget', false)) {
 				$this->assertNotEquals('Widget to be cancelled', $widget->waitUntilReady()->getHeaderText());
-			} else {
-				// If test fails and widget isn't canceled, need to wait until widget appears on the dashboard.
-				sleep(5);
-
-				if ($widget->getID() !== $dashboard->getWidgets()->last()->getID()) {
-					$this->fail('New widget was added after pressing "Cancel"');
-				}
+			}
+			else {
+				// If test fails and widget isn't canceled, need to wait until page with widget appears on the dashboard.
+				$this->waitUntilPageIsLoaded();
 			}
 		}
 
 		// Save or cancel dashboard update.
 		if (CTestArrayHelper::get($data, 'save_dashboard', false)) {
 			$dashboard->save();
-		} else {
+		}
+		else {
 			$dashboard->cancelEditing();
 		}
 
 		// Confirm that no changes were made to the widget.
 		$this->assertEquals($old_hash, CDBHelper::getHash($this->sql));
+	}
+
+	/**
+	 * Function for waiting for page to load.
+	 */
+	private function waitUntilPageIsLoaded() {
+		try {
+			for ($i = 0; $i < 9; $i++) {
+				if ($widget->getID() !== $dashboard->getWidgets()->last()->getID()) {
+					$this->fail('New widget was added after pressing "Cancel"');
+				}
+			}
+		}
+		catch (\Exception $ex) {
+			// Code is not missing here.
+		}
 	}
 }

@@ -24,6 +24,7 @@ require_once dirname(__FILE__).'/../traits/TableTrait.php';
 
 /**
  * @backup dashboard, dashboard_user, dashboard_usrgrp
+ * @dataSource ClockWidgets
  */
 class testPageDashboardList extends CWebTest {
 
@@ -77,7 +78,7 @@ class testPageDashboardList extends CWebTest {
 					'fields' => [
 						'Show' => 'All'
 					],
-					'result_count' => 17
+					'result_count' => 18
 				]
 			],
 			[
@@ -85,7 +86,7 @@ class testPageDashboardList extends CWebTest {
 					'fields' => [
 						'Show' => 'Created by me'
 					],
-					'result_count' => 16
+					'result_count' => 17
 				]
 			],
 			[
@@ -103,7 +104,7 @@ class testPageDashboardList extends CWebTest {
 						'Name' => 'widget',
 						'Show' => 'Created by me'
 					],
-					'result_count' => 10
+					'result_count' => 11
 				]
 			],
 			[
