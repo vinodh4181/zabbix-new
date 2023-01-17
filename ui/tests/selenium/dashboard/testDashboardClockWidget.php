@@ -128,11 +128,41 @@ class testDashboardClockWidget extends CWebTest {
 			$this->assertTrue($this->query('button', $button)->one()->isClickable());
 		}
 
+		// Check if asterisk for "Item" field is present.
+		$form->query('xpath:.//label[text()="Item"]')->waitUntilVisible()->one();
+		$this->assertStringContainsString('form-label-asterisk', $form->getLabel('itemid_ms')->getAttribute('class'));
+
 		// Check that "Clock type" buttons are present.
 		$this->assertEquals(['Analog', 'Digital'], $form->getField('Clock type')->asSegmentedRadio()->getLabels()->asText());
 
 		// Check that there are three options what should Digital Clock widget show and select them as "Yes".
-		$form->fill(['Clock type' => 'Digital', 'id:show_1' => true, 'id:show_2' => true, 'id:show_3' => true]);
+		$clock_types = [
+			'Analog' => false,
+			'Digital' => true
+		];
+
+		foreach ($clock_types as $type => $status) {
+			$form->fill(['Clock type' => $type]);
+
+			if ($status) {
+				$form->query('xpath:.//label[text()="Show"]')->waitUntilVisible()->one();
+				$this->assertStringContainsString('form-label-asterisk', $form->getLabel('Show')->getAttribute('class'));
+			}
+
+			foreach (['show_1' => false, 'show_2' => true, 'show_3' => false] as $id => $checked) {
+				$checkbox = $form->query('id', $id)->asCheckbox()->one();
+				$this->assertTrue($checkbox->isVisible($status));
+				$this->assertTrue($checkbox->asCheckbox()->isChecked($checked));
+			}
+
+			$advanced_config = $form->query()
+
+
+			foreach ([false, true] as $advanced_config) {
+				$form->fill(['Advanced configuration' => $advanced_config]);
+
+			}
+		}
 
 		// Select "Advanced configuration" checkbox.
 		$form->fill(['Advanced configuration' => true]);
@@ -158,6 +188,86 @@ class testDashboardClockWidget extends CWebTest {
 
 		foreach ($default as $field => $value) {
 			$this->assertEquals($value, $form->getField($field)->getValue());
+		}
+	}
+
+	/**
+	 * Function for checking Clock widget form.
+	 *
+	 * @param array      $data      data provider
+	 * @param boolean    $update    true if update scenario, false if create
+	 */
+	public function checkFormClockWidget($data, $update = false) {
+		if (CTestArrayHelper::get($data, 'expected', TEST_GOOD) === TEST_BAD) {
+			$old_hash = CDBHelper::getHash($this->sql);
+		}
+
+		$dashboardid = $update
+			? CDataHelper::get('ClockWidgets.dashboardids.Dashboard for updating clock widgets')
+			: CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
+
+		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid=' . $dashboardid);
+		$dashboard = CDashboardElement::find()->one();
+
+		// If first page is already full of widgets, select second page.
+		if (array_key_exists('second_page', $data)) {
+			$dashboard->selectPage('Second page');
+		}
+
+		$form = $update
+			? $dashboard->getWidgets()->last()->edit()
+			: $dashboard->edit()->addWidget()->asForm();
+
+		$form->fill($data['fields']);
+		if ($data['expected'] === TEST_GOOD) {
+			$this->page->waitUntilReady();
+			$dashboard->save();
+			$this->assertMessage(TEST_GOOD, 'Dashboard updated');
+
+			/**
+			 * After saving dashboard, it returns you to first page, if widget created in 2nd page,
+			 * then it needs to be opened.
+			 */
+			if (array_key_exists('second_page', $data)) {
+				$dashboard->selectPage('Second page');
+				$dashboard->waitUntilReady();
+			}
+
+			if ($update = false) {
+				// Scenario where data is for creating widget.
+				if ($data['fields']['Time type'] === 'Host time') {
+					$data['fields'] = array_replace($data['fields'],
+							['Item' => 'Host for clock widget: Item for clock widget']);
+				}
+			}
+			// Scenario where data is for updating widget.
+			else {
+				if (array_key_exists('Item', $data['fields'])) {
+					$item_name = ($data['fields']['Item'] === 'Item for clock widget')
+						? 'Host for clock widget: Item for clock widget'
+						: 'Host for clock widget: Item for clock widget 2';
+					$data['fields'] = array_replace($data['fields'], ['Item' => $item_name]);
+				}
+			}
+			// Check that widget is saved in DB.
+			$this->assertEquals(1,
+				CDBHelper::getCount('SELECT * FROM widget w'.
+					' WHERE EXISTS ('.
+					'SELECT NULL'.
+					' FROM dashboard_page dp'.
+					' WHERE w.dashboard_pageid=dp.dashboard_pageid'.
+					' AND dp.dashboardid='.self::$dashboardid.
+					' AND w.name ='.zbx_dbstr(CTestArrayHelper::get($data['fields'], 'Name', '')).')'
+				));
+
+			// Check that widget updated.
+			$dashboard->getWidgets()->last()->edit()->checkValue($data['fields']);
+		}
+		else {
+			$this->assertMessage(TEST_BAD, null, $data['Error message']);
+
+			// Check that DB hash is not changed.
+			$this->assertEquals($old_hash, CDBHelper::getHash($this->sql));
 		}
 	}
 
