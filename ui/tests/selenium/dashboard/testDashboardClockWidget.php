@@ -155,12 +155,10 @@ class testDashboardClockWidget extends CWebTest {
 				$this->assertTrue($checkbox->asCheckbox()->isChecked($checked));
 			}
 
-			$advanced_config = $form->query()
-
-
-			foreach ([false, true] as $advanced_config) {
-				$form->fill(['Advanced configuration' => $advanced_config]);
-
+			foreach ([false, true] as $checked) {
+				$advanced_config = $form->query('id', "adv_conf")->asCheckbox()->one();
+				$this->assertTrue($advanced_config->isVisible($status));
+				$this->assertTrue($advanced_config->asCheckbox()->isChecked($checked));
 			}
 		}
 
@@ -191,11 +189,521 @@ class testDashboardClockWidget extends CWebTest {
 		}
 	}
 
+	public static function getClockWidgetCommonData() {
+		return [
+			// #0 name and show header change.
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Show header' => false,
+						'Name' => 'Changed name'
+					]
+				]
+			],
+			// #1 Refresh interval change.
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Refresh interval' => '10 seconds'
+					]
+				]
+			],
+			// #2 Time type changed to Server time.
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Time type' => 'Server time'
+					]
+				]
+			],
+			// #3 Time type changed to Local time.
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Time type' => 'Local time'
+					]
+				]
+			],
+			// #4 Time type and refresh interval changed.
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Time type' => 'Server time',
+						'Refresh interval' => '10 seconds'
+					]
+				]
+			],
+			// #5 Empty name added.
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Name' => ''
+					]
+				]
+			],
+			// #6 Symbols/numbers name added.
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Name' => '!@#$%^&*()1234567890-='
+					]
+				]
+			],
+			// #7 Cyrillic added in name.
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Name' => 'Имя кирилицей'
+					]
+				]
+			],
+			// #8 all fields changed.
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Show header' => true,
+						'Name' => 'Updated_name',
+						'Refresh interval' => '10 minutes',
+						'Time type' => 'Server time'
+					]
+				]
+			],
+			// #9 Host time without item.
+			[
+				[
+					'expected' => TEST_BAD,
+					'fields' => [
+						'Type' => 'Clock',
+						'Show header' => false,
+						'Name' => 'ClockWithoutItem',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Host time',
+						'Clock type' => 'Analog'
+					],
+					'Error message' => [
+						'Invalid parameter "Item": cannot be empty.'
+					]
+				]
+			],
+			// #10 Time type with item.
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Time type' => 'Host time',
+						'Item' => 'Item for clock widget'
+					]
+				]
+			],
+			// #11 Update item.
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Time type' => 'Host time',
+						'Item' => 'Item for clock widget 2'
+					]
+				]
+			],
+			// #12
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'HostTimeClock',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Host time',
+						'Item' => 'Item for clock widget',
+						'Clock type' => 'Analog'
+					]
+				]
+			],
+			// #13
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'LocalTimeClock123',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Analog'
+					]
+				]
+			],
+			// #14
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => '1233212',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Analog'
+					]
+				]
+			],
+			// #15
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Show header' => true,
+						'Name' => 'DigitalClock',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => false,
+						'id:show_3' => false
+					]
+				]
+			],
+			// #16
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Show header' => true,
+						'Name' => 'DigitalClock2',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => false
+					]
+				]
+			],
+			// #15
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Show header' => true,
+						'Name' => 'DigitalClock3',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true
+					]
+				]
+			],
+			// #16
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Show header' => true,
+						'Name' => 'DigitalClock4',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => false,
+						'id:show_3' => false,
+						'Advanced configuration' => true
+					]
+				]
+			],
+			// #17
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Show header' => true,
+						'Name' => 'DigitalClock5',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => false,
+						'id:show_3' => false,
+						'Advanced configuration' => true,
+						'Background color' => 'FFEB3B',
+						'id:date_size' => '50',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => 'F57F17'
+					]
+				]
+			],
+			// #18
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Show header' => true,
+						'Name' => 'DigitalClock6',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => false,
+						'Advanced configuration' => true,
+						'Background color' => '7B1FA2',
+						'id:date_size' => '15',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '002B4D',
+						'id:time_size' => '30',
+						'id:time_bold' => false,
+						'xpath://button[@id="lbl_time_color"]/..' => '00897B',
+						'id:time_sec' => true,
+						'id:time_format' => '24-hour'
+					]
+				]
+			],
+			// #19
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Show header' => true,
+						'Name' => 'DigitalClock7',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => false,
+						'Advanced configuration' => true,
+						'Background color' => '43A047',
+						'id:date_size' => '55',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '64B5F6',
+						'id:time_size' => '25',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '180D49',
+						'id:time_sec' => false,
+						'id:time_format' => '12-hour'
+					]
+				]
+			],
+			// #20
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Show header' => true,
+						'Name' => 'DigitalClock8',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => 'C62828',
+						'id:date_size' => '40',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => 'FDD835',
+						'id:time_size' => '15',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1B5E20',
+						'id:time_sec' => false,
+						'id:time_format' => '12-hour',
+						'id:tzone_size' => '20',
+						'id:tzone_bold' => false,
+						'xpath://button[@id="lbl_tzone_color"]/..' => '06081F',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Atlantic/Stanley'),
+						'id:time_format' => '24-hour'
+					]
+				]
+			],
+			// #21
+			[
+				[
+					'expected' => TEST_GOOD,
+					'fields' => [
+						'Show header' => true,
+						'Name' => 'DigitalClock9',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '33',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '12',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format' => '12-hour',
+						'id:tzone_size' => '35',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
+						'id:time_format' => '12-hour'
+					]
+				]
+			],
+			// #22
+			[
+				[
+					'expected' => TEST_BAD,
+					'fields' => [
+						'Show header' => true,
+						'Name' => 'DigitalClock10',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '333',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '12',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format' => '12-hour',
+						'id:tzone_size' => '35',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
+						'id:time_format' => '12-hour'
+					],
+					'Error message' => [
+						'Invalid parameter "Size": value must be one of 1-100.'
+					]
+				]
+			],
+			// #23
+			[
+				[
+					'expected' => TEST_BAD,
+					'fields' => [
+						'Show header' => true,
+						'Name' => 'DigitalClock11',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '333',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '123',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format' => '12-hour',
+						'id:tzone_size' => '35',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
+						'id:time_format' => '12-hour'
+					],
+					'Error message' => [
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.',
+					]
+				]
+			],
+			// #24
+			[
+				[
+					'expected' => TEST_BAD,
+					'fields' => [
+						'Show header' => true,
+						'Name' => 'DigitalClock12',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Local time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '333',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '123',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format' => '12-hour',
+						'id:tzone_size' => '353',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
+						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
+						'id:time_format' => '12-hour'
+					],
+					'Error message' => [
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.',
+					]
+				]
+			],
+			// #25
+			[
+				[
+					'expected' => TEST_BAD,
+					'fields' => [
+						'Show header' => true,
+						'Name' => 'DigitalClock13',
+						'Refresh interval' => '30 seconds',
+						'Time type' => 'Host time',
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'Background color' => '001819',
+						'id:date_size' => '33',
+						'id:date_bold' => true,
+						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
+						'id:time_size' => '23',
+						'id:time_bold' => true,
+						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
+						'id:time_sec' => false,
+						'id:time_format' => '12-hour',
+						'id:tzone_size' => '33',
+						'id:tzone_bold' => true,
+						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39'
+					],
+					'Error message' => [
+						'Invalid parameter "Item": cannot be empty.'
+					]
+				]
+			]
+		];
+	}
+
 	/**
 	 * Function for checking Clock widget form.
 	 *
 	 * @param array      $data      data provider
 	 * @param boolean    $update    true if update scenario, false if create
+	 *
+	 * @dataProvider getClockWidgetCommonData
 	 */
 	public function checkFormClockWidget($data, $update = false) {
 		if (CTestArrayHelper::get($data, 'expected', TEST_GOOD) === TEST_BAD) {
