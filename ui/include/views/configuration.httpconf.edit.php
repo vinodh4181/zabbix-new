@@ -305,7 +305,7 @@ $http_tabs = (new CTabView())
 	)
 	->addTab('authentication-tab', _('Authentication'), $authentication_tab, TAB_INDICATOR_HTTP_AUTH);
 
-if (!$data['form_refresh']) {
+if ($data['form_refresh'] == 0) {
 	$http_tabs->setSelected(0);
 }
 
