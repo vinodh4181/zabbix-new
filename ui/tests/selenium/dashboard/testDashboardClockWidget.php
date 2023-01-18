@@ -31,6 +31,8 @@ require_once dirname(__FILE__).'/../behaviors/CMessageBehavior.php';
 
 class testDashboardClockWidget extends CWebTest {
 
+	use TableTrait;
+
 	/**
 	 * Attach MessageBehavior to the test.
 	 *
@@ -120,9 +122,14 @@ class testDashboardClockWidget extends CWebTest {
 		$this->page->waitUntilReady();
 		$dashboard->save();
 		$this->assertEquals('Host for clock widget', $dashboard->getWidget('Host for clock widget')->getHeaderText());
+		$form = $dashboard->getWidget('Host for clock widget')->edit();
+		$form->fill(['Name' => 'LayoutClock']);
+		$this->query('button', 'Apply')->waitUntilClickable()->one()->click();
+		$this->page->waitUntilReady();
+		$dashboard->save();
 
 		// Check if Apply and Cancel button are clickable.
-		$form = $dashboard->getWidget('Host for clock widget')->edit();
+		$form = $dashboard->getWidget('LayoutClock')->edit();
 
 		foreach (['Apply', 'Cancel'] as $button) {
 			$this->assertTrue($this->query('button', $button)->one()->isClickable());
@@ -130,7 +137,7 @@ class testDashboardClockWidget extends CWebTest {
 
 		// Check if asterisk for "Item" field is present.
 		$form->query('xpath:.//label[text()="Item"]')->waitUntilVisible()->one();
-		$this->assertStringContainsString('form-label-asterisk', $form->getLabel('itemid_ms')->getAttribute('class'));
+		$this->assertStringContainsString('form-label-asterisk', $form->getLabel('Item')->getAttribute('class'));
 
 		// Check that "Clock type" buttons are present.
 		$this->assertEquals(['Analog', 'Digital'], $form->getField('Clock type')->asSegmentedRadio()->getLabels()->asText());
@@ -155,16 +162,16 @@ class testDashboardClockWidget extends CWebTest {
 				$this->assertTrue($checkbox->asCheckbox()->isChecked($checked));
 			}
 
-			foreach ([false, true] as $checked) {
+			if ($status) {
 				$advanced_config = $form->query('id', "adv_conf")->asCheckbox()->one();
 				$this->assertTrue($advanced_config->isVisible($status));
-				$this->assertTrue($advanced_config->asCheckbox()->isChecked($checked));
+				$this->assertTrue($advanced_config->isChecked(false));
 			}
 		}
 
 		// Select "Advanced configuration" checkbox.
 		$form->fill(['Advanced configuration' => true]);
-		$this->assertTrue($form->query('id:adv_conf')->one()->asCheckbox()->isChecked(True));
+		$this->assertTrue($form->query('id:adv_conf')->one()->asCheckbox()->isChecked(true));
 
 		// Check default values with "Advanced configuration" = true.
 		$default = [
@@ -191,13 +198,14 @@ class testDashboardClockWidget extends CWebTest {
 
 	public static function getClockWidgetCommonData() {
 		return [
-			// #0 name and show header change.
+			// #0 Name and show header change.
 			[
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'Show header' => false,
-						'Name' => 'Changed name'
+						'Type' => 'Clock',
+						'Show header' => true,
+						'Name' => 'Name and show header name'
 					]
 				]
 			],
@@ -206,7 +214,9 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'Refresh interval' => '10 seconds'
+						'Type' => 'Clock',
+						'Refresh interval' => '10 seconds',
+						'Name' => 'Refresh interval change name'
 					]
 				]
 			],
@@ -215,6 +225,8 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
+						'Type' => 'Clock',
+						'Name' => 'Time type changed to Server time',
 						'Time type' => 'Server time'
 					]
 				]
@@ -224,6 +236,8 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
+						'Type' => 'Clock',
+						'Name' => 'Time type changed to Local time',
 						'Time type' => 'Local time'
 					]
 				]
@@ -233,8 +247,10 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
+						'Type' => 'Clock',
 						'Time type' => 'Server time',
-						'Refresh interval' => '10 seconds'
+						'Refresh interval' => '10 seconds',
+						'Name' => 'Time type and refresh interval changed'
 					]
 				]
 			],
@@ -243,6 +259,7 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
+						'Type' => 'Clock',
 						'Name' => ''
 					]
 				]
@@ -252,6 +269,7 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
+						'Type' => 'Clock',
 						'Name' => '!@#$%^&*()1234567890-='
 					]
 				]
@@ -261,6 +279,7 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
+						'Type' => 'Clock',
 						'Name' => 'Имя кирилицей'
 					]
 				]
@@ -270,6 +289,7 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
+						'Type' => 'Clock',
 						'Show header' => true,
 						'Name' => 'Updated_name',
 						'Refresh interval' => '10 minutes',
@@ -299,6 +319,8 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
+						'Type' => 'Clock',
+						'Name' => 'Time type with item',
 						'Time type' => 'Host time',
 						'Item' => 'Item for clock widget'
 					]
@@ -309,6 +331,8 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
+						'Type' => 'Clock',
+						'Name' => 'Update item',
 						'Time type' => 'Host time',
 						'Item' => 'Item for clock widget 2'
 					]
@@ -347,6 +371,7 @@ class testDashboardClockWidget extends CWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
+					'second_page' => true,
 					'fields' => [
 						'Type' => 'Clock',
 						'Show header' => true,
@@ -361,7 +386,9 @@ class testDashboardClockWidget extends CWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
+					'second_page' => true,
 					'fields' => [
+						'Type' => 'Clock',
 						'Show header' => true,
 						'Name' => 'DigitalClock',
 						'Refresh interval' => '30 seconds',
@@ -377,7 +404,9 @@ class testDashboardClockWidget extends CWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
+					'second_page' => true,
 					'fields' => [
+						'Type' => 'Clock',
 						'Show header' => true,
 						'Name' => 'DigitalClock2',
 						'Refresh interval' => '30 seconds',
@@ -393,7 +422,9 @@ class testDashboardClockWidget extends CWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
+					'second_page' => true,
 					'fields' => [
+						'Type' => 'Clock',
 						'Show header' => true,
 						'Name' => 'DigitalClock3',
 						'Refresh interval' => '30 seconds',
@@ -409,7 +440,9 @@ class testDashboardClockWidget extends CWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
+					'second_page' => true,
 					'fields' => [
+						'Type' => 'Clock',
 						'Show header' => true,
 						'Name' => 'DigitalClock4',
 						'Refresh interval' => '30 seconds',
@@ -426,7 +459,9 @@ class testDashboardClockWidget extends CWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
+					'second_page' => true,
 					'fields' => [
+						'Type' => 'Clock',
 						'Show header' => true,
 						'Name' => 'DigitalClock5',
 						'Refresh interval' => '30 seconds',
@@ -447,7 +482,9 @@ class testDashboardClockWidget extends CWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
+					'second_page' => true,
 					'fields' => [
+						'Type' => 'Clock',
 						'Show header' => true,
 						'Name' => 'DigitalClock6',
 						'Refresh interval' => '30 seconds',
@@ -473,7 +510,9 @@ class testDashboardClockWidget extends CWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
+					'second_page' => true,
 					'fields' => [
+						'Type' => 'Clock',
 						'Show header' => true,
 						'Name' => 'DigitalClock7',
 						'Refresh interval' => '30 seconds',
@@ -499,7 +538,9 @@ class testDashboardClockWidget extends CWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
+					'second_page' => true,
 					'fields' => [
+						'Type' => 'Clock',
 						'Show header' => true,
 						'Name' => 'DigitalClock8',
 						'Refresh interval' => '30 seconds',
@@ -530,7 +571,9 @@ class testDashboardClockWidget extends CWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
+					'second_page' => true,
 					'fields' => [
+						'Type' => 'Clock',
 						'Show header' => true,
 						'Name' => 'DigitalClock9',
 						'Refresh interval' => '30 seconds',
@@ -561,7 +604,9 @@ class testDashboardClockWidget extends CWebTest {
 			[
 				[
 					'expected' => TEST_BAD,
+					'second_page' => true,
 					'fields' => [
+						'Type' => 'Clock',
 						'Show header' => true,
 						'Name' => 'DigitalClock10',
 						'Refresh interval' => '30 seconds',
@@ -595,7 +640,9 @@ class testDashboardClockWidget extends CWebTest {
 			[
 				[
 					'expected' => TEST_BAD,
+					'second_page' => true,
 					'fields' => [
+						'Type' => 'Clock',
 						'Show header' => true,
 						'Name' => 'DigitalClock11',
 						'Refresh interval' => '30 seconds',
@@ -630,7 +677,9 @@ class testDashboardClockWidget extends CWebTest {
 			[
 				[
 					'expected' => TEST_BAD,
+					'second_page' => true,
 					'fields' => [
+						'Type' => 'Clock',
 						'Show header' => true,
 						'Name' => 'DigitalClock12',
 						'Refresh interval' => '30 seconds',
@@ -666,7 +715,9 @@ class testDashboardClockWidget extends CWebTest {
 			[
 				[
 					'expected' => TEST_BAD,
+					'second_page' => true,
 					'fields' => [
+						'Type' => 'Clock',
 						'Show header' => true,
 						'Name' => 'DigitalClock13',
 						'Refresh interval' => '30 seconds',
@@ -714,12 +765,12 @@ class testDashboardClockWidget extends CWebTest {
 			? CDataHelper::get('ClockWidgets.dashboardids.Dashboard for updating clock widgets')
 			: CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
 
-		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid=' . $dashboardid);
+		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid=' .$dashboardid);
 		$dashboard = CDashboardElement::find()->one();
 
-		// If first page is already full of widgets, select second page.
-		if (array_key_exists('second_page', $data)) {
+		if (array_key_exists('second_page', $data) && $update == false) {
 			$dashboard->selectPage('Second page');
+			$dashboard->waitUntilReady();
 		}
 
 		$form = $update
@@ -728,7 +779,7 @@ class testDashboardClockWidget extends CWebTest {
 
 		$form->fill($data['fields']);
 		if ($data['expected'] === TEST_GOOD) {
-			$this->page->waitUntilReady();
+			$form->submit();
 			$dashboard->save();
 			$this->assertMessage(TEST_GOOD, 'Dashboard updated');
 
@@ -736,7 +787,7 @@ class testDashboardClockWidget extends CWebTest {
 			 * After saving dashboard, it returns you to first page, if widget created in 2nd page,
 			 * then it needs to be opened.
 			 */
-			if (array_key_exists('second_page', $data)) {
+			if (array_key_exists('second_page', $data) && $update == false) {
 				$dashboard->selectPage('Second page');
 				$dashboard->waitUntilReady();
 			}
@@ -757,29 +808,29 @@ class testDashboardClockWidget extends CWebTest {
 					$data['fields'] = array_replace($data['fields'], ['Item' => $item_name]);
 				}
 			}
+
+			// Check that widget updated.
+			$dashboard->getWidgets()->last()->edit()->checkValue($data['fields']);
+
 			// Check that widget is saved in DB.
 			$this->assertEquals(1,
 				CDBHelper::getCount('SELECT * FROM widget w'.
 					' WHERE EXISTS ('.
-					'SELECT NULL'.
+					' SELECT NULL'.
 					' FROM dashboard_page dp'.
 					' WHERE w.dashboard_pageid=dp.dashboard_pageid'.
-					' AND dp.dashboardid='.self::$dashboardid.
+					' AND dp.dashboardid='.$dashboardid.
 					' AND w.name ='.zbx_dbstr(CTestArrayHelper::get($data['fields'], 'Name', '')).')'
 				));
-
-			// Check that widget updated.
-			$dashboard->getWidgets()->last()->edit()->checkValue($data['fields']);
 		}
 		else {
+			$form->submit();
 			$this->assertMessage(TEST_BAD, null, $data['Error message']);
 
 			// Check that DB hash is not changed.
 			$this->assertEquals($old_hash, CDBHelper::getHash($this->sql));
 		}
 	}
-
-
 
 	/**
 	 * Function for checking Clock Widgets creation.
@@ -788,41 +839,7 @@ class testDashboardClockWidget extends CWebTest {
 	 * @dataProvider getClockWidgetCommonData
 	 */
 	public function testDashboardClockWidget_Create($data) {
-		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
-		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
-		$dashboard = CDashboardElement::find()->one();
-
-		// If first page is already full with widgets, select second page.
-		if (array_key_exists('second_page', $data)) {
-			$dashboard->selectPage('Second page');
-		}
-
-		$form = $dashboard->edit()->addWidget()->asForm();
-		$form->fill($data['fields'])->submit();
-
-		if ($data['expected'] === TEST_GOOD) {
-			$this->page->waitUntilReady();
-			$dashboard->save();
-			$this->assertMessage(TEST_GOOD, 'Dashboard updated');
-
-			/**
-			 * After saving dashboard, it returns you to first page, if widget created in 2nd page,
-			 * then it needs to be opened.
-			 */
-			if (array_key_exists('second_page', $data)) {
-				$dashboard->selectPage('Second page');
-				$dashboard->waitUntilReady();
-			}
-
-			if ($data['fields']['Time type'] === 'Host time') {
-				$data['fields'] = array_replace($data['fields'], ['Item' => 'Host for clock widget: Item for clock widget']);
-			}
-
-			$dashboard->getWidgets()->last()->edit()->checkValue($data['fields']);
-		}
-		else {
-			$this->assertMessage(TEST_BAD, null, $data['Error message']);
-		}
+		$this->checkFormClockWidget($data);
 	}
 
 	/**
@@ -847,31 +864,7 @@ class testDashboardClockWidget extends CWebTest {
 	 * @dataProvider getClockWidgetCommonData
 	 */
 	public function testDashboardClockWidget_Update($data) {
-		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.Dashboard for updating clock widgets');
-		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
-		$dashboard = CDashboardElement::find()->one();
-		$form = $dashboard->getWidgets()->last()->edit();
-		$form->fill($data['fields']);
-		$form->query('xpath://button[normalize-space()="Apply"]')->waitUntilReady()->one()->click();
-
-		if ($data['expected'] === TEST_GOOD) {
-			$this->page->waitUntilReady();
-			$dashboard->save();
-			$this->assertMessage(TEST_GOOD, 'Dashboard updated');
-
-			if (array_key_exists('Item', $data['fields'])) {
-				$item_name = ($data['fields']['Item'] === 'Item for clock widget')
-					? 'Host for clock widget: Item for clock widget'
-					: 'Host for clock widget: Item for clock widget 2';
-				$data['fields'] = array_replace($data['fields'], ['Item' => $item_name]);
-			}
-
-			// Check that widget updated.
-			$dashboard->getWidgets()->last()->edit()->checkValue($data['fields']);
-		}
-		else {
-			$this->assertMessage(TEST_BAD, null, $data['Error message']);
-		}
+		$this->checkFormClockWidget($data, true);
 	}
 
 	/**
