@@ -109,38 +109,20 @@ class testDashboardClockWidget extends CWebTest {
 			}
 
 			$this->assertEquals($fields, $form->getLabels()->filter(new CElementFilter(CElementFilter::VISIBLE))->asText());
-
 		}
 
 		// Check that it's possible to change the status of "Show header" checkbox.
 		$this->assertTrue($form->query('xpath://input[contains(@id, "show_header")]')->one()->isSelected());
 
-		// Check that clock widget with "Time Type" - "Host time", displays host name, when clock widget name is empty.
-		$form = $dashboard->getWidget('LayoutClock')->edit();
-		$form->fill(['Name' => '']);
-		$this->query('button', 'Apply')->waitUntilClickable()->one()->click();
-		$this->page->waitUntilReady();
-		$dashboard->save();
-		$this->assertEquals('Host for clock widget', $dashboard->getWidget('Host for clock widget')->getHeaderText());
-		$form = $dashboard->getWidget('Host for clock widget')->edit();
-		$form->fill(['Name' => 'LayoutClock']);
-		$this->query('button', 'Apply')->waitUntilClickable()->one()->click();
-		$this->page->waitUntilReady();
-		$dashboard->save();
-
-		// Check if Apply and Cancel button are clickable.
-		$form = $dashboard->getWidget('LayoutClock')->edit();
-
-		foreach (['Apply', 'Cancel'] as $button) {
-			$this->assertTrue($this->query('button', $button)->one()->isClickable());
-		}
+		// Check if Apply and Cancel button are clickable and there's two of them.
+		$dialog = COverlayDialogElement::find()->waitUntilReady()->one();
+		$this->assertEquals(2, $dialog->getFooter()->query('button', ['Apply', 'Cancel'])->all()
+			->filter(new CElementFilter(CElementFilter::CLICKABLE))->count());
 
 		// Check if asterisk for "Item" field is present.
+		$form = $dashboard->getWidget('LayoutClock')->edit();
 		$form->query('xpath:.//label[text()="Item"]')->waitUntilVisible()->one();
 		$this->assertStringContainsString('form-label-asterisk', $form->getLabel('Item')->getAttribute('class'));
-
-		// Check that "Clock type" buttons are present.
-		$this->assertEquals(['Analog', 'Digital'], $form->getField('Clock type')->asSegmentedRadio()->getLabels()->asText());
 
 		// Check that there are three options what should Digital Clock widget show and select them as "Yes".
 		$clock_types = [
@@ -194,6 +176,28 @@ class testDashboardClockWidget extends CWebTest {
 		foreach ($default as $field => $value) {
 			$this->assertEquals($value, $form->getField($field)->getValue());
 		}
+	}
+
+	/**
+	 * Function checks specific scenario when Clock widget has "Time type" as "Host time"
+	 * and name for widget itself isn't provided, after creating widget, host name should be displayed on widget as
+	 * the widget name.
+	 */
+	public function testDashboardClockWidget_CheckClockWidgetsName() {
+		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
+		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
+		$dashboard = CDashboardElement::find()->one();
+		$form = $dashboard->getWidget('LayoutClock')->edit();
+		$form->fill(['Name' => '']);
+		$this->query('button', 'Apply')->waitUntilClickable()->one()->click();
+		$this->page->waitUntilReady();
+		$dashboard->save();
+		$this->assertEquals('Host for clock widget', $dashboard->getWidget('Host for clock widget')->getHeaderText());
+		$form = $dashboard->getWidget('Host for clock widget')->edit();
+		$form->fill(['Name' => 'LayoutClock']);
+		$this->query('button', 'Apply')->waitUntilClickable()->one()->click();
+		$this->page->waitUntilReady();
+		$dashboard->save();
 	}
 
 	public static function getClockWidgetCommonData() {
@@ -777,9 +781,8 @@ class testDashboardClockWidget extends CWebTest {
 			? $dashboard->getWidgets()->last()->edit()
 			: $dashboard->edit()->addWidget()->asForm();
 
-		$form->fill($data['fields']);
+		$form->fill($data['fields'])->submit();
 		if ($data['expected'] === TEST_GOOD) {
-			$form->submit();
 			$dashboard->save();
 			$this->assertMessage(TEST_GOOD, 'Dashboard updated');
 
@@ -824,7 +827,6 @@ class testDashboardClockWidget extends CWebTest {
 				));
 		}
 		else {
-			$form->submit();
 			$this->assertMessage(TEST_BAD, null, $data['Error message']);
 
 			// Check that DB hash is not changed.
