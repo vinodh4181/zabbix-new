@@ -26,7 +26,7 @@
 
 <script type="text/javascript">
 	jQuery(function($) {
-		var	editableTable = function(elm, tmpl, cssClass = 'form_row') {
+		var	editableTable = function(elm, tmpl, css_class = 'form_row') {
 			var table = $(elm),
 				row_template = new Template($(tmpl).html()),
 				insert_point = table.find('tbody tr[data-insert-point]'),
@@ -111,7 +111,7 @@
 
 				var new_row = $(row_template.evaluate(values))
 					.addClass(table_row_class)
-					.addClass(cssClass)
+					.addClass(css_class)
 					.addClass('sortable')
 					.data('values', values)
 					.insertBefore(insert_point);

@@ -910,9 +910,10 @@ function getConditionFormula(conditions, evalType) {
 
 		return this.each(function() {
 			var table = $(this);
-			options.counter = options.counter !== null ? options.counter : $(options.row, table).length
 
 			// If options.remove_next_sibling is true, counter counts each row making the next index twice as large (bug).
+			options.counter = options.counter !== null ? options.counter : $(options.row, table).length;
+
 			table.data('dynamicRows', options);
 
 			// add buttons
