@@ -29,6 +29,7 @@ $form_action = (new CUrl('zabbix.php'))
 	->getUrl();
 
 $form = (new CForm('post', $form_action))
+	->cleanItems()
 	->setId('media-type-mapping-edit-form')
 	->setName('media-type-mapping-edit-form')
 	->addItem(
@@ -46,14 +47,14 @@ $media_type_select = (new CSelect('mediatypeid'))
 $form
 	->addItem((new CFormGrid())
 		->addItem([
-			(new CLabel(_('Name'), 'name'))->setAsteriskMark(),
+			(new CLabel(_('Name'), 'media-type-mapping-name'))->setAsteriskMark(),
 			new CFormField((new CTextBox('name', $data['name']))
 				->setWidth(ZBX_TEXTAREA_MEDIUM_WIDTH)
 				->setId('media-type-mapping-name'))
 		])
 		->addItem([
 			(new CLabel(_('Media type'), $media_type_select->getFocusableElementId()))->setAsteriskMark(),
-			$media_type_select
+			new CFormField($media_type_select)
 		])
 		->addItem([
 			(new CLabel(_('Attribute'), 'attribute'))->setAsteriskMark(),
