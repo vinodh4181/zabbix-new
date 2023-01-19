@@ -86,10 +86,6 @@ class testDashboardClockWidget extends CWebTest {
 				$form->query('name', 'rf_rate')->asDropdown()->one()->getOptions()->asText()
 		);
 
-		$this->assertEquals(['Local time', 'Server time', 'Host time'],
-				$form->query('name', 'time_type')->asDropdown()->one()->getOptions()->asText()
-		);
-
 		// Check fields "Time type" values.
 		$this->assertEquals(['Local time', 'Server time', 'Host time'],
 				$form->query('name', 'time_type')->asDropdown()->one()->getOptions()->asText()
@@ -114,7 +110,7 @@ class testDashboardClockWidget extends CWebTest {
 		// Check if Apply and Cancel button are clickable and there's two of them.
 		$dialog = COverlayDialogElement::find()->waitUntilReady()->one();
 		$this->assertEquals(2, $dialog->getFooter()->query('button', ['Apply', 'Cancel'])->all()
-			->filter(new CElementFilter(CElementFilter::CLICKABLE))->count());
+				->filter(new CElementFilter(CElementFilter::CLICKABLE))->count());
 
 		// Check if asterisk for "Item" field is present.
 		$form->query('xpath:.//label[text()="Item"]')->waitUntilVisible()->one();
@@ -984,7 +980,7 @@ class testDashboardClockWidget extends CWebTest {
 	}
 
 	/**
-	 * Check if it's possible to cancel creation of clock widget.
+	 * Function checks if it's possible to cancel creation of clock widget.
 	 *
 	 * @dataProvider getCancelData
 	 */
