@@ -88,7 +88,7 @@ class testDashboardClockWidget extends CWebTest {
 		// Check that it's possible to select host items, when time type is "Host Time".
 		$fields = ['Type', 'Name', 'Refresh interval', 'Time type', 'Clock type'];
 
-		foreach (['Local time', 'Server time', 'Host time', ] as $type) {
+		foreach (['Local time', 'Server time', 'Host time'] as $type) {
 			$form->fill(['Time type' => CFormElement::RELOADABLE_FILL($type)]);
 
 			if ($type === 'Host time') {
@@ -546,7 +546,7 @@ class testDashboardClockWidget extends CWebTest {
 					],
 					'Error message' => [
 						'Invalid parameter "Size": value must be one of 1-100.',
-						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.'
 					]
 				]
 			],
@@ -585,7 +585,7 @@ class testDashboardClockWidget extends CWebTest {
 					'Error message' => [
 						'Invalid parameter "Size": value must be one of 1-100.',
 						'Invalid parameter "Size": value must be one of 1-100.',
-						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.'
 					]
 				]
 			],
@@ -1081,7 +1081,7 @@ class testDashboardClockWidget extends CWebTest {
 					],
 					'Error message' => [
 						'Invalid parameter "Size": value must be one of 1-100.',
-						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.'
 					]
 				]
 			],
@@ -1119,7 +1119,7 @@ class testDashboardClockWidget extends CWebTest {
 					'Error message' => [
 						'Invalid parameter "Size": value must be one of 1-100.',
 						'Invalid parameter "Size": value must be one of 1-100.',
-						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.'
 					]
 				]
 			],
