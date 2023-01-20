@@ -725,7 +725,7 @@ class testDashboardClockWidget extends CWebTest {
 					],
 					'Error message' => [
 						'Invalid parameter "Size": value must be one of 1-100.',
-						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.'
 					]
 				]
 			],
@@ -763,7 +763,7 @@ class testDashboardClockWidget extends CWebTest {
 					'Error message' => [
 						'Invalid parameter "Size": value must be one of 1-100.',
 						'Invalid parameter "Size": value must be one of 1-100.',
-						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.'
 					]
 				]
 			],
