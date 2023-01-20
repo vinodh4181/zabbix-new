@@ -252,12 +252,12 @@ class testFormWeb extends CLegacyWebTest {
 
 		$this->zbxTestTextPresent('Agent');
 
-		$agents = ['Microsoft Edge 80', 'Microsoft Edge 44', 'Internet Explorer 11', 'Internet Explorer 10',
-			'Internet Explorer 9', 'Internet Explorer 8', 'Firefox 73 (Windows)', 'Firefox 73 (Linux)',
-			'Firefox 73 (macOS)', 'Chrome 80 (Windows)', 'Chrome 80 (Linux)', 'Chrome 80 (macOS)', 'Chrome 80 (iOS)',
-			'Chromium 80 (Linux)', 'Opera 67 (Windows)', 'Opera 67 (Linux)', 'Opera 67 (macOS)', 'Safari 13 (macOS)',
-			'Safari 13 (iPhone)', 'Safari 13 (iPad)', 'Safari 13 (iPod Touch)', 'Zabbix', 'Lynx 2.8.8rel.2', 'Links 2.8',
-			'Googlebot 2.1', 'other ...'];
+		$agents = ['Microsoft Edge 105 (Windows)', 'Microsoft Edge 105 (Linux)', 'Microsoft Edge 105 (macOS)',
+			'Internet Explorer 11', 'Internet Explorer 10', 'Internet Explorer 9', 'Internet Explorer 8',
+			'Firefox 104 (Windows)', 'Firefox 104 (Linux)', 'Firefox 104 (macOS)', 'Chrome 105 (Windows)',
+			'Chrome 105 (Linux)', 'Chrome 105 (macOS)', 'Chrome 105 (iOS)', 'Chromium 105 (Linux)', 'Opera 90 (Windows)',
+			'Opera 90 (Linux)', 'Opera 90 (macOS)', 'Safari 15 (macOS)', 'Safari 15 (iPhone)', 'Safari 15 (iPad)',
+			'Safari 15 (iPod Touch)', 'Zabbix', 'Lynx 2.8.9rel.1', 'Links 2.8', 'Googlebot 2.1', 'other ...'];
 		$agent_element = $this->query('id:agent')->asDropdown()->one();
 		$this->assertEquals($agent_element->getOptions()->asText(), $agents);
 
@@ -279,14 +279,14 @@ class testFormWeb extends CLegacyWebTest {
 		$this->zbxTestAssertAttribute("//input[@id='http_proxy']", 'placeholder', '[protocol://][user[:password]@]proxy.example.com[:port]');
 
 		$this->zbxTestTextPresent('Variables');
-		$this->zbxTestAssertVisibleXpath("//div[@id='scenarioTab']//table[contains(@data-type, 'variables')]");
-		$this->zbxTestAssertAttribute("//table[@data-type='variables']//tr[@data-index='1']//input[@data-type='name']", 'maxlength', 255);
-		$this->zbxTestAssertVisibleXpath("//table[@data-type='variables']//tr[@data-index='1']//input[@data-type='value']");
+		$this->zbxTestAssertVisibleXpath("//div[@id='scenario-tab']//table[@data-type='variables']");
+		$this->zbxTestAssertAttribute("//table[@data-type='variables']//tr[1]//input[@data-type='name']", 'maxlength', 255);
+		$this->zbxTestAssertVisibleXpath("//table[@data-type='variables']//tr[1]//input[@data-type='value']");
 
 		$this->zbxTestTextPresent('Headers');
-		$this->zbxTestAssertVisibleXpath("//div[@id='scenarioTab']//table[contains(@data-type, 'headers')]");
-		$this->zbxTestAssertAttribute("//table[@data-type='headers']//tr[@data-index='1']//input[@data-type='name']", 'maxlength', 255);
-		$this->zbxTestAssertVisibleXpath("//table[@data-type='headers']//tr[@data-index='1']//input[@data-type='value']");
+		$this->zbxTestAssertVisibleXpath("//div[@id='scenario-tab']//table[@data-type='headers']");
+		$this->zbxTestAssertAttribute("//table[@data-type='headers']//tr[1]//input[@data-type='name']", 'maxlength', 255);
+		$this->zbxTestAssertVisibleXpath("//table[@data-type='headers']//tr[1]//input[@data-type='value']");
 
 		$this->zbxTestTextPresent('Enabled');
 		$this->zbxTestAssertElementPresentId('status');
@@ -319,7 +319,7 @@ class testFormWeb extends CLegacyWebTest {
 			$this->zbxTestAssertElementNotPresentId('update');
 		}
 
-		$this->zbxTestTabSwitchById('tab_authenticationTab', 'Authentication');
+		$this->zbxTestTabSwitchById('tab_authentication-tab', 'Authentication');
 		$this->zbxTestWaitUntilElementVisible(WebDriverBy::id('authentication'));
 
 		$this->zbxTestTextPresent('Authentication');
@@ -343,30 +343,30 @@ class testFormWeb extends CLegacyWebTest {
 			$this->zbxTestAssertAttribute("//input[@id='http_password']", 'maxlength', 64);
 		}
 		else {
-			$this->zbxTestTextNotVisible(['User', 'Password'], $this->query('id:authenticationTab')->one());
+			$this->zbxTestTextNotVisible(['User', 'Password'], $this->query('id:tab_authentication-tab')->one());
 			$this->zbxTestAssertNotVisibleId('http_user');
 			$this->zbxTestAssertNotVisibleId('http_password');
 		}
 
-		$this->zbxTestTabSwitchById('tab_stepTab' ,'Steps');
+		$this->zbxTestTabSwitchById('tab_steps-tab' ,'Steps');
 		$this->zbxTestTextPresent(['Steps', 'Name', 'Timeout', 'URL', 'Required' ,'Status codes', 'Action']);
 
 		if (isset($data['form']) && !isset($data['templatedHost'])) {
 			$this->zbxTestAssertVisibleXpath("//td[@colspan='8']/button[contains(@class, 'element-table-add')]");
 			$this->zbxTestAssertElementText("//td[@colspan='8']/button[contains(@class, 'element-table-add')]", 'Add');
 
-			$this->zbxTestAssertVisibleXpath("//table[contains(@class,'httpconf-steps-dynamic-row')]//button[contains(@class,'element-table-remove')]");
-			$this->zbxTestAssertElementText("//table[contains(@class,'httpconf-steps-dynamic-row')]//button[contains(@class,'element-table-remove')]", 'Remove');
+			$this->zbxTestAssertVisibleXpath('//table[contains(@class, "httpconf-steps-dynamic-table")]//button[(text()="Remove")]');
+			$this->zbxTestAssertElementText('//table[contains(@class, "httpconf-steps-dynamic-table")]//button[(text()="Remove")]', 'Remove');
 		}
 		elseif (!isset($data['form'])) {
 			$this->zbxTestAssertVisibleXpath("//td[@colspan='8']/button[contains(@class, 'element-table-add')]");
 			$this->zbxTestAssertElementText("//td[@colspan='8']/button[contains(@class, 'element-table-add')]", 'Add');
 
-			$this->zbxTestAssertElementNotPresentXpath("//table[contains(@class,'httpconf-steps-dynamic-row')]//button[contains(@class,'element-table-remove')]");
+			$this->zbxTestAssertElementNotPresentXpath('//table[contains(@class, "httpconf-steps-dynamic-table")]//button[(text()="Remove")]');
 		}
 		else {
 			$this->zbxTestAssertElementNotPresentXpath("//td[@colspan='8']/button[contains(@class, 'element-table-add')]");
-			$this->zbxTestAssertElementNotPresentXpath("//table[contains(@class,'httpconf-steps-dynamic-row')]//button[contains(@class,'element-table-remove')]");
+			$this->zbxTestAssertElementNotPresentXpath('//table[contains(@class, "httpconf-steps-dynamic-table")]//button[(text()="Remove")]');
 		}
 	}
 
@@ -1103,11 +1103,11 @@ class testFormWeb extends CLegacyWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
-					'name' => 'Firefox 73 (Windows) None',
-					'agent' => 'Firefox 73 (Windows)',
+					'name' => 'Firefox 104 (Windows) None',
+					'agent' => 'Firefox 104 (Windows)',
 					'authentication' => 'None',
 					'add_step' => [
-						['step' => 'Firefox 73 (Windows) None']
+						['step' => 'Firefox 104 (Windows) None']
 					],
 					'dbCheck' => true,
 					'formCheck' => true,
@@ -1117,13 +1117,13 @@ class testFormWeb extends CLegacyWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
-					'name' => 'Firefox 73 (Windows) Basic',
-					'agent' => 'Firefox 73 (Windows)',
+					'name' => 'Firefox 104 (Windows) Basic',
+					'agent' => 'Firefox 104 (Windows)',
 					'authentication' => 'Basic',
 					'http_user' => 'zabbix',
 					'http_password' => 'zabbix123',
 					'add_step' => [
-						['step' => 'Firefox 73 (Windows) Basic']
+						['step' => 'Firefox 104 (Windows) Basic']
 					],
 					'dbCheck' => true,
 					'formCheck' => true,
@@ -1133,13 +1133,13 @@ class testFormWeb extends CLegacyWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
-					'name' => 'Firefox 73 (Windows) 8.0 NTLM',
-					'agent' => 'Firefox 73 (Windows)',
+					'name' => 'Firefox 104 (Windows) 8.0 NTLM',
+					'agent' => 'Firefox 104 (Windows)',
 					'authentication' => 'NTLM',
 					'http_user' => 'zabbix',
 					'http_password' => 'zabbix123',
 					'add_step' => [
-						['step' => 'Firefox 73 (Windows) NTLM']
+						['step' => 'Firefox 104 (Windows) NTLM']
 					],
 					'dbCheck' => true,
 					'formCheck' => true,
@@ -1149,11 +1149,11 @@ class testFormWeb extends CLegacyWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
-					'name' => 'Opera 67 (Windows) None',
-					'agent' => 'Opera 67 (Windows)',
+					'name' => 'Opera 90 (Windows) None',
+					'agent' => 'Opera 90 (Windows)',
 					'authentication' => 'None',
 					'add_step' => [
-						['step' => 'Opera 67 (Windows) None']
+						['step' => 'Opera 90 (Windows) None']
 					],
 					'dbCheck' => true,
 					'formCheck' => true,
@@ -1163,13 +1163,13 @@ class testFormWeb extends CLegacyWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
-					'name' => 'Opera 67 (Windows) Basic',
-					'agent' => 'Opera 67 (Windows)',
+					'name' => 'Opera 90 (Windows) Basic',
+					'agent' => 'Opera 90 (Windows)',
 					'authentication' => 'Basic',
 					'http_user' => 'zabbix',
 					'http_password' => 'zabbix123',
 					'add_step' => [
-						['step' => 'Opera 67 (Windows) Basic']
+						['step' => 'Opera 90 (Windows) Basic']
 					],
 					'dbCheck' => true,
 					'formCheck' => true,
@@ -1179,13 +1179,13 @@ class testFormWeb extends CLegacyWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
-					'name' => 'Opera 67 (Windows) NTLM',
-					'agent' => 'Opera 67 (Windows)',
+					'name' => 'Opera 90 (Windows) NTLM',
+					'agent' => 'Opera 90 (Windows)',
 					'authentication' => 'NTLM',
 					'http_user' => 'zabbix',
 					'http_password' => 'zabbix123',
 					'add_step' => [
-						['step' => 'Opera 67 (Windows) NTLM']
+						['step' => 'Opera 90 (Windows) NTLM']
 					],
 					'dbCheck' => true,
 					'formCheck' => true,
@@ -1195,24 +1195,24 @@ class testFormWeb extends CLegacyWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
-					'name' => 'Safari 13 (macOS)',
-					'agent' => 'Safari 13 (macOS)',
+					'name' => 'Safari 15 (macOS)',
+					'agent' => 'Safari 15 (macOS)',
 					'authentication' => 'None',
 					'add_step' => [
-						['step' => 'Safari 13 (macOS) None']
+						['step' => 'Safari 15 (macOS) None']
 					]
 				]
 			],
 			[
 				[
 					'expected' => TEST_GOOD,
-					'name' => 'Safari 13 (macOS) Basic',
-					'agent' => 'Safari 13 (macOS)',
+					'name' => 'Safari 15 (macOS) Basic',
+					'agent' => 'Safari 15 (macOS)',
 					'authentication' => 'Basic',
 					'http_user' => 'zabbix',
 					'http_password' => 'zabbix123',
 					'add_step' => [
-						['step' => 'Safari 13 (macOS) Basic']
+						['step' => 'Safari 15 (macOS) Basic']
 					],
 					'dbCheck' => true,
 					'formCheck' => true,
@@ -1222,14 +1222,14 @@ class testFormWeb extends CLegacyWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
-					'name' => 'Safari 13 (macOS) NTLM',
-					'agent' => 'Safari 13 (macOS)',
+					'name' => 'Safari 15 (macOS) NTLM',
+					'agent' => 'Safari 15 (macOS)',
 					'authentication' => 'NTLM',
 					'http_user' => 'zabbix',
 					'http_password' => 'zabbix123',
 					'add_step' => [
-						['step' => 'Safari 13 (macOS) NTLM', 'remove' => true],
-						['step' => 'Safari 13 (macOS) NTLM']
+						['step' => 'Safari 15 (macOS) NTLM', 'remove' => true],
+						['step' => 'Safari 15 (macOS) NTLM']
 					],
 					'dbCheck' => true,
 					'formCheck' => true,
@@ -1239,11 +1239,11 @@ class testFormWeb extends CLegacyWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
-					'name' => 'Chrome 80 (Windows) None',
-					'agent' => 'Chrome 80 (Windows)',
+					'name' => 'Chrome 105 (Windows) None',
+					'agent' => 'Chrome 105 (Windows)',
 					'authentication' => 'None',
 					'add_step' => [
-						['step' => 'Chrome 80 (Windows) None']
+						['step' => 'Chrome 105 (Windows) None']
 					],
 					'dbCheck' => true,
 					'formCheck' => true,
@@ -1253,13 +1253,13 @@ class testFormWeb extends CLegacyWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
-					'name' => 'Chrome 80 (Windows) Basic',
-					'agent' => 'Chrome 80 (Windows)',
+					'name' => 'Chrome 105 (Windows) Basic',
+					'agent' => 'Chrome 105 (Windows)',
 					'authentication' => 'Basic',
 					'http_user' => 'zabbix',
 					'http_password' => 'zabbix123',
 					'add_step' => [
-						['step' => 'Chrome 80 (Windows) Basic']
+						['step' => 'Chrome 105 (Windows) Basic']
 					],
 					'dbCheck' => true,
 					'formCheck' => true,
@@ -1269,13 +1269,13 @@ class testFormWeb extends CLegacyWebTest {
 			[
 				[
 					'expected' => TEST_GOOD,
-					'name' => 'Chrome 80 (Windows) NTLM',
-					'agent' => 'Chrome 80 (Windows)',
+					'name' => 'Chrome 105 (Windows) NTLM',
+					'agent' => 'Chrome 105 (Windows)',
 					'authentication' => 'NTLM',
 					'http_user' => 'zabbix',
 					'http_password' => 'zabbix123',
 					'add_step' => [
-						['step' => 'Chrome 80 (Windows) NTLM']
+						['step' => 'Chrome 105 (Windows) NTLM']
 					],
 					'dbCheck' => true,
 					'formCheck' => true,
@@ -1402,10 +1402,10 @@ class testFormWeb extends CLegacyWebTest {
 			$i = 1;
 			foreach($data['variables'] as $variable) {
 				if (isset($variable['name'])) {
-					$this->zbxTestInputTypeByXpath('//table[@data-type="variables"]//tr[@data-index="'.$i.'"]//input[@data-type="name"]', $variable['name']);
+					$this->zbxTestInputTypeByXpath('//table[@data-type="variables"]//tr['.$i.']//input[@data-type="name"]', $variable['name']);
 				}
 				if (isset($variable['value'])) {
-					$this->zbxTestInputTypeByXpath('//table[@data-type="variables"]//tr[@data-index="'.$i.'"]//input[@data-type="value"]', $variable['value']);
+					$this->zbxTestInputTypeByXpath('//table[@data-type="variables"]//tr['.$i.']//input[@data-type="value"]', $variable['value']);
 				}
 				$this->zbxTestClickXpath('//table[@data-type="variables"]//button[contains(@class, "element-table-add")]');
 				$i++;
@@ -1416,17 +1416,17 @@ class testFormWeb extends CLegacyWebTest {
 			$i = 1;
 			foreach($data['headers'] as $header) {
 				if (isset($header['name'])) {
-					$this->zbxTestInputTypeByXpath('//table[@data-type="headers"]//tr[@data-index="'.$i.'"]//input[@data-type="name"]', $header['name']);
+					$this->zbxTestInputTypeByXpath('//table[@data-type="headers"]//tr['.$i.']//input[@data-type="name"]', $header['name']);
 				}
 				if (isset($header['value'])) {
-					$this->zbxTestInputTypeByXpath('//table[@data-type="headers"]//tr[@data-index="'.$i.'"]//input[@data-type="value"]', $header['value']);
+					$this->zbxTestInputTypeByXpath('//table[@data-type="headers"]//tr['.$i.']//input[@data-type="value"]', $header['value']);
 				}
 				$this->zbxTestClickXpath('//table[@data-type="headers"]//button[contains(@class, "element-table-add")]');
 				$i++;
 			}
 		}
 
-		$this->zbxTestTabSwitchById('tab_authenticationTab', 'Authentication');
+		$this->zbxTestTabSwitchById('tab_authentication-tab', 'Authentication');
 		if (isset($data['authentication'])) {
 			$this->zbxTestDropdownSelectWait('authentication', $data['authentication']);
 		}
@@ -1442,7 +1442,7 @@ class testFormWeb extends CLegacyWebTest {
 
 		$check = false;
 		if (isset($data['add_step'])) {
-			$this->zbxTestTabSwitchById('tab_stepTab' ,'Steps');
+			$this->zbxTestTabSwitchById('tab_steps-tab' ,'Steps');
 			foreach($data['add_step'] as $item) {
 				$this->zbxTestClickXpathWait('//td[@colspan="8"]/button[contains(@class, "element-table-add")]');
 				$this->zbxTestLaunchOverlayDialog('Step of web scenario');
@@ -1455,7 +1455,7 @@ class testFormWeb extends CLegacyWebTest {
 				COverlayDialogElement::ensureNotPresent();
 
 				if (isset($item['remove'])) {
-					$this->zbxTestClickXpathWait('//table[contains(@class, "httpconf-steps-dynamic-row")]//button[contains(@class,"element-table-remove")]');
+					$this->zbxTestClickXpathWait('//table[contains(@class, "httpconf-steps-dynamic-table")]//button[(text()="Remove")]');
 				}
 			}
 		}
@@ -1505,7 +1505,7 @@ class testFormWeb extends CLegacyWebTest {
 			$this->zbxTestAssertElementValue('name', $name);
 			$this->zbxTestDropdownAssertSelected('agent', $data['agent']);
 			if (isset($data['add_step'])) {
-				$this->zbxTestTabSwitchById('tab_stepTab' ,'Steps');
+				$this->zbxTestTabSwitchById('tab_steps-tab' ,'Steps');
 				foreach($data['add_step'] as $item) {
 					$step = $item['step']." step";
 					$this->zbxTestTextPresent($step);
