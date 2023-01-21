@@ -186,12 +186,6 @@ zabbix_export:
           timeout: 10s
           parameters:
             -
-              name: api_token
-              value: '{$KUBE.API.TOKEN}'
-            -
-              name: api_url
-              value: '{$KUBE.API.URL}'
-            -
               name: controller_scheme
               value: '{$KUBE.CONTROLLER_MANAGER.SCHEME}'
             -
@@ -203,6 +197,12 @@ zabbix_export:
             -
               name: scheduler_port
               value: '{$KUBE.SCHEDULER.PORT}'
+            -
+              name: api_token
+              value: '{$KUBE.API.TOKEN}'
+            -
+              name: api_url
+              value: '{$KUBE.API.URL}'
           tags:
             -
               tag: component
@@ -494,17 +494,17 @@ zabbix_export:
           timeout: 10s
           parameters:
             -
-              name: api_token
-              value: '{$KUBE.API.TOKEN}'
-            -
-              name: api_url
-              value: '{$KUBE.API.URL}'
-            -
               name: kubelet_scheme
               value: '{$KUBE.KUBELET.SCHEME}'
             -
               name: kubelet_port
               value: '{$KUBE.KUBELET.PORT}'
+            -
+              name: api_token
+              value: '{$KUBE.API.TOKEN}'
+            -
+              name: api_url
+              value: '{$KUBE.API.URL}'
           tags:
             -
               tag: component
@@ -714,6 +714,9 @@ zabbix_export:
           timeout: 10s
           parameters:
             -
+              name: state_endpoint_name
+              value: '{$KUBE.STATE.ENDPOINT.NAME}'
+            -
               name: api_token
               value: '{$KUBE.API.TOKEN}'
             -
@@ -722,9 +725,6 @@ zabbix_export:
             -
               name: state_endpoint_namespace
               value: '{$KUBE.STATE.ENDPOINT.NAMESPACE}'
-            -
-              name: state_endpoint_name
-              value: '{$KUBE.STATE.ENDPOINT.NAME}'
           tags:
             -
               tag: component
@@ -4022,12 +4022,12 @@ zabbix_export:
           value: http
           description: 'Kubernetes Scheduler manager metrics endpoint scheme. Used in ControlPlane LLD.'
         -
-          macro: '{$KUBE.STATE.ENDPOINT.NAMESPACE}'
-          description: 'Kubernetes state endpoint namespace'
-        -
           macro: '{$KUBE.STATE.ENDPOINT.NAME}'
           value: zabbix-kube-state-metrics
           description: 'Kubernetes state endpoint name'
+        -
+          macro: '{$KUBE.STATE.ENDPOINT.NAMESPACE}'
+          description: 'Kubernetes state endpoint namespace'
       valuemaps:
         -
           uuid: a435f7e23050406ca40cf6f5f872b5a7

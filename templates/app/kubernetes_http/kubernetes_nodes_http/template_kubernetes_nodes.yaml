@@ -285,14 +285,14 @@ zabbix_export:
           timeout: 10s
           parameters:
             -
+              name: endpoint_name
+              value: '{$KUBE.NODES.ENDPOINT.NAME}'
+            -
               name: api_token
               value: '{$KUBE.API.TOKEN}'
             -
               name: api_url
               value: '{$KUBE.API.URL}'
-            -
-              name: endpoint_name
-              value: '{$KUBE.NODES.ENDPOINT.NAME}'
           tags:
             -
               tag: component
@@ -1944,12 +1944,12 @@ zabbix_export:
           value: 'kubernetes nodes'
       macros:
         -
+          macro: '{$KUBE.API.TOKEN}'
+          description: 'Service account bearer token'
+        -
           macro: '{$KUBE.API.URL}'
           value: 'https://localhost:6443'
           description: 'Kubernetes API endpoint URL in the format <scheme>://<host>:<port>'
-        -
-          macro: '{$KUBE.API.TOKEN}'
-          description: 'Service account bearer token'
         -
           macro: '{$KUBE.LLD.FILTER.NODE.MATCHES}'
           value: '.*'
