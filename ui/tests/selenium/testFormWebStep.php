@@ -19,6 +19,7 @@
 **/
 
 require_once dirname(__FILE__).'/../include/CLegacyWebTest.php';
+require_once dirname(__FILE__).'/behaviors/CMessageBehavior.php';
 
 use Facebook\WebDriver\WebDriverBy;
 
@@ -26,6 +27,15 @@ use Facebook\WebDriver\WebDriverBy;
  * @backup httptest
  */
 class testFormWebStep extends CLegacyWebTest {
+
+	/**
+	 * Attach MessageBehavior to the test.
+	 *
+	 * @return array
+	 */
+	public function getBehaviors() {
+		return ['class' => CMessageBehavior::class];
+	}
 
 	public static function steps() {
 		return [
@@ -35,9 +45,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'expected' => TEST_BAD,
 					'name' => 'Empty step name',
 					'url' => 'http://www.zabbix.com',
-					'errors' => [
-						'Incorrect value for field "name": cannot be empty.'
-					]
+					'error_details' => 'Incorrect value for field "name": cannot be empty.'
 				]
 			],
 			// Step name - max length 64
@@ -55,9 +63,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'expected' => TEST_BAD,
 					'name' => 'Empty step url',
 					'step_name' => 'Step with empty step url',
-					'errors' => [
-						'Incorrect value for field "url": cannot be empty.'
-					]
+					'error_details' => 'Incorrect value for field "url": cannot be empty.'
 				]
 			],
 			// Query - empty name
@@ -67,14 +73,10 @@ class testFormWebStep extends CLegacyWebTest {
 					'name' => 'Empty query name',
 					'step_name' => 'Step with empty query name',
 					'url' => 'http://www.zabbix.com',
-					'error_webform' => true,
 					'query' => [
 						['value' => 'test']
 					],
-					'error_msg' => 'Cannot add web scenario',
-					'errors' => [
-						'Invalid parameter "/1/steps/1/query_fields/1/name": cannot be empty.'
-					]
+					'error_details' => 'Invalid parameter "/1/steps/1/query_fields/1/name": cannot be empty.'
 				]
 			],
 			// Parse url
@@ -178,7 +180,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'step_name' => 'Step URL parse validation',
 					'url' => 'http://localhost/zabbix/index.php?test=%11',
 					'parse' => true,
-					'errors' => 'Failed to parse URL. URL is not properly encoded.'
+					'error_details' => 'Failed to parse URL. URL is not properly encoded.'
 				]
 			],
 			// Post - empty name
@@ -188,14 +190,10 @@ class testFormWebStep extends CLegacyWebTest {
 					'name' => 'Empty post name',
 					'step_name' => 'Step with empty post name',
 					'url' => 'http://www.zabbix.com',
-					'error_webform' => true,
 					'post' => [
 						['value' => 'test']
 					],
-					'error_msg' => 'Cannot add web scenario',
-					'errors' => [
-						'Invalid parameter "/1/steps/1/posts/1/name": cannot be empty.'
-					]
+					'error_details' => 'Invalid parameter "/1/steps/1/posts/1/name": cannot be empty.'
 				]
 			],
 			// Post name - max length 255
@@ -327,7 +325,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'raw_data' => '=value',
 					'raw' => true,
 					'to_form' => true,
-					'errors' => 'Cannot convert POST data: Values without names are not allowed in form fields.'
+					'error_details' => 'Cannot convert POST data: Values without names are not allowed in form fields.'
 				]
 			],
 			[
@@ -339,7 +337,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'raw_data' => 'test=%11',
 					'raw' => true,
 					'to_form' => true,
-					'errors' => 'Cannot convert POST data: Data is not properly encoded.'
+					'error_details' => 'Cannot convert POST data: Data is not properly encoded.'
 				]
 			],
 			[
@@ -351,7 +349,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'raw_data' => 'value=%00',
 					'raw' => true,
 					'to_form' => true,
-					'errors' => 'Cannot convert POST data: Data is not properly encoded.'
+					'error_details' => 'Cannot convert POST data: Data is not properly encoded.'
 				]
 			],
 			[
@@ -363,7 +361,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'raw_data' => 'name=val=ue',
 					'raw' => true,
 					'to_form' => true,
-					'errors' => 'Cannot convert POST data: Data is not properly encoded.'
+					'error_details' => 'Cannot convert POST data: Data is not properly encoded.'
 				]
 			],
 			[
@@ -375,7 +373,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'raw_data' => 'value=%EA%EE%EB%E1%E0%F1%EA%E8',
 					'raw' => true,
 					'to_form' => true,
-					'errors' => 'Cannot convert POST data: URIError: URI malformed'
+					'error_details' => 'Cannot convert POST data: URIError: URI malformed'
 				]
 			],
 			[
@@ -391,7 +389,7 @@ class testFormWebStep extends CLegacyWebTest {
 							'tyuiopqwertyuiopqwertyuiopqwertyuiopqwertyuiopqwertyuiop123456789012345',
 					'raw' => true,
 					'to_form' => true,
-					'errors' => 'Cannot convert POST data: Name of the form field should not exceed 255 characters.'
+					'error_details' => 'Cannot convert POST data: Name of the form field should not exceed 255 characters.'
 				]
 			],
 			// Variables - just numbers
@@ -445,11 +443,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'variables' => [
 						['name' => 'test']
 					],
-					'error_webform' => true,
-					'error_msg' => 'Cannot add web scenario',
-					'errors' => [
-						'Invalid parameter "/1/steps/1/variables/1/name": is not enclosed in {} or is malformed.'
-					]
+					'error_details' => 'Invalid parameter "/variables/1/name": is not enclosed in {} or is malformed.'
 				]
 			],
 			[
@@ -461,11 +455,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'variables' => [
 						['name' => '{test']
 					],
-					'error_webform' => true,
-					'error_msg' => 'Cannot add web scenario',
-					'errors' => [
-						'Invalid parameter "/1/steps/1/variables/1/name": is not enclosed in {} or is malformed.'
-					]
+					'error_details' => 'Invalid parameter "/variables/1/name": is not enclosed in {} or is malformed.'
 				]
 			],
 			[
@@ -477,11 +467,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'variables' => [
 						['name' => 'test}']
 					],
-					'error_webform' => true,
-					'error_msg' => 'Cannot add web scenario',
-					'errors' => [
-						'Invalid parameter "/1/steps/1/variables/1/name": is not enclosed in {} or is malformed.'
-					]
+					'error_details' => 'Invalid parameter "/variables/1/name": is not enclosed in {} or is malformed.'
 				]
 			],
 			// Variables - with the same names
@@ -495,11 +481,7 @@ class testFormWebStep extends CLegacyWebTest {
 						['name' => '{test}'],
 						['name' => '{test}']
 					],
-					'error_webform' => true,
-					'error_msg' => 'Cannot add web scenario',
-					'errors' => [
-						'Invalid parameter "/1/steps/1/variables/2": value (name)=({test}) already exists.'
-					]
+					'error_details' => 'Invalid parameter "/1/steps/1/variables/2": value (name)=({test}) already exists.'
 				]
 			],
 			// Variables - two different
@@ -525,11 +507,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'variables' => [
 						['value' => 'test']
 					],
-					'error_webform' => true,
-					'error_msg' => 'Cannot add web scenario',
-					'errors' => [
-						'Invalid parameter "/1/steps/1/variables/1/name": cannot be empty.'
-					]
+					'error_details' => 'Invalid parameter "/1/steps/1/variables/1/name": cannot be empty.'
 				]
 			],
 			// Headers - just numbers
@@ -613,11 +591,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'headers' => [
 						['value' => 'test']
 					],
-					'error_webform' => true,
-					'error_msg' => 'Cannot add web scenario',
-					'errors' => [
-						'Invalid parameter "/1/steps/1/headers/1/name": cannot be empty.'
-					]
+					'error_details' => 'Invalid parameter "/1/steps/1/headers/1/name": cannot be empty.'
 				]
 			],
 			// Retrieve mode
@@ -693,9 +667,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'step_name' => 'Step timeout -1',
 					'url' => 'http://www.zabbix.com',
 					'timeout' => '-1',
-					'errors' => [
-						'Incorrect value for field "timeout": a time unit is expected.'
-					]
+					'error_details' => 'Invalid parameter "/timeout": a time unit is expected.'
 				]
 			],
 			[
@@ -705,9 +677,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'step_name' => 'Step timeout 3601',
 					'url' => 'http://www.zabbix.com',
 					'timeout' => 3601,
-					'errors' => [
-						'Invalid parameter "timeout": value must be one of 1-3600.'
-					]
+					'error_details' => 'Invalid parameter "/timeout": value must be one of 1-3600.'
 				]
 			],
 			[
@@ -717,9 +687,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'step_name' => 'Step timeout 3601',
 					'url' => 'http://www.zabbix.com',
 					'timeout' => 0,
-					'errors' => [
-						'Invalid parameter "timeout": value must be one of 1-3600.'
-					]
+					'error_details' => 'Invalid parameter "/timeout": value must be one of 1-3600.'
 				]
 			],
 			[
@@ -729,9 +697,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'step_name' => 'Step timeout string',
 					'url' => 'http://www.zabbix.com',
 					'timeout' => 'abc',
-					'errors' => [
-						'Incorrect value for field "timeout": a time unit is expected.'
-					]
+					'error_details' => 'Invalid parameter "/timeout": a time unit is expected.'
 				]
 			],
 			// Required status codes
@@ -742,11 +708,7 @@ class testFormWebStep extends CLegacyWebTest {
 					'step_name' => 'Step required status codes - symbols',
 					'url' => 'http://www.zabbix.com',
 					'code' => 'abcd',
-					'error_webform' => true,
-					'error_msg' => 'Cannot add web scenario',
-					'errors' => [
-						'Invalid response code "abcd".'
-					]
+					'error_details' => 'Invalid response code "abcd".'
 				]
 			],
 			// Fill all form
@@ -892,7 +854,7 @@ class testFormWebStep extends CLegacyWebTest {
 		$this->zbxTestCheckHeader('Web monitoring');
 
 		$this->zbxTestInputTypeWait('name', $data['name']);
-		$this->zbxTestTabSwitchById('tab_stepTab' ,'Steps');
+		$this->zbxTestTabSwitchById('tab_steps-tab' ,'Steps');
 		$this->zbxTestClickXpathWait('//td[@colspan="8"]/button[contains(@class, "element-table-add")]');
 		$this->zbxTestLaunchOverlayDialog('Step of web scenario');
 
@@ -999,34 +961,22 @@ class testFormWebStep extends CLegacyWebTest {
 			$this->zbxTestClickXpath('//div[@class="overlay-dialogue-footer"]//button[text()="Cancel"]');
 		}
 
-		if (array_key_exists('error_webform', $data)) {
-			$this->zbxTestWaitForPageToLoad();
-			COverlayDialogElement::ensureNotPresent();
-			$this->zbxTestClickWait('add');
-		}
-
 		switch ($data['expected']) {
 			case TEST_GOOD:
 				$this->zbxTestWaitForPageToLoad();
 				COverlayDialogElement::ensureNotPresent();
 				$this->zbxTestClickWait('add');
-				$this->zbxTestWaitUntilMessageTextPresent('msg-good', 'Web scenario added');
+				$this->assertMessage(TEST_GOOD, 'Web scenario added');
 				break;
+
 			case TEST_BAD:
-				if (array_key_exists('error_msg', $data)) {
-					$this->zbxTestWaitUntilMessageTextPresent('msg-bad', $data['error_msg']);
-				}
-				else {
-					$this->zbxTestWaitUntilElementVisible(WebDriverBy::xpath("//div[@class='overlay-dialogue-body']//div[@class='msg-details']"));
-				}
-				foreach ($data['errors'] as $msg) {
-					$this->zbxTestTextPresent($msg);
-				}
+				$this->assertMessage(TEST_BAD, 'Cannot create web scenario step', $data['error_details']);
 				break;
+
 			case TEST_ERROR:
 				$get_text = $this->zbxTestGetText("//div[@class='overlay-dialogue-body']/span");
 				$result = trim(preg_replace('/\s\s+/', ' ', $get_text));
-				$this->assertEquals($result, $data['errors']);
+				$this->assertEquals($result, $data['error_details']);
 				break;
 		}
 
