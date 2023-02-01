@@ -24,6 +24,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -208,6 +209,90 @@ var (
 	argVerbose bool
 )
 
+type parameter struct {
+	name string
+	kind reflect.Kind
+}
+
+// This array defines the order in which command line flags are displayed in in help (usage) message to ensure that
+// flags are displayed next to their shorthands. This is not guaranteed by the standard flag.Usage() function.
+var params []parameter
+
+// isZeroValue determines whether the string represents the zero value for a flag.
+func isZeroValue(f *flag.Flag, value string) (ok bool, err error) {
+	// Build a zero value of the flag's Value type, and see if the
+	// result of calling its String method equals the value passed in.
+	// This works unless the Value type is itself an interface type.
+	typ := reflect.TypeOf(f.Value)
+	var z reflect.Value
+	if typ.Kind() == reflect.Pointer {
+		z = reflect.New(typ.Elem())
+	} else {
+		z = reflect.Zero(typ)
+	}
+	// Catch panics calling the String method, which shouldn't prevent the
+	// usage message from being printed, but that we should report to the
+	// user so that they know to fix their code.
+	defer func() {
+		if e := recover(); e != nil {
+			if typ.Kind() == reflect.Pointer {
+				typ = typ.Elem()
+			}
+			err = fmt.Errorf("panic calling String method on zero %v for flag %s: %v", typ, f.Name, e)
+		}
+	}()
+	return value == z.Interface().(flag.Value).String(), nil
+}
+
+// printOrderedHelp works similar to flag.PrintDefaults, but it prints usage of flags in the particular order defined by
+// the global array params, not in lexicographical order.
+func printOrderedHelp() {
+	var isZeroValueErrs []error
+	for _, param := range params {
+		f := flag.Lookup(param.name)
+		var b strings.Builder
+		fmt.Fprintf(&b, "  -%s", f.Name) // Two spaces before -; see next two comments.
+		name, usage := flag.UnquoteUsage(f)
+		if len(name) > 0 {
+			b.WriteString(" ")
+			b.WriteString(name)
+		}
+		// Boolean flags of one ASCII letter are so common we
+		// treat them specially, putting their usage on the same line.
+		if b.Len() <= 4 { // space, space, '-', 'x'.
+			b.WriteString("\t")
+		} else {
+			// Four spaces before the tab triggers good alignment
+			// for both 4- and 8-space tab stops.
+			b.WriteString("\n    \t")
+		}
+		b.WriteString(strings.ReplaceAll(usage, "\n", "\n    \t"))
+
+		// Print the default value only if it differs to the zero value
+		// for this flag type.
+		if isZero, err := isZeroValue(f, f.DefValue); err != nil {
+			isZeroValueErrs = append(isZeroValueErrs, err)
+		} else if !isZero {
+			if param.kind == reflect.String {
+				// put quotes on the value
+				fmt.Fprintf(&b, " (default %q)", f.DefValue)
+			} else {
+				fmt.Fprintf(&b, " (default %v)", f.DefValue)
+			}
+		}
+		fmt.Fprint(flag.CommandLine.Output(), b.String(), "\n")
+	}
+	// If calling String on any zero flag.Values triggered a panic, print
+	// the messages after the full set of defaults so that the programmer
+	// knows to fix the panic.
+	if errs := isZeroValueErrs; len(errs) > 0 {
+		fmt.Fprintln(flag.CommandLine.Output())
+		for _, err := range errs {
+			fmt.Fprintln(flag.CommandLine.Output(), err)
+		}
+	}
+}
+
 func main() {
 	version.Init(applicationName, tls.CopyrightMessage(), copyrightMessageMQTT(), copyrightMessageModbus())
 
@@ -217,6 +302,7 @@ func main() {
 	)
 	flag.StringVar(&confFlag, "config", confDefault, confDescription)
 	flag.StringVar(&confFlag, "c", confDefault, confDescription+" (shorthand)")
+	params = append(params, parameter{"c", reflect.String}, parameter{"config", reflect.String})
 
 	var foregroundFlag bool
 	const (
@@ -225,6 +311,7 @@ func main() {
 	)
 	flag.BoolVar(&foregroundFlag, "foreground", foregroundDefault, foregroundDescription)
 	flag.BoolVar(&foregroundFlag, "f", foregroundDefault, foregroundDescription+" (shorthand)")
+	params = append(params, parameter{"f", reflect.Bool}, parameter{"foreground", reflect.Bool})
 
 	var testFlag string
 	const (
@@ -233,6 +320,7 @@ func main() {
 	)
 	flag.StringVar(&testFlag, "test", testDefault, testDescription)
 	flag.StringVar(&testFlag, "t", testDefault, testDescription+" (shorthand)")
+	params = append(params, parameter{"t", reflect.String}, parameter{"test", reflect.String})
 
 	var printFlag bool
 	const (
@@ -241,6 +329,7 @@ func main() {
 	)
 	flag.BoolVar(&printFlag, "print", printDefault, printDescription)
 	flag.BoolVar(&printFlag, "p", printDefault, printDescription+" (shorthand)")
+	params = append(params, parameter{"p", reflect.Bool}, parameter{"print", reflect.Bool})
 
 	var verboseFlag bool
 	const (
@@ -249,6 +338,7 @@ func main() {
 	)
 	flag.BoolVar(&verboseFlag, "verbose", verboseDefault, verboseDescription)
 	flag.BoolVar(&verboseFlag, "v", verboseDefault, verboseDescription+" (shorthand)")
+	params = append(params, parameter{"v", reflect.Bool}, parameter{"verbose", reflect.Bool})
 
 	var versionFlag bool
 	const (
@@ -257,12 +347,14 @@ func main() {
 	)
 	flag.BoolVar(&versionFlag, "version", versionDefault, versionDescription)
 	flag.BoolVar(&versionFlag, "V", versionDefault, versionDescription+" (shorthand)")
+	params = append(params, parameter{"V", reflect.Bool}, parameter{"version", reflect.Bool})
 
 	var remoteCommand string
 	const remoteDefault = ""
 	var remoteDescription = "Perform administrative functions (send 'help' for available commands) " +
 		"(" + remoteCommandSendingTimeout.String() + " timeout)"
 	flag.StringVar(&remoteCommand, "R", remoteDefault, remoteDescription)
+	params = append(params, parameter{"R", reflect.String})
 
 	var helpFlag bool
 	const (
@@ -271,12 +363,17 @@ func main() {
 	)
 	flag.BoolVar(&helpFlag, "help", helpDefault, helpDescription)
 	flag.BoolVar(&helpFlag, "h", helpDefault, helpDescription+" (shorthand)")
+	params = append(params, parameter{"h", reflect.Bool}, parameter{"help", reflect.Bool})
 
 	loadOSDependentFlags()
 	flag.Parse()
 	setServiceRun(foregroundFlag)
 
 	if helpFlag {
+		flag.Usage = func() {
+			fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", os.Args[0])
+			printOrderedHelp()
+		}
 		flag.Usage()
 		os.Exit(0)
 	}
