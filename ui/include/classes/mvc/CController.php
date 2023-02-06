@@ -410,15 +410,23 @@ abstract class CController {
 			return false;
 		}
 
-		$skip = ['popup', 'massupdate'];
+		[$namespace] = explode('\\', get_class($this), 2);
+		$action = $this->action;
+		$csrf_token_form = $this->raw_input[CCsrfTokenHelper::CSRF_TOKEN_NAME];
 
-		foreach (explode('.', $this->action) as $segment) {
-			if (!in_array($segment, $skip, true)) {
-				return CCsrfTokenHelper::check($this->raw_input[CCsrfTokenHelper::CSRF_TOKEN_NAME], $segment);
+		if ($namespace !== 'Modules') {
+			$action = '';
+			$skip = ['popup', 'massupdate'];
+
+			foreach (explode('.', $this->action) as $segment) {
+				if (!in_array($segment, $skip, true)) {
+					$action = $segment;
+					break;
+				}
 			}
 		}
 
-		return false;
+		return is_string($csrf_token_form) && CCsrfTokenHelper::check($csrf_token_form, $action);
 	}
 
 	/**
