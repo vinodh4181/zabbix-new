@@ -47,12 +47,12 @@ class testDashboardClockWidget extends CWebTest {
 	 * because it can change.
 	 */
 	private $sql = 'SELECT wf.widgetid, wf.type, wf.name, wf.value_int, wf.value_str, wf.value_groupid, wf.value_hostid,'.
-	' wf.value_itemid, wf.value_graphid, wf.value_sysmapid, w.widgetid, w.dashboard_pageid, w.type, w.name, w.x, w.y,'.
-	' w.width, w.height'.
-		' FROM widget_field wf'.
-		' INNER JOIN widget w'.
-		' ON w.widgetid=wf.widgetid '.
-		' ORDER BY wf.widgetid, wf.name, wf.value_int, wf.value_str, wf.value_groupid, wf.value_itemid, wf.value_graphid';
+			' wf.value_itemid, wf.value_graphid, wf.value_sysmapid, w.widgetid, w.dashboard_pageid, w.type, w.name, w.x, w.y,'.
+			' w.width, w.height'.
+			' FROM widget_field wf'.
+			' INNER JOIN widget w'.
+			' ON w.widgetid=wf.widgetid '.
+			' ORDER BY wf.widgetid, wf.name, wf.value_int, wf.value_str, wf.value_groupid, wf.value_itemid, wf.value_graphid';
 
 	/**
 	 * Check clock widgets layout.
@@ -60,36 +60,29 @@ class testDashboardClockWidget extends CWebTest {
 	public function testDashboardClockWidget_Layout() {
 		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
 		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
-		$dashboard = CDashboardElement::find()->one();
-		$form = $dashboard->getWidget('LayoutClock')->edit();
-
-		// Check edit forms header.
+		$form = CDashboardElement::find()->one()->edit()->addWidget()->asForm();
 		$dialog = COverlayDialogElement::find()->waitUntilReady()->one();
-		$this->assertEquals('Edit widget', $dialog->getTitle());
+		$this->assertEquals('Add widget', $dialog->getTitle());
+		$form->fill(['Type' => CFormElement::RELOADABLE_FILL('Clock')]);
 
-		// Check if widget type is selected as "Clock".
-		$form->checkValue(['Type' => 'Clock']);
+		$form->checkValue([
+			'id:show_header' => true,
+			'Name' => '',
+			'Refresh interval' => 'Default (15 minutes)',
+			'Time type' => 'Local time',
+			'Clock type' => 'Analog',
+			'id:show_header' => true
+		]);
 
-		// Check fields "Refresh interval" values.
-		$refresh_interval = [
-			'Default (15 minutes)',
-			'No refresh',
-			'10 seconds',
-			'30 seconds',
-			'1 minute',
-			'2 minutes',
-			'10 minutes',
-			'15 minutes'
+		// Check fields "Refresh interval" and "Time type" values.
+		$dropdowns =[
+			'Refresh interval' => ['Default (15 minutes)',  'No refresh', '10 seconds', '30 seconds', '1 minute', '2 minutes', '10 minutes', '15 minutes'],
+			'Time type' => ['Local time', 'Server time', 'Host time']
 		];
 
-		$this->assertEquals($refresh_interval,
-				$form->query('name', 'rf_rate')->asDropdown()->one()->getOptions()->asText()
-		);
-
-		// Check fields "Time type" values.
-		$this->assertEquals(['Local time', 'Server time', 'Host time'],
-				$form->query('name', 'time_type')->asDropdown()->one()->getOptions()->asText()
-		);
+		foreach ($dropdowns as $field => $options) {
+			$this->assertEquals($options, $form->getField($field)->asDropdown()->getOptions()->asText());
+		}
 
 		// Check that it's possible to select host items, when time type is "Host Time".
 		$fields = ['Type', 'Name', 'Refresh interval', 'Time type', 'Clock type'];
@@ -99,6 +92,8 @@ class testDashboardClockWidget extends CWebTest {
 
 			if ($type === 'Host time') {
 				array_splice($fields, 4, 0, ['Item']);
+				$form->checkValue(['Item' => '']);
+				$form->isRequired('Item');
 			}
 
 			$this->assertEquals($fields, $form->getLabels()->filter(new CElementFilter(CElementFilter::VISIBLE))->asText());
@@ -107,124 +102,86 @@ class testDashboardClockWidget extends CWebTest {
 		// Check that it's possible to change the status of "Show header" checkbox.
 		$form->checkValue(['id:show_header' => true]);
 
-		// Check if Apply and Cancel button are clickable and there's two of them.
-		$dialog = COverlayDialogElement::find()->waitUntilReady()->one();
-		$this->assertEquals(2, $dialog->getFooter()->query('button', ['Apply', 'Cancel'])->all()
-				->filter(new CElementFilter(CElementFilter::CLICKABLE))->count());
+		// Check if Apply and Cancel button are clickable and there are two of them.
+		$dialog->invalidate();
+		$this->assertEquals(2, $dialog->getFooter()->query('button', ['Add', 'Cancel'])->all()
+				->filter(new CElementFilter(CElementFilter::CLICKABLE))->count()
+		);
 
-		// Check if asterisk for "Item" field is present.
-		$form->query('xpath:.//label[text()="Item"]')->waitUntilVisible()->one();
-		$this->assertStringContainsString('form-label-asterisk', $form->getLabel('Item')->getAttribute('class'));
-
-		// Check that there are three options what should Digital Clock widget show and select them as "Yes".
-		$clock_types = [
-			'Analog' => false,
-			'Digital' => true
-		];
-
-		foreach ($clock_types as $type => $status) {
+		// Check fileds' visibility depending on Analog or Digital clock type.
+		foreach (['Analog' => false, 'Digital' => true] as $type => $status) {
 			$form->fill(['Clock type' => $type]);
 
-			if ($status) {
-				$form->query('xpath:.//label[text()="Show"]')->waitUntilVisible()->one();
-				$this->assertStringContainsString('form-label-asterisk', $form->getLabel('Show')->getAttribute('class'));
-			}
-
-			foreach (['show_1' => false, 'show_2' => true, 'show_3' => false] as $id => $checked) {
+			// Check Show and Advanced configuration checkboxes  visibility and values. (Only Time is checked by default).
+			foreach (['show_1' => false, 'show_2' => true, 'show_3' => false, 'adv_conf' => false] as $id => $checked) {
 				$checkbox = $form->query('id', $id)->asCheckbox()->one();
 				$this->assertTrue($checkbox->isVisible($status));
 				$this->assertTrue($checkbox->asCheckbox()->isChecked($checked));
 			}
 
 			if ($status) {
-				$advanced_config = $form->query('id', "adv_conf")->asCheckbox()->one();
-				$this->assertTrue($advanced_config->isVisible($status));
-				$this->assertTrue($advanced_config->isChecked(false));
-			}
+				$form->isRequired('Show');
 
-			if ($status) {
-				$form->fill(['Time type' => 'Local time']);
-				$date = [
-					'id:date_size',
-					'id:date_bold',
-					'id:lbl_date_color'
+				// Set Advanced configuration=true to check its fields.
+				$form->fill(['Advanced configuration' => true]);
+
+				// Check that only Background color and Time fields are visible (because only Time checkbox is checked).
+				foreach ( ['Background color' => true, 'Date' => false, 'Time' => true, 'Time zone' => false] as $name => $visible) {
+					$this->assertTrue($form->getField($name)->isVisible($visible));
+				}
+
+				// Fill other Show checkboxes and get other Advanced config fields.
+				$form->fill(['id:show_1' => true, 'id:show_3' => true]);
+
+				$advanced_configuration = [
+					'Date' => ['id:date_size' => 20, 'id:date_bold' => false, 'id:date_color' => null],
+					'Time' => ['id:time_size' => 30, 'id:time_bold' => false, 'id:time_color' => null,
+						'id:time_sec' => true, 'id:time_format' => '24-hour'
+					] ,
+					// This is Time zone field found by xpath, because we have one more field with Time zone label.
+					'xpath:.//div[@class="fields-group fields-group-tzone"]' => ['id:tzone_size' => 20, 'id:tzone_bold' => false, 'id:tzone_color' => null,
+						'id:tzone_timezone' => 'Local default: (UTC+02:00) Europe/Riga' , 'id:tzone_format' => 'Short'
+					]
 				];
 
-				$time = [
-					'id:time_size',
-					'id:time_bold',
-					'id:lbl_time_color',
-					'id:time_sec',
-					'id:time_format_0',
-					'id:time_format_1'
-				];
+				// Check Advanced config fields depending on Time type.
+				foreach (['Local time', 'Server time', 'Host time'] as $type) {
+					$form->fill(['Time type' => CFormElement::RELOADABLE_FILL($type)]);
 
-				$timezone = [
-					'id:tzone_size',
-					'id:tzone_bold',
-					'id:lbl_tzone_color',
-					'id:label-tzone_timezone',
-					'id:tzone_format_0',
-					'id:tzone_format_1'
-				];
+					// Check that with Host time 'Time zone' and 'Format' fields disappear.
+					if ($type === 'Host time') {
+						$advanced_configuration['xpath:.//div[@class="fields-group fields-group-tzone"]'] = ['id:tzone_size' => 20,
+							'id:tzone_bold' => false, 'id:tzone_color' => null
+						];
 
-				// Merge all Advanced fields into one array.
-				$fields = array_merge(['id:lbl_bg_color'], $date, $time, $timezone);
-				foreach ([false, true] as $advanced_config) {
-					$form->fill(['Advanced configuration' => $advanced_config]);
-
-					// Check fields visibility depending on Advanced configuration checkbox state.
-					foreach ($fields as $field) {
-						$this->assertTrue($form->getField($field)->isVisible($advanced_config));
-					}
-
-					// Check default values with "Advanced configuration" = true.
-					$default = [
-						'Background color' => null,
-						'id:date_size' => '20',
-						'id:date_bold' => false,
-						'id:date_color' => null,
-						'id:time_size' => '30',
-						'id:time_bold' => false,
-						'id:time_color' => null,
-						'id:time_sec' => true,
-						'id:time_format' => '24-hour',
-						'id:tzone_size' => '20',
-						'id:tzone_bold' => false,
-						'id:tzone_color' => null,
-						'id:label-tzone_timezone' => null,
-						'id:tzone_format_0' => true
-					];
-
-					foreach ($default as $field => $value) {
-						$this->assertEquals($value, $form->getField($field)->getValue());
-					}
-
-					// Check fields' lengths.
-					$field_lenghts = [
-						'Name' =>  255,
-						'id:date_size' => 3,
-						'id:time_size' => 3,
-						'id:tzone_size' => 3
-					];
-
-					foreach ($field_lenghts as $field => $length) {
-						$this->assertEquals($length, $form->getField($field)->getAttribute('maxlength'));
-					}
-
-					// Check fields editability depending on "Show" checkboxes.
-					$config_editability = [
-						'id:show_1' => $date,
-						'id:show_2' => $time,
-						'id:show_3' => $timezone
-					];
-
-					foreach ($config_editability as $config => $elements) {
-						$form->fill([$config => true]);
-						foreach ($elements as $element)  {
-							$this->assertTrue($form->getField($element)->isEnabled(true));
+						foreach (['id:tzone_timezone', 'id:tzone_format'] as $id) {
+							$this->assertFalse( $form->getField($id)->isVisible());
 						}
 					}
+
+					// Check Advanced fields' visibility and values.
+					foreach ($advanced_configuration as $field => $config) {
+						$advanced_field = $form->getField($field);
+						$this->assertTrue($advanced_field->isVisible());
+						$this->assertTrue($advanced_field->isEnabled());
+
+						foreach ($config as $id => $value) {
+							$this->assertEquals($value, $form->getField($id)->getValue());
+							$this->assertTrue($form->getField($id)->isEnabled());
+						}
+					}
+				}
+
+				// Check form fields' maximal lenghts.
+				foreach (['Name' =>  255, 'id:date_size' => 3, 'id:time_size' => 3, 'id:tzone_size' => 3] as $field => $length) {
+					$this->assertEquals($length, $form->getField($field)->getAttribute('maxlength'));
+				}
+
+				// Now remove the Time checkbox from Show field and check that only its Advanced config disappeared.
+				$form->fill(['id:show_2' => false]);
+
+				foreach ( ['Date' => true, 'Time' => false, 'xpath:.//div[@class="fields-group fields-group-tzone"]' => true] as $name => $visible) {
+					$this->assertTrue($form->getField($name)->isVisible($visible));
 				}
 			}
 		}
@@ -250,6 +207,7 @@ class testDashboardClockWidget extends CWebTest {
 		$this->query('button', 'Apply')->waitUntilClickable()->one()->click();
 		$this->page->waitUntilReady();
 		$dashboard->save();
+		$this->assertEquals('LayoutClock', $dashboard->getWidget('LayoutClock')->getHeaderText());
 	}
 
 	public static function getClockWidgetCommonData() {
@@ -257,6 +215,7 @@ class testDashboardClockWidget extends CWebTest {
 			// #0 Name and show header change.
 			[
 				[
+					'check_dialog_properties' => true,
 					'expected' => TEST_GOOD,
 					'fields' => [
 						'Type' => 'Clock',
@@ -394,7 +353,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #12
+			// #12.
 			[
 				[
 					'expected' => TEST_GOOD,
@@ -409,7 +368,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #13
+			// #13.
 			[
 				[
 					'expected' => TEST_GOOD,
@@ -423,7 +382,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #14
+			// #14.
 			[
 				[
 					'expected' => TEST_GOOD,
@@ -438,7 +397,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #15
+			// #15.
 			[
 				[
 					'expected' => TEST_GOOD,
@@ -456,7 +415,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #16
+			// #16.
 			[
 				[
 					'expected' => TEST_GOOD,
@@ -474,7 +433,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #15
+			// #15.
 			[
 				[
 					'expected' => TEST_GOOD,
@@ -492,7 +451,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #16
+			// #16.
 			[
 				[
 					'expected' => TEST_GOOD,
@@ -511,7 +470,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #17
+			// #17.
 			[
 				[
 					'expected' => TEST_GOOD,
@@ -534,7 +493,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #18
+			// #18.
 			[
 				[
 					'expected' => TEST_GOOD,
@@ -562,7 +521,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #19
+			// #19.
 			[
 				[
 					'expected' => TEST_GOOD,
@@ -590,7 +549,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #20
+			// #20.
 			[
 				[
 					'expected' => TEST_GOOD,
@@ -623,7 +582,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #21
+			// #21.
 			[
 				[
 					'expected' => TEST_GOOD,
@@ -656,7 +615,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #22
+			// #22.
 			[
 				[
 					'expected' => TEST_BAD,
@@ -692,7 +651,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #23
+			// #23.
 			[
 				[
 					'expected' => TEST_BAD,
@@ -729,7 +688,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #24
+			// #24.
 			[
 				[
 					'expected' => TEST_BAD,
@@ -767,7 +726,7 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #25
+			// #25.
 			[
 				[
 					'expected' => TEST_BAD,
@@ -833,7 +792,14 @@ class testDashboardClockWidget extends CWebTest {
 			? $dashboard->getWidgets()->last()->edit()
 			: $dashboard->edit()->addWidget()->asForm();
 
-		$form->fill($data['fields'])->submit();
+		if (CTestArrayHelper::get($data, 'check_dialog_properties', false) && $update == true) {
+			$dialog = COverlayDialogElement::find()->waitUntilReady()->one();
+			$this->assertEquals('Edit widget', $dialog->getTitle());
+			$form->checkValue(['Type' => 'Clock']);
+		}
+
+		$form->fill($data['fields']);
+		$form->submit();
 		if ($data['expected'] === TEST_GOOD) {
 			$dashboard->save();
 			$this->assertMessage(TEST_GOOD, 'Dashboard updated');
@@ -850,12 +816,12 @@ class testDashboardClockWidget extends CWebTest {
 			if ($update = false) {
 				// Scenario where data is for creating widget.
 				if ($data['fields']['Time type'] === 'Host time') {
-					$data['fields'] = array_replace($data['fields'],
-							['Item' => 'Host for clock widget: Item for clock widget']);
+						$data['fields'] = array_replace($data['fields'],
+								['Item' => 'Host for clock widget: Item for clock widget']);
 				}
 			}
-			// Scenario where data is for updating widget.
 			else {
+				// Scenario where data is for updating widget.
 				if (array_key_exists('Item', $data['fields'])) {
 					$item_name = ($data['fields']['Item'] === 'Item for clock widget')
 						? 'Host for clock widget: Item for clock widget'
@@ -868,15 +834,16 @@ class testDashboardClockWidget extends CWebTest {
 			$dashboard->getWidgets()->last()->edit()->checkValue($data['fields']);
 
 			// Check that widget is saved in DB.
-			$this->assertEquals(1,
-				CDBHelper::getCount('SELECT * FROM widget w'.
-					' WHERE EXISTS ('.
-					' SELECT NULL'.
-					' FROM dashboard_page dp'.
-					' WHERE w.dashboard_pageid=dp.dashboard_pageid'.
-					' AND dp.dashboardid='.$dashboardid.
-					' AND w.name ='.zbx_dbstr(CTestArrayHelper::get($data['fields'], 'Name', '')).')'
-				));
+			$this->assertEquals(1, CDBHelper::getCount('SELECT *'.
+				' FROM widget w'.
+				' WHERE EXISTS ('.
+						' SELECT NULL'.
+						' FROM dashboard_page dp'.
+						' WHERE w.dashboard_pageid=dp.dashboard_pageid'.
+							' AND dp.dashboardid='.$dashboardid.
+							' AND w.name ='.zbx_dbstr(CTestArrayHelper::get($data['fields'], 'Name', '')).
+				')'
+			));
 		}
 		else {
 			$this->assertMessage(TEST_BAD, null, $data['Error message']);
@@ -939,7 +906,8 @@ class testDashboardClockWidget extends CWebTest {
 
 		// Check that widget is not present on dashboard and in DB.
 		$this->assertFalse($dashboard->getWidget('DeleteClock', false)->isValid());
-		$this->assertEquals(0, CDBHelper::getCount('SELECT * FROM widget_field wf'.
+		$this->assertEquals(0, CDBHelper::getCount('SELECT *'.
+			' FROM widget_field wf'.
 			' LEFT JOIN widget w'.
 			' ON w.widgetid=wf.widgetid'.
 			' WHERE w.name='.zbx_dbstr('DeleteClock')
