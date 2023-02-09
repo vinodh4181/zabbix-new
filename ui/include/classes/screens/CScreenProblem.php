@@ -1,7 +1,7 @@
 <?php
 /*
 ** Zabbix
-** Copyright (C) 2001-2022 Zabbix SIA
+** Copyright (C) 2001-2023 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -950,8 +950,7 @@ class CScreenProblem extends CScreenBase {
 		if ($this->data['action'] === 'problem.view' || $this->data['action'] === 'problem.view.refresh') {
 			$form = (new CForm('post', 'zabbix.php'))
 				->setId('problem_form')
-				->setName('problem')
-				->cleanItems();
+				->setName('problem');
 
 			$header_check_box = (new CColHeader(
 				(new CCheckBox('all_eventids'))

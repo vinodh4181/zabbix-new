@@ -1,7 +1,7 @@
 <?php
 /*
 ** Zabbix
-** Copyright (C) 2001-2022 Zabbix SIA
+** Copyright (C) 2001-2023 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -86,7 +86,6 @@ function createFontSelect(string $name): CSelect {
 			->toString()
 	?>
 	<?= (new CForm())
-			->cleanItems()
 			->setName('selementForm')
 			->setId('selementForm')
 			->addItem(
@@ -359,7 +358,6 @@ function createFontSelect(string $name): CSelect {
 			->setId('shapeDragHandler')
 			->toString().
 		(new CForm())
-			->cleanItems()
 			->setName('shapeForm')
 			->setId('shapeForm')
 			->addVar('sysmap_shapeid', '')
@@ -518,7 +516,6 @@ function createFontSelect(string $name): CSelect {
 			->setId('massShapeDragHandler')
 			->toString().
 		(new CForm())
-			->cleanItems()
 			->setName('shapeForm')
 			->setId('massShapeForm')
 			->addItem(
@@ -649,7 +646,6 @@ function createFontSelect(string $name): CSelect {
 			->toString()
 	?>
 	<?= (new CForm())
-			->cleanItems()
 			->setId('massForm')
 			->addItem(
 				(new CFormList())
@@ -779,7 +775,6 @@ function createFontSelect(string $name): CSelect {
 		->toString()
 	?>
 	<?= (new CForm())
-			->cleanItems()
 			->setId('linkForm')
 			->addVar('selementid1', '')
 			->addItem(
