@@ -18,136 +18,193 @@
 ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 **/
 
-require_once dirname(__FILE__).'/../include/CLegacyWebTest.php';
-require_once dirname(__FILE__).'/../include/helpers/CDataHelper.php';
-require_once dirname(__FILE__).'/behaviors/CMessageBehavior.php';
 
-use Facebook\WebDriver\WebDriverBy;
+require_once dirname(__FILE__).'/../include/CWebTest.php';
 
 /**
- * @backup trigger_depends, hosts_templates
  *
- * @onBefore prepareTemplateData
+ *
+ * @onBefore prepareTriggersData
  */
-class testTriggerDependencies extends CLegacyWebTest {
+class testTriggerDependencies extends CWebTest {
 
-	/**
-	 * Attach MessageBehavior to the test.
-	 */
-	public function getBehaviors() {
-		return [CMessageBehavior::class];
-	}
+	protected static $templateids;
+	protected static $template_itemids;
+	protected static $template_triggerids;
+	protected static $druleids;
+	protected static $item_protids;
+	protected static $trigger_protids;
+	protected static $hostids;
+	protected static $host_itemids;
 
-	const TEMPLATE_AGENT = 'Zabbix agent';
-	const TEMPLATE_FREEBSD = 'FreeBSD by Zabbix agent';
-	const TEMPLATE_APACHE = 'Apache by HTTP';
-
-	protected static $agent_templateid;
-	protected static $apache_templateid;
-
-	/**
-	 * Function links Zabbix agent template to Test host.
-	 */
-	public static function prepareTemplateData() {
-		$template_ids = CDBHelper::getAll('SELECT hostid FROM hosts WHERE host IN ('.zbx_dbstr(self::TEMPLATE_AGENT).',
-				'.zbx_dbstr(self::TEMPLATE_APACHE).') ORDER BY host ASC'
-		);
-
-		$host_id = CDBHelper::getValue('SELECT hostid FROM hosts WHERE host='.zbx_dbstr('Test host'));
-
-		self::$apache_templateid = $template_ids[0]['hostid'];
-		self::$agent_templateid = $template_ids[1]['hostid'];
-
-		CDataHelper::call('host.update', [
+	public function prepareTriggersData() {
+		$templates = CDataHelper::call('template.create', [
 			[
-				'hostid' => $host_id,
+				'host' => 'Template with everything',
+				'groups' => [
+					'groupid' => 1
+				]
+			],
+			[
+				'host' => 'Template that linked to host',
+				'groups' => [
+					'groupid' => 1
+				]
+			]
+		]);
+		$this->assertArrayHasKey('templateids', $templates);
+		self::$templateids = CDataHelper::getIds('host');
+
+		$template_items = CDataHelper::call('item.create', [
+			[
+				'name' => 'template item for everything',
+				'key_' => 'everything',
+				'hostid' => self::$templateids['Template with everything'],
+				'type' => 2,
+				'value_type' => 3,
+				'delay' => 0
+			],
+			[
+				'name' => 'template item for linking',
+				'key_' => 'everything_2',
+				'hostid' => self::$templateids['Template that linked to host'],
+				'type' => 2,
+				'value_type' => 3,
+				'delay' => 0
+			]
+		]);
+		$this->assertArrayHasKey('itemids', $template_items);
+		self::$template_itemids = CDataHelper::getIds('name');
+
+		$template_triggers = CDataHelper::call('trigger.create', [
+			[
+				'description' => 'trigger update',
+				'expression' => 'last(/Template with everything/everything)=0'
+			],
+			[
+				'description' => 'trigger simple',
+				'expression' => 'last(/Template with everything/everything)=0'
+			],
+			[
+				'description' => 'trigger linked 1',
+				'expression' => 'last(/Template that linked to host/everything_2)=0'
+			],
+			[
+				'description' => 'trigger linked 2',
+				'expression' => 'last(/Template that linked to host/everything_2)=0'
+			]
+		]);
+		$this->assertArrayHasKey('triggerids', $template_triggers);
+		self::$template_triggerids = CDataHelper::getIds('description');
+
+		$drule = CDataHelper::call('discoveryrule.create', [
+			[
+				'name' => 'Drule for everything',
+				'key_' => 'everything_drule',
+				'hostid' => self::$templateids['Template with everything'],
+				'type' => 2,
+				'delay' => 0
+			],
+			[
+				'name' => 'Drule for linking',
+				'key_' => 'linked_drule',
+				'hostid' => self::$templateids['Template that linked to host'],
+				'type' => 2,
+				'delay' => 0
+			]
+		]);
+		$this->assertArrayHasKey('itemids', $drule);
+		self::$druleids = CDataHelper::getIds('name');
+
+		$item_prot = CDataHelper::call('itemprototype.create', [
+			[
+				'name' => 'Item prot with everything',
+				'key_' => 'everything_prot_[{#KEY}]',
+				'hostid' => self::$templateids['Template with everything'],
+				'ruleid' => self::$druleids['Drule for everything'],
+				'type' => 2,
+				'value_type' => 3,
+				'delay' => 0
+			],
+			[
+				'name' => 'Item prot for linking',
+				'key_' => 'linking_prot_[{#KEY}]',
+				'hostid' => self::$templateids['Template that linked to host'],
+				'ruleid' => self::$druleids['Drule for linking'],
+				'type' => 2,
+				'value_type' => 3,
+				'delay' => 0
+			]
+		]);
+		$this->assertArrayHasKey('itemids', $item_prot);
+		self::$item_protids = CDataHelper::getIds('name');
+
+		$trigger_prot = CDataHelper::call('triggerprototype.create', [
+			[
+				'description' => 'trigger prototype update{#KEY}',
+				'expression' => 'last(/Template with everything/everything_prot_[{#KEY}])=0'
+			],
+			[
+				'description' => 'trigger prototype simple{#KEY}',
+				'expression' => 'last(/Template with everything/everything_prot_[{#KEY}])=0'
+			],
+			[
+				'description' => 'trigger prototype linked 1{#KEY}',
+				'expression' => 'last(/Template that linked to host/linking_prot_[{#KEY}])=0'
+			],
+			[
+				'description' => 'trigger prototype linked 2{#KEY}',
+				'expression' => 'last(/Template that linked to host/linking_prot_[{#KEY}])=0'
+			]
+		]);
+		$this->assertArrayHasKey('triggerids', $trigger_prot);
+		self::$trigger_protids = CDataHelper::getIds('description');
+
+		$hosts = CDataHelper::call('host.create', [
+			[
+				'host' => 'With linked template',
 				'templates' => [
-					[
-						'templateid' => self::$agent_templateid
-					]
+					'templateid' => self::$templateids['Template that linked to host']
+				],
+				'groups' => [
+					['groupid' => 4]
+				]
+			],
+			[
+				'host' => 'With everything',
+				'groups' => [
+					['groupid' => 4]
 				]
 			]
 		]);
-	}
+		$this->assertArrayHasKey('hostids', $hosts);
+		self::$hostids = CDataHelper::getIds('host');
 
-	/**
-	 * @dataProvider getTriggerDependenciesData
-	 */
-	public function testTriggerDependenciesFromHost_SimpleTest($data) {
-		// Get the id of template to be updated based on the template that owns the trigger in dependencies tab.
-		$ids = [
-			self::TEMPLATE_AGENT => self::$agent_templateid,
-			self::TEMPLATE_APACHE => self::$apache_templateid
-		];
-		$update_id = ($data['template'] === self::TEMPLATE_APACHE) ? $ids[self::TEMPLATE_APACHE] : $ids[self::TEMPLATE_AGENT];
-
-		$this->zbxTestLogin('triggers.php?filter_set=1&context=template&filter_hostids[0]='.$update_id);
-		$this->zbxTestCheckTitle('Configuration of triggers');
-
-		$this->zbxTestClickLinkTextWait($data['trigger']);
-		$this->zbxTestClickWait('tab_dependenciesTab');
-
-		$this->zbxTestClick('add_dep_trigger');
-		$this->zbxTestLaunchOverlayDialog('Triggers');
-		$host = COverlayDialogElement::find()->one()->query('class:multiselect-control')->asMultiselect()->one();
-		$host->fill([
-			'values' => $data['template'],
-			'context' => 'Templates'
-		]);
-		$this->zbxTestClickLinkTextWait($data['dependency']);
-		$this->zbxTestWaitUntilElementVisible(WebDriverBy::id('add_dep_trigger'));
-		$this->zbxTestClickWait('update');
-		if ($data['expected'] === TEST_BAD) {
-			$this->assertMessage(TEST_BAD, 'Cannot update trigger', $data['error_message']);
-		}
-		else {
-			$this->assertMessage(TEST_GOOD, 'Trigger updated');
-		}
-	}
-
-	public function getTriggerDependenciesData() {
-		return [
+		$host_items = CDataHelper::call('item.create', [
 			[
-				[
-					'expected' => TEST_BAD,
-					'trigger' => 'Zabbix agent is not available',
-					'template' => self::TEMPLATE_FREEBSD,
-					'dependency' => '/etc/passwd has been changed on FreeBSD by Zabbix agent',
-					'error_message' => 'Trigger "Zabbix agent is not available" cannot depend on the trigger "/etc/passwd '.
-							'has been changed on {HOST.NAME}", because the template "FreeBSD by Zabbix agent" is not '.
-							'linked to the host "Test host".'
-				]
+				'name' => 'Host item 1',
+				'key_' => 'host_item_1',
+				'hostid' => self::$hostids['With everything'],
+				'type' => 2,
+				'value_type' => 3,
+				'delay' => 0
 			],
 			[
-				[
-					'expected' => TEST_BAD,
-					'trigger' => 'Apache: Service is down',
-					'template' => self::TEMPLATE_APACHE,
-					'dependency' => 'Apache: Service response time is too high',
-					'error_message' => 'Trigger "Apache: Service is down" cannot depend on the trigger "Apache: Service response'.
-							' time is too high", because a circular linkage ("Apache: Service response time is too high" ->'.
-							' "Apache: Service is down" -> "Apache: Service response time is too high") would occur.'
-				]
-			],
-			[
-				[
-					'expected' => TEST_BAD,
-					'trigger' => 'Apache: has been restarted',
-					'template' => self::TEMPLATE_APACHE,
-					'dependency' => 'Apache: has been restarted',
-					'error_message' => 'Trigger "Apache: has been restarted" cannot depend on the trigger "Apache: '.
-							'has been restarted", because a circular linkage ("Apache: has been restarted" -> "Apache: '.
-							'has been restarted") would occur.'
-				]
-			],
-			[
-				[
-					'expected' => TEST_GOOD,
-					'trigger' => 'Apache: has been restarted',
-					'template' => self::TEMPLATE_APACHE,
-					'dependency' => 'Apache: Service is down'
-				]
+				'name' => 'Host item 2',
+				'key_' => 'host_item_2',
+				'hostid' => self::$hostids['With everything'],
+				'type' => 2,
+				'value_type' => 3,
+				'delay' => 0
 			]
-		];
+		]);
+		$this->assertArrayHasKey('itemids', $host_items);
+		self::$host_itemids = CDataHelper::getIds('name');
+
+		$host_triggers
+	}
+
+	public function testTriggerDependencies_Create() {
+//		var_dump(self::$templateids['Template 1']);
 	}
 }
