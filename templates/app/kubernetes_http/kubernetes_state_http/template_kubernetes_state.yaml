@@ -151,14 +151,13 @@ zabbix_export:
 
                 const isIPv4 = /(\d+\.){3}\d+/;
 
-                const controlPlaneNodes = [];
-                nodes.forEach(function (node) {
+                const controlPlaneNodes = nodes.map(function (node) {
                     var internalIPs = node.status.addresses.filter(function (addr) {
                         return addr.type === 'InternalIP';
                     });
                     var internalIP = internalIPs.length && internalIPs[0].address;
 
-                    controlPlaneNodes.push({
+                    return {
                         '{#NAME}': node.metadata.name,
                         '{#IP}': internalIP,
                         '{#KUBE.API.SERVER.URL}':        Kube.params.api_scheme        + '://' + (isIPv4.test(internalIP) ? internalIP : '['+internalIP+']') + ':' + Kube.params.api_port        + '/metrics',
@@ -168,7 +167,7 @@ zabbix_export:
                         '{#COMPONENT.CONTROLLER}' : 'Controller manager',
                         '{#COMPONENT.SCHEDULER}' : 'Scheduler',
                         '{#CLUSTER_HOSTNAME}': Kube.params.api_hostname
-                    });
+                    };
                 });
 
                 return JSON.stringify(controlPlaneNodes);
@@ -463,20 +462,19 @@ zabbix_export:
 
                 const isIPv4 = /(\d+\.){3}\d+/;
 
-                const kubeNodes = [];
-                nodes.forEach(function (node) {
+                const kubeNodes = nodes.map(function (node) {
                     var internalIPs = node.status.addresses.filter(function (addr) {
                         return addr.type === 'InternalIP';
                     });
                     var internalIP = internalIPs.length && internalIPs[0].address;
 
-                    kubeNodes.push({
+                    return {
                         '{#NAME}': node.metadata.name,
                         '{#IP}': internalIP,
                         '{#KUBE.KUBELET.URL}': Kube.params.kubelet_scheme + '://' + (isIPv4.test(internalIP) ? internalIP : '['+internalIP+']') + ':' + Kube.params.kubelet_port,
                         '{#COMPONENT}': 'Kubelet',
                         '{#CLUSTER_HOSTNAME}': Kube.params.api_hostname
-                    });
+                    };
                 });
 
                 return JSON.stringify(kubeNodes);
@@ -839,15 +837,14 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var input = JSON.parse(value),
-                      output = [];
-                  
-                  input.items.forEach(function (component) {
-                      output.push({
+                  var input = JSON.parse(value);
+
+                  var output = input.items.map(function (component) {
+                      return {
                           '{#NAME}': component.metadata.name
-                      });
+                      };
                   });
-                  
+
                   return JSON.stringify(output);
             -
               type: DISCARD_UNCHANGED_HEARTBEAT
@@ -1161,16 +1158,15 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var input = JSON.parse(value),
-                      output = [];
-                  
-                  input.forEach(function (metric) {
-                      output.push({
+                  var input = JSON.parse(value);
+
+                  var output = input.map(function (metric) {
+                      return {
                           '{#NAME}': metric.labels.cronjob,
                           '{#NAMESPACE}': metric.labels.namespace
-                      });
+                      };
                   });
-                  
+
                   return JSON.stringify(output);
             -
               type: DISCARD_UNCHANGED_HEARTBEAT
@@ -1352,16 +1348,15 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var input = JSON.parse(value),
-                      output = [];
-                  
-                  input.forEach(function (metric) {
-                      output.push({
+                  var input = JSON.parse(value);
+
+                  var output = input.map(function (metric) {
+                      return {
                           '{#NAME}': metric.labels.daemonset,
                           '{#NAMESPACE}': metric.labels.namespace
-                      });
+                      };
                   });
-                  
+
                   return JSON.stringify(output);
             -
               type: DISCARD_UNCHANGED_HEARTBEAT
@@ -1620,16 +1615,15 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var input = JSON.parse(value),
-                      output = [];
-                  
-                  input.forEach(function (metric) {
-                      output.push({
+                  var input = JSON.parse(value);
+
+                  var output = input.map(function (metric) {
+                      return {
                           '{#NAME}': metric.labels.deployment,
                           '{#NAMESPACE}': metric.labels.namespace
-                      });
+                      };
                   });
-                  
+
                   return JSON.stringify(output);
             -
               type: DISCARD_UNCHANGED_HEARTBEAT
@@ -1764,16 +1758,15 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var input = JSON.parse(value),
-                      output = [];
-                  
-                  input.forEach(function (metric) {
-                      output.push({
+                  var input = JSON.parse(value);
+
+                  var output = input.map(function (metric) {
+                      return {
                           '{#NAME}': metric.labels.endpoint,
                           '{#NAMESPACE}': metric.labels.namespace
-                      });
+                      };
                   });
-                  
+
                   return JSON.stringify(output);
             -
               type: DISCARD_UNCHANGED_HEARTBEAT
@@ -1922,16 +1915,15 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var input = JSON.parse(value),
-                      output = [];
-                  
-                  input.forEach(function (metric) {
-                      output.push({
+                  var input = JSON.parse(value);
+
+                  var output = input.map(function (metric) {
+                      return {
                           '{#NAME}': metric.labels.job_name,
                           '{#NAMESPACE}': metric.labels.namespace
-                      });
+                      };
                   });
-                  
+
                   return JSON.stringify(output);
             -
               type: DISCARD_UNCHANGED_HEARTBEAT
@@ -2033,15 +2025,14 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var input = JSON.parse(value),
-                      output = [];
-                  
-                  input.forEach(function (component) {
-                      output.push({
+                  var input = JSON.parse(value);
+
+                  var output = input.map(function (component) {
+                      return {
                           '{#NAME}': component.name
-                      });
+                      };
                   });
-                  
+
                   return JSON.stringify(output);
             -
               type: DISCARD_UNCHANGED_HEARTBEAT
@@ -2315,15 +2306,14 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var input = JSON.parse(value),
-                      output = [];
-                  
-                  input.forEach(function (metric) {
-                      output.push({
+                  var input = JSON.parse(value);
+
+                  var output = input.map(function (metric) {
+                      return {
                           '{#NAME}': metric.labels.node
-                      });
+                      };
                   });
-                  
+
                   return JSON.stringify(output);
             -
               type: DISCARD_UNCHANGED_HEARTBEAT
@@ -2476,16 +2466,15 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var input = JSON.parse(value),
-                      output = [];
-                  
-                  input.forEach(function (metric) {
-                      output.push({
+                  var input = JSON.parse(value);
+
+                  var output = input.map(function (metric) {
+                      return {
                           '{#NAME}': metric.labels.poddisruptionbudget,
                           '{#NAMESPACE}': metric.labels.namespace
-                      });
+                      };
                   });
-                  
+
                   return JSON.stringify(output);
             -
               type: DISCARD_UNCHANGED_HEARTBEAT
@@ -3087,16 +3076,15 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var input = JSON.parse(value),
-                      output = [];
-                  
-                  input.forEach(function (metric) {
-                      output.push({
+                  var input = JSON.parse(value);
+
+                  var output = input.map(function (metric) {
+                      return {
                           '{#NAME}': metric.labels.pod,
                           '{#NAMESPACE}': metric.labels.namespace
-                      });
+                      };
                   });
-                  
+
                   return JSON.stringify(output);
             -
               type: DISCARD_UNCHANGED_HEARTBEAT
@@ -3432,17 +3420,15 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var input = JSON.parse(value),
-                      output = [];
-                  
-                  input.forEach(function (metric) {
-                      output.push({
+                  var input = JSON.parse(value);
+
+                  var output = input.map(function (metric) {
+                      return {
                           '{#NAME}': metric.labels.persistentvolumeclaim,
                           '{#NAMESPACE}': metric.labels.namespace
-                  
-                      });
+                      };
                   });
-                  
+
                   return JSON.stringify(output);
             -
               type: DISCARD_UNCHANGED_HEARTBEAT
@@ -3497,15 +3483,14 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var input = JSON.parse(value),
-                      output = [];
-                  
-                  input.forEach(function (component) {
-                      output.push({
+                  var input = JSON.parse(value);
+
+                  var output = input.map(function (component) {
+                      return {
                           '{#NAME}': component.name
-                      });
+                      };
                   });
-                  
+
                   return JSON.stringify(output);
             -
               type: DISCARD_UNCHANGED_HEARTBEAT
@@ -3677,16 +3662,15 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var input = JSON.parse(value),
-                      output = [];
-                  
-                  input.forEach(function (metric) {
-                      output.push({
+                  var input = JSON.parse(value);
+
+                  var output = input.map(function (metric) {
+                      return {
                           '{#NAME}': metric.labels.replicaset,
                           '{#NAMESPACE}': metric.labels.namespace
-                      });
+                      };
                   });
-                  
+
                   return JSON.stringify(output);
             -
               type: DISCARD_UNCHANGED_HEARTBEAT
@@ -3931,16 +3915,15 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var input = JSON.parse(value),
-                      output = [];
-                  
-                  input.forEach(function (metric) {
-                      output.push({
+                  var input = JSON.parse(value);
+
+                  var output = input.map(function (metric) {
+                      return {
                           '{#NAME}': metric.labels.statefulset,
                           '{#NAMESPACE}': metric.labels.namespace
-                      });
+                      };
                   });
-                  
+
                   return JSON.stringify(output);
             -
               type: DISCARD_UNCHANGED_HEARTBEAT
