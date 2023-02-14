@@ -226,7 +226,7 @@ class testDashboardClockWidget extends CWebTest {
 					'check_dialog_properties' => true,
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => 'Name and show header name'
 					]
 				]
@@ -305,7 +305,7 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => 'Updated_name',
 						'Refresh interval' => '10 minutes',
 						'Time type' => CFormElement::RELOADABLE_FILL('Server time')
@@ -317,7 +317,7 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_BAD,
 					'fields' => [
-						'id:show_header' => false,
+						'Show header' => false,
 						'Name' => 'ClockWithoutItem',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Host time'),
@@ -355,7 +355,7 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => 'HostTimeClock',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Host time'),
@@ -369,7 +369,7 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => 'LocalTimeClock123',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
@@ -383,7 +383,7 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => '1233212',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
@@ -397,7 +397,7 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'id:show_header'=> true,
+						'Show header' => true,
 						'Name' => 'DigitalClock',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
@@ -414,7 +414,7 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => 'DigitalClock2',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
@@ -431,7 +431,7 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => 'DigitalClock3',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
@@ -448,7 +448,7 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => 'DigitalClock4',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
@@ -466,7 +466,7 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => 'DigitalClock5',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
@@ -488,7 +488,7 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => 'DigitalClock6',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
@@ -515,7 +515,7 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => 'DigitalClock7',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
@@ -542,7 +542,7 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => 'DigitalClock8',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
@@ -574,7 +574,7 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => 'DigitalClock9',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
@@ -716,7 +716,7 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_BAD,
 					'second_page' => true,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => 'DigitalClock12',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
@@ -753,7 +753,7 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_BAD,
 					'second_page' => true,
 					'fields' => [
-						'id:show_header' => true,
+						'Show header' => true,
 						'Name' => 'DigitalClock13',
 						'Refresh interval' => '30 seconds',
 						'Time type' => CFormElement::RELOADABLE_FILL('Host time'),
@@ -845,10 +845,6 @@ class testDashboardClockWidget extends CWebTest {
 			// Check that widget updated.
 			$new_form = $dashboard->getWidgets()->last()->edit();
 			$new_form->checkValue($data['fields']);
-
-			if (array_key_exists('show_header', $data)) {
-				$new_form->checkValue(['id:show_header' => $data['show_header']]);
-			}
 
 			// Check that widget is saved in DB.
 			$this->assertEquals(1, CDBHelper::getCount('SELECT *'.
