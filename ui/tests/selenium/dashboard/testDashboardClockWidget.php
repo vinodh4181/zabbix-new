@@ -26,6 +26,7 @@ require_once dirname(__FILE__).'/../behaviors/CMessageBehavior.php';
 
 /**
  * @backup widget, profiles
+ *
  * @dataSource ClockWidgets
  */
 
@@ -76,7 +77,9 @@ class testDashboardClockWidget extends CWebTest {
 
 		// Check fields "Refresh interval" and "Time type" values.
 		$dropdowns =[
-			'Refresh interval' => ['Default (15 minutes)',  'No refresh', '10 seconds', '30 seconds', '1 minute', '2 minutes', '10 minutes', '15 minutes'],
+			'Refresh interval' => ['Default (15 minutes)',  'No refresh', '10 seconds', '30 seconds', '1 minute', '2 minutes',
+					'10 minutes',  '15 minutes'
+			],
 			'Time type' => ['Local time', 'Server time', 'Host time']
 		];
 
@@ -112,7 +115,7 @@ class testDashboardClockWidget extends CWebTest {
 		foreach (['Analog' => false, 'Digital' => true] as $type => $status) {
 			$form->fill(['Clock type' => $type]);
 
-			// Check Show and Advanced configuration checkboxes  visibility and values. (Only Time is checked by default).
+			// Check Show and Advanced configuration checkboxes visibility and values. (Only Time is checked by default).
 			foreach (['show_1' => false, 'show_2' => true, 'show_3' => false, 'adv_conf' => false] as $id => $checked) {
 				$checkbox = $form->query('id', $id)->asCheckbox()->one();
 				$this->assertTrue($checkbox->isVisible($status));
@@ -135,12 +138,13 @@ class testDashboardClockWidget extends CWebTest {
 
 				$advanced_configuration = [
 					'Date' => ['id:date_size' => 20, 'id:date_bold' => false, 'id:date_color' => null],
-					'Time' => ['id:time_size' => 30, 'id:time_bold' => false, 'id:time_color' => null,
-						'id:time_sec' => true, 'id:time_format' => '24-hour'
+					'Time' => ['id:time_size' => 30, 'id:time_bold' => false, 'id:time_color' => null, 'id:time_sec' => true,
+							'id:time_format' => '24-hour'
 					] ,
 					// This is Time zone field found by xpath, because we have one more field with Time zone label.
-					'xpath:.//div[@class="fields-group fields-group-tzone"]' => ['id:tzone_size' => 20, 'id:tzone_bold' => false, 'id:tzone_color' => null,
-						'id:tzone_timezone' => 'Local default: (UTC+02:00) Europe/Riga' , 'id:tzone_format' => 'Short'
+					'xpath:.//div[@class="fields-group fields-group-tzone"]' => ['id:tzone_size' => 20, 'id:tzone_bold' => false,
+							'id:tzone_color' => null, 'id:tzone_timezone' => 'Local default: (UTC+02:00) Europe/Riga' ,
+							'id:tzone_format' => 'Short'
 					]
 				];
 
@@ -166,8 +170,9 @@ class testDashboardClockWidget extends CWebTest {
 						$this->assertTrue($advanced_field->isEnabled());
 
 						foreach ($config as $id => $value) {
-							$this->assertEquals($value, $form->getField($id)->getValue());
-							$this->assertTrue($form->getField($id)->isEnabled());
+							$advanced_subfield = $form->getField($id);
+							$this->assertEquals($value, $advanced_subfield->getValue());
+							$this->assertTrue($advanced_subfield->isEnabled());
 						}
 					}
 				}
@@ -180,7 +185,8 @@ class testDashboardClockWidget extends CWebTest {
 				// Now remove the Time checkbox from Show field and check that only its Advanced config disappeared.
 				$form->fill(['id:show_2' => false]);
 
-				foreach ( ['Date' => true, 'Time' => false, 'xpath:.//div[@class="fields-group fields-group-tzone"]' => true] as $name => $visible) {
+				foreach ( ['Date' => true, 'Time' => false, 'xpath:.//div[@class="fields-group fields-group-tzone"]' => true]
+						as $name => $visible) {
 					$this->assertTrue($form->getField($name)->isVisible($visible));
 				}
 			}
@@ -201,12 +207,14 @@ class testDashboardClockWidget extends CWebTest {
 		$this->query('button', 'Apply')->waitUntilClickable()->one()->click();
 		$this->page->waitUntilReady();
 		$dashboard->save();
+		$this->assertMessage(TEST_GOOD, 'Dashboard updated');
 		$this->assertEquals('Host for clock widget', $dashboard->getWidget('Host for clock widget')->getHeaderText());
-		$form = $dashboard->getWidget('Host for clock widget')->edit();
-		$form->fill(['Name' => 'LayoutClock']);
+		$second_form = $dashboard->getWidget('Host for clock widget')->edit();
+		$second_form->fill(['Name' => 'LayoutClock']);
 		$this->query('button', 'Apply')->waitUntilClickable()->one()->click();
 		$this->page->waitUntilReady();
 		$dashboard->save();
+		$this->assertMessage(TEST_GOOD, 'Dashboard updated');
 		$this->assertEquals('LayoutClock', $dashboard->getWidget('LayoutClock')->getHeaderText());
 	}
 
@@ -218,8 +226,7 @@ class testDashboardClockWidget extends CWebTest {
 					'check_dialog_properties' => true,
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header' => true,
 						'Name' => 'Name and show header name'
 					]
 				]
@@ -229,7 +236,6 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'Type' => 'Clock',
 						'Refresh interval' => '10 seconds',
 						'Name' => 'Refresh interval change name'
 					]
@@ -240,9 +246,8 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'Type' => 'Clock',
 						'Name' => 'Time type changed to Server time',
-						'Time type' => 'Server time'
+						'Time type' => CFormElement::RELOADABLE_FILL('Server time')
 					]
 				]
 			],
@@ -251,9 +256,8 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'Type' => 'Clock',
 						'Name' => 'Time type changed to Local time',
-						'Time type' => 'Local time'
+						'Time type' => CFormElement::RELOADABLE_FILL('Local time')
 					]
 				]
 			],
@@ -263,7 +267,7 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'fields' => [
 						'Type' => 'Clock',
-						'Time type' => 'Server time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Server time'),
 						'Refresh interval' => '10 seconds',
 						'Name' => 'Time type and refresh interval changed'
 					]
@@ -274,7 +278,6 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'Type' => 'Clock',
 						'Name' => ''
 					]
 				]
@@ -284,7 +287,6 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'Type' => 'Clock',
 						'Name' => '!@#$%^&*()1234567890-='
 					]
 				]
@@ -294,7 +296,6 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'Type' => 'Clock',
 						'Name' => 'Имя кирилицей'
 					]
 				]
@@ -304,11 +305,10 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header' => true,
 						'Name' => 'Updated_name',
 						'Refresh interval' => '10 minutes',
-						'Time type' => 'Server time'
+						'Time type' => CFormElement::RELOADABLE_FILL('Server time')
 					]
 				]
 			],
@@ -317,11 +317,10 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_BAD,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => false,
+						'id:show_header' => false,
 						'Name' => 'ClockWithoutItem',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Host time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Host time'),
 						'Clock type' => 'Analog'
 					],
 					'Error message' => [
@@ -334,9 +333,8 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'Type' => 'Clock',
 						'Name' => 'Time type with item',
-						'Time type' => 'Host time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Host time'),
 						'Item' => 'Item for clock widget'
 					]
 				]
@@ -346,9 +344,8 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'Type' => 'Clock',
 						'Name' => 'Update item',
-						'Time type' => 'Host time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Host time'),
 						'Item' => 'Item for clock widget 2'
 					]
 				]
@@ -358,11 +355,10 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header' => true,
 						'Name' => 'HostTimeClock',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Host time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Host time'),
 						'Item' => 'Item for clock widget',
 						'Clock type' => 'Analog'
 					]
@@ -373,11 +369,10 @@ class testDashboardClockWidget extends CWebTest {
 				[
 					'expected' => TEST_GOOD,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header' => true,
 						'Name' => 'LocalTimeClock123',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Local time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
 						'Clock type' => 'Analog'
 					]
 				]
@@ -388,11 +383,10 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header' => true,
 						'Name' => '1233212',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Local time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
 						'Clock type' => 'Analog'
 					]
 				]
@@ -403,11 +397,10 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header'=> true,
 						'Name' => 'DigitalClock',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Local time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
 						'id:show_2' => false,
@@ -421,11 +414,10 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header' => true,
 						'Name' => 'DigitalClock2',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Local time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
 						'id:show_2' => true,
@@ -439,11 +431,10 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header' => true,
 						'Name' => 'DigitalClock3',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Local time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
 						'id:show_2' => true,
@@ -457,11 +448,10 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header' => true,
 						'Name' => 'DigitalClock4',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Local time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
 						'id:show_2' => false,
@@ -476,11 +466,10 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header' => true,
 						'Name' => 'DigitalClock5',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Local time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
 						'id:show_2' => false,
@@ -499,11 +488,10 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header' => true,
 						'Name' => 'DigitalClock6',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Local time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
 						'id:show_2' => true,
@@ -527,11 +515,10 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header' => true,
 						'Name' => 'DigitalClock7',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Local time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
 						'id:show_2' => true,
@@ -555,11 +542,10 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header' => true,
 						'Name' => 'DigitalClock8',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Local time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
 						'id:show_2' => true,
@@ -588,11 +574,10 @@ class testDashboardClockWidget extends CWebTest {
 					'expected' => TEST_GOOD,
 					'second_page' => true,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header' => true,
 						'Name' => 'DigitalClock9',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Local time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
 						'id:show_2' => true,
@@ -615,90 +600,126 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #22.
+			// #22 Empty Size fields.
 			[
 				[
 					'expected' => TEST_BAD,
 					'second_page' => true,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
-						'Name' => 'DigitalClock10',
-						'Refresh interval' => '30 seconds',
-						'Time type' => 'Local time',
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
 						'id:show_2' => true,
 						'id:show_3' => true,
 						'Advanced configuration' => true,
-						'Background color' => '001819',
-						'id:date_size' => '333',
-						'id:date_bold' => true,
-						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
-						'id:time_size' => '12',
-						'id:time_bold' => true,
-						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
-						'id:time_sec' => false,
-						'id:time_format' => '12-hour',
-						'id:tzone_size' => '35',
-						'id:tzone_bold' => true,
-						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
-						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
-						'id:time_format' => '12-hour'
+						'id:date_size' => '',
+						'id:time_size' => '',
+						'id:tzone_size' => ''
 					],
 					'Error message' => [
-						'Invalid parameter "Size": value must be one of 1-100.'
-					]
-				]
-			],
-			// #23.
-			[
-				[
-					'expected' => TEST_BAD,
-					'second_page' => true,
-					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
-						'Name' => 'DigitalClock11',
-						'Refresh interval' => '30 seconds',
-						'Time type' => 'Local time',
-						'Clock type' => 'Digital',
-						'id:show_1' => true,
-						'id:show_2' => true,
-						'id:show_3' => true,
-						'Advanced configuration' => true,
-						'Background color' => '001819',
-						'id:date_size' => '333',
-						'id:date_bold' => true,
-						'xpath://button[@id="lbl_date_color"]/..' => '607D8B',
-						'id:time_size' => '123',
-						'id:time_bold' => true,
-						'xpath://button[@id="lbl_time_color"]/..' => '1565C0',
-						'id:time_sec' => false,
-						'id:time_format' => '12-hour',
-						'id:tzone_size' => '35',
-						'id:tzone_bold' => true,
-						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
-						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
-						'id:time_format' => '12-hour'
-					],
-					'Error message' => [
+						'Invalid parameter "Size": value must be one of 1-100.',
 						'Invalid parameter "Size": value must be one of 1-100.',
 						'Invalid parameter "Size": value must be one of 1-100.'
 					]
 				]
 			],
-			// #24.
+			// #23 Characters in Size fields.
 			[
 				[
 					'expected' => TEST_BAD,
 					'second_page' => true,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'id:date_size' => 'tes',
+						'id:time_size' => 'tfi',
+						'id:tzone_size' => 'eld'
+					],
+					'Error message' => [
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.'
+					]
+				]
+			],
+			// #24 Zeros in Size fields.
+			[
+				[
+					'expected' => TEST_BAD,
+					'second_page' => true,
+					'fields' => [
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'id:date_size' => 0,
+						'id:time_size' => 0,
+						'id:tzone_size' => 0
+					],
+					'Error message' => [
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.'
+					]
+				]
+			],
+			// #25 Negatives in Size fields.
+			[
+				[
+					'expected' => TEST_BAD,
+					'second_page' => true,
+					'fields' => [
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'id:date_size' => -1,
+						'id:time_size' => -12,
+						'id:tzone_size' => -99
+					],
+					'Error message' => [
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.'
+					]
+				]
+			],
+			// #26 Floats in Size fields.
+			[
+				[
+					'expected' => TEST_BAD,
+					'second_page' => true,
+					'fields' => [
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => true,
+						'id:show_3' => true,
+						'Advanced configuration' => true,
+						'id:date_size' => 0.5,
+						'id:time_size' => 1.3,
+						'id:tzone_size' => 9.9
+					],
+					'Error message' => [
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.',
+						'Invalid parameter "Size": value must be one of 1-100.'
+					]
+				]
+			],
+			// #27.
+			[
+				[
+					'expected' => TEST_BAD,
+					'second_page' => true,
+					'fields' => [
+						'id:show_header' => true,
 						'Name' => 'DigitalClock12',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Local time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
 						'id:show_2' => true,
@@ -726,17 +747,16 @@ class testDashboardClockWidget extends CWebTest {
 					]
 				]
 			],
-			// #25.
+			// #28.
 			[
 				[
 					'expected' => TEST_BAD,
 					'second_page' => true,
 					'fields' => [
-						'Type' => 'Clock',
-						'Show header' => true,
+						'id:show_header' => true,
 						'Name' => 'DigitalClock13',
 						'Refresh interval' => '30 seconds',
-						'Time type' => 'Host time',
+						'Time type' => CFormElement::RELOADABLE_FILL('Host time'),
 						'Clock type' => 'Digital',
 						'id:show_1' => true,
 						'id:show_2' => true,
@@ -766,8 +786,8 @@ class testDashboardClockWidget extends CWebTest {
 	/**
 	 * Function for checking Clock widget form.
 	 *
-	 * @param array      $data      data provider
-	 * @param boolean    $update    true if update scenario, false if create
+	 * @param array	$data	data provider
+	 * @param boolean	$update	true if update scenario, false if create
 	 *
 	 * @dataProvider getClockWidgetCommonData
 	 */
@@ -780,10 +800,10 @@ class testDashboardClockWidget extends CWebTest {
 			? CDataHelper::get('ClockWidgets.dashboardids.Dashboard for updating clock widgets')
 			: CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
 
-		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid=' .$dashboardid);
+		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
 		$dashboard = CDashboardElement::find()->one();
 
-		if (array_key_exists('second_page', $data) && $update == false) {
+		if (array_key_exists('second_page', $data) && $update === false) {
 			$dashboard->selectPage('Second page');
 			$dashboard->waitUntilReady();
 		}
@@ -791,15 +811,20 @@ class testDashboardClockWidget extends CWebTest {
 		$form = $update
 			? $dashboard->getWidgets()->last()->edit()
 			: $dashboard->edit()->addWidget()->asForm();
+		$dialog = COverlayDialogElement::find()->one();
 
-		if (CTestArrayHelper::get($data, 'check_dialog_properties', false) && $update == true) {
-			$dialog = COverlayDialogElement::find()->waitUntilReady()->one();
+		if (CTestArrayHelper::get($data, 'check_dialog_properties', false) && $update === true) {
 			$this->assertEquals('Edit widget', $dialog->getTitle());
 			$form->checkValue(['Type' => 'Clock']);
 		}
 
+		if (!$update) {
+			$form->fill(['Type' => CFormElement::RELOADABLE_FILL('Clock')]);
+		}
+
 		$form->fill($data['fields']);
 		$form->submit();
+
 		if ($data['expected'] === TEST_GOOD) {
 			$dashboard->save();
 			$this->assertMessage(TEST_GOOD, 'Dashboard updated');
@@ -808,40 +833,32 @@ class testDashboardClockWidget extends CWebTest {
 			 * After saving dashboard, it returns you to first page, if widget created in 2nd page,
 			 * then it needs to be opened.
 			 */
-			if (array_key_exists('second_page', $data) && $update == false) {
+			if (array_key_exists('second_page', $data) && $update === false) {
 				$dashboard->selectPage('Second page');
 				$dashboard->waitUntilReady();
 			}
 
-			if ($update = false) {
-				// Scenario where data is for creating widget.
-				if ($data['fields']['Time type'] === 'Host time') {
-						$data['fields'] = array_replace($data['fields'],
-								['Item' => 'Host for clock widget: Item for clock widget']);
-				}
-			}
-			else {
-				// Scenario where data is for updating widget.
-				if (array_key_exists('Item', $data['fields'])) {
-					$item_name = ($data['fields']['Item'] === 'Item for clock widget')
-						? 'Host for clock widget: Item for clock widget'
-						: 'Host for clock widget: Item for clock widget 2';
-					$data['fields'] = array_replace($data['fields'], ['Item' => $item_name]);
-				}
+			if (array_key_exists('Item', $data['fields'])) {
+				$data['fields'] = array_replace($data['fields'], ['Item' => 'Host for clock widget: '.$data['fields']['Item']]);
 			}
 
 			// Check that widget updated.
-			$dashboard->getWidgets()->last()->edit()->checkValue($data['fields']);
+			$new_form = $dashboard->getWidgets()->last()->edit();
+			$new_form->checkValue($data['fields']);
+
+			if (array_key_exists('show_header', $data)) {
+				$new_form->checkValue(['id:show_header' => $data['show_header']]);
+			}
 
 			// Check that widget is saved in DB.
 			$this->assertEquals(1, CDBHelper::getCount('SELECT *'.
 				' FROM widget w'.
 				' WHERE EXISTS ('.
-						' SELECT NULL'.
-						' FROM dashboard_page dp'.
-						' WHERE w.dashboard_pageid=dp.dashboard_pageid'.
-							' AND dp.dashboardid='.$dashboardid.
-							' AND w.name ='.zbx_dbstr(CTestArrayHelper::get($data['fields'], 'Name', '')).
+					' SELECT NULL'.
+					' FROM dashboard_page dp'.
+					' WHERE w.dashboard_pageid=dp.dashboard_pageid'.
+						' AND dp.dashboardid='.$dashboardid.
+						' AND w.name ='.zbx_dbstr(CTestArrayHelper::get($data['fields'], 'Name', '')).
 				')'
 			));
 		}
@@ -856,7 +873,7 @@ class testDashboardClockWidget extends CWebTest {
 	/**
 	 * Function for checking Clock Widgets creation.
 	 *
-	 * @param array      $data      data provider
+	 * @param array	$data	data provider
 	 * @dataProvider getClockWidgetCommonData
 	 */
 	public function testDashboardClockWidget_Create($data) {
@@ -872,16 +889,17 @@ class testDashboardClockWidget extends CWebTest {
 		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
 		$dashboard = CDashboardElement::find()->one();
 		$dashboard->getWidget('UpdateClock')->edit();
-		$this->query('button', 'Apply')->waitUntilClickable()->one()->click();
+		$this->query('button:Apply')->waitUntilClickable()->one()->click();
 		$this->page->waitUntilReady();
 		$dashboard->save();
+		$this->assertMessage(TEST_GOOD, 'Dashboard updated');
 		$this->assertEquals($old_hash, CDBHelper::getHash($this->sql));
 	}
 
 	/**
 	 * Function for checking Clock Widgets successful update.
 	 *
-	 * @param array      $data      data provider
+	 * @param array	$data	data provider
 	 * @dataProvider getClockWidgetCommonData
 	 */
 	public function testDashboardClockWidget_Update($data) {
@@ -900,9 +918,7 @@ class testDashboardClockWidget extends CWebTest {
 		$dashboard->deleteWidget('DeleteClock');
 		$dashboard->save();
 		$this->page->waitUntilReady();
-		$message = CMessageElement::find()->waitUntilPresent()->one();
-		$this->assertTrue($message->isGood());
-		$this->assertEquals('Dashboard updated', $message->getTitle());
+		$this->assertMessage(TEST_GOOD, 'Dashboard updated');
 
 		// Check that widget is not present on dashboard and in DB.
 		$this->assertFalse($dashboard->getWidget('DeleteClock', false)->isValid());
