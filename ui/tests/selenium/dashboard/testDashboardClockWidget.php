@@ -209,8 +209,7 @@ class testDashboardClockWidget extends CWebTest {
 		$dashboard->save();
 		$this->assertMessage(TEST_GOOD, 'Dashboard updated');
 		$this->assertEquals('Host for clock widget', $dashboard->getWidget('Host for clock widget')->getHeaderText());
-		$second_form = $dashboard->getWidget('Host for clock widget')->edit();
-		$second_form->fill(['Name' => 'LayoutClock']);
+		$dashboard->getWidget('Host for clock widget')->edit()->fill(['Name' => 'LayoutClock']);
 		$this->query('button', 'Apply')->waitUntilClickable()->one()->click();
 		$this->page->waitUntilReady();
 		$dashboard->save();
@@ -845,8 +844,7 @@ class testDashboardClockWidget extends CWebTest {
 
 			// Check that widget updated.
 			$dashboard->edit();
-			$new_form = $dashboard->getWidgets()->last()->edit();
-			$new_form->checkValue($data['fields']);
+			$dashboard->getWidgets()->last()->edit()->checkValue($data['fields']);
 
 			// Check that widget is saved in DB.
 			$this->assertEquals(1, CDBHelper::getCount('SELECT *'.
