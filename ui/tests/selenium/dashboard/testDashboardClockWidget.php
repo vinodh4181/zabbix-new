@@ -805,7 +805,7 @@ class testDashboardClockWidget extends CWebTest {
 
 		if (array_key_exists('second_page', $data) && $update === false) {
 			$dashboard->selectPage('Second page');
-			$dashboard->waitUntilReady();
+			$dashboard->invalidate();
 		}
 
 		$form = $update
@@ -835,6 +835,7 @@ class testDashboardClockWidget extends CWebTest {
 			 */
 			if (array_key_exists('second_page', $data) && $update === false) {
 				$dashboard->selectPage('Second page');
+				$dashboard->invalidate();
 			}
 
 			if (array_key_exists('Item', $data['fields'])) {
@@ -843,7 +844,8 @@ class testDashboardClockWidget extends CWebTest {
 			}
 
 			// Check that widget updated.
-			$new_form = $dashboard->getWidgets()->last()->waitUntilReady()->edit();
+			$dashboard->edit();
+			$new_form = $dashboard->getWidgets()->last()->edit();
 			$new_form->checkValue($data['fields']);
 
 			// Check that widget is saved in DB.
