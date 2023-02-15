@@ -786,8 +786,8 @@ class testDashboardClockWidget extends CWebTest {
 	/**
 	 * Function for checking Clock widget form.
 	 *
-	 * @param array	$data	data provider
-	 * @param boolean	$update	true if update scenario, false if create
+	 * @param array      $data      data provider
+	 * @param boolean    $update    true if update scenario, false if create
 	 *
 	 * @dataProvider getClockWidgetCommonData
 	 */
@@ -801,7 +801,7 @@ class testDashboardClockWidget extends CWebTest {
 			: CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
 
 		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
-		$dashboard = CDashboardElement::find()->one();
+		$dashboard = CDashboardElement::find()->one()->waitUntilVisible();
 
 		if (array_key_exists('second_page', $data) && $update === false) {
 			$dashboard->selectPage('Second page');
@@ -835,15 +835,15 @@ class testDashboardClockWidget extends CWebTest {
 			 */
 			if (array_key_exists('second_page', $data) && $update === false) {
 				$dashboard->selectPage('Second page');
-				$dashboard->waitUntilReady();
 			}
 
 			if (array_key_exists('Item', $data['fields'])) {
-				$data['fields'] = array_replace($data['fields'], ['Item' => 'Host for clock widget: '.$data['fields']['Item']]);
+				$data['fields'] = array_replace($data['fields'], ['Item' => 'Host for clock widget: '.
+						$data['fields']['Item']]);
 			}
 
 			// Check that widget updated.
-			$new_form = $dashboard->getWidgets()->last()->edit();
+			$new_form = $dashboard->getWidgets()->last()->waitUntilReady()->edit();
 			$new_form->checkValue($data['fields']);
 
 			// Check that widget is saved in DB.
@@ -869,7 +869,8 @@ class testDashboardClockWidget extends CWebTest {
 	/**
 	 * Function for checking Clock Widgets creation.
 	 *
-	 * @param array	$data	data provider
+	 * @param array $data    data provider
+	 *
 	 * @dataProvider getClockWidgetCommonData
 	 */
 	public function testDashboardClockWidget_Create($data) {
@@ -877,29 +878,136 @@ class testDashboardClockWidget extends CWebTest {
 	}
 
 	/**
-	 * Function for checking Clock Widgets simple update.
-	 */
-	public function testDashboardClockWidget_SimpleUpdate() {
-		$old_hash = CDBHelper::getHash($this->sql);
-		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.Dashboard for updating clock widgets');
-		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid);
-		$dashboard = CDashboardElement::find()->one();
-		$dashboard->getWidget('UpdateClock')->edit();
-		$this->query('button:Apply')->waitUntilClickable()->one()->click();
-		$this->page->waitUntilReady();
-		$dashboard->save();
-		$this->assertMessage(TEST_GOOD, 'Dashboard updated');
-		$this->assertEquals($old_hash, CDBHelper::getHash($this->sql));
-	}
-
-	/**
 	 * Function for checking Clock Widgets successful update.
 	 *
-	 * @param array	$data	data provider
+	 * @param array $data    data provider
+	 *
 	 * @dataProvider getClockWidgetCommonData
 	 */
 	public function testDashboardClockWidget_Update($data) {
 		$this->checkFormClockWidget($data, true);
+	}
+
+	public function testDashboardClockWidget_SimpleUpdate() {
+		$this->checkNoChanges();
+	}
+
+	public static function getCancelData() {
+		return [
+			// Cancel creating widget with saving the dashboard.
+			[
+				[
+					'cancel_form' => true,
+					'create_widget' => true,
+					'save_dashboard' => true
+				]
+			],
+			// Cancel updating widget with saving the dashboard.
+			[
+				[
+					'cancel_form' => true,
+					'create_widget' => false,
+					'save_dashboard' => true
+				]
+			],
+			// Create widget without saving the dashboard.
+			[
+				[
+					'cancel_form' => false,
+					'create_widget' => false,
+					'save_dashboard' => false
+				]
+			],
+			// Update widget without saving the dashboard.
+			[
+				[
+					'cancel_form' => false,
+					'create_widget' => false,
+					'save_dashboard' => false
+				]
+			]
+		];
+	}
+
+	/**
+	 * @dataProvider getCancelData
+	 */
+	public function testDashboardClockWidget_Cancel($data) {
+		$this->checkNoChanges($data['cancel_form'], $data['create_widget'], $data['save_dashboard']);
+	}
+
+	/**
+	 * Function for checking canceling form or submitting without any changes.
+	 *
+	 * @param boolean $cancel            true if cancel scenario, false if form is submitted
+	 * @param boolean $create            true if create scenario, false if update
+	 * @param boolean $save_dashboard    true if dashboard will be saved, false if not
+	 */
+	private function checkNoChanges($cancel = false, $create = false, $save_dashboard = true) {
+		$old_hash = CDBHelper::getHash($this->sql);
+
+		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.
+				CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets')
+		);
+		$dashboard = CDashboardElement::find()->one();
+		$old_widget_count = $dashboard->getWidgets()->count();
+
+		$form = $create
+			? $dashboard->edit()->addWidget()->asForm()
+			: $dashboard->getWidget('CancelClock')->edit();
+
+		$dialog = COverlayDialogElement::find()->one()->waitUntilReady();
+
+		if (!$create) {
+			$values = $form->getFields()->asValues();
+		}
+		else {
+			$form->fill(['Type' => 'Clock']);
+		}
+
+		if ($cancel || !$save_dashboard) {
+			$form->fill([
+						'Name' => 'Widget to be cancelled',
+						'Refresh interval' => '10 minutes',
+						'Time type' => CFormElement::RELOADABLE_FILL('Local time'),
+						'Clock type' => 'Digital',
+						'id:show_1' => true,
+						'id:show_2' => false,
+						'id:show_3' => false,
+						'Advanced configuration' => true
+			]);
+		}
+
+		if ($cancel) {
+			$dialog->query('button:Cancel')->one()->click();
+		}
+		else {
+			$form->submit();
+		}
+
+		COverlayDialogElement::ensureNotPresent();
+
+		if (!$cancel) {
+			$dashboard->getWidget(!$save_dashboard ? 'Widget to be cancelled' : 'CancelClock')->waitUntilReady();
+		}
+
+		if ($save_dashboard) {
+			$dashboard->save();
+			$this->assertMessage(TEST_GOOD, 'Dashboard updated');
+		}
+		else {
+			$dashboard->cancelEditing();
+		}
+
+		$this->assertEquals($old_widget_count, $dashboard->getWidgets()->count());
+
+		// Check that updating widget form values did not change in frontend.
+		if (!$create && !$save_dashboard) {
+			$this->assertEquals($values, $dashboard->getWidget('CancelClock')->edit()->getFields()->asValues());
+		}
+
+		// Check that DB hash is not changed.
+		$this->assertEquals($old_hash, CDBHelper::getHash($this->sql));
 	}
 
 	/**
@@ -924,114 +1032,5 @@ class testDashboardClockWidget extends CWebTest {
 			' ON w.widgetid=wf.widgetid'.
 			' WHERE w.name='.zbx_dbstr('DeleteClock')
 		));
-	}
-
-	public static function getCancelData() {
-		return [
-			// Cancel update widget.
-			[
-				[
-					'existing_widget' => 'CancelClock',
-					'save_widget' => true,
-					'save_dashboard' => false
-				]
-			],
-			[
-				[
-					'existing_widget' => 'CancelClock',
-					'save_widget' => false,
-					'save_dashboard' => true
-				]
-			],
-			// Cancel create widget.
-			[
-				[
-					'save_widget' => true,
-					'save_dashboard' => false
-				]
-			],
-			[
-				[
-					'save_widget' => false,
-					'save_dashboard' => true
-				]
-			]
-		];
-	}
-
-	/**
-	 * Function checks if it's possible to cancel creation of clock widget.
-	 *
-	 * @dataProvider getCancelData
-	 */
-	public function testDashboardClockWidget_Cancel($data) {
-		$old_hash = CDBHelper::getHash($this->sql);
-		$dashboardid = CDataHelper::get('ClockWidgets.dashboardids.Dashboard for creating clock widgets');
-		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$dashboardid)->waitUntilReady();
-		$dashboard = CDashboardElement::find()->one();
-
-		// Start updating or creating a widget.
-		if (CTestArrayHelper::get($data, 'existing_widget', false)) {
-			$widget = $dashboard->getWidget($data['existing_widget']);
-			$form = $widget->edit();
-		}
-		else {
-			$overlay = $dashboard->edit()->addWidget();
-			$form = $overlay->asForm();
-			$form->fill(['Type' => 'Clock', 'Clock type' => 'Analog']);
-			$widget = $dashboard->getWidgets()->last();
-		}
-
-		$form->fill(['Name' => 'Widget to be cancelled']);
-
-		// Save or cancel widget.
-		if (CTestArrayHelper::get($data, 'save_widget', false)) {
-			$form->submit();
-			$this->page->waitUntilReady();
-
-			// Check that changes took place on the unsaved dashboard.
-			$this->assertTrue($dashboard->getWidget('Widget to be cancelled')->isValid());
-		}
-		else {
-			$dialog = COverlayDialogElement::find()->one();
-			$dialog->query('button:Cancel')->one()->click();
-			$dialog->ensureNotPresent();
-
-			// Check that widget changes didn't take place after pressing "Cancel".
-			if (CTestArrayHelper::get($data, 'existing_widget', false)) {
-				$this->assertNotEquals('Widget to be cancelled', $widget->waitUntilReady()->getHeaderText());
-			}
-			else {
-				// If test fails and widget isn't canceled, need to wait until page with widget appears on the dashboard.
-				$this->waitUntilPageIsLoaded();
-			}
-		}
-
-		// Save or cancel dashboard update.
-		if (CTestArrayHelper::get($data, 'save_dashboard', false)) {
-			$dashboard->save();
-		}
-		else {
-			$dashboard->cancelEditing();
-		}
-
-		// Confirm that no changes were made to the widget.
-		$this->assertEquals($old_hash, CDBHelper::getHash($this->sql));
-	}
-
-	/**
-	 * Function for waiting for page to load.
-	 */
-	private function waitUntilPageIsLoaded() {
-		try {
-			for ($i = 0; $i < 9; $i++) {
-				if ($widget->getID() !== $dashboard->getWidgets()->last()->getID()) {
-					$this->fail('New widget was added after pressing "Cancel"');
-				}
-			}
-		}
-		catch (\Exception $ex) {
-			// Code is not missing here.
-		}
 	}
 }

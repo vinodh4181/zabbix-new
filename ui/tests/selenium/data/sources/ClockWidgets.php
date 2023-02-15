@@ -79,6 +79,8 @@ class ClockWidgets {
 		CDataHelper::call('dashboard.create', [
 			[
 				'name' => 'Dashboard for creating clock widgets',
+				'display_period' => 60,
+				'auto_start' => 0,
 				'pages' => [
 					[
 						'name' => 'First page',
