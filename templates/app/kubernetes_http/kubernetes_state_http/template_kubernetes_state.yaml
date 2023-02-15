@@ -3954,7 +3954,7 @@ zabbix_export:
           description: 'Service account bearer token'
         -
           macro: '{$KUBE.API.URL}'
-          value: 'https://localhost:6443'
+          value: 'https://kubernetes.default.svc.cluster.local:443'
           description: 'Kubernetes API endpoint URL in the format <scheme>://<host>:<port>'
         -
           macro: '{$KUBE.CONTROLLER_MANAGER.PORT}'

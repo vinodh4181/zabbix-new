@@ -70,7 +70,7 @@ No specific Zabbix configuration is required.
 |{$KUBE.API.LIVEZ.ENDPOINT} |<p>Kubernetes API livez endpoint /livez</p> |`/livez` |
 |{$KUBE.API.READYZ.ENDPOINT} |<p>Kubernetes API readyz endpoint /readyz</p> |`/readyz` |
 |{$KUBE.API.TOKEN} |<p>Service account bearer token</p> |`` |
-|{$KUBE.API.URL} |<p>Kubernetes API endpoint URL in the format <scheme>://<host>:<port></p> |`https://localhost:6443` |
+|{$KUBE.API.URL} |<p>Kubernetes API endpoint URL in the format <scheme>://<host>:<port></p> |`https://kubernetes.default.svc.cluster.local:443` |
 |{$KUBE.API_SERVER.PORT} |<p>Kubernetes API servers metrics endpoint port. Used in ControlPlane LLD.</p> |`6443` |
 |{$KUBE.API_SERVER.SCHEME} |<p>Kubernetes API servers metrics endpoint scheme. Used in ControlPlane LLD.</p> |`https` |
 |{$KUBE.CONTROLLER_MANAGER.PORT} |<p>Kubernetes Controller manager metrics endpoint port. Used in ControlPlane LLD.</p> |`10252` |

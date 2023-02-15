@@ -83,7 +83,7 @@ No specific Zabbix configuration is required.
 |Name|Description|Default|
 |----|-----------|-------|
 |{$KUBE.API.TOKEN} |<p>Service account bearer token</p> |`` |
-|{$KUBE.API.URL} |<p>Kubernetes API URL in the format <scheme>://<host>:<port></p> |`https://localhost:6443` |
+|{$KUBE.API.URL} |<p>Kubernetes API URL in the format <scheme>://<host>:<port></p> |`https://kubernetes.default.svc.cluster.local:443` |
 |{$KUBE.LLD.FILTER.NODE.MATCHES} |<p>Filter of discoverable nodes</p> |`.*` |
 |{$KUBE.LLD.FILTER.NODE.NOT_MATCHES} |<p>Filter to exclude discovered nodes</p> |`CHANGE_IF_NEEDED` |
 |{$KUBE.LLD.FILTER.NODE.ROLE.MATCHES} |<p>Filter of discoverable nodes by role</p> |`.*` |
