@@ -1,7 +1,7 @@
 <?php
 /*
 ** Zabbix
-** Copyright (C) 2001-2022 Zabbix SIA
+** Copyright (C) 2001-2023 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -39,7 +39,8 @@ class CItemPrototype extends CItemGeneral {
 		ZBX_PREPROC_ERROR_FIELD_XML, ZBX_PREPROC_ERROR_FIELD_REGEX, ZBX_PREPROC_THROTTLE_VALUE,
 		ZBX_PREPROC_THROTTLE_TIMED_VALUE, ZBX_PREPROC_SCRIPT, ZBX_PREPROC_PROMETHEUS_PATTERN,
 		ZBX_PREPROC_PROMETHEUS_TO_JSON, ZBX_PREPROC_CSV_TO_JSON, ZBX_PREPROC_STR_REPLACE,
-		ZBX_PREPROC_VALIDATE_NOT_SUPPORTED, ZBX_PREPROC_XML_TO_JSON
+		ZBX_PREPROC_VALIDATE_NOT_SUPPORTED, ZBX_PREPROC_XML_TO_JSON, ZBX_PREPROC_SNMP_WALK_VALUE,
+		ZBX_PREPROC_SNMP_WALK_TO_JSON
 	];
 
 	/**
@@ -50,7 +51,8 @@ class CItemPrototype extends CItemGeneral {
 		ZBX_PREPROC_XPATH, ZBX_PREPROC_JSONPATH, ZBX_PREPROC_VALIDATE_RANGE, ZBX_PREPROC_VALIDATE_REGEX,
 		ZBX_PREPROC_VALIDATE_NOT_REGEX, ZBX_PREPROC_ERROR_FIELD_JSON, ZBX_PREPROC_ERROR_FIELD_XML,
 		ZBX_PREPROC_ERROR_FIELD_REGEX, ZBX_PREPROC_THROTTLE_TIMED_VALUE, ZBX_PREPROC_SCRIPT,
-		ZBX_PREPROC_PROMETHEUS_PATTERN, ZBX_PREPROC_PROMETHEUS_TO_JSON, ZBX_PREPROC_CSV_TO_JSON, ZBX_PREPROC_STR_REPLACE
+		ZBX_PREPROC_PROMETHEUS_PATTERN, ZBX_PREPROC_PROMETHEUS_TO_JSON, ZBX_PREPROC_CSV_TO_JSON,
+		ZBX_PREPROC_STR_REPLACE, ZBX_PREPROC_SNMP_WALK_VALUE, ZBX_PREPROC_SNMP_WALK_TO_JSON
 	];
 
 	/**
@@ -62,7 +64,8 @@ class CItemPrototype extends CItemGeneral {
 		ZBX_PREPROC_VALIDATE_RANGE, ZBX_PREPROC_VALIDATE_REGEX, ZBX_PREPROC_VALIDATE_NOT_REGEX,
 		ZBX_PREPROC_ERROR_FIELD_JSON, ZBX_PREPROC_ERROR_FIELD_XML, ZBX_PREPROC_ERROR_FIELD_REGEX,
 		ZBX_PREPROC_PROMETHEUS_PATTERN, ZBX_PREPROC_PROMETHEUS_TO_JSON, ZBX_PREPROC_CSV_TO_JSON,
-		ZBX_PREPROC_VALIDATE_NOT_SUPPORTED, ZBX_PREPROC_XML_TO_JSON
+		ZBX_PREPROC_VALIDATE_NOT_SUPPORTED, ZBX_PREPROC_XML_TO_JSON, ZBX_PREPROC_SNMP_WALK_VALUE,
+		ZBX_PREPROC_SNMP_WALK_TO_JSON
 	];
 
 	/**
@@ -352,6 +355,7 @@ class CItemPrototype extends CItemGeneral {
 			'selectValueMap' => ['type' => API_OUTPUT, 'flags' => API_ALLOW_NULL, 'in' => 'valuemapid,name,mappings']
 		]];
 		$options_filter = array_intersect_key($options, $api_input_rules['fields']);
+
 		if (!CApiInputValidator::validate($api_input_rules, $options_filter, '/', $error)) {
 			self::exception(ZBX_API_ERROR_PARAMETERS, $error);
 		}
@@ -438,6 +442,7 @@ class CItemPrototype extends CItemGeneral {
 		self::checkValueMaps($items);
 		self::checkHostInterfaces($items);
 		self::checkDependentItems($items);
+		self::checkPreprocessingSteps($items);
 	}
 
 	/**
@@ -507,6 +512,7 @@ class CItemPrototype extends CItemGeneral {
 	 */
 	protected function validateUpdate(array &$items, ?array &$db_items): void {
 		$api_input_rules = ['type' => API_OBJECTS, 'flags' => API_NOT_EMPTY | API_NORMALIZE | API_ALLOW_UNEXPECTED, 'uniq' => [['itemid']], 'fields' => [
+			'uuid' => 	['type' => API_UUID],
 			'itemid' =>	['type' => API_ID, 'flags' => API_REQUIRED]
 		]];
 
@@ -580,6 +586,7 @@ class CItemPrototype extends CItemGeneral {
 		self::checkValueMaps($items, $db_items);
 		self::checkHostInterfaces($items, $db_items);
 		self::checkDependentItems($items, $db_items);
+		self::checkPreprocessingSteps($items);
 	}
 
 	/**
@@ -594,6 +601,7 @@ class CItemPrototype extends CItemGeneral {
 	 */
 	private static function getValidationRules(): array {
 		return ['type' => API_OBJECT, 'flags' => API_ALLOW_UNEXPECTED, 'fields' => [
+			'uuid' => 			['type' => API_UUID],
 			'itemid' =>			['type' => API_ANY],
 			'name' =>			['type' => API_STRING_UTF8, 'flags' => API_NOT_EMPTY, 'length' => DB::getFieldLength('items', 'name')],
 			'type' =>			['type' => API_INT32, 'in' => implode(',', self::SUPPORTED_ITEM_TYPES)],
@@ -629,6 +637,7 @@ class CItemPrototype extends CItemGeneral {
 	 */
 	private static function getInheritedValidationRules(): array {
 		return ['type' => API_OBJECT, 'flags' => API_ALLOW_UNEXPECTED, 'fields' => [
+			'uuid' => 			['type' => API_UUID],
 			'itemid' =>			['type' => API_ANY],
 			'name' =>			['type' => API_UNEXPECTED, 'error_type' => API_ERR_INHERITED],
 			'type' =>			['type' => API_UNEXPECTED, 'error_type' => API_ERR_INHERITED],
@@ -730,8 +739,7 @@ class CItemPrototype extends CItemGeneral {
 	 */
 	private static function updateDiscoveredItems(array $item_prototypes, array $db_item_prototypes): void {
 		foreach ($item_prototypes as $i => $item_prototype) {
-			if (!in_array($item_prototype['host_status'], [HOST_STATUS_MONITORED, HOST_STATUS_NOT_MONITORED])
-					|| !array_key_exists('update_discovered_items', $db_item_prototypes[$item_prototype['itemid']])) {
+			if (!array_key_exists('update_discovered_items', $db_item_prototypes[$item_prototype['itemid']])) {
 				unset($item_prototype[$i]);
 				continue;
 			}
@@ -976,8 +984,6 @@ class CItemPrototype extends CItemGeneral {
 		if ($ins_items) {
 			self::createForce($ins_items);
 		}
-
-		self::inherit(array_merge($upd_items, $ins_items), $upd_db_items);
 	}
 
 	/**
@@ -1008,10 +1014,6 @@ class CItemPrototype extends CItemGeneral {
 			foreach ($upd_db_items as &$upd_db_item) {
 				$item = $items[$parent_indexes[$upd_db_item['templateid']]];
 				$db_item = $db_items[$upd_db_item['templateid']];
-
-				if (array_key_exists('update_discovered_items', $db_item)) {
-					$upd_db_item['update_discovered_items'] = true;
-				}
 
 				$upd_item = [
 					'itemid' => $upd_db_item['itemid'],
@@ -1283,54 +1285,33 @@ class CItemPrototype extends CItemGeneral {
 	 */
 	public static function unlinkTemplateObjects(array $ruleids): void {
 		$result = DBselect(
-			'SELECT id.itemid,i.name,i.type,i.key_,i.templateid,i.uuid,i.valuemapid,i.hostid,h.status AS host_status'.
-			' FROM item_discovery id,items i,hosts h'.
+			'SELECT id.itemid,i.name,i.templateid,i.valuemapid'.
+			' FROM item_discovery id,items i'.
 			' WHERE id.itemid=i.itemid'.
-				' AND i.hostid=h.hostid'.
 				' AND '.dbConditionId('id.parent_itemid', $ruleids).
 				' AND '.dbConditionId('i.templateid', [0], true)
 		);
 
 		$items = [];
 		$db_items = [];
-		$i = 0;
-		$tpl_itemids = [];
 
 		while ($row = DBfetch($result)) {
 			$item = [
 				'itemid' => $row['itemid'],
-				'type'  => $row['type'],
-				'templateid' => 0,
-				'host_status' => $row['host_status']
+				'templateid' => 0
 			];
 
-			if ($row['host_status'] == HOST_STATUS_TEMPLATE) {
-				$item += ['uuid' => generateUuidV4()];
-			}
-
 			if ($row['valuemapid'] != 0) {
-				$item += ['valuemapid' => 0];
+				$item['valuemapid'] = 0;
 				$row['update_discovered_items'] = true;
-
-				if ($row['host_status'] == HOST_STATUS_TEMPLATE) {
-					$tpl_itemids[$i] = $row['itemid'];
-					$item += array_intersect_key($row, array_flip(['key_', 'hostid']));
-				}
 			}
 
-			$items[$i++] = $item;
+			$items[] = $item;
 			$db_items[$row['itemid']] = $row;
 		}
 
 		if ($items) {
 			self::updateForce($items, $db_items);
-
-			if ($tpl_itemids) {
-				$items = array_intersect_key($items, $tpl_itemids);
-				$db_items = array_intersect_key($db_items, array_flip($tpl_itemids));
-
-				self::inherit($items, $db_items);
-			}
 		}
 	}
 

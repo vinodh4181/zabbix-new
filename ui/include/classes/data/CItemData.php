@@ -1,7 +1,7 @@
 <?php declare(strict_types = 0);
 /*
 ** Zabbix
-** Copyright (C) 2001-2022 Zabbix SIA
+** Copyright (C) 2001-2023 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -83,7 +83,9 @@ final class CItemData {
 			'system.stat[resource,<type>]',
 			'system.sw.arch',
 			'system.sw.os[<info>]',
-			'system.sw.packages[<package>,<manager>,<format>]',
+			'system.sw.os.get',
+			'system.sw.packages[<regexp>,<manager>,<format>]',
+			'system.sw.packages.get[<regexp>,<manager>]',
 			'system.swap.in[<device>,<type>]',
 			'system.swap.out[<device>,<type>]',
 			'system.swap.size[<device>,<type>]',
@@ -185,7 +187,9 @@ final class CItemData {
 			'system.stat[resource,<type>]',
 			'system.sw.arch',
 			'system.sw.os[<info>]',
-			'system.sw.packages[<package>,<manager>,<format>]',
+			'system.sw.os.get',
+			'system.sw.packages[<regexp>,<manager>,<format>]',
+			'system.sw.packages.get[<regexp>,<manager>]',
 			'system.swap.in[<device>,<type>]',
 			'system.swap.out[<device>,<type>]',
 			'system.swap.size[<device>,<type>]',
@@ -356,6 +360,7 @@ final class CItemData {
 		],
 		ITEM_TYPE_INTERNAL => [
 			'zabbix[boottime]',
+			'zabbix[connector_queue]',
 			'zabbix[host,,items]',
 			'zabbix[host,,items_unsupported]',
 			'zabbix[host,,maintenance]',
@@ -772,25 +777,25 @@ final class CItemData {
 				]
 			],
 			'for_http_auth_type' => [
-				HTTPTEST_AUTH_BASIC => [
+				ZBX_HTTP_AUTH_BASIC => [
 					'js-item-http-username-label',
 					'js-item-http-username-field',
 					'js-item-http-password-label',
 					'js-item-http-password-field'
 				],
-				HTTPTEST_AUTH_NTLM => [
+				ZBX_HTTP_AUTH_NTLM => [
 					'js-item-http-username-label',
 					'js-item-http-username-field',
 					'js-item-http-password-label',
 					'js-item-http-password-field'
 				],
-				HTTPTEST_AUTH_KERBEROS => [
+				ZBX_HTTP_AUTH_KERBEROS => [
 					'js-item-http-username-label',
 					'js-item-http-username-field',
 					'js-item-http-password-label',
 					'js-item-http-password-field'
 				],
-				HTTPTEST_AUTH_DIGEST => [
+				ZBX_HTTP_AUTH_DIGEST => [
 					'js-item-http-username-label',
 					'js-item-http-username-field',
 					'js-item-http-password-label',
@@ -1157,8 +1162,16 @@ final class CItemData {
 				'description' => _('Operating system information. Returns string'),
 				'value_type' => ITEM_VALUE_TYPE_STR
 			],
-			'system.sw.packages[<package>,<manager>,<format>]' => [
+			'system.sw.os.get' => [
+				'description' => _('Operating system version information. Returns JSON'),
+				'value_type' => ITEM_VALUE_TYPE_TEXT
+			],
+			'system.sw.packages[<regexp>,<manager>,<format>]' => [
 				'description' => _('Listing of installed packages. Returns text'),
+				'value_type' => ITEM_VALUE_TYPE_TEXT
+			],
+			'system.sw.packages.get[<regexp>,<manager>]' => [
+				'description' => _('Detailed listing of installed packages. Returns text in JSON format'),
 				'value_type' => ITEM_VALUE_TYPE_TEXT
 			],
 			'system.swap.in[<device>,<type>]' => [
@@ -1783,6 +1796,10 @@ final class CItemData {
 			],
 			'zabbix[boottime]' => [
 				'description' => _('Startup time of Zabbix server, Unix timestamp.'),
+				'value_type' => ITEM_VALUE_TYPE_UINT64
+			],
+			'zabbix[connector_queue]' => [
+				'description' => _('Count of values enqueued in the connector queue.'),
 				'value_type' => ITEM_VALUE_TYPE_UINT64
 			],
 			'zabbix[host,,items]' => [

@@ -1,7 +1,7 @@
 <?php
 /*
 ** Zabbix
-** Copyright (C) 2001-2022 Zabbix SIA
+** Copyright (C) 2001-2023 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -489,7 +489,8 @@ abstract class CItemGeneral extends CApiService {
 				'SELECT ht.templateid,ht.hostid,h.status'.
 				' FROM hosts_templates ht,hosts h'.
 				' WHERE ht.hostid=h.hostid'.
-					' AND '.dbConditionId('ht.templateid', array_keys($templateids))
+					' AND '.dbConditionId('ht.templateid', array_keys($templateids)).
+					' AND '.dbConditionInt('h.flags', [ZBX_FLAG_DISCOVERY_NORMAL, ZBX_FLAG_DISCOVERY_CREATED])
 			);
 
 			$tpl_links = [];
@@ -696,6 +697,7 @@ abstract class CItemGeneral extends CApiService {
 							: _('Cannot inherit item with key "%1$s" of template "%2$s" to template "%3$s", because a discovered item with the same key already exists.');
 						break 2;
 				}
+				break;
 
 			case ZBX_FLAG_DISCOVERY_RULE:
 				switch ($upd_db_item['flags']) {
@@ -717,6 +719,7 @@ abstract class CItemGeneral extends CApiService {
 							: _('Cannot inherit LLD rule with key "%1$s" of template "%2$s" to template "%3$s", because a discovered item with the same key already exists.');
 						break 2;
 				}
+				break;
 
 			case ZBX_FLAG_DISCOVERY_PROTOTYPE:
 				switch ($upd_db_item['flags']) {
@@ -738,6 +741,7 @@ abstract class CItemGeneral extends CApiService {
 							: _('Cannot inherit item prototype with key "%1$s" of template "%2$s" to template "%3$s", because a discovered item with the same key already exists.');
 						break 2;
 				}
+				break;
 		}
 
 		if ($error) {
@@ -1185,7 +1189,7 @@ abstract class CItemGeneral extends CApiService {
 				}
 
 				if (array_key_exists('authtype', $item) && $item['authtype'] != $db_item['authtype']
-						&& $item['authtype'] == HTTPTEST_AUTH_NONE) {
+						&& $item['authtype'] == ZBX_HTTP_AUTH_NONE) {
 					$item += array_intersect_key($type_field_defaults, array_flip(['username', 'password']));
 				}
 
@@ -2025,6 +2029,53 @@ abstract class CItemGeneral extends CApiService {
 	}
 
 	/**
+	 * Check prerpocessing steps for specifics validation rules.
+	 *
+	 * @param array $items
+	 *
+	 * @throws APIException
+	 */
+	protected static function checkPreprocessingSteps(array $items): void {
+		foreach ($items as $i => $item) {
+			if (!array_key_exists('preprocessing', $item)) {
+				continue;
+			}
+
+			foreach ($item['preprocessing'] as $j => $step) {
+				if ($step['type'] == ZBX_PREPROC_SNMP_WALK_TO_JSON) {
+					$params = explode("\n", $step['params']);
+
+					if (count($params) % 3 !== 0) {
+						self::exception(ZBX_API_ERROR_PARAMETERS,
+							_s('Incorrect value for field "%1$s": %2$s.', '/'.($i + 1).'/preprocessing/'.($j + 1).'/params', _('cannot be empty'))
+						);
+					}
+
+					for ($n = 1; $n <= count($params); $n++) {
+						$param = $params[$n - 1];
+
+						if ($param === '') {
+							self::exception(ZBX_API_ERROR_PARAMETERS,
+								_s('Incorrect value for field "%1$s": %2$s.', '/'.($i + 1).'/preprocessing/'.($j + 1).'/params', _('cannot be empty'))
+							);
+						}
+
+						// Field "Treat as" every 3rd value. Check that field is correct.
+						if ($n % 3 === 0) {
+							if (!in_array($param, [ZBX_PREPROC_SNMP_UNCHANGED, ZBX_PREPROC_SNMP_UTF8_FROM_HEX,
+									ZBX_PREPROC_SNMP_MAC_FROM_HEX, ZBX_PREPROC_SNMP_INT_FROM_BITS])) {
+								self::exception(ZBX_API_ERROR_PARAMETERS,
+									_s('Incorrect value for field "%1$s": %2$s.', '/'.($i + 1).'/preprocessing/'.($j + 1).'/params', _('incorrect value'))
+								);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * Get master item links starting from the given master items and till the lowest level master items.
 	 *
 	 * @param  array $items
@@ -2521,25 +2572,11 @@ abstract class CItemGeneral extends CApiService {
 	 * @param array $db_items
 	 */
 	public static function addInheritedItems(array &$db_items): void {
-		$templateids = array_keys($db_items);
-
-		do {
-			$options = [
-				'output' => ['itemid', 'name'],
-				'filter' => ['templateid' => $templateids]
-			];
-			$result = DBselect(DB::makeSql('items', $options));
-
-			$templateids = [];
-
-			while ($row = DBfetch($result)) {
-				if (!array_key_exists($row['itemid'], $db_items)) {
-					$templateids[] = $row['itemid'];
-
-					$db_items[$row['itemid']] = $row;
-				}
-			}
-		} while ($templateids);
+		$options = [
+			'output' => ['itemid', 'name'],
+			'filter' => ['templateid' => array_keys($db_items)]
+		];
+		$db_items += DBfetchArrayAssoc(DBselect(DB::makeSql('items', $options)), 'itemid');
 	}
 
 	/**
@@ -2551,7 +2588,7 @@ abstract class CItemGeneral extends CApiService {
 		DB::update('graphs', [
 			'values' => [
 				'ymin_type' => GRAPH_YAXIS_TYPE_CALCULATED,
-				'ymin_itemid' => null
+				'ymin_itemid' => 0
 			],
 			'where' => ['ymin_itemid' => $del_itemids]
 		]);
@@ -2559,7 +2596,7 @@ abstract class CItemGeneral extends CApiService {
 		DB::update('graphs', [
 			'values' => [
 				'ymax_type' => GRAPH_YAXIS_TYPE_CALCULATED,
-				'ymax_itemid' => null
+				'ymax_itemid' => 0
 			],
 			'where' => ['ymax_itemid' => $del_itemids]
 		]);

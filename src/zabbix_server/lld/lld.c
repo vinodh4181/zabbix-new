@@ -1,6 +1,6 @@
 /*
 ** Zabbix
-** Copyright (C) 2001-2022 Zabbix SIA
+** Copyright (C) 2001-2023 Zabbix SIA
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ typedef struct
 	zbx_uint64_t		id;
 	char			*macro;
 	char			*regexp;
-	zbx_vector_ptr_t	regexps;
+	zbx_vector_expression_t	regexps;
 	unsigned char		op;
 }
 lld_condition_t;
@@ -72,7 +72,7 @@ lld_override_t;
 static void	lld_condition_free(lld_condition_t *condition)
 {
 	zbx_regexp_clean_expressions(&condition->regexps);
-	zbx_vector_ptr_destroy(&condition->regexps);
+	zbx_vector_expression_destroy(&condition->regexps);
 
 	zbx_free(condition->macro);
 	zbx_free(condition->regexp);
@@ -146,7 +146,7 @@ static int	lld_filter_condition_add(zbx_vector_ptr_t *conditions, const char *id
 	condition->regexp = zbx_strdup(NULL, regexp);
 	condition->op = (unsigned char)atoi(op);
 
-	zbx_vector_ptr_create(&condition->regexps);
+	zbx_vector_expression_create(&condition->regexps);
 
 	zbx_vector_ptr_append(conditions, condition);
 
@@ -187,16 +187,16 @@ static int	lld_filter_load(lld_filter_t *filter, zbx_uint64_t lld_ruleid, const 
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	result = DBselect(
+	result = zbx_db_select(
 			"select item_conditionid,macro,value,operator"
 			" from item_condition"
 			" where itemid=" ZBX_FS_UI64,
 			lld_ruleid);
 
-	while (NULL != (row = DBfetch(result)) && SUCCEED == (ret = lld_filter_condition_add(&filter->conditions,
+	while (NULL != (row = zbx_db_fetch(result)) && SUCCEED == (ret = lld_filter_condition_add(&filter->conditions,
 			row[0], row[1], row[2], row[3], item, error)))
 		;
-	DBfree_result(result);
+	zbx_db_free_result(result);
 
 	if (ZBX_CONDITION_EVAL_TYPE_AND_OR == filter->evaltype)
 		zbx_vector_ptr_sort(&filter->conditions, lld_condition_compare_by_macro);
@@ -238,7 +238,7 @@ static int	filter_condition_match(const struct zbx_json_parse *jp_row, const zbx
 		}
 		else
 		{
-			switch (regexp_match_ex(&condition->regexps, value, condition->regexp, ZBX_CASE_SENSITIVE))
+			switch (zbx_regexp_match_ex(&condition->regexps, value, condition->regexp, ZBX_CASE_SENSITIVE))
 			{
 				case ZBX_REGEXP_MATCH:
 					*result = (ZBX_CONDITION_OPERATOR_REGEXP == condition->op ? 1 : 0);
@@ -509,11 +509,11 @@ static int	lld_override_conditions_load(zbx_vector_ptr_t *overrides, const zbx_v
 			"select lld_overrideid,lld_override_conditionid,macro,value,operator"
 			" from lld_override_condition"
 			" where");
-	DBadd_condition_alloc(sql, sql_alloc, &sql_offset, "lld_overrideid", overrideids->values,
+	zbx_db_add_condition_alloc(sql, sql_alloc, &sql_offset, "lld_overrideid", overrideids->values,
 			overrideids->values_num);
 
-	result = DBselect("%s", *sql);
-	while (NULL != (row = DBfetch(result)))
+	result = zbx_db_select("%s", *sql);
+	while (NULL != (row = zbx_db_fetch(result)))
 	{
 		zbx_uint64_t	overrideid;
 
@@ -532,7 +532,7 @@ static int	lld_override_conditions_load(zbx_vector_ptr_t *overrides, const zbx_v
 			break;
 		}
 	}
-	DBfree_result(result);
+	zbx_db_free_result(result);
 
 	for (i = 0; i < overrides->values_num; i++)
 	{
@@ -650,16 +650,16 @@ static int	lld_overrides_load(zbx_vector_ptr_t *overrides, zbx_uint64_t lld_rule
 
 	zbx_vector_uint64_create(&overrideids);
 
-	DBbegin();
+	zbx_db_begin();
 
-	result = DBselect(
+	result = zbx_db_select(
 			"select lld_overrideid,step,evaltype,formula,stop"
 			" from lld_override"
 			" where itemid=" ZBX_FS_UI64
 			" order by lld_overrideid",
 			lld_ruleid);
 
-	while (NULL != (row = DBfetch(result)))
+	while (NULL != (row = zbx_db_fetch(result)))
 	{
 		lld_override_t	*override;
 
@@ -677,7 +677,7 @@ static int	lld_overrides_load(zbx_vector_ptr_t *overrides, zbx_uint64_t lld_rule
 		zbx_vector_ptr_append(overrides, override);
 		zbx_vector_uint64_append(&overrideids, override->overrideid);
 	}
-	DBfree_result(result);
+	zbx_db_free_result(result);
 
 	if (0 != overrideids.values_num && SUCCEED == (ret = lld_override_conditions_load(overrides, &overrideids,
 			&sql, &sql_alloc, item, error)))
@@ -685,7 +685,7 @@ static int	lld_overrides_load(zbx_vector_ptr_t *overrides, zbx_uint64_t lld_rule
 		lld_override_operations_load(overrides, &overrideids, &sql, &sql_alloc);
 	}
 
-	DBcommit();
+	zbx_db_commit();
 	zbx_free(sql);
 	zbx_vector_uint64_destroy(&overrideids);
 
@@ -1150,13 +1150,13 @@ int	lld_process_discovery_rule(zbx_uint64_t lld_ruleid, const char *value, char 
 		goto out;
 	}
 
-	result = DBselect(
+	result = zbx_db_select(
 			"select hostid,key_,evaltype,formula,lifetime"
 			" from items"
 			" where itemid=" ZBX_FS_UI64,
 			lld_ruleid);
 
-	if (NULL != (row = DBfetch(result)))
+	if (NULL != (row = zbx_db_fetch(result)))
 	{
 		char	*lifetime_str;
 
@@ -1178,7 +1178,7 @@ int	lld_process_discovery_rule(zbx_uint64_t lld_ruleid, const char *value, char 
 
 		zbx_free(lifetime_str);
 	}
-	DBfree_result(result);
+	zbx_db_free_result(result);
 
 	if (NULL == row)
 	{
