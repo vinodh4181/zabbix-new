@@ -432,32 +432,39 @@ zabbix_export:
                       var filterLabels = parseFilters('{$KUBE.NODE.FILTER.LABELS}'),
                           filterAnnotations = parseFilters('{$KUBE.NODE.FILTER.ANNOTATIONS}');
 
+                      function onNodeLabels (node) {
+                          return filter(node.metadata.name, node.metadata.labels, filterNodeLabels);
+                      }
+                      function onNodeAnnotations (node) {
+                          return filter(node.metadata.name, node.metadata.annotations, filterNodeAnnotations);
+                      }
+
                       const output = [];
-                      input.nodes.forEach(function (node) {
-                          if (filter(node.metadata.name, node.metadata.labels, filterLabels)
-                              && filter(node.metadata.name, node.metadata.annotations, filterAnnotations)) {
-                              Zabbix.log(4, '[ Kubernetes discovery ] Filtered node "' + node.metadata.name + '"');
+                      input.nodes
+                          .filter(onNodeLabels)
+                          .filter(onNodeAnnotations)
+                          .forEach(function (node) {
+                          Zabbix.log(4, '[ Kubernetes discovery ] Filtered node "' + node.metadata.name + '"');
 
-                              var internalIPs = node.status.addresses.filter(function (addr) {
-                                  return addr.type === 'InternalIP';
-                              });
+                          var internalIPs = node.status.addresses.filter(function (addr) {
+                              return addr.type === 'InternalIP';
+                          });
 
-                              var internalIP = internalIPs.length && internalIPs[0].address;
+                          var internalIP = internalIPs.length && internalIPs[0].address;
 
-                              if (!(internalIP in input.endpointIPs)) {
-                                  Zabbix.log(4, '[ Kubernetes discovery ] Node "' + node.metadata.name + '" is not included in the list of endpoint IPs');
-                                  return;
-                              }
-
-                              output.push({
-                                  '{#NAME}': node.metadata.name,
-                                  '{#IP}': internalIP,
-                                  '{#ROLES}': node.status.roles,
-                                  '{#ARCH}': node.metadata.labels['kubernetes.io/arch'] || '',
-                                  '{#OS}': node.metadata.labels['kubernetes.io/os'] || '',
-                                  '{#CLUSTER_HOSTNAME}': api_hostname
-                              });
+                          if (!(internalIP in input.endpointIPs)) {
+                              Zabbix.log(4, '[ Kubernetes discovery ] Node "' + node.metadata.name + '" is not included in the list of endpoint IPs');
+                              return;
                           }
+
+                          output.push({
+                              '{#NAME}': node.metadata.name,
+                              '{#IP}': internalIP,
+                              '{#ROLES}': node.status.roles,
+                              '{#ARCH}': node.metadata.labels['kubernetes.io/arch'] || '',
+                              '{#OS}': node.metadata.labels['kubernetes.io/os'] || '',
+                              '{#CLUSTER_HOSTNAME}': api_hostname
+                          });
                       });
 
                       return JSON.stringify(output);
@@ -1967,23 +1974,36 @@ zabbix_export:
                           filterPodLabels = parseFilters('{$KUBE.POD.FILTER.LABELS}'),
                           filterPodAnnotations = parseFilters('{$KUBE.POD.FILTER.ANNOTATIONS}');
 
-                      const output = [];
-                      input.nodes.forEach(function (node) {
-                          if (filter(node.metadata.name, node.metadata.labels, filterNodeLabels)
-                              && filter(node.metadata.name, node.metadata.annotations, filterNodeAnnotations)) {
-                              node.pods.forEach(function (pod) {
-                                  if (filter(pod.name, pod.labels, filterPodLabels)
-                                      && filter(pod.name, pod.annotations, filterPodAnnotations)) {
-                                      Zabbix.log(4, '[ Kubernetes discovery ] Filtered pod "' + pod.name + '"');
+                      function onNodeLabels (node) {
+                          return filter(node.metadata.name, node.metadata.labels, filterNodeLabels);
+                      }
+                      function onNodeAnnotations (node) {
+                          return filter(node.metadata.name, node.metadata.annotations, filterNodeAnnotations);
+                      }
+                      function onPodLabels (pod) {
+                          return filter(pod.name, pod.labels, filterPodLabels);
+                      }
+                      function onPodAnnotations (pod) {
+                          return filter(pod.name, pod.annotations, filterPodAnnotations);
+                      }
 
-                                      output.push({
-                                          '{#POD}': pod.name,
-                                          '{#NAMESPACE}': pod.namespace,
-                                          '{#NODE}': node.metadata.name
-                                      });
-                                  }
+                      const output = [];
+                      input.nodes
+                          .filter(onNodeLabels)
+                          .filter(onNodeAnnotations)
+                          .forEach(function (node) {
+                          node.pods
+                              .filter(onPodLabels)
+                              .filter(onPodAnnotations)
+                              .forEach(function (pod) {
+                              Zabbix.log(4, '[ Kubernetes discovery ] Filtered pod "' + pod.name + '"');
+
+                              output.push({
+                                  '{#POD}': pod.name,
+                                  '{#NAMESPACE}': pod.namespace,
+                                  '{#NODE}': node.metadata.name
                               });
-                          }
+                          });
                       });
 
                       return JSON.stringify(output);
