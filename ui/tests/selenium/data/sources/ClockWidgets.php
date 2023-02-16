@@ -143,12 +143,6 @@ class ClockWidgets {
 							]
 						]
 					]
-				],
-				'userGroups' => [
-					[
-						'usrgrpid' => 7,
-						'permission' => 3
-					]
 				]
 			]
 		]);
