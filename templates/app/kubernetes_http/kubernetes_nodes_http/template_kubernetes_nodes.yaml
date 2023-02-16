@@ -439,11 +439,10 @@ zabbix_export:
                           return filter(node.metadata.name, node.metadata.annotations, filterNodeAnnotations);
                       }
 
-                      const output = [];
-                      input.nodes
+                      const output = input.nodes
                           .filter(onNodeLabels)
                           .filter(onNodeAnnotations)
-                          .forEach(function (node) {
+                          .map(function (node) {
                           Zabbix.log(4, '[ Kubernetes discovery ] Filtered node "' + node.metadata.name + '"');
 
                           var internalIPs = node.status.addresses.filter(function (addr) {
@@ -457,14 +456,14 @@ zabbix_export:
                               return;
                           }
 
-                          output.push({
+                          return {
                               '{#NAME}': node.metadata.name,
                               '{#IP}': internalIP,
                               '{#ROLES}': node.status.roles,
                               '{#ARCH}': node.metadata.labels['kubernetes.io/arch'] || '',
                               '{#OS}': node.metadata.labels['kubernetes.io/os'] || '',
                               '{#CLUSTER_HOSTNAME}': api_hostname
-                          });
+                          };
                       });
 
                       return JSON.stringify(output);
