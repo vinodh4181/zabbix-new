@@ -40,8 +40,8 @@ require_once dirname(__FILE__).'/authentication/testUsersAuthenticationSaml.php'
 require_once dirname(__FILE__).'/authentication/testUsersPasswordComplexity.php';
 
 // Dashboards.
-require_once dirname(__FILE__).'/dashboard/testDashboardCopyWidgets.php';
 require_once dirname(__FILE__).'/dashboard/testDashboardClockWidget.php';
+require_once dirname(__FILE__).'/dashboard/testDashboardCopyWidgets.php';
 require_once dirname(__FILE__).'/dashboard/testDashboardDynamicItemWidgets.php';
 require_once dirname(__FILE__).'/dashboard/testDashboardFavoriteGraphsWidget.php';
 require_once dirname(__FILE__).'/dashboard/testDashboardFavoriteMapsWidget.php';
@@ -297,8 +297,8 @@ class SeleniumTests {
 		$suite->addTestSuite('testUsersPasswordComplexity');
 
 		// Dashboards.
-		$suite->addTestSuite('testDashboardCopyWidgets');
 		$suite->addTestSuite('testDashboardClockWidget');
+		$suite->addTestSuite('testDashboardCopyWidgets');
 		$suite->addTestSuite('testDashboardDynamicItemWidgets');
 		$suite->addTestSuite('testDashboardFavoriteGraphsWidget');
 		$suite->addTestSuite('testDashboardFavoriteMapsWidget');
