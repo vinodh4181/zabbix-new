@@ -411,6 +411,5 @@ class testTriggerDependencies extends CWebTest {
 		$this->page->waitUntilReady();
 		$this->query('name:triggersForm')->asForm()->one()->selectTab('Dependencies')->waitUntilReady();
 		$table = $this->query('id:dependency-table')->one()->asTable();
-
 	}
 }
