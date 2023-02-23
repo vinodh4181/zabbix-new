@@ -20,9 +20,10 @@
 
 
 require_once dirname(__FILE__).'/../include/CWebTest.php';
+require_once dirname(__FILE__).'/behaviors/CMessageBehavior.php';
 
 /**
- *
+ * @backup hosts
  *
  * @onBefore prepareTriggersData
  */
@@ -63,10 +64,34 @@ class testTriggerDependencies extends CWebTest {
 				'groups' => [
 					'groupid' => 1
 				]
+			],
+			[
+				'host' => 'Template with linked template',
+				'groups' => [
+					'groupid' => 1
+				]
+			],
+			[
+				'host' => 'Template that linked to template',
+				'groups' => [
+					'groupid' => 1
+				]
 			]
 		]);
 		$this->assertArrayHasKey('templateids', $templates);
 		self::$templateids = CDataHelper::getIds('host');
+
+		$response = CDataHelper::call('template.update', [
+			[
+				'templateid' => self::$templateids['Template with linked template'],
+				'templates' => [
+					[
+						'templateid' => self::$templateids['Template that linked to template']
+					]
+				]
+			]
+		]);
+		$this->assertArrayHasKey('templateids', $response);
 
 		$template_items = CDataHelper::call('item.create', [
 			[
@@ -81,6 +106,14 @@ class testTriggerDependencies extends CWebTest {
 				'name' => 'template item for linking',
 				'key_' => 'everything_2',
 				'hostid' => self::$templateids['Template that linked to host'],
+				'type' => 2,
+				'value_type' => 3,
+				'delay' => 0
+			],
+			[
+				'name' => 'template item for template',
+				'key_' => 'linked_temp',
+				'hostid' => self::$templateids['Template that linked to template'],
 				'type' => 2,
 				'value_type' => 3,
 				'delay' => 0
@@ -106,6 +139,15 @@ class testTriggerDependencies extends CWebTest {
 				'description' => 'trigger linked update',
 				'expression' => 'last(/Template that linked to host/everything_2)=0'
 			]
+			,
+			[
+				'description' => 'trigger template linked',
+				'expression' => 'last(/Template that linked to template/linked_temp)=0'
+			],
+			[
+				'description' => 'trigger template linked update',
+				'expression' => 'last(/Template that linked to template/linked_temp)=0'
+			]
 		]);
 		$this->assertArrayHasKey('triggerids', $template_triggers);
 		self::$template_triggerids = CDataHelper::getIds('description');
@@ -122,6 +164,13 @@ class testTriggerDependencies extends CWebTest {
 				'name' => 'Drule for linking',
 				'key_' => 'linked_drule',
 				'hostid' => self::$templateids['Template that linked to host'],
+				'type' => 2,
+				'delay' => 0
+			],
+			[
+				'name' => 'Drule for template',
+				'key_' => 'template_drule',
+				'hostid' => self::$templateids['Template that linked to template'],
 				'type' => 2,
 				'delay' => 0
 			]
@@ -147,6 +196,15 @@ class testTriggerDependencies extends CWebTest {
 				'type' => 2,
 				'value_type' => 3,
 				'delay' => 0
+			],
+			[
+				'name' => 'Item prot for template',
+				'key_' => 'template_prot_[{#KEY}]',
+				'hostid' => self::$templateids['Template that linked to template'],
+				'ruleid' => self::$druleids['Drule for template'],
+				'type' => 2,
+				'value_type' => 3,
+				'delay' => 0
 			]
 		]);
 		$this->assertArrayHasKey('itemids', $item_prot);
@@ -168,6 +226,14 @@ class testTriggerDependencies extends CWebTest {
 			[
 				'description' => 'trigger prototype linked update{#KEY}',
 				'expression' => 'last(/Template that linked to host/linking_prot_[{#KEY}])=0'
+			],
+			[
+				'description' => 'trigger prototype template{#KEY}',
+				'expression' => 'last(/Template that linked to template/template_prot_[{#KEY}])=0'
+			],
+			[
+				'description' => 'trigger prototype template update{#KEY}',
+				'expression' => 'last(/Template that linked to template/template_prot_[{#KEY}])=0'
 			]
 		]);
 		$this->assertArrayHasKey('triggerids', $trigger_prot);
@@ -308,10 +374,12 @@ class testTriggerDependencies extends CWebTest {
 						'Name' => 'Simple trigger',
 						'Expression' => 'last(/Host with everything/host_item_1)=0'
 					],
-					'dependencie' => ['Host with everything' => [
-						'Host trigger everything'
-					]
-					]
+					'dependencie' => ['Host with everything' =>
+						[
+							'Host trigger everything'
+						]
+					],
+					'hostname' => 'Host with everything'
 				]
 			],
 			// #1 dependence on 2 triggers from same host.
@@ -326,7 +394,8 @@ class testTriggerDependencies extends CWebTest {
 							'Host trigger everything',
 							'Host trigger everything 2'
 						]
-					]
+					],
+					'hostname' => 'Host with everything'
 				]
 			],
 			// #2 dependence on trigger from another host.
@@ -340,7 +409,8 @@ class testTriggerDependencies extends CWebTest {
 						'Host with linked template' => [
 							'Host trigger 2'
 						]
-					]
+					],
+					'hostname' => 'Host with everything'
 				]
 			],
 			// #3 dependence on trigger from another and same host.
@@ -357,7 +427,8 @@ class testTriggerDependencies extends CWebTest {
 						'Host with everything' => [
 							'Host trigger everything'
 						]
-					]
+					],
+					'hostname' => 'Host with everything'
 				]
 			],
 			// #4 dependence on linked trigger.
@@ -371,7 +442,8 @@ class testTriggerDependencies extends CWebTest {
 						'Host with linked template' => [
 							'trigger linked'
 						]
-					]
+					],
+					'hostname' => 'Host with everything'
 				]
 			]
 		];
@@ -383,7 +455,8 @@ class testTriggerDependencies extends CWebTest {
 	 * @dataProvider getHostCreateData
 	 */
 	public function testTriggerDependencies_Create($data) {
-		$this->page->login()->open('triggers.php?hostid=99262&form=create&context=host')->waitUntilReady();
+		$this->page->login()->open('triggers.php?hostid='.self::$hostids[$data['hostname']].'&form=create&context=host')
+				->waitUntilReady();
 		$form = $this->query('name:triggersForm')->asForm()->one();
 		$form->fill($data['fields']);
 		$form->selectTab('Dependencies')->waitUntilReady();
