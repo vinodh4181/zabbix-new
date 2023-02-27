@@ -21,13 +21,16 @@
 
 require_once dirname(__FILE__).'/../include/CWebTest.php';
 require_once dirname(__FILE__).'/behaviors/CMessageBehavior.php';
+require_once dirname(__FILE__).'/traits/TableTrait.php';
 
 /**
- * @backup hosts
+ * @backup hosts, profiles
  *
  * @onBefore prepareTriggersData
  */
 class testTriggerDependencies extends CWebTest {
+
+	use TableTrait;
 
 	protected static $templateids;
 	protected static $template_itemids;
@@ -455,8 +458,10 @@ class testTriggerDependencies extends CWebTest {
 	 * @dataProvider getHostCreateData
 	 */
 	public function testTriggerDependencies_Create($data) {
-		$this->page->login()->open('triggers.php?hostid='.self::$hostids[$data['hostname']].'&form=create&context=host')
-				->waitUntilReady();
+		$this->page->login()->open('triggers.php?filter_set=1&filter_hostids%5B0%5D='.self::$hostids[$data['hostname']].
+					'&context=host')->waitUntilReady();
+		$this->query('button:Create trigger')->one()->click();
+		$this->page->waitUntilReady();
 		$form = $this->query('name:triggersForm')->asForm()->one();
 		$form->fill($data['fields']);
 		$form->selectTab('Dependencies')->waitUntilReady();
@@ -477,12 +482,20 @@ class testTriggerDependencies extends CWebTest {
 
 		$form->submit();
 		$this->assertMessage(TEST_GOOD, 'Trigger added');
+
+		$this->checkTrigger($data['fields']['Name'], $data['dependencie']);
 	}
 
-	private function checkTrigger($trigger_name) {
-		$this->query('name:list-table')->one()->asTable()->findRow('Name', $trigger_name)->select();
+	private function checkTrigger($trigger_name, $parameters) {
+		$this->query('class:list-table')->one()->asTable()->query('link', $trigger_name)->one()->click();
 		$this->page->waitUntilReady();
 		$this->query('name:triggersForm')->asForm()->one()->selectTab('Dependencies')->waitUntilReady();
-		$table = $this->query('id:dependency-table')->one()->asTable();
+
+		$column_values = $this->getTableColumnData('Name', 'id:dependency-table');
+		foreach ($parameters as $host => $triggers) {
+			foreach ($triggers as $trigger) {
+				$this->assertTrue(in_array($host.': '.$trigger, $column_values));
+			}
+		}
 	}
 }
