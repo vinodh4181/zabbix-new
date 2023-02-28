@@ -764,6 +764,11 @@ class testTriggerDependencies extends CWebTest {
 		];
 	}
 
+	/**
+	 * Create trigger with dependencies on host.
+	 *
+	 * @dataProvider getTemplateTriggerCreateData
+	 */
 	public function testTriggerDependencies_TemplateTriggerCreate($data) {
 		$this->page->login()->open('triggers.php?filter_set=1&filter_hostids%5B0%5D='.
 				self::$templateids['Template with everything'].'&context=template')->waitUntilReady();
@@ -771,7 +776,11 @@ class testTriggerDependencies extends CWebTest {
 		$this->page->waitUntilReady();
 		$this->triggerCreation($data);
 		$this->assertMessage(TEST_GOOD, 'Trigger added');
-		$this->checkTrigger($data['fields']['Name'], $data['dependencie']);
+
+		$host_check = (array_key_exists('host_dependencie', $data)) ? $data['host_dependencie'] : null;
+		$trigger_check = (array_key_exists('dependencie', $data)) ? $data['dependencie'] : null;
+
+		$this->checkTrigger($data['fields']['Name'], $trigger_check, null, $host_check);
 	}
 
 	private function triggerCreation($data) {
@@ -780,19 +789,11 @@ class testTriggerDependencies extends CWebTest {
 		$form->selectTab('Dependencies')->waitUntilReady();
 
 		if (array_key_exists('dependencie', $data)) {
-			foreach ($data['dependencie'] as $host_name => $triggers) {
-				$form->query('id:add_dep_trigger')->one()->click();
-				$dialog = COverlayDialogElement::find()->one()->waitUntilReady();
-				$dialog->query('id:generic-popup-form')->asMultiselect()->one()->fill(['Host' => $host_name]);
-				$dialog->waitUntilReady();
+			$this->addDependence($data['dependencie'], 'id:add_dep_trigger');
+		}
 
-				foreach ($triggers as $trigger) {
-					$dialog->query('xpath:.//a[text()="'.$trigger.'"]/../preceding-sibling::td/input')->asCheckbox()->one()->check();
-				}
-
-				$dialog->query('xpath:(.//button[text()="Select"])[2]')->one()->click();
-				$dialog->waitUntilNotVisible();
-			}
+		if (array_key_exists('host_dependencie', $data)) {
+			$this->addDependence($data['host_dependencie'], 'id:add_dep_host_trigger');
 		}
 
 		if (array_key_exists('prototype_dependencie', $data)) {
@@ -807,46 +808,40 @@ class testTriggerDependencies extends CWebTest {
 			$dialog->waitUntilNotVisible();
 		}
 
-		if (array_key_exists('host_dependencie', $data)) {
-			foreach ($data['dependencie'] as $host_name => $triggers) {
-				$form->query('id:add_dep_host_trigger')->one()->click();
-				$dialog = COverlayDialogElement::find()->one()->waitUntilReady();
-				$dialog->query('id:generic-popup-form')->asMultiselect()->one()->fill(['Host' => $host_name]);
-				$dialog->waitUntilReady();
-
-				foreach ($triggers as $trigger) {
-					$dialog->query('xpath:.//a[text()="'.$trigger.'"]/../preceding-sibling::td/input')->asCheckbox()->one()->check();
-				}
-
-				$dialog->query('xpath:(.//button[text()="Select"])[2]')->one()->click();
-				$dialog->waitUntilNotVisible();
-			}
-		}
-
 		$form->submit();
 	}
 
-	private function checkTrigger($trigger_name, $parameters = null, $prototypes = null) {
+	private function checkTrigger($trigger_name, $trigger = null, $prototypes = null, $host_trigger = null) {
 		$this->query('class:list-table')->one()->asTable()->query('link', $trigger_name)->one()->click();
 		$this->page->waitUntilReady();
 		$this->query('name:triggersForm')->asForm()->one()->selectTab('Dependencies')->waitUntilReady();
 
 		$column_values = $this->getTableColumnData('Name', 'id:dependency-table');
 
-		if ($parameters !== null) {
-			$this->checkValues($parameters, $column_values);
-		}
-
-		if ($prototypes !== null) {
-			$this->checkValues($prototypes, $column_values);
+		foreach ([$trigger, $prototypes, $host_trigger] as $dependence_type) {
+			if ($dependence_type !== null) {
+				foreach ($dependence_type as $host => $triggers) {
+					foreach ($triggers as $trigger) {
+						$this->assertTrue(in_array($host.': '.$trigger, $column_values));
+					}
+				}
+			}
 		}
 	}
 
-	private function checkValues($parameters, $column_values) {
-		foreach ($parameters as $host => $triggers) {
+	private function addDependence($values, $selector){
+		foreach ($values as $host_name => $triggers) {
+			$this->query($selector)->one()->click();
+			$dialog = COverlayDialogElement::find()->one()->waitUntilReady();
+			$dialog->query('id:generic-popup-form')->asMultiselect()->one()->fill(['Host' => $host_name]);
+			$dialog->waitUntilReady();
+
 			foreach ($triggers as $trigger) {
-				$this->assertTrue(in_array($host.': '.$trigger, $column_values));
+				$dialog->query('xpath:.//a[text()="'.$trigger.'"]/../preceding-sibling::td/input')->asCheckbox()->one()->check();
 			}
+
+			$dialog->query('xpath:(.//button[text()="Select"])[2]')->one()->click();
+			$dialog->waitUntilNotVisible();
 		}
 	}
 }
