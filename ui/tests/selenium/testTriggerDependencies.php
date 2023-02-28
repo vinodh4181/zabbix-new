@@ -368,7 +368,7 @@ class testTriggerDependencies extends CWebTest {
 		self::$host_trigger_protids = CDataHelper::getIds('description');
 	}
 
-	public static function getHostCreateData() {
+	public static function getTriggerCreateData() {
 		return [
 			// #0 simple dependence on another trigger on same host.
 			[
@@ -381,8 +381,7 @@ class testTriggerDependencies extends CWebTest {
 						[
 							'Host trigger everything'
 						]
-					],
-					'hostname' => 'Host with everything'
+					]
 				]
 			],
 			// #1 dependence on 2 triggers from same host.
@@ -397,8 +396,7 @@ class testTriggerDependencies extends CWebTest {
 							'Host trigger everything',
 							'Host trigger everything 2'
 						]
-					],
-					'hostname' => 'Host with everything'
+					]
 				]
 			],
 			// #2 dependence on trigger from another host.
@@ -412,8 +410,7 @@ class testTriggerDependencies extends CWebTest {
 						'Host with linked template' => [
 							'Host trigger 2'
 						]
-					],
-					'hostname' => 'Host with everything'
+					]
 				]
 			],
 			// #3 dependence on trigger from another and same host.
@@ -430,8 +427,7 @@ class testTriggerDependencies extends CWebTest {
 						'Host with everything' => [
 							'Host trigger everything'
 						]
-					],
-					'hostname' => 'Host with everything'
+					]
 				]
 			],
 			// #4 dependence on linked trigger.
@@ -445,8 +441,7 @@ class testTriggerDependencies extends CWebTest {
 						'Host with linked template' => [
 							'trigger linked'
 						]
-					],
-					'hostname' => 'Host with everything'
+					]
 				]
 			]
 		];
@@ -455,43 +450,399 @@ class testTriggerDependencies extends CWebTest {
 	/**
 	 * Create trigger with dependencies on host.
 	 *
-	 * @dataProvider getHostCreateData
+	 * @dataProvider getTriggerCreateData
 	 */
-	public function testTriggerDependencies_Create($data) {
-		$this->page->login()->open('triggers.php?filter_set=1&filter_hostids%5B0%5D='.self::$hostids[$data['hostname']].
-					'&context=host')->waitUntilReady();
+	public function testTriggerDependencies_TriggerCreate($data) {
+		$this->page->login()->open('triggers.php?filter_set=1&filter_hostids%5B0%5D='.self::$hostids['Host with everything'].
+			'&context=host')->waitUntilReady();
 		$this->query('button:Create trigger')->one()->click();
 		$this->page->waitUntilReady();
+		$this->triggerCreation($data);
+		$this->assertMessage(TEST_GOOD, 'Trigger added');
+		$this->checkTrigger($data['fields']['Name'], $data['dependencie']);
+	}
+
+	public static function getTriggerPrototypeCreateData()
+	{
+		return [
+			// #0 simple dependence on another trigger on same host.
+			[
+				[
+					'fields' => [
+						'Name' => 'Simple trigger_prot',
+						'Expression' => 'last(/Host with everything/host_everything_prot_[{#KEY}])=0'
+					],
+					'dependencie' => [
+						'Host with everything' => [
+							'Host trigger everything'
+						]
+					]
+				]
+			],
+			// #1 dependence on 2 triggers from same host.
+			[
+				[
+					'fields' => [
+						'Name' => 'Two trigger_prot dependence',
+						'Expression' => 'last(/Host with everything/host_everything_prot_[{#KEY}])=0'
+					],
+					'dependencie' => [
+						'Host with everything' => [
+							'Host trigger everything',
+							'Host trigger everything 2'
+						]
+					]
+				]
+			],
+			// #2 dependence on trigger from another host.
+			[
+				[
+					'fields' => [
+						'Name' => 'Triggers_prot from another hosts',
+						'Expression' => 'last(/Host with everything/host_everything_prot_[{#KEY}])=0'
+					],
+					'dependencie' => [
+						'Host with linked template' => [
+							'Host trigger 2'
+						]
+					]
+				]
+			],
+			// #3 dependence on trigger from another and same host.
+			[
+				[
+					'fields' => [
+						'Name' => 'Two triggers_prot from different',
+						'Expression' => 'last(/Host with everything/host_everything_prot_[{#KEY}])=0'
+					],
+					'dependencie' => [
+						'Host with linked template' => [
+							'Host trigger 2'
+						],
+						'Host with everything' => [
+							'Host trigger everything'
+						]
+					]
+				]
+			],
+			// #4 dependence on linked trigger.
+			[
+				[
+					'fields' => [
+						'Name' => 'Depends on linked trigger_prot',
+						'Expression' => 'last(/Host with everything/host_everything_prot_[{#KEY}])=0'
+					],
+					'dependencie' => [
+						'Host with linked template' => [
+							'trigger linked'
+						]
+					]
+				]
+			],
+			// #5 dependence on linked trigger.
+			[
+				[
+					'fields' => [
+						'Name' => 'Depends on trigger_prot',
+						'Expression' => 'last(/Host with everything/host_everything_prot_[{#KEY}])=0'
+					],
+					'dependencie' => [
+						'Host with linked template' => [
+							'trigger linked'
+						]
+					]
+				]
+			],
+			// #6 dependence on one trigger prototype.
+			[
+				[
+					'fields' => [
+						'Name' => 'Depends on one trigger_prot',
+						'Expression' => 'last(/Host with everything/host_everything_prot_[{#KEY}])=0'
+					],
+					'prototype_dependencie' => [
+						'Host trigger prot simple{#KEY}'
+					]
+				]
+			],
+			// #7 dependence on two trigger prototype.
+			[
+				[
+					'fields' => [
+						'Name' => 'Depends on two trigger_prot',
+						'Expression' => 'last(/Host with everything/host_everything_prot_[{#KEY}])=0'
+					],
+					'prototype_dependencie' => [
+						'Host trigger prot simple{#KEY}',
+						'Host trigger prot update{#KEY}'
+					]
+				]
+			],
+			// #8 dependence on trigger and trigger prototype.
+			[
+				[
+					'fields' => [
+						'Name' => 'Depends on trigger and trigger_prot',
+						'Expression' => 'last(/Host with everything/host_everything_prot_[{#KEY}])=0'
+					],
+					'dependencie' => [
+						'Host with everything' => [
+							'Host trigger everything'
+						]
+					],
+					'prototype_dependencie' => [
+						'Host trigger prot simple{#KEY}'
+					]
+				]
+			]
+		];
+	}
+
+	/**
+	 * Create trigger with dependencies on host.
+	 *
+	 * @dataProvider getTriggerPrototypeCreateData
+	 */
+	public function testTriggerDependencies_TriggerPrototypeCreate($data) {
+		$this->page->login()->open('trigger_prototypes.php?parent_discoveryid='.
+				self::$host_druleids['Drule for host everything'].'&context=host')->waitUntilReady();
+		$this->query('button:Create trigger prototype')->one()->click();
+		$this->page->waitUntilReady();
+		$this->triggerCreation($data);
+		$this->assertMessage(TEST_GOOD, 'Trigger prototype added');
+
+		$prototype_check = (array_key_exists('prototype_dependencie', $data))
+				? ['Host with everything' => $data['prototype_dependencie']]
+				: null;
+
+		$trigger_check = (array_key_exists('dependencie', $data))
+				? $data['dependencie']
+				: null;
+
+		$this->checkTrigger($data['fields']['Name'], $trigger_check, $prototype_check);
+	}
+
+	public static function getTemplateTriggerCreateData()
+	{
+		return [
+			// #0 simple dependence on another trigger on same template.
+			[
+				[
+					'fields' => [
+						'Name' => 'Simple template trigger',
+						'Expression' => 'last(/Template with everything/everything)=0'
+					],
+					'dependencie' => [
+						'Template with everything' => [
+							'trigger simple'
+						]
+					]
+				]
+			],
+			// #1 dependence on 2 triggers from same template.
+			[
+				[
+					'fields' => [
+						'Name' => 'Two trigger dependence',
+						'Expression' => 'last(/Template with everything/everything)=0'
+					],
+					'dependencie' => [
+						'Template with everything' => [
+							'trigger simple',
+							'trigger update'
+						]
+					]
+				]
+			],
+			// #2 dependence on trigger from another template.
+			[
+				[
+					'fields' => [
+						'Name' => 'Triggers from another template',
+						'Expression' => 'last(/Template with everything/everything)=0'
+					],
+					'dependencie' => [
+						'Template that linked to host' => [
+							'trigger linked'
+						]
+					]
+				]
+			],
+			// #3 dependence on trigger from another and same template.
+			[
+				[
+					'fields' => [
+						'Name' => 'Two triggers from different',
+						'Expression' => 'last(/Template with everything/everything)=0'
+					],
+					'dependencie' => [
+						'Template that linked to host' => [
+							'trigger linked'
+						],
+						'Template with everything' => [
+							'trigger simple'
+						]
+					]
+				]
+			],
+			// #4 dependence on template trigger that linked to another template.
+			[
+				[
+					'fields' => [
+						'Name' => 'Depends on linked trigger',
+						'Expression' => 'last(/Template with everything/everything)=0'
+					],
+					'dependencie' => [
+						'Template that linked to template' => [
+							'trigger template linked'
+						]
+					]
+				]
+			],
+			// #5 dependence on hosts trigger.
+			[
+				[
+					'fields' => [
+						'Name' => 'Depends on hosts trigger',
+						'Expression' => 'last(/Template with everything/everything)=0'
+					],
+					'host_dependencie' => [
+						'Host with everything' => [
+							'Host trigger everything'
+						]
+					]
+				]
+			],
+			// #6 dependence on two hosts trigger.
+			[
+				[
+					'fields' => [
+						'Name' => 'Depends on two hosts trigger',
+						'Expression' => 'last(/Template with everything/everything)=0'
+					],
+					'host_dependencie' => [
+						'Host with everything' => [
+							'Host trigger everything',
+							'Host trigger everything 2'
+						]
+					]
+				]
+			],
+			// #7 dependence on trigger that linked from another template.
+			[
+				[
+					'fields' => [
+						'Name' => 'Depends on trigger that linked from another template',
+						'Expression' => 'last(/Template with everything/everything)=0'
+					],
+					'dependencie' => [
+						'Template with linked template' => [
+							'trigger template linked'
+						]
+					]
+				]
+			],
+			//#8 dependence on trigger from template and trigger from host.
+			[
+				[
+					'fields' => [
+						'Name' => 'Depends on trigger from template and host',
+						'Expression' => 'last(/Template with everything/everything)=0'
+					],
+					'host_dependencie' => [
+						'Host with everything' => [
+							'Host trigger everything'
+						]
+					],
+					'dependencie' => [
+						'Template with everything' => [
+							'trigger simple'
+						]
+					]
+				]
+			]
+		];
+	}
+
+	public function testTriggerDependencies_TemplateTriggerCreate($data) {
+		$this->page->login()->open('triggers.php?filter_set=1&filter_hostids%5B0%5D='.
+				self::$templateids['Template with everything'].'&context=template')->waitUntilReady();
+		$this->query('button:Create trigger')->one()->click();
+		$this->page->waitUntilReady();
+		$this->triggerCreation($data);
+		$this->assertMessage(TEST_GOOD, 'Trigger added');
+		$this->checkTrigger($data['fields']['Name'], $data['dependencie']);
+	}
+
+	private function triggerCreation($data) {
 		$form = $this->query('name:triggersForm')->asForm()->one();
 		$form->fill($data['fields']);
 		$form->selectTab('Dependencies')->waitUntilReady();
 
-		foreach ($data['dependencie'] as $host_name => $triggers) {
-			$form->query('id:add_dep_trigger')->one()->click();
-			$dialog = COverlayDialogElement::find()->one()->waitUntilReady();
-			$dialog->query('id:generic-popup-form')->asMultiselect()->one()->fill(['Host' => $host_name]);
-			$dialog->waitUntilReady();
+		if (array_key_exists('dependencie', $data)) {
+			foreach ($data['dependencie'] as $host_name => $triggers) {
+				$form->query('id:add_dep_trigger')->one()->click();
+				$dialog = COverlayDialogElement::find()->one()->waitUntilReady();
+				$dialog->query('id:generic-popup-form')->asMultiselect()->one()->fill(['Host' => $host_name]);
+				$dialog->waitUntilReady();
 
-			foreach ($triggers as $trigger) {
+				foreach ($triggers as $trigger) {
+					$dialog->query('xpath:.//a[text()="'.$trigger.'"]/../preceding-sibling::td/input')->asCheckbox()->one()->check();
+				}
+
+				$dialog->query('xpath:(.//button[text()="Select"])[2]')->one()->click();
+				$dialog->waitUntilNotVisible();
+			}
+		}
+
+		if (array_key_exists('prototype_dependencie', $data)) {
+			$form->query('id:add_dep_trigger_prototype')->one()->click();
+			$dialog = COverlayDialogElement::find()->one()->waitUntilReady();
+
+			foreach ($data['prototype_dependencie'] as $trigger) {
 				$dialog->query('xpath:.//a[text()="'.$trigger.'"]/../preceding-sibling::td/input')->asCheckbox()->one()->check();
 			}
 
-			$dialog->query('xpath:(.//button[text()="Select"])[2]')->one()->click();
+			$dialog->query('xpath:.//button[text()="Select"]')->one()->click();
 			$dialog->waitUntilNotVisible();
 		}
 
-		$form->submit();
-		$this->assertMessage(TEST_GOOD, 'Trigger added');
+		if (array_key_exists('host_dependencie', $data)) {
+			foreach ($data['dependencie'] as $host_name => $triggers) {
+				$form->query('id:add_dep_host_trigger')->one()->click();
+				$dialog = COverlayDialogElement::find()->one()->waitUntilReady();
+				$dialog->query('id:generic-popup-form')->asMultiselect()->one()->fill(['Host' => $host_name]);
+				$dialog->waitUntilReady();
 
-		$this->checkTrigger($data['fields']['Name'], $data['dependencie']);
+				foreach ($triggers as $trigger) {
+					$dialog->query('xpath:.//a[text()="'.$trigger.'"]/../preceding-sibling::td/input')->asCheckbox()->one()->check();
+				}
+
+				$dialog->query('xpath:(.//button[text()="Select"])[2]')->one()->click();
+				$dialog->waitUntilNotVisible();
+			}
+		}
+
+		$form->submit();
 	}
 
-	private function checkTrigger($trigger_name, $parameters) {
+	private function checkTrigger($trigger_name, $parameters = null, $prototypes = null) {
 		$this->query('class:list-table')->one()->asTable()->query('link', $trigger_name)->one()->click();
 		$this->page->waitUntilReady();
 		$this->query('name:triggersForm')->asForm()->one()->selectTab('Dependencies')->waitUntilReady();
 
 		$column_values = $this->getTableColumnData('Name', 'id:dependency-table');
+
+		if ($parameters !== null) {
+			$this->checkValues($parameters, $column_values);
+		}
+
+		if ($prototypes !== null) {
+			$this->checkValues($prototypes, $column_values);
+		}
+	}
+
+	private function checkValues($parameters, $column_values) {
 		foreach ($parameters as $host => $triggers) {
 			foreach ($triggers as $trigger) {
 				$this->assertTrue(in_array($host.': '.$trigger, $column_values));
