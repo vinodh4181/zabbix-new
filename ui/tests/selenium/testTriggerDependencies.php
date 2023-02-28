@@ -24,7 +24,6 @@ require_once dirname(__FILE__).'/behaviors/CMessageBehavior.php';
 require_once dirname(__FILE__).'/traits/TableTrait.php';
 
 /**
- * @backup hosts, profiles
  *
  * @onBefore prepareTriggersData
  */
@@ -781,6 +780,12 @@ class testTriggerDependencies extends CWebTest {
 		$trigger_check = (array_key_exists('dependencie', $data)) ? $data['dependencie'] : null;
 
 		$this->checkTrigger($data['fields']['Name'], $trigger_check, null, $host_check);
+	}
+
+	public function testTriggerDependencies_TemplateTriggerPrototypeCreate($data) {
+		$this->page->login()->open('trigger_prototypes.php?parent_discoveryid='.
+				self::$druleids['Drule for everything'].'&context=template')->waitUntilReady();
+		$this->query('button:Create trigger prototype')->one()->click();
 	}
 
 	private function triggerCreation($data) {
