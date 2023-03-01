@@ -24,6 +24,7 @@ require_once dirname(__FILE__).'/behaviors/CMessageBehavior.php';
 require_once dirname(__FILE__).'/traits/TableTrait.php';
 
 /**
+ * @backup hosts, profiles
  *
  * @onBefore prepareTriggersData
  */
@@ -943,7 +944,7 @@ class testTriggerDependencies extends CWebTest {
 					]
 				]
 			],
-			// #10 dependence on prtotype only.
+			// #10 dependence on prototype only.
 			[
 				[
 					'fields' => [
@@ -1008,6 +1009,14 @@ class testTriggerDependencies extends CWebTest {
 		$form->submit();
 	}
 
+	/**
+	 *
+	 *
+	 * @param string $trigger_name		created trigger name
+	 * @param array $trigger			triggers that we depend on
+	 * @param array $prototypes			triggers prototypes that we depend on
+	 * @param array $host_trigger		host triggers that we depend on
+	 */
 	private function checkTrigger($trigger_name, $trigger = null, $prototypes = null, $host_trigger = null) {
 		$this->query('class:list-table')->one()->asTable()->query('link', $trigger_name)->one()->click();
 		$this->page->waitUntilReady();
