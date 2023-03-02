@@ -447,7 +447,7 @@ class testTriggerDependencies extends CWebTest {
 			'&context=host')->waitUntilReady();
 		$this->query('button:Create trigger')->one()->click();
 		$this->page->waitUntilReady();
-		$this->triggerCreation($data, 'last(/Host with everything/host_item_1)=0');
+		$this->triggerCreateUpdate($data, 'last(/Host with everything/host_item_1)=0');
 		$this->assertMessage(TEST_GOOD, 'Trigger added');
 		$this->checkTrigger($data);
 	}
@@ -481,7 +481,7 @@ class testTriggerDependencies extends CWebTest {
 	public function testTriggerDependencies_TriggerUpdate($data) {
 		$this->page->login()->open('triggers.php?form=update&triggerid='.self::$host_triggerids['Host trigger update'].
 				'&context=host')->waitUntilReady();
-		$this->triggerCreation($data, null, true);
+		$this->triggerCreateUpdate($data, null, true);
 
 		if (CTestArrayHelper::get($data, 'expected', TEST_GOOD) === TEST_BAD) {
 			$this->assertMessage(TEST_BAD, 'Cannot update trigger', $data['error_message']);
@@ -542,7 +542,7 @@ class testTriggerDependencies extends CWebTest {
 				self::$host_druleids['Drule for host everything'].'&context=host')->waitUntilReady();
 		$this->query('button:Create trigger prototype')->one()->click();
 		$this->page->waitUntilReady();
-		$this->triggerCreation($data, 'last(/Host with everything/host_everything_prot_[{#KEY}])=0');
+		$this->triggerCreateUpdate($data, 'last(/Host with everything/host_everything_prot_[{#KEY}])=0');
 		$this->assertMessage(TEST_GOOD, 'Trigger prototype added');
 		$this->checkTrigger($data, 'Host with everything');
 	}
@@ -576,7 +576,7 @@ class testTriggerDependencies extends CWebTest {
 		$this->page->login()->open('trigger_prototypes.php?form=update&parent_discoveryid='.
 				self::$host_druleids['Drule for host everything'].'&triggerid='.
 				self::$host_trigger_protids['Host trigger prot update{#KEY}'].'&context=host')->waitUntilReady();
-		$this->triggerCreation($data);
+		$this->triggerCreateUpdate($data);
 
 		if (CTestArrayHelper::get($data, 'expected', TEST_GOOD) === TEST_BAD) {
 			$this->assertMessage(TEST_BAD, 'Cannot update trigger prototype', $data['error_message']);
@@ -713,7 +713,7 @@ class testTriggerDependencies extends CWebTest {
 				self::$templateids['Template with everything'].'&context=template')->waitUntilReady();
 		$this->query('button:Create trigger')->one()->click();
 		$this->page->waitUntilReady();
-		$this->triggerCreation($data, 'last(/Template with everything/everything)=0');
+		$this->triggerCreateUpdate($data, 'last(/Template with everything/everything)=0');
 		$this->assertMessage(TEST_GOOD, 'Trigger added');
 		$this->checkTrigger($data);
 	}
@@ -746,7 +746,7 @@ class testTriggerDependencies extends CWebTest {
 	public function testTriggerDependencies_TemplateTriggerUpdate($data) {
 		$this->page->login()->open('triggers.php?form=update&triggerid='.self::$template_triggerids['Trigger update'].
 					'&context=template')->waitUntilReady();
-		$this->triggerCreation($data);
+		$this->triggerCreateUpdate($data);
 
 		if (CTestArrayHelper::get($data, 'expected', TEST_GOOD) === TEST_BAD) {
 			$this->assertMessage(TEST_BAD, 'Cannot update trigger', $data['error_message']);
@@ -802,7 +802,7 @@ class testTriggerDependencies extends CWebTest {
 			self::$druleids['Drule for everything'].'&context=template')->waitUntilReady();
 		$this->query('button:Create trigger prototype')->one()->click();
 		$this->page->waitUntilReady();
-		$this->triggerCreation($data, 'last(/Template with everything/everything_prot_[{#KEY}])=0');
+		$this->triggerCreateUpdate($data, 'last(/Template with everything/everything_prot_[{#KEY}])=0');
 		$this->assertMessage(TEST_GOOD, 'Trigger prototype added');
 		$this->checkTrigger($data, 'Template with everything');
 	}
@@ -836,7 +836,7 @@ class testTriggerDependencies extends CWebTest {
 		$this->page->login()->open('trigger_prototypes.php?form=update&parent_discoveryid='.
 					self::$druleids['Drule for everything'].'&triggerid='.
 					self::$trigger_protids['Trigger prototype update{#KEY}'].'&context=template')->waitUntilReady();
-		$this->triggerCreation($data);
+		$this->triggerCreateUpdate($data);
 
 		if (CTestArrayHelper::get($data, 'expected', TEST_GOOD) === TEST_BAD) {
 			$this->assertMessage(TEST_BAD, 'Cannot update trigger prototype', $data['error_message']);
@@ -848,7 +848,13 @@ class testTriggerDependencies extends CWebTest {
 		}
 	}
 
-	private function triggerCreation($data, $expression = null) {
+	/**
+	 * Create or update trigger with dependencies.
+	 *
+	 * @param array $data				data provider.
+	 * @param string $expression		trigger expression used in create scenarios.
+	 */
+	private function triggerCreateUpdate($data, $expression = null) {
 		$form = $this->query('name:triggersForm')->asForm()->one();
 
 		if ($expression === null) {
