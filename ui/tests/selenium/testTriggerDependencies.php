@@ -449,6 +449,35 @@ class testTriggerDependencies extends CWebTest {
 		$this->checkTrigger($data['name'], $data['dependencie']);
 	}
 
+	public static function getTriggerUpdateData()
+	{
+		return [
+			// #0 simple dependence on another trigger on same host.
+			[
+				[
+					'name' => 'Simple trigger update',
+					'dependencie' => ['Host with everything' =>
+						[
+							'Host trigger everything'
+						]
+					]
+				]
+			],
+			// #1 dependence on 2 triggers from same host.
+			[
+				[
+					'name' => 'Two trigger dependence',
+					'dependencie' => [
+						'Host with everything' => [
+							'Host trigger everything',
+							'Host trigger everything 2'
+						]
+					]
+				]
+			],
+		];
+	}
+
 	/**
 	 * Create trigger with dependencies on host.
 	 *
@@ -456,11 +485,12 @@ class testTriggerDependencies extends CWebTest {
 	 */
 	public function testTriggerDependencies_TriggerUpdate($data) {
 		$this->page->login()->open('triggers.php?form=update&triggerid='.self::$host_triggerids['Host trigger update'].
-					'&context=host')->waitUntilReady();
-		$this->triggerCreation($data);
+				'&context=host')->waitUntilReady();
+		$this->triggerCreation($data, null, true);
 		$this->assertMessage(TEST_GOOD, 'Trigger updated');
-		$this->checkTrigger($data['fields']['Name'], $data['dependencie']);
-	}
+		$this->checkTrigger($data['name'].'_update', $data['dependencie']);
+		self::$trigger_update_name = $data['name'].'_update';
+ 	}
 
 	public static function getTriggerPrototypeCreateData() {
 		return [
@@ -716,10 +746,22 @@ class testTriggerDependencies extends CWebTest {
 		$this->checkTrigger($data['name'], $trigger_check, $prototype_check, $host_check);
 	}
 
-	private function triggerCreation($data, $expression) {
+	private function triggerCreation($data, $expression = null, $update = false) {
 		$form = $this->query('name:triggersForm')->asForm()->one();
-		$form->fill(['Name' => $data['name'], 'Expression' => $expression]);
-		$form->selectTab('Dependencies')->waitUntilReady();
+
+		if ($update) {
+			$form->fill(['Name' => $data['name'].'_update']);
+			$form->selectTab('Dependencies')->waitUntilReady();
+			$rows = $this->query('id:dependency-table')->asTable()->one()->getRows();
+
+			foreach ($rows as $row) {
+				$row->query('button:Remove')->one()->click();
+			}
+		}
+		else {
+			$form->fill(['Name' => $data['name'], 'Expression' => $expression]);
+			$form->selectTab('Dependencies')->waitUntilReady();
+		}
 
 		if (array_key_exists('dependencie', $data)) {
 			$this->addDependence($data['dependencie'], 'id:add_dep_trigger');
