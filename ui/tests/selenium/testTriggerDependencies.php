@@ -490,7 +490,7 @@ class testTriggerDependencies extends CWebTest {
 		$this->assertMessage(TEST_GOOD, 'Trigger updated');
 		$this->checkTrigger($data['name'].'_update', $data['dependencie']);
 		self::$trigger_update_name = $data['name'].'_update';
- 	}
+	}
 
 	public static function getTriggerPrototypeCreateData() {
 		return [
