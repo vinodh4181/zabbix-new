@@ -455,41 +455,40 @@ class testTriggerDependencies extends CWebTest {
 			// #0 simple dependence on another trigger on same host.
 			[
 				[
-					'name' => 'Simple trigger update',
+					'expected' => TEST_BAD,
+					'name' => 'Host trigger update',
 					'dependencie' => ['Host with everything' =>
 						[
-							'Host trigger everything'
+							'Host trigger update'
 						]
-					]
+					],
+					'error_message' => 'Trigger "Depends on linked trigger_update" cannot depend on the trigger '.
+							'"Depends on linked trigger_update", because a circular linkage '.
+							'("Depends on linked trigger_update" -> "Depends on linked trigger_update") would occur.'
 				]
-			],
-			// #1 dependence on 2 triggers from same host.
-			[
-				[
-					'name' => 'Two trigger dependence',
-					'dependencie' => [
-						'Host with everything' => [
-							'Host trigger everything',
-							'Host trigger everything 2'
-						]
-					]
-				]
-			],
+			]
 		];
 	}
 
 	/**
 	 * Create trigger with dependencies on host.
 	 *
+	 * @dataProvider getTriggerUpdateData
 	 * @dataProvider getTriggerCreateData
 	 */
 	public function testTriggerDependencies_TriggerUpdate($data) {
 		$this->page->login()->open('triggers.php?form=update&triggerid='.self::$host_triggerids['Host trigger update'].
 				'&context=host')->waitUntilReady();
 		$this->triggerCreation($data, null, true);
-		$this->assertMessage(TEST_GOOD, 'Trigger updated');
-		$this->checkTrigger($data['name'].'_update', $data['dependencie']);
-		self::$trigger_update_name = $data['name'].'_update';
+
+		if (CTestArrayHelper::get($data, 'expected', TEST_GOOD) === TEST_BAD) {
+			$this->assertMessage(TEST_BAD, 'Cannot update trigger', $data['error_message']);
+		}
+		else {
+			$this->assertMessage(TEST_GOOD, 'Trigger updated');
+			$this->checkTrigger($data['name'].'_update', $data['dependencie']);
+			self::$trigger_update_name = $data['name'].'_update';
+		}
 	}
 
 	public static function getTriggerPrototypeCreateData() {
