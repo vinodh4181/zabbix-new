@@ -473,7 +473,7 @@ class testTriggerDependencies extends CWebTest {
 	}
 
 	/**
-	 * Create trigger with dependencies on host.
+	 * Update trigger with dependencies on host.
 	 *
 	 * @dataProvider getTriggerUpdateData
 	 * @dataProvider getTriggerCreateData
@@ -532,7 +532,7 @@ class testTriggerDependencies extends CWebTest {
 	}
 
 	/**
-	 * Create trigger with dependencies on host.
+	 * Create trigger prototype with dependencies on host.
 	 *
 	 * @dataProvider getTriggerCreateData
 	 * @dataProvider getTriggerPrototypeCreateData
@@ -566,7 +566,7 @@ class testTriggerDependencies extends CWebTest {
 	}
 
 	/**
-	 * Create trigger with dependencies on host.
+	 * Update trigger prototype with dependencies on host.
 	 *
 	 * @dataProvider getTriggerPrototypeUpdateData
 	 * @dataProvider getTriggerCreateData
@@ -704,7 +704,7 @@ class testTriggerDependencies extends CWebTest {
 	}
 
 	/**
-	 * Create trigger with dependencies on host.
+	 * Create trigger dependencies on template.
 	 *
 	 * @dataProvider getTemplateTriggerCreateData
 	 */
@@ -738,7 +738,7 @@ class testTriggerDependencies extends CWebTest {
 	}
 
 	/**
-	 * Create trigger with dependencies on host.
+	 * Update trigger dependencies on template.
 	 *
 	 * @dataProvider getTemplateTriggerUpdateData
 	 * @dataProvider getTemplateTriggerCreateData
@@ -792,7 +792,7 @@ class testTriggerDependencies extends CWebTest {
 	}
 
 	/**
-	 * Create trigger with dependencies on host.
+	 * Create trigger prototype with dependencies on template.
 	 *
 	 * @dataProvider getTemplateTriggerCreateData
 	 * @dataProvider getTemplateTriggerPrototypeCreateData
@@ -826,7 +826,7 @@ class testTriggerDependencies extends CWebTest {
 	}
 
 	/**
-	 * Create trigger with dependencies on host.
+	 * Update trigger prototype with dependencies on template.
 	 *
 	 * @dataProvider getTemplateTriggerPrototypeUpdateData
 	 * @dataProvider getTemplateTriggerCreateData
@@ -857,6 +857,7 @@ class testTriggerDependencies extends CWebTest {
 	private function triggerCreateUpdate($data, $expression = null) {
 		$form = $this->query('name:triggersForm')->asForm()->one();
 
+		// in case of update scenario add _update to the end of trigger name and remove all existing dependencies
 		if ($expression === null) {
 			$form->fill(['Name' => $data['name'].'_update']);
 			$form->selectTab('Dependencies')->waitUntilReady();
@@ -879,6 +880,7 @@ class testTriggerDependencies extends CWebTest {
 			$this->addDependence($data['host_dependencie'], 'id:add_dep_host_trigger');
 		}
 
+		// adding trigger prototype dependencies allowed only from same host.
 		if (array_key_exists('prototype_dependencie', $data)) {
 			$form->query('id:add_dep_trigger_prototype')->one()->click();
 			$dialog = COverlayDialogElement::find()->one()->waitUntilReady();
@@ -929,7 +931,7 @@ class testTriggerDependencies extends CWebTest {
 	 * Add trigger dependency - host trigger, simple trigger
 	 *
 	 * @param array $values			host/template name and trigger name.
-	 * @param string $selector		Add/Add host trigger - button selector.
+	 * @param string $selector		Add or Add host trigger - button selector.
 	 */
 	private function addDependence($values, $selector){
 		foreach ($values as $host_name => $triggers) {
