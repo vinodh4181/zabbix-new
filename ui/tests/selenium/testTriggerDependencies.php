@@ -32,19 +32,42 @@ class testTriggerDependencies extends CWebTest {
 
 	use TableTrait;
 
-	private static $templateids;
-	private static $template_triggerids;
-	private static $druleids;
-	private static $trigger_protids;
-	private static $hostids;
-	private static $host_triggerids;
-	private static $host_druleids;
-	private static $host_trigger_protids;
+	protected static $templateids;
+	protected static $template_triggerids;
+	protected static $druleids;
+	protected static $trigger_protids;
+	protected static $hostids;
+	protected static $host_triggerids;
+	protected static $host_druleids;
+	protected static $host_trigger_protids;
 
-	private static $trigger_update_name = 'Host trigger update';
-	private static $trigger_prot_update = 'Trigger prototype update{#KEY}';
-	private static $triger_template = 'Trigger update';
-	private static $trigger_template_prot = 'Trigger prototype update{#KEY}';
+	/**
+	 * Host trigger name for update.
+	 *
+	 * @var string
+	 */
+	protected static $trigger_update = 'Host trigger update';
+
+	/**
+	 * Host trigger prototype name for update.
+	 *
+	 * @var string
+	 */
+	protected static $trigger_prot_update = 'Host trigger prototype update{#KEY}';
+
+	/**
+	 * Template trigger name for update.
+	 *
+	 * @var string
+	 */
+	protected static $trigger_template_update = 'Template trigger update';
+
+	/**
+	 * Template trigger prototype name for update.
+	 *
+	 * @var string
+	 */
+	protected static $trigger_template_prot_update = 'Template trigger prototype update{#KEY}';
 
 	/**
 	 * Attach Behaviors to the test.
@@ -127,7 +150,7 @@ class testTriggerDependencies extends CWebTest {
 
 		$template_triggers = CDataHelper::call('trigger.create', [
 			[
-				'description' => 'Trigger update',
+				'description' => 'Template trigger update',
 				'expression' => 'last(/Template with everything/everything)=0'
 			],
 			[
@@ -218,7 +241,7 @@ class testTriggerDependencies extends CWebTest {
 
 		$trigger_prot = CDataHelper::call('triggerprototype.create', [
 			[
-				'description' => 'Trigger prototype update{#KEY}',
+				'description' => 'Template trigger prototype update{#KEY}',
 				'expression' => 'last(/Template with everything/everything_prot_[{#KEY}])=0'
 			],
 			[
@@ -349,7 +372,7 @@ class testTriggerDependencies extends CWebTest {
 
 		$host_trigger_prot = CDataHelper::call('triggerprototype.create', [
 			[
-				'description' => 'Host trigger prot update{#KEY}',
+				'description' => 'Host trigger prototype update{#KEY}',
 				'expression' => 'last(/Host with everything/host_everything_prot_[{#KEY}])=0'
 			],
 			[
@@ -489,7 +512,7 @@ class testTriggerDependencies extends CWebTest {
 		else {
 			$this->assertMessage(TEST_GOOD, 'Trigger updated');
 			$this->checkTrigger($data, null, true);
-			self::$trigger_update_name = $data['name'].'_update';
+			self::$trigger_update = $data['name'].'_update';
 		}
 	}
 
@@ -553,13 +576,13 @@ class testTriggerDependencies extends CWebTest {
 			[
 				[
 					'expected' => TEST_BAD,
-					'name' => 'Host trigger prot update{#KEY}',
+					'name' => 'Host trigger prototype update{#KEY}',
 					'prototype_dependencie' => [
-						'Host trigger prot update{#KEY}'
+						'Host trigger prototype update{#KEY}'
 					],
-					'error_message' => 'Trigger prototype "Host trigger prot update{#KEY}" cannot depend on the '.
-							'trigger prototype "Host trigger prot update{#KEY}", because a circular linkage ("Host '.
-							'trigger prot update{#KEY}" -> "Host trigger prot update{#KEY}") would occur.'
+					'error_message' => 'Trigger prototype "Host trigger prototype update{#KEY}" cannot depend on the '.
+							'trigger prototype "Host trigger prototype update{#KEY}", because a circular linkage ("Host '.
+							'trigger prototype update{#KEY}" -> "Host trigger prototype update{#KEY}") would occur.'
 				]
 			]
 		];
@@ -575,7 +598,7 @@ class testTriggerDependencies extends CWebTest {
 	public function testTriggerDependencies_TriggerPrototypeUpdate($data) {
 		$this->page->login()->open('trigger_prototypes.php?form=update&parent_discoveryid='.
 				self::$host_druleids['Drule for host everything'].'&triggerid='.
-				self::$host_trigger_protids['Host trigger prot update{#KEY}'].'&context=host')->waitUntilReady();
+				self::$host_trigger_protids['Host trigger prototype update{#KEY}'].'&context=host')->waitUntilReady();
 		$this->triggerCreateUpdate($data);
 
 		if (CTestArrayHelper::get($data, 'expected', TEST_GOOD) === TEST_BAD) {
@@ -724,14 +747,14 @@ class testTriggerDependencies extends CWebTest {
 			[
 				[
 					'expected' => TEST_BAD,
-					'name' => 'Trigger update',
+					'name' => 'Template trigger update',
 					'dependencie' => [
 						'Template with everything' => [
-							'Trigger update'
+							'Template trigger update'
 						]
 					],
-					'error_message' => 'Trigger "Trigger update" cannot depend on the trigger "Trigger update", '.
-							'because a circular linkage ("Trigger update" -> "Trigger update") would occur.'
+					'error_message' => 'Trigger "Template trigger update" cannot depend on the trigger "Template trigger update", '.
+							'because a circular linkage ("Template trigger update" -> "Template trigger update") would occur.'
 				]
 			]
 		];
@@ -744,7 +767,7 @@ class testTriggerDependencies extends CWebTest {
 	 * @dataProvider getTemplateTriggerCreateData
 	 */
 	public function testTriggerDependencies_TemplateTriggerUpdate($data) {
-		$this->page->login()->open('triggers.php?form=update&triggerid='.self::$template_triggerids['Trigger update'].
+		$this->page->login()->open('triggers.php?form=update&triggerid='.self::$template_triggerids['Template trigger update'].
 					'&context=template')->waitUntilReady();
 		$this->triggerCreateUpdate($data);
 
@@ -754,7 +777,7 @@ class testTriggerDependencies extends CWebTest {
 		else {
 			$this->assertMessage(TEST_GOOD, 'Trigger updated');
 			$this->checkTrigger($data, null, true);
-			self::$triger_template = $data['name'].'_update';
+			self::$trigger_template_update = $data['name'].'_update';
 		}
 	}
 
@@ -815,11 +838,11 @@ class testTriggerDependencies extends CWebTest {
 					'expected' => TEST_BAD,
 					'name' => 'Depends on trigger, hosts trigger and prototype_{#KEY}',
 					'prototype_dependencie' => [
-						'Trigger prototype update{#KEY}'
+						'Template trigger prototype update{#KEY}'
 					],
-					'error_message' => 'Trigger prototype "Trigger prototype update{#KEY}" cannot depend on the trigger '.
-							'prototype "Trigger prototype update{#KEY}", because a circular linkage ("Trigger prototype '.
-							'update{#KEY}" -> "Trigger prototype update{#KEY}") would occur.'
+					'error_message' => 'Trigger prototype "Template trigger prototype update{#KEY}" cannot depend on the trigger '.
+							'prototype "Template trigger prototype update{#KEY}", because a circular linkage ("Template trigger prototype '.
+							'update{#KEY}" -> "Template trigger prototype update{#KEY}") would occur.'
 				]
 			]
 		];
@@ -835,7 +858,7 @@ class testTriggerDependencies extends CWebTest {
 	public function testTriggerDependencies_TemplateTriggerPrototypeUpdate($data) {
 		$this->page->login()->open('trigger_prototypes.php?form=update&parent_discoveryid='.
 					self::$druleids['Drule for everything'].'&triggerid='.
-					self::$trigger_protids['Trigger prototype update{#KEY}'].'&context=template')->waitUntilReady();
+					self::$trigger_protids['Template trigger prototype update{#KEY}'].'&context=template')->waitUntilReady();
 		$this->triggerCreateUpdate($data);
 
 		if (CTestArrayHelper::get($data, 'expected', TEST_GOOD) === TEST_BAD) {
@@ -844,7 +867,7 @@ class testTriggerDependencies extends CWebTest {
 		else {
 			$this->assertMessage(TEST_GOOD, 'Trigger prototype updated');
 			$this->checkTrigger($data, 'Template with everything', true);
-			self::$trigger_template_prot = $data['name'].'_update';
+			self::$trigger_template_prot_update = $data['name'].'_update';
 		}
 	}
 
@@ -908,8 +931,9 @@ class testTriggerDependencies extends CWebTest {
 		$this->query('class:list-table')->one()->asTable()->query('link', $trigger_name)->one()->click();
 		$this->page->waitUntilReady();
 		$this->query('name:triggersForm')->asForm()->one()->selectTab('Dependencies')->waitUntilReady();
-		$column_values = $this->getTableColumnData('Name', 'id:dependency-table');
 
+		// Take all hosts->triggers from dependence column and check that created/updated hosts->trigger exists.
+		$column_values = $this->getTableColumnData('Name', 'id:dependency-table');
 		$host_check = (array_key_exists('host_dependencie', $data)) ? $data['host_dependencie'] : null;
 		$trigger_check = (array_key_exists('dependencie', $data)) ? $data['dependencie'] : null;
 		$prototype_check = (array_key_exists('prototype_dependencie', $data))
