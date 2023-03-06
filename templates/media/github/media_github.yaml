@@ -44,7 +44,7 @@ zabbix_export:
           value: 'https://api.github.com'
         10:
           name: github_user_agent
-          value: Zabbix/6.0
+          value: Zabbix/6.2
         12:
           name: trigger_id
           value: '{TRIGGER.ID}'
