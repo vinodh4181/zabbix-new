@@ -95,7 +95,6 @@ function insert_javascript_for_visibilitybox() {
 				else if (!value) {
 					try {
 						var new_obj = document.createElement("span");
-						new_obj.setAttribute("name", obj.name);
 						new_obj.setAttribute("id", obj.id);
 					}
 					catch(e) {
