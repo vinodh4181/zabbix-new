@@ -25,6 +25,7 @@ require_once dirname(__FILE__).'/traits/TableTrait.php';
 
 /**
  * @backup hosts, profiles
+ *
  * @onBefore prepareTriggersData
  */
 class testTriggerDependencies extends CWebTest {
@@ -666,11 +667,32 @@ class testTriggerDependencies extends CWebTest {
 				[
 					'expected' => TEST_BAD,
 					'prototype_dependencie' => [
-						'Host trigger prototype update{#KEY}'
+						'trigger prototype linked update{#KEY}'
 					],
 					'error_message' => 'Trigger prototype "trigger prototype linked update{#KEY}" cannot depend on the '.
 							'trigger prototype "trigger prototype linked update{#KEY}", because a circular linkage '.
 							'("trigger prototype linked update{#KEY}" -> "trigger prototype linked update{#KEY}") would occur.'
+				]
+			],
+			// #1 depends on one correct trigger prototype.
+			[
+				[
+					'prototype_dependencie' => [
+						'trigger prototype linked{#KEY}'
+					]
+				]
+			],
+			// #2 depends on trigger prototype and trigger.
+			[
+				[
+					'prototype_dependencie' => [
+						'trigger prototype linked{#KEY}'
+					],
+					'dependencie' => [
+						'Host with everything' => [
+							'Host trigger everything'
+						]
+					]
 				]
 			]
 		];
@@ -681,7 +703,6 @@ class testTriggerDependencies extends CWebTest {
 	 *
 	 * @dataProvider getLinkedTriggerPrototypeUpdateData
 	 * @dataProvider getTriggerCreateData
-	 * @dataProvider getTriggerPrototypeCreateData
 	 */
 	public function testTriggerDependencies_LinkedTriggerPrototypeUpdate($data) {
 		$this->page->login()->open('host_discovery.php?filter_set=1&filter_hostids%5B0%5D='.
@@ -690,7 +711,7 @@ class testTriggerDependencies extends CWebTest {
 		$this->page->waitUntilReady();
 		$this->query('link:Trigger prototypes')->one()->click();
 		$this->page->waitUntilReady();
-		$this->query('class:list-table')->one()->asTable()->query('link'.self::$linked_trigger_prot)->one()->click();
+		$this->query('class:list-table')->one()->asTable()->query('link',self::$linked_trigger_prot)->one()->click();
 
 		$this->triggerCreateUpdate($data, null, true);
 
@@ -699,8 +720,27 @@ class testTriggerDependencies extends CWebTest {
 		}
 		else {
 			$this->assertMessage(TEST_GOOD, 'Trigger prototype updated');
-			$this->checkTrigger($data, null, null, self::$linked_trigger_prot);
+			$this->checkTrigger($data, 'Host with everything', null, self::$linked_trigger_prot);
 		}
+	}
+
+	public static function getTemplateTriggerCreateBadData() {
+		return [
+			[
+				[
+					'expected' => TEST_BAD,
+					'name' => 'Depends on linked trigger',
+					'dependencie' => [
+						'Template that linked to template' => [
+							'trigger template linked'
+						]
+					],
+					'error_message' => 'Trigger "Depends on linked trigger" cannot depend on the trigger "trigger '.
+						'template linked" from the template "Template that linked to template", because dependencies '.
+						'on triggers from the parent template are not allowed.'
+				]
+			]
+		];
 	}
 
 	public static function getTemplateTriggerCreateData()
@@ -754,18 +794,7 @@ class testTriggerDependencies extends CWebTest {
 					]
 				]
 			],
-			// #4 dependence on template trigger that linked to another template.
-			[
-				[
-					'name' => 'Depends on linked trigger',
-					'dependencie' => [
-						'Template that linked to template' => [
-							'trigger template linked'
-						]
-					]
-				]
-			],
-			// #5 dependence on hosts trigger.
+			// #4 dependence on hosts trigger.
 			[
 				[
 					'name' => 'Depends on hosts trigger',
@@ -776,7 +805,7 @@ class testTriggerDependencies extends CWebTest {
 					]
 				]
 			],
-			// #6 dependence on two hosts trigger.
+			// #5 dependence on two hosts trigger.
 			[
 				[
 					'name' => 'Depends on two hosts trigger',
@@ -788,7 +817,7 @@ class testTriggerDependencies extends CWebTest {
 					]
 				]
 			],
-			// #7 dependence on trigger that linked from another template.
+			// #6 dependence on trigger that linked from another template.
 			[
 				[
 					'name' => 'Depends on trigger that linked from another template',
@@ -799,7 +828,7 @@ class testTriggerDependencies extends CWebTest {
 					]
 				]
 			],
-			//#8 dependence on trigger from template and trigger from host.
+			//#7 dependence on trigger from template and trigger from host.
 			[
 				[
 					'name' => 'Depends on trigger from template and host',
@@ -821,6 +850,7 @@ class testTriggerDependencies extends CWebTest {
 	/**
 	 * Create trigger dependencies on template.
 	 *
+	 * @dataProvider getTemplateTriggerCreateBadData
 	 * @dataProvider getTemplateTriggerCreateData
 	 */
 	public function testTriggerDependencies_TemplateTriggerCreate($data) {
@@ -829,8 +859,13 @@ class testTriggerDependencies extends CWebTest {
 		$this->query('button:Create trigger')->one()->click();
 		$this->page->waitUntilReady();
 		$this->triggerCreateUpdate($data, 'last(/Template with everything/everything)=0');
-		$this->assertMessage(TEST_GOOD, 'Trigger added');
-		$this->checkTrigger($data);
+		if (CTestArrayHelper::get($data, 'expected', TEST_GOOD) === TEST_BAD) {
+			$this->assertMessage(TEST_BAD, 'Cannot add trigger', $data['error_message']);
+		}
+		else {
+			$this->assertMessage(TEST_GOOD, 'Trigger added');
+			$this->checkTrigger($data);
+		}
 	}
 
 	public static function getTemplateTriggerUpdateData() {
@@ -847,6 +882,21 @@ class testTriggerDependencies extends CWebTest {
 					],
 					'error_message' => 'Trigger "Template trigger update" cannot depend on the trigger "Template trigger update", '.
 							'because a circular linkage ("Template trigger update" -> "Template trigger update") would occur.'
+				]
+			],
+			// #1 dependence on template trigger that linked to another template.
+			[
+				[
+					'expected' => TEST_BAD,
+					'name' => 'Depends on linked trigger',
+					'dependencie' => [
+						'Template that linked to template' => [
+							'trigger template linked'
+						]
+					],
+					'error_message' => 'Trigger "Template trigger update" cannot depend on the trigger "trigger '.
+						'template linked" from the template "Template that linked to template", because dependencies '.
+						'on triggers from the parent template are not allowed.'
 				]
 			]
 		];
@@ -918,8 +968,14 @@ class testTriggerDependencies extends CWebTest {
 		$this->query('button:Create trigger prototype')->one()->click();
 		$this->page->waitUntilReady();
 		$this->triggerCreateUpdate($data, 'last(/Template with everything/everything_prot_[{#KEY}])=0');
-		$this->assertMessage(TEST_GOOD, 'Trigger prototype added');
-		$this->checkTrigger($data, 'Template with everything');
+
+		if (CTestArrayHelper::get($data, 'expected', TEST_GOOD) === TEST_BAD) {
+			$this->assertMessage(TEST_BAD, 'Cannot add trigger prototype', $data['error_message']);
+		}
+		else {
+			$this->assertMessage(TEST_GOOD, 'Trigger prototype added');
+			$this->checkTrigger($data, 'Template with everything');
+		}
 	}
 
 	public static function getTemplateTriggerPrototypeUpdateData() {
