@@ -862,6 +862,7 @@ class testTriggerDependencies extends CWebTest {
 		$this->query('button:Create trigger')->one()->click();
 		$this->page->waitUntilReady();
 		$this->triggerCreateUpdate($data, 'last(/Template with everything/everything)=0');
+
 		if (CTestArrayHelper::get($data, 'expected', TEST_GOOD) === TEST_BAD) {
 			$this->assertMessage(TEST_BAD, 'Cannot add trigger', $data['error_message']);
 		}
@@ -1180,22 +1181,23 @@ class testTriggerDependencies extends CWebTest {
 		}
 
 		$form->submit();
+		$this->page->waitUntilReady();
 	}
 
 	/**
 	 * Check that dependencies added/updated on trigger.
 	 *
-	 * @param array $data			data provider.
-	 * @param string $prot_host		host name that has trigger prototype used for dependencies check.
-	 * @param boolean $update		if this function use in update scenario or not.
-	 * @param string $linked		linked trigger name.
+	 * @param array $data				data provider.
+	 * @param string $prot_host			host name that has trigger prototype used for dependencies check.
+	 * @param boolean $updated_name		add this to the updated name.
+	 * @param string $linked			linked trigger name.
 	 */
-	private function checkTrigger($data, $prot_host = null, $update = null, $linked = null) {
+	private function checkTrigger($data, $prot_host = null, $updated_name = null, $linked = null) {
 		if ($linked !== null) {
 			$trigger_name = $linked;
 		}
 		else {
-			$trigger_name = ($update !== null) ? $data['name'].$update : $data['name'];
+			$trigger_name = ($updated_name !== null) ? $data['name'].$updated_name : $data['name'];
 		}
 
 		$this->query('class:list-table')->one()->asTable()->query('link', $trigger_name)->one()->click();
