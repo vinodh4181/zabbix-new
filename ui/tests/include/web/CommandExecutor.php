@@ -29,6 +29,43 @@ use Facebook\WebDriver\Remote\RemoteWebDriver;
 class CommandExecutor extends HttpCommandExecutor {
 
 	/**
+	 * Original executor object.
+	 *
+	 * @var WebDriverCommandExecutor
+	 */
+	protected $executor;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param WebDriverCommandExecutor $executor
+	 */
+	public function __construct($executor) {
+		$this->executor = $executor;
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function execute(WebDriverCommand $command) {
+		try {
+			return $this->executor->execute($command);
+		}
+		// Allow single communication timeout during test execution
+		catch (\Facebook\WebDriver\Exception\WebDriverCurlException $exception) {
+			// Code is not missing here
+		}
+		// Workaraund for communication errors present on Jenkins
+		catch (\Facebook\WebDriver\Exception\WebDriverException $exception) {
+			if (strpos($exception->getMessage(), 'START_MAP') === false) {
+				throw $exception;
+			}
+		}
+
+		return $this->executor->execute($command);
+	}
+
+	/**
 	 * Execute custom command for WebDriver.
 	 *
 	 * @param RemoteWebDriver $driver    WebDriver instance

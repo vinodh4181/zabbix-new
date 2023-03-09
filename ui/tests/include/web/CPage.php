@@ -21,7 +21,7 @@
 require_once 'vendor/autoload.php';
 
 require_once dirname(__FILE__).'/CElementQuery.php';
-require_once dirname(__FILE__).'/CCommandExecutor.php';
+require_once dirname(__FILE__).'/CommandExecutor.php';
 
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Chrome\ChromeOptions;
@@ -113,7 +113,7 @@ class CPage {
 		}
 
 		$this->driver = RemoteWebDriver::create('http://'.$phpunit_driver_address.'/wd/hub', $capabilities);
-		$this->driver->setCommandExecutor(new CCommandExecutor($this->driver->getCommandExecutor()));
+		$this->driver->setCommandExecutor(new CommandExecutor($this->driver->getCommandExecutor()));
 
 		$this->driver->manage()->window()->setSize(
 				new WebDriverDimension(self::DEFAULT_PAGE_WIDTH, self::DEFAULT_PAGE_HEIGHT)
