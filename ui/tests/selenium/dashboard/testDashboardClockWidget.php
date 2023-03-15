@@ -169,8 +169,6 @@ class testDashboardClockWidget extends CWebTest {
 					// Check Advanced fields' visibility and values.
 					foreach ($advanced_configuration as $field => $config) {
 						$advanced_field = $form->getField($field);
-/*						$this->assertTrue($advanced_field->isVisible());
-						$this->assertTrue($advanced_field->isEnabled());*/
 						$this->assertTrue($advanced_field->isClickable());
 
 						foreach ($config as $id => $value) {

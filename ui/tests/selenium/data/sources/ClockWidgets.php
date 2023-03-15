@@ -69,7 +69,7 @@ class ClockWidgets {
 				]
 			]
 		]);
-		$itemids = CDataHelper::getIds('name');
+		$itemid = CDataHelper::getIds('name');
 
 		CDataHelper::call('dashboard.create', [
 			[
@@ -107,7 +107,7 @@ class ClockWidgets {
 									[
 										'type' => 4,
 										'name' => 'itemid',
-										'value' => $itemids['Item for clock widget']
+										'value' => $itemid['Item for clock widget']
 									],
 									[
 										'type' => 0,
