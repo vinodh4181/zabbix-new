@@ -151,7 +151,7 @@ void	pp_item_clear(zbx_pp_item_t *item)
 	zbx_pp_item_preproc_release(item->preproc);
 }
 
-void	zbx_pp_value_opt_clear(zbx_pp_value_opt_t *opt)
+void	pp_value_opt_clear(zbx_pp_value_opt_t *opt)
 {
 	if (0 != (opt->flags & ZBX_PP_VALUE_OPT_LOG))
 		zbx_free(opt->source);

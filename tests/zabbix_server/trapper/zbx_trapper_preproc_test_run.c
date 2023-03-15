@@ -23,6 +23,7 @@
 #include "zbxmockjson.h"
 #include "zbxembed.h"
 #include "libs/zbxpreproc/pp_execute.h"
+#include "libs/zbxpreproc/pp_history.h"
 #include "zabbix_server/trapper/trapper_preproc.h"
 #include "zbx_item_constants.h"
 
@@ -68,7 +69,7 @@ int	__wrap_zbx_preprocessor_test(unsigned char value_type, const char *value, co
 	/* prepare history */
 	if (NULL != history)
 	{
-		preproc->history = zbx_pp_history_create(0);
+		preproc->history = pp_history_create(0);
 		*preproc->history = *history;
 		preproc->history_num = 1;
 		memset(history, 0, sizeof(zbx_pp_history_t));

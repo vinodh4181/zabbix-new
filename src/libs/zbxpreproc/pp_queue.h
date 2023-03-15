@@ -22,6 +22,7 @@
 
 #include "zbxpreproc.h"
 #include "zbxalgo.h"
+#include "pp_task.h"
 
 typedef struct
 {

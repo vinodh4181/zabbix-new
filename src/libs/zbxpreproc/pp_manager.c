@@ -116,7 +116,7 @@ void	zbx_init_library_preproc(zbx_flush_value_func_t flush_value_cb)
  * Return value: The created manager or NULL on error.                        *
  *                                                                            *
  ******************************************************************************/
-zbx_pp_manager_t	*zbx_pp_manager_create(int workers_num, zbx_pp_notify_cb_t finished_cb,
+static zbx_pp_manager_t	*pp_manager_create(int workers_num, zbx_pp_notify_cb_t finished_cb,
 		void *finished_data, char **error)
 {
 	int			i, ret = FAIL, started_num = 0;
@@ -203,7 +203,7 @@ out:
  * Purpose: destroy preprocessing manager                                     *
  *                                                                            *
  ******************************************************************************/
-void	zbx_pp_manager_free(zbx_pp_manager_t *manager)
+static void	pp_manager_free(zbx_pp_manager_t *manager)
 {
 	int	i;
 
@@ -245,7 +245,7 @@ void	zbx_pp_manager_free(zbx_pp_manager_t *manager)
  *             client  - [IN] request source                                  *
  *                                                                            *
  ******************************************************************************/
-void	zbx_pp_manager_queue_test(zbx_pp_manager_t *manager, zbx_pp_item_preproc_t *preproc, zbx_variant_t *value,
+static void	pp_manager_queue_test(zbx_pp_manager_t *manager, zbx_pp_item_preproc_t *preproc, zbx_variant_t *value,
 		zbx_timespec_t ts, zbx_ipc_client_t *client)
 {
 	zbx_pp_task_t	*task = pp_task_test_create(preproc, value, ts, client);
@@ -261,7 +261,7 @@ void	zbx_pp_manager_queue_test(zbx_pp_manager_t *manager, zbx_pp_item_preproc_t 
  * Purpose: queue value/value_sec preprocessing tasks                         *
  *                                                                            *
  ******************************************************************************/
-void	zbx_pp_manager_queue_value_preproc(zbx_pp_manager_t *manager, zbx_vector_pp_task_ptr_t *tasks)
+static void	pp_manager_queue_value_preproc(zbx_pp_manager_t *manager, zbx_vector_pp_task_ptr_t *tasks)
 {
 	zbx_prof_start(__func__, ZBX_PROF_MUTEX);
 	pp_task_queue_lock(&manager->queue);
@@ -290,7 +290,7 @@ void	zbx_pp_manager_queue_value_preproc(zbx_pp_manager_t *manager, zbx_vector_pp
  * Return value: The created task or NULL if the data can be flushed directly.*
  *                                                                            *
  ******************************************************************************/
-zbx_pp_task_t	*zbx_pp_manager_create_task(zbx_pp_manager_t *manager, zbx_uint64_t itemid, zbx_variant_t *value,
+static zbx_pp_task_t	*pp_manager_create_task(zbx_pp_manager_t *manager, zbx_uint64_t itemid, zbx_variant_t *value,
 		zbx_timespec_t ts, const zbx_pp_value_opt_t *value_opt)
 {
 	zbx_pp_item_t	*item;
@@ -517,7 +517,7 @@ static zbx_pp_task_t	*pp_manager_requeue_next_sequence_task(zbx_pp_manager_t *ma
  *             finished_num   - [OUT] finished tasks                          *
  *                                                                            *
  ******************************************************************************/
-void	zbx_pp_manager_process_finished(zbx_pp_manager_t *manager, zbx_vector_pp_task_ptr_t *tasks,
+static void	pp_manager_process_finished(zbx_pp_manager_t *manager, zbx_vector_pp_task_ptr_t *tasks,
 		zbx_uint64_t *pending_num, zbx_uint64_t *processing_num, zbx_uint64_t *finished_num)
 {
 #define PP_FINISHED_TASK_BATCH_SIZE	100
@@ -583,7 +583,7 @@ void	zbx_pp_manager_process_finished(zbx_pp_manager_t *manager, zbx_vector_pp_ta
  * Parameters: manager - [IN] manager                                         *
  *                                                                            *
  ******************************************************************************/
-void	zbx_pp_manager_dump_items(zbx_pp_manager_t *manager)
+static void	pp_manager_dump_items(zbx_pp_manager_t *manager)
 {
 	zbx_hashset_iter_t	iter;
 	zbx_pp_item_t		*item;
@@ -619,7 +619,7 @@ void	zbx_pp_manager_dump_items(zbx_pp_manager_t *manager)
  * Purpose: get manager configuration revision                                *
  *                                                                            *
  ******************************************************************************/
-zbx_uint64_t	zbx_pp_manager_get_revision(const zbx_pp_manager_t *manager)
+static zbx_uint64_t	pp_manager_get_revision(const zbx_pp_manager_t *manager)
 {
 	return manager->revision;
 }
@@ -629,7 +629,7 @@ zbx_uint64_t	zbx_pp_manager_get_revision(const zbx_pp_manager_t *manager)
  * Purpose: set manager configuration revision                                *
  *                                                                            *
  ******************************************************************************/
-void	zbx_pp_manager_set_revision(zbx_pp_manager_t *manager, zbx_uint64_t revision)
+static void	pp_manager_set_revision(zbx_pp_manager_t *manager, zbx_uint64_t revision)
 {
 	manager->revision = revision;
 }
@@ -649,7 +649,7 @@ zbx_hashset_t	*zbx_pp_manager_items(zbx_pp_manager_t *manager)
  * Purpose: get number of pending preprocessing tasks                         *
  *                                                                            *
  ******************************************************************************/
-zbx_uint64_t	zbx_pp_manager_get_pending_num(zbx_pp_manager_t *manager)
+static zbx_uint64_t	pp_manager_get_pending_num(zbx_pp_manager_t *manager)
 {
 	return manager->queue.pending_num;
 }
@@ -659,8 +659,8 @@ zbx_uint64_t	zbx_pp_manager_get_pending_num(zbx_pp_manager_t *manager)
  * Purpose: get diagnostic statistics                                         *
  *                                                                            *
  ******************************************************************************/
-void	zbx_pp_manager_get_diag_stats(zbx_pp_manager_t *manager, zbx_uint64_t *preproc_num, zbx_uint64_t *pending_num,
-		zbx_uint64_t *finished_num, zbx_uint64_t *sequences_num)
+static void	pp_manager_get_diag_stats(zbx_pp_manager_t *manager, zbx_uint64_t *preproc_num,
+		zbx_uint64_t *pending_num, zbx_uint64_t *finished_num, zbx_uint64_t *sequences_num)
 {
 	*preproc_num = (zbx_uint64_t)manager->items.num_data;
 	*pending_num = manager->queue.pending_num;
@@ -673,7 +673,7 @@ void	zbx_pp_manager_get_diag_stats(zbx_pp_manager_t *manager, zbx_uint64_t *prep
  * Purpose: get task sequence statistics                                      *
  *                                                                            *
  ******************************************************************************/
-void	zbx_pp_manager_get_sequence_stats(zbx_pp_manager_t *manager, zbx_vector_pp_sequence_stats_ptr_t *sequences)
+static void	pp_manager_get_sequence_stats(zbx_pp_manager_t *manager, zbx_vector_pp_sequence_stats_ptr_t *sequences)
 {
 	pp_task_queue_get_sequence_stats(&manager->queue, sequences);
 }
@@ -683,7 +683,7 @@ void	zbx_pp_manager_get_sequence_stats(zbx_pp_manager_t *manager, zbx_vector_pp_
  * Purpose: get worker usage statistics                                       *
  *                                                                            *
  ******************************************************************************/
-void	zbx_pp_manager_get_worker_usage(zbx_pp_manager_t *manager, zbx_vector_dbl_t *worker_usage)
+static void	pp_manager_get_worker_usage(zbx_pp_manager_t *manager, zbx_vector_dbl_t *worker_usage)
 {
 	(void)zbx_timekeeper_get_usage(manager->timekeeper, worker_usage);
 }
@@ -701,12 +701,12 @@ static void	preprocessor_sync_configuration(zbx_pp_manager_t *manager)
 
 	zabbix_log(LOG_LEVEL_DEBUG, "In %s()", __func__);
 
-	old_revision = revision = zbx_pp_manager_get_revision(manager);
+	old_revision = revision = pp_manager_get_revision(manager);
 	DCconfig_get_preprocessable_items(zbx_pp_manager_items(manager), &revision);
-	zbx_pp_manager_set_revision(manager, revision);
+	pp_manager_set_revision(manager, revision);
 
 	if (SUCCEED == ZBX_CHECK_LOG_LEVEL(LOG_LEVEL_TRACE) && revision != old_revision)
-		zbx_pp_manager_dump_items(manager);
+		pp_manager_dump_items(manager);
 
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() item config size:%d revision:" ZBX_FS_UI64 "->" ZBX_FS_UI64, __func__,
 			zbx_pp_manager_items(manager)->num_data, old_revision, revision);
@@ -875,13 +875,13 @@ static zbx_uint64_t	preprocessor_add_request(zbx_pp_manager_t *manager, zbx_ipc_
 		offset += zbx_preprocessor_unpack_value(&value, message->data + offset);
 		preproc_item_value_extract_data(&value, &var, &ts, &var_opt);
 
-		if (NULL == (task = zbx_pp_manager_create_task(manager, value.itemid, &var, ts, &var_opt)))
+		if (NULL == (task = pp_manager_create_task(manager, value.itemid, &var, ts, &var_opt)))
 		{
 			preprocessing_flush_value(manager, value.itemid, value.item_value_type, value.item_flags,
 					&var, ts, &var_opt);
 
 			zbx_variant_clear(&var);
-			zbx_pp_value_opt_clear(&var_opt);
+			pp_value_opt_clear(&var_opt);
 		}
 		else
 			zbx_vector_pp_task_ptr_append(&tasks, task);
@@ -890,7 +890,7 @@ static zbx_uint64_t	preprocessor_add_request(zbx_pp_manager_t *manager, zbx_ipc_
 	}
 
 	if (0 != tasks.values_num)
-		zbx_pp_manager_queue_value_preproc(manager, &tasks);
+		pp_manager_queue_value_preproc(manager, &tasks);
 
 	queued_num = tasks.values_num;
 	zbx_vector_pp_task_ptr_destroy(&tasks);
@@ -920,7 +920,7 @@ static void	preprocessor_add_test_request(zbx_pp_manager_t *manager, zbx_ipc_cli
 
 	preproc = zbx_pp_item_preproc_create(0, 0, 0);
 	zbx_preprocessor_unpack_test_request(preproc, &value, &ts, message->data);
-	zbx_pp_manager_queue_test(manager, preproc, &value, ts, client);
+	pp_manager_queue_test(manager, preproc, &value, ts, client);
 	zbx_pp_item_preproc_release(preproc);
 
 	zabbix_log(LOG_LEVEL_DEBUG, "End of %s()", __func__);
@@ -928,7 +928,7 @@ static void	preprocessor_add_test_request(zbx_pp_manager_t *manager, zbx_ipc_cli
 
 static void	preprocessor_reply_queue_size(zbx_pp_manager_t *manager, zbx_ipc_client_t *client)
 {
-	zbx_uint64_t	pending_num = zbx_pp_manager_get_pending_num(manager);
+	zbx_uint64_t	pending_num = pp_manager_get_pending_num(manager);
 
 	zbx_ipc_client_send(client, ZBX_IPC_PREPROCESSOR_QUEUE, (unsigned char *)&pending_num, sizeof(pending_num));
 }
@@ -948,7 +948,7 @@ static void	prpeprocessor_flush_value_result(zbx_pp_manager_t *manager, zbx_pp_t
 	zbx_timespec_t		ts;
 	zbx_pp_value_opt_t	*value_opt;
 
-	zbx_pp_value_task_get_data(task, &value_type, &flags, &value, &ts, &value_opt);
+	pp_value_task_get_data(task, &value_type, &flags, &value, &ts, &value_opt);
 	preprocessing_flush_value(manager, task->itemid, value_type, flags, value, ts, value_opt);
 }
 
@@ -969,7 +969,7 @@ static void	preprocessor_reply_test_result(zbx_pp_task_t *task)
 	int			results_num;
 	zbx_pp_history_t	*history;
 
-	zbx_pp_test_task_get_data(task, &client, &result, &results, &results_num, &history);
+	pp_test_task_get_data(task, &client, &result, &results, &results_num, &history);
 
 	len = zbx_preprocessor_pack_test_result(&data, results, results_num, history);
 
@@ -1019,7 +1019,7 @@ static void	preprocessor_reply_diag_info(zbx_pp_manager_t *manager, zbx_ipc_clie
 	unsigned char	*data;
 	zbx_uint32_t	data_len;
 
-	zbx_pp_manager_get_diag_stats(manager, &preproc_num, &pending_num, &finished_num, &sequences_num);
+	pp_manager_get_diag_stats(manager, &preproc_num, &pending_num, &finished_num, &sequences_num);
 	data_len = zbx_preprocessor_pack_diag_stats(&data, preproc_num, pending_num, finished_num, sequences_num);
 
 	zbx_ipc_client_send(client, ZBX_IPC_PREPROCESSOR_DIAG_STATS_RESULT, data, data_len);
@@ -1057,7 +1057,7 @@ static void	preprocessor_reply_top_sequences(zbx_pp_manager_t *manager, zbx_ipc_
 
 	zbx_preprocessor_unpack_top_request(&limit, message->data);
 
-	zbx_pp_manager_get_sequence_stats(manager, &sequences);
+	pp_manager_get_sequence_stats(manager, &sequences);
 
 	if (limit > sequences.values_num)
 		limit = sequences.values_num;
@@ -1089,7 +1089,7 @@ static void	preprocessor_reply_usage_stats(zbx_pp_manager_t *manager, int worker
 	zbx_uint32_t		data_len;
 
 	zbx_vector_dbl_create(&usage);
-	zbx_pp_manager_get_worker_usage(manager, &usage);
+	pp_manager_get_worker_usage(manager, &usage);
 
 	data_len = zbx_preprocessor_pack_usage_stats(&data, &usage, workers_num);
 
@@ -1143,7 +1143,7 @@ ZBX_THREAD_ENTRY(zbx_pp_manager_thread, args)
 		exit(EXIT_FAILURE);
 	}
 
-	if (NULL == (manager = zbx_pp_manager_create(pp_args->workers_num, preprocessor_finished_task_cb,
+	if (NULL == (manager = pp_manager_create(pp_args->workers_num, preprocessor_finished_task_cb,
 			(void *)&service, &error)))
 	{
 		zabbix_log(LOG_LEVEL_CRIT, "cannot initialize preprocessing manager: %s", error);
@@ -1215,13 +1215,13 @@ ZBX_THREAD_ENTRY(zbx_pp_manager_thread, args)
 		if (NULL != client)
 			zbx_ipc_client_release(client);
 
-		zbx_pp_manager_process_finished(manager, &tasks, &pending_num, &processing_num, &finished_num);
+		pp_manager_process_finished(manager, &tasks, &pending_num, &processing_num, &finished_num);
 
 		if (0 < tasks.values_num)
 		{
 			processed_num += (unsigned int)tasks.values_num;
 			preprocessor_flush_tasks(manager, &tasks);
-			zbx_pp_tasks_clear(&tasks);
+			pp_tasks_clear(&tasks);
 		}
 
 		if (0 != finished_num)
@@ -1246,7 +1246,7 @@ ZBX_THREAD_ENTRY(zbx_pp_manager_thread, args)
 	zbx_setproctitle("%s #%d [terminating]", get_process_type_string(process_type), process_num);
 
 	zbx_vector_pp_task_ptr_destroy(&tasks);
-	zbx_pp_manager_free(manager);
+	pp_manager_free(manager);
 
 	zbx_ipc_service_close(&service);
 

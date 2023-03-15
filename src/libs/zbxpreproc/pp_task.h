@@ -30,6 +30,27 @@
 
 #define PP_TASK_DATA(x)		(&x->data)
 
+typedef enum
+{
+	ZBX_PP_TASK_TEST = 1,
+	ZBX_PP_TASK_VALUE,
+	ZBX_PP_TASK_VALUE_SEQ,
+	ZBX_PP_TASK_DEPENDENT,
+	ZBX_PP_TASK_SEQUENCE
+}
+zbx_pp_task_type_t;
+
+typedef struct
+{
+	zbx_pp_task_type_t	type;
+	zbx_uint64_t		itemid;
+	zbx_uint64_t		hostid;
+	void			*data;
+}
+zbx_pp_task_t;
+
+ZBX_PTR_VECTOR_DECL(pp_task_ptr, zbx_pp_task_t *)
+
 typedef struct
 {
 	zbx_variant_t		value;
@@ -81,5 +102,12 @@ zbx_pp_task_t	*pp_task_dependent_create(zbx_uint64_t itemid, zbx_pp_item_preproc
 zbx_pp_task_t	*pp_task_value_seq_create(zbx_uint64_t itemid, zbx_pp_item_preproc_t *preproc, zbx_variant_t *value,
 		zbx_timespec_t ts, const zbx_pp_value_opt_t *value_opt, zbx_pp_cache_t *cache);
 zbx_pp_task_t	*pp_task_sequence_create(zbx_uint64_t itemid);
+
+void	pp_tasks_clear(zbx_vector_pp_task_ptr_t *tasks);
+
+void	pp_value_task_get_data(zbx_pp_task_t *task, unsigned char *value_type, unsigned char *flags,
+		zbx_variant_t **value, zbx_timespec_t *ts, zbx_pp_value_opt_t **value_opt);
+void	pp_test_task_get_data(zbx_pp_task_t *task, zbx_ipc_client_t **client, zbx_variant_t **value,
+		zbx_pp_result_t **results, int *results_num, zbx_pp_history_t **history);
 
 #endif

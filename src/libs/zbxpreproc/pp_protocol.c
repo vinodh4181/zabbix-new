@@ -27,6 +27,7 @@
 #include "zbxvariant.h"
 #include "zbxtime.h"
 #include "zbxstats.h"
+#include "pp_history.h"
 
 #define PACKED_FIELD_RAW	0
 #define PACKED_FIELD_STRING	1
@@ -354,7 +355,7 @@ static int	preprocessor_unpack_history(const unsigned char *data, zbx_pp_history
 
 	if (0 != history_num)
 	{
-		zbx_pp_history_reserve(history, history_num);
+		pp_history_reserve(history, history_num);
 
 		for (int i = 0; i < history_num; i++)
 		{
@@ -367,7 +368,7 @@ static int	preprocessor_unpack_history(const unsigned char *data, zbx_pp_history
 			offset += zbx_deserialize_int(offset, &ts.sec);
 			offset += zbx_deserialize_int(offset, &ts.ns);
 
-			zbx_pp_history_add(history, index, &value, ts);
+			pp_history_add(history, index, &value, ts);
 		}
 	}
 
@@ -1004,7 +1005,7 @@ void	zbx_preprocessor_unpack_test_request(zbx_pp_item_preproc_t *preproc, zbx_va
 	else
 		zbx_variant_set_error(value, str);
 
-	preproc->history = zbx_pp_history_create(0);
+	preproc->history = pp_history_create(0);
 	offset += preprocessor_unpack_history(offset, preproc->history);
 	(void)preprocessor_unpack_steps(offset, preproc);
 

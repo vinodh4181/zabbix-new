@@ -151,7 +151,7 @@ zbx_pp_task_t	*pp_task_value_create(zbx_uint64_t itemid, zbx_pp_item_preproc_t *
  ******************************************************************************/
 static void	pp_task_value_clear(zbx_pp_task_value_t *task)
 {
-	zbx_pp_value_opt_clear(&task->opt);
+	pp_value_opt_clear(&task->opt);
 
 	zbx_variant_clear(&task->value);
 	zbx_variant_clear(&task->result);
@@ -301,7 +301,7 @@ void	pp_task_free(zbx_pp_task_t *task)
  * Purpose: clear tasks                                                       *
  *                                                                            *
  ******************************************************************************/
-void	zbx_pp_tasks_clear(zbx_vector_pp_task_ptr_t *tasks)
+void	pp_tasks_clear(zbx_vector_pp_task_ptr_t *tasks)
 {
 	zbx_vector_pp_task_ptr_clear_ext(tasks, pp_task_free);
 }
@@ -311,7 +311,7 @@ void	zbx_pp_tasks_clear(zbx_vector_pp_task_ptr_t *tasks)
  * Purpose: extract value task data                                           *
  *                                                                            *
  ******************************************************************************/
-void	zbx_pp_value_task_get_data(zbx_pp_task_t *task, unsigned char *value_type, unsigned char *flags,
+void	pp_value_task_get_data(zbx_pp_task_t *task, unsigned char *value_type, unsigned char *flags,
 		zbx_variant_t **value, zbx_timespec_t *ts, zbx_pp_value_opt_t **value_opt)
 {
 	zbx_pp_task_value_t	*d = (zbx_pp_task_value_t *)PP_TASK_DATA(task);
@@ -328,7 +328,7 @@ void	zbx_pp_value_task_get_data(zbx_pp_task_t *task, unsigned char *value_type, 
  * Purpose: extract test task data                                            *
  *                                                                            *
  ******************************************************************************/
-void	zbx_pp_test_task_get_data(zbx_pp_task_t *task, zbx_ipc_client_t **client, zbx_variant_t **value,
+void	pp_test_task_get_data(zbx_pp_task_t *task, zbx_ipc_client_t **client, zbx_variant_t **value,
 		zbx_pp_result_t **results, int *results_num, zbx_pp_history_t **history)
 {
 	zbx_pp_task_test_t	*d = (zbx_pp_task_test_t *)PP_TASK_DATA(task);

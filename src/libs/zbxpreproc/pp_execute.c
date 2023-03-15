@@ -1063,7 +1063,7 @@ void	pp_execute(zbx_pp_context_t *ctx, zbx_pp_item_preproc_t *preproc, zbx_pp_ca
 	}
 
 	results = (zbx_pp_result_t *)zbx_malloc(NULL, sizeof(zbx_pp_result_t) * (size_t)preproc->steps_num);
-	history = (0 != preproc->history_num ? zbx_pp_history_create(preproc->history_num) : NULL);
+	history = (0 != preproc->history_num ? pp_history_create(preproc->history_num) : NULL);
 	results_num = 0;
 
 	zbx_variant_set_none(&value_raw);
@@ -1099,7 +1099,7 @@ void	pp_execute(zbx_pp_context_t *ctx, zbx_pp_item_preproc_t *preproc, zbx_pp_ca
 		if (NULL != history && ZBX_VARIANT_NONE != history_value.type && ZBX_VARIANT_ERR != value_out->type)
 		{
 			if (SUCCEED == zbx_pp_preproc_has_history(preproc->steps[i].type))
-				zbx_pp_history_add(history, i, &history_value, history_ts);
+				pp_history_add(history, i, &history_value, history_ts);
 		}
 
 		zbx_variant_clear(&history_value);
