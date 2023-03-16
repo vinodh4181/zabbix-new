@@ -22,7 +22,6 @@
 
 #include "zbxcacheconfig.h"
 #include "zbxshmem.h"
-#include "zbxpreproc.h"
 
 #define ZBX_SYNC_DONE		0
 #define	ZBX_SYNC_MORE		1
@@ -109,8 +108,19 @@ int	zbx_hc_check_proxy(zbx_uint64_t proxyid);
 
 void	dc_add_history(zbx_uint64_t itemid, unsigned char item_value_type, unsigned char item_flags,
 		AGENT_RESULT *result, const zbx_timespec_t *ts, unsigned char state, const char *error);
-void	dc_add_history_variant(zbx_uint64_t itemid, unsigned char value_type, unsigned char item_flags,
-		zbx_variant_t *value, zbx_timespec_t ts, const zbx_pp_value_opt_t *value_opt);
+void	dc_local_add_history_log(zbx_uint64_t itemid, unsigned char item_value_type, const zbx_timespec_t *ts,
+		const zbx_log_t *log, zbx_uint64_t lastlogsize, int mtime, unsigned char flags);
+void	dc_local_add_history_empty(zbx_uint64_t itemid, unsigned char item_value_type, const zbx_timespec_t *ts,
+		unsigned char flags);
+void	dc_local_add_history_uint(zbx_uint64_t itemid, unsigned char item_value_type, const zbx_timespec_t *ts,
+		zbx_uint64_t value_orig, zbx_uint64_t lastlogsize, int mtime, unsigned char flags);
+void	dc_local_add_history_dbl(zbx_uint64_t itemid, unsigned char item_value_type, const zbx_timespec_t *ts,
+		double value_orig, zbx_uint64_t lastlogsize, int mtime, unsigned char flags);
+void	dc_local_add_history_text(zbx_uint64_t itemid, unsigned char item_value_type, const zbx_timespec_t *ts,
+		const char *value_orig, zbx_uint64_t lastlogsize, int mtime, unsigned char flags);
+void	dc_local_add_history_notsupported(zbx_uint64_t itemid, const zbx_timespec_t *ts, const char *error,
+		zbx_uint64_t lastlogsize, int mtime, unsigned char flags);
+void	dc_local_add_history_lld(zbx_uint64_t itemid, const zbx_timespec_t *ts, const char *value_orig);
 void	dc_flush_history(void);
 
 #endif
