@@ -49,7 +49,7 @@ static void	add_history_variant_server(zbx_uint64_t itemid, unsigned char value_
 
 	if (ZBX_VARIANT_ERR == value->type)
 	{
-		dc_local_add_history_notsupported(itemid, &ts, value->data.err, lastlogsize, mtime, value_flags);
+		zbx_dc_local_add_history_notsupported(itemid, &ts, value->data.err, lastlogsize, mtime, value_flags);
 
 		return;
 	}
@@ -64,9 +64,9 @@ static void	add_history_variant_server(zbx_uint64_t itemid, unsigned char value_
 	if (0 != (value_flags & ZBX_DC_FLAG_NOVALUE))
 	{
 		if (0 != (value_flags & ZBX_DC_FLAG_META))
-			dc_local_add_history_log(itemid, value_type, &ts, NULL, lastlogsize, mtime, value_flags);
+			zbx_dc_local_add_history_log(itemid, value_type, &ts, NULL, lastlogsize, mtime, value_flags);
 		else
-			dc_local_add_history_empty(itemid, value_type, &ts, value_flags);
+			zbx_dc_local_add_history_empty(itemid, value_type, &ts, value_flags);
 
 		return;
 	}
@@ -86,7 +86,7 @@ static void	add_history_variant_server(zbx_uint64_t itemid, unsigned char value_
 		log.source = value_opt->source;
 		log.value = value->data.str;
 
-		dc_local_add_history_log(itemid, value_type, &ts, &log, lastlogsize, mtime, value_flags);
+		zbx_dc_local_add_history_log(itemid, value_type, &ts, &log, lastlogsize, mtime, value_flags);
 
 		return;
 	}
@@ -94,15 +94,15 @@ static void	add_history_variant_server(zbx_uint64_t itemid, unsigned char value_
 	switch (value->type)
 	{
 		case ZBX_VARIANT_UI64:
-			dc_local_add_history_uint(itemid, value_type, &ts, value->data.ui64, lastlogsize, mtime,
+			zbx_dc_local_add_history_uint(itemid, value_type, &ts, value->data.ui64, lastlogsize, mtime,
 					value_flags);
 			break;
 		case ZBX_VARIANT_DBL:
-			dc_local_add_history_dbl(itemid, value_type, &ts, value->data.dbl, lastlogsize, mtime,
+			zbx_dc_local_add_history_dbl(itemid, value_type, &ts, value->data.dbl, lastlogsize, mtime,
 					value_flags);
 			break;
 		case ZBX_VARIANT_STR:
-			dc_local_add_history_text(itemid, value_type, &ts, value->data.str, lastlogsize, mtime,
+			zbx_dc_local_add_history_text(itemid, value_type, &ts, value->data.str, lastlogsize, mtime,
 					value_flags);
 			break;
 		default:
