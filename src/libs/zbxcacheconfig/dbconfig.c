@@ -15718,12 +15718,12 @@ void	zbx_dc_get_unused_macro_templates(zbx_hashset_t *templates, const zbx_vecto
 void	zbx_recalc_time_period(int *ts_from, int table_group)
 {
 #define HK_CFG_UPDATE_INTERVAL	5
-	int			least_ts = 0, now;
+	time_t			least_ts = 0, now;
 	zbx_config_t		cfg;
-	static int		last_cfg_retrieval = 0;
+	static time_t		last_cfg_retrieval = 0;
 	static zbx_config_hk_t	hk;
 
-	now = (int)time(NULL);
+	now = time(NULL);
 
 	if (HK_CFG_UPDATE_INTERVAL < now - last_cfg_retrieval)
 	{
@@ -15748,8 +15748,7 @@ void	zbx_recalc_time_period(int *ts_from, int table_group)
 		least_ts = now - hk.trends + 1;
 	}
 
-
 	if (least_ts > *ts_from)
-		*ts_from = least_ts;
+		*ts_from = (int)least_ts;
 #undef HK_CFG_UPDATE_INTERVAL
 }
