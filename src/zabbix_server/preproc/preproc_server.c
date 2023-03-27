@@ -24,6 +24,8 @@
 #include "zbxcachehistory.h"
 #include "zbxlld.h"
 #include "zbxvariant.h"
+#include "module.h"
+#include "zbxcacheconfig.h"
 
 static void	add_history_variant_server(zbx_uint64_t itemid, unsigned char value_type, unsigned char item_flags,
 		zbx_variant_t *value, zbx_timespec_t ts, const zbx_pp_value_opt_t *value_opt)
