@@ -20,7 +20,6 @@
 #ifndef ZABBIX_PP_ITEM_H
 #define ZABBIX_PP_ITEM_H
 
-#include "pp_history.h"
 #include "zbxcommon.h"
 #include "zbxpreproc.h"
 

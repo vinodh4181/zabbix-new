@@ -20,7 +20,6 @@
 #ifndef ZABBIX_PREPROC_SNMP_H
 #define ZABBIX_PREPROC_SNMP_H
 
-#include "item_preproc.h"
 #include "pp_cache.h"
 #include "zbxalgo.h"
 

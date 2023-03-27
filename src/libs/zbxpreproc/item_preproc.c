@@ -25,7 +25,6 @@
 #include "zbxprometheus.h"
 #include "zbxvariant.h"
 #include "zbxtime.h"
-#include "zbxdbhigh.h"
 #include "zbxjson.h"
 #include "zbxstr.h"
 
