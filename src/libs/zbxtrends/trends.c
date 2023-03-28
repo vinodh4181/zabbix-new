@@ -36,9 +36,9 @@ static char	*trends_errors[ZBX_TREND_STATE_COUNT] = {
  *                                                                            *
  * Purpose: parse largest period base from function parameters                *
  *                                                                            *
- * Parameters: shift  - [IN] the period shift parameter                       *
- *             base   - [OUT] the period shift base (now/?)                   *
- *             error  - [OUT] the error message if parsing failed             *
+ * Parameters: shift  - [IN] period shift parameter                           *
+ *             base   - [OUT] period shift base (now/?)                       *
+ *             error  - [OUT] error message if parsing failed                 *
  *                                                                            *
  * Return value: SUCCEED - period was parsed successfully                     *
  *               FAIL    - invalid time period was specified                  *
@@ -78,9 +78,9 @@ static int	trends_parse_base(const char *period_shift, zbx_time_unit_t *base, ch
  *                                                                            *
  * Purpose: parse largest period base from function parameters                *
  *                                                                            *
- * Parameters: params - [IN] the function parameters                          *
- *             base   - [OUT] the period shift base (now/?)                   *
- *             error  - [OUT] the error message if parsing failed             *
+ * Parameters: params - [IN] function parameters                              *
+ *             base   - [OUT] period shift base (now/?)                       *
+ *             error  - [OUT] error message if parsing failed                 *
  *                                                                            *
  * Return value: SUCCEED - period was parsed successfully                     *
  *               FAIL    - invalid time period was specified                  *
@@ -103,11 +103,11 @@ int	zbx_trends_parse_base(const char *params, zbx_time_unit_t *base, char **erro
  *                                                                            *
  * Purpose: parse timeshift                                                   *
  *                                                                            *
- * Parameters: from          - [IN] the start time                            *
- *             timeshift     - [IN] the timeshift string                      *
+ * Parameters: from          - [IN] start time                                *
+ *             timeshift     - [IN] timeshift string                          *
  *             min_time_unit - [IN] minimum time unit that can be used        *
- *             tm            - [IN] the shifted time                          *
- *             error         - [OUT] the error message if parsing failed      *
+ *             tm            - [IN] shifted time                              *
+ *             error         - [OUT] error message if parsing failed          *
  *                                                                            *
  * Return value: SUCCEED - time shift was parsed successfully                 *
  *               FAIL    - otherwise                                          *
@@ -196,10 +196,10 @@ static int	trends_parse_timeshift(time_t from, const char *timeshift, zbx_time_u
  *                                                                            *
  * Purpose: parse timeshift                                                   *
  *                                                                            *
- * Parameters: from          - [IN] the start time                            *
- *             timeshift     - [IN] the timeshift string                      *
- *             tm            - [IN] the shifted time                          *
- *             error         - [OUT] the error message if parsing failed      *
+ * Parameters: from          - [IN] start time                                *
+ *             timeshift     - [IN] timeshift string                          *
+ *             tm            - [IN] shifted time                              *
+ *             error         - [OUT] error message if parsing failed          *
  *                                                                            *
  * Return value: SUCCEED - time shift was parsed successfully                 *
  *               FAIL    - otherwise                                          *
@@ -214,15 +214,12 @@ int	zbx_trends_parse_timeshift(time_t from, const char *timeshift, struct tm *tm
  *                                                                            *
  * Purpose: parse trend function period arguments into time range             *
  *                                                                            *
- * Parameters: from         - [IN] the time the period shift is calculated    *
- *                                 from                                       *
- *             param        - [IN] the history period parameter:              *
+ * Parameters: from         - [IN] time the period shift is calculated from   *
+ *             param        - [IN] history period parameter:                  *
  *                                     <period>:<period_shift>                *
- *             start        - [OUT] the period start time in seconds since    *
- *                                  Epoch                                     *
- *             end          - [OUT] the period end time in seconds since      *
- *                                  Epoch                                     *
- *             error        - [OUT] the error message if parsing failed       *
+ *             start        - [OUT] period start time in seconds since Epoch  *
+ *             end          - [OUT] period end time in seconds since Epoch    *
+ *             error        - [OUT] error message if parsing failed           *
  *                                                                            *
  * Return value: SUCCEED - period was parsed successfully                     *
  *               FAIL    - invalid time period was specified                  *
@@ -311,12 +308,11 @@ int	zbx_trends_parse_range(time_t from, const char *param, time_t *start, time_t
  *                                                                            *
  * Purpose: calculate possible nextcheck based on trend function parameters   *
  *                                                                            *
- * Parameters: from         - [IN] the time the period shift is calculated    *
- *                                 from                                       *
- *             p            - [IN] the history period shift                   *
- *             nextcheck    - [OUT] the time starting from which the period   *
- *                                  will end in future                        *
- *             error        - [OUT] the error message if parsing failed       *
+ * Parameters: from         - [IN] time the period shift is calculated from   *
+ *             p            - [IN] history period shift                       *
+ *             nextcheck    - [OUT] time starting from which the period will  *
+ *                                  end in future                             *
+ *             error        - [OUT] error message if parsing failed           *
  *                                                                            *
  * Return value: SUCCEED - period was parsed successfully                     *
  *               FAIL    - invalid time period was specified                  *
@@ -412,17 +408,15 @@ int	zbx_trends_parse_nextcheck(time_t from, const char *period_shift, time_t *ne
  *                                                                            *
  * Purpose: evaluate expression with trends data                              *
  *                                                                            *
- * Parameters: table       - [IN] the trends table name                       *
- *             itemid      - [IN] the itemid                                  *
- *             start       - [OUT] the period start time in seconds since     *
- *                                  Epoch                                     *
- *             end         - [OUT] the period end time in seconds since       *
- *                                  Epoch                                     *
+ * Parameters: table       - [IN] trends table name                           *
+ *             itemid      - [IN]                                             *
+ *             start       - [OUT] period start time in seconds since Epoch   *
+ *             end         - [OUT] period end time in seconds since Epoch     *
  *             eval_single - [IN] sql expression to evaluate for single       *
  *                                 record                                     *
  *             eval_multi  - [IN] sql expression to evaluate for multiple     *
  *                                 records                                    *
- *             value       - [OUT] the evaluation result                      *
+ *             value       - [OUT] evaluation result                          *
  *                                                                            *
  * Return value: Trend value state of the specified period and function.      *
  *                                                                            *
@@ -479,13 +473,11 @@ static zbx_trend_state_t	trends_eval(const char *table, zbx_uint64_t itemid, tim
  *                                                                            *
  * Purpose: evaluate avg function with trends data                            *
  *                                                                            *
- * Parameters: table       - [IN] the trends table name                       *
- *             itemid      - [IN] the itemid                                  *
- *             start       - [OUT] the period start time in seconds since     *
- *                                  Epoch                                     *
- *             end         - [OUT] the period end time in seconds since       *
- *                                  Epoch                                     *
- *             value       - [OUT] the evaluation result                      *
+ * Parameters: table       - [IN] trends table name                           *
+ *             itemid      - [IN]                                             *
+ *             start       - [OUT] period start time in seconds since Epoch   *
+ *             end         - [OUT] period end time in seconds since Epoch     *
+ *             value       - [OUT] evaluation result                          *
  *                                                                            *
  * Return value: Trend value state of the specified period and function.      *
  *                                                                            *
@@ -547,13 +539,11 @@ static zbx_trend_state_t	trends_eval_avg(const char *table, zbx_uint64_t itemid,
  *                                                                            *
  * Purpose: evaluate sum function with trends data                            *
  *                                                                            *
- * Parameters: table       - [IN] the trends table name                       *
- *             itemid      - [IN] the itemid                                  *
- *             start       - [OUT] the period start time in seconds since     *
- *                                  Epoch                                     *
- *             end         - [OUT] the period end time in seconds since       *
- *                                  Epoch                                     *
- *             value       - [OUT] the evaluation result                      *
+ * Parameters: table       - [IN] trends table name                           *
+ *             itemid      - [IN]                                             *
+ *             start       - [OUT] period start time in seconds since Epoch   *
+ *             end         - [OUT] period end time in seconds since Epoch     *
+ *             value       - [OUT] evaluation result                          *
  *                                                                            *
  * Return value: Trend value state of the specified period and function.      *
  *                                                                            *
