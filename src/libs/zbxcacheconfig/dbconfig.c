@@ -15749,6 +15749,6 @@ void	zbx_recalc_time_period(time_t *ts_from, int table_group)
 	}
 
 	if (least_ts > *ts_from)
-		*ts_from = (int)least_ts;
+		*ts_from = least_ts;
 #undef HK_CFG_UPDATE_INTERVAL
 }
