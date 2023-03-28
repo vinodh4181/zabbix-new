@@ -239,7 +239,7 @@ int	zbx_trends_parse_timeshift(time_t from, const char *timeshift, struct tm *tm
  *             now-1d/h                                                       *
  *                                                                            *
  ******************************************************************************/
-int	zbx_trends_parse_range(time_t from, const char *param, int *start, int *end, char **error)
+int	zbx_trends_parse_range(time_t from, const char *param, time_t *start, time_t *end, char **error)
 {
 	int		period_num;
 	int		period_hours[ZBX_TIME_UNIT_COUNT] = {0, 0, 0, 1, 24, 24 * 7, 24 * 30, 24 * 365, 24 * 7 * 53};
@@ -289,7 +289,7 @@ int	zbx_trends_parse_range(time_t from, const char *param, int *start, int *end,
 		return FAIL;
 	}
 
-	if (abs((int)from - *end) > SEC_PER_YEAR * 26)
+	if (abs((int)(from - *end)) > SEC_PER_YEAR * 26)
 	{
 		*error = zbx_strdup(*error, "period shift is too large");
 		return FAIL;
@@ -302,7 +302,7 @@ int	zbx_trends_parse_range(time_t from, const char *param, int *start, int *end,
 		return FAIL;
 	}
 
-	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() start:%d end:%d", __func__, *start, *end);
+	zabbix_log(LOG_LEVEL_DEBUG, "End of %s() start:" ZBX_FS_I64 " end:" ZBX_FS_I64, __func__, *start, *end);
 
 	return SUCCEED;
 }
@@ -427,7 +427,7 @@ int	zbx_trends_parse_nextcheck(time_t from, const char *period_shift, time_t *ne
  * Return value: Trend value state of the specified period and function.      *
  *                                                                            *
  ******************************************************************************/
-static zbx_trend_state_t	trends_eval(const char *table, zbx_uint64_t itemid, int start, int end,
+static zbx_trend_state_t	trends_eval(const char *table, zbx_uint64_t itemid, time_t start, time_t end,
 		const char *eval_single, const char *eval_multi, double *value)
 {
 	DB_RESULT		result;
@@ -446,8 +446,8 @@ static zbx_trend_state_t	trends_eval(const char *table, zbx_uint64_t itemid, int
 		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset,
 				"select %s from %s"
 				" where itemid=" ZBX_FS_UI64
-					" and clock>=%d"
-					" and clock<=%d",
+					" and clock>=" ZBX_FS_I64
+					" and clock<=" ZBX_FS_I64,
 				eval_multi, table, itemid, start, end);
 	}
 	else
@@ -455,7 +455,7 @@ static zbx_trend_state_t	trends_eval(const char *table, zbx_uint64_t itemid, int
 		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset,
 				"select %s from %s"
 				" where itemid=" ZBX_FS_UI64
-					" and clock=%d",
+					" and clock=" ZBX_FS_I64,
 				eval_single, table, itemid, start);
 	}
 
@@ -490,7 +490,7 @@ static zbx_trend_state_t	trends_eval(const char *table, zbx_uint64_t itemid, int
  * Return value: Trend value state of the specified period and function.      *
  *                                                                            *
  ******************************************************************************/
-static zbx_trend_state_t	trends_eval_avg(const char *table, zbx_uint64_t itemid, int start, int end,
+static zbx_trend_state_t	trends_eval_avg(const char *table, zbx_uint64_t itemid, time_t start, time_t end,
 		double *value)
 {
 	DB_RESULT		result;
@@ -510,10 +510,11 @@ static zbx_trend_state_t	trends_eval_avg(const char *table, zbx_uint64_t itemid,
 
 	if (start != end)
 	{
-		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, " and clock>=%d and clock<=%d", start, end);
+		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, " and clock>=" ZBX_FS_I64 " and clock<=" ZBX_FS_I64,
+				start, end);
 	}
 	else
-		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, " and clock=%d", start);
+		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, " and clock=" ZBX_FS_I64, start);
 
 	result = zbx_db_select("%s", sql);
 	zbx_free(sql);
@@ -557,7 +558,7 @@ static zbx_trend_state_t	trends_eval_avg(const char *table, zbx_uint64_t itemid,
  * Return value: Trend value state of the specified period and function.      *
  *                                                                            *
  ******************************************************************************/
-static zbx_trend_state_t	trends_eval_sum(const char *table, zbx_uint64_t itemid, int start, int end,
+static zbx_trend_state_t	trends_eval_sum(const char *table, zbx_uint64_t itemid, time_t start, time_t end,
 		double *value)
 {
 	DB_RESULT	result;
@@ -576,10 +577,11 @@ static zbx_trend_state_t	trends_eval_sum(const char *table, zbx_uint64_t itemid,
 
 	if (start != end)
 	{
-		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, " and clock>=%d and clock<=%d", start, end);
+		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, " and clock>=" ZBX_FS_I64 " and clock<=" ZBX_FS_I64,
+				start, end);
 	}
 	else
-		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, " and clock=%d", start);
+		zbx_snprintf_alloc(&sql, &sql_alloc, &sql_offset, " and clock=" ZBX_FS_I64, start);
 
 	result = zbx_db_select("%s", sql);
 	zbx_free(sql);
@@ -597,7 +599,8 @@ static zbx_trend_state_t	trends_eval_sum(const char *table, zbx_uint64_t itemid,
 	return ZBX_TREND_STATE_NORMAL;
 }
 
-int	zbx_trends_eval_avg(const char *table, zbx_uint64_t itemid, int start, int end, double *value, char **error)
+int	zbx_trends_eval_avg(const char *table, zbx_uint64_t itemid, time_t start, time_t end, double *value,
+		char **error)
 {
 	zbx_trend_state_t	state;
 
@@ -616,7 +619,8 @@ int	zbx_trends_eval_avg(const char *table, zbx_uint64_t itemid, int start, int e
 	return FAIL;
 }
 
-int	zbx_trends_eval_count(const char *table, zbx_uint64_t itemid, int start, int end, double *value, char **error)
+int	zbx_trends_eval_count(const char *table, zbx_uint64_t itemid, time_t start, time_t end, double *value,
+		char **error)
 {
 	zbx_trend_state_t	state;
 
@@ -636,7 +640,8 @@ int	zbx_trends_eval_count(const char *table, zbx_uint64_t itemid, int start, int
 	return SUCCEED;
 }
 
-int	zbx_trends_eval_max(const char *table, zbx_uint64_t itemid, int start, int end, double *value, char **error)
+int	zbx_trends_eval_max(const char *table, zbx_uint64_t itemid, time_t start, time_t end, double *value,
+		char **error)
 {
 	zbx_trend_state_t	state;
 
@@ -655,7 +660,8 @@ int	zbx_trends_eval_max(const char *table, zbx_uint64_t itemid, int start, int e
 	return FAIL;
 }
 
-int	zbx_trends_eval_min(const char *table, zbx_uint64_t itemid, int start, int end, double *value, char **error)
+int	zbx_trends_eval_min(const char *table, zbx_uint64_t itemid, time_t start, time_t end, double *value,
+		char **error)
 {
 	zbx_trend_state_t	state;
 
@@ -674,7 +680,8 @@ int	zbx_trends_eval_min(const char *table, zbx_uint64_t itemid, int start, int e
 	return FAIL;
 }
 
-int	zbx_trends_eval_sum(const char *table, zbx_uint64_t itemid, int start, int end, double *value, char **error)
+int	zbx_trends_eval_sum(const char *table, zbx_uint64_t itemid, time_t start, time_t end, double *value,
+		char **error)
 {
 	zbx_trend_state_t	state;
 
@@ -693,7 +700,8 @@ int	zbx_trends_eval_sum(const char *table, zbx_uint64_t itemid, int start, int e
 	return FAIL;
 }
 
-zbx_trend_state_t	zbx_trends_get_avg(const char *table, zbx_uint64_t itemid, int start, int end, double *value)
+zbx_trend_state_t	zbx_trends_get_avg(const char *table, zbx_uint64_t itemid, time_t start, time_t end,
+		double *value)
 {
 	zbx_trend_state_t	state;
 
