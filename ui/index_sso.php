@@ -48,9 +48,6 @@ if ($config['saml_auth_enabled'] == ZBX_AUTH_SAML_DISABLED) {
 	redirect($redirect_to->toString());
 }
 
-require_once __DIR__.'/vendor/php-saml/_toolkit_loader.php';
-require_once __DIR__.'/vendor/xmlseclibs/xmlseclibs.php';
-
 use OneLogin\Saml2\Auth;
 use OneLogin\Saml2\Utils;
 

@@ -7,5 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'SCIM\\' => array($baseDir . '/include/classes/scim'),
+    'RobRichards\\XMLSecLibs\\' => array($vendorDir . '/robrichards/xmlseclibs/src'),
+    'OneLogin\\' => array($vendorDir . '/onelogin/php-saml/src'),
     'Core\\' => array($baseDir . '/include/classes/core'),
 );

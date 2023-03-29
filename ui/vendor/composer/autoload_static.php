@@ -11,6 +11,14 @@ class ComposerStaticInitd977ecc6db23d628ea37438cfecf5624
         array (
             'SCIM\\' => 5,
         ),
+        'R' => 
+        array (
+            'RobRichards\\XMLSecLibs\\' => 23,
+        ),
+        'O' => 
+        array (
+            'OneLogin\\' => 9,
+        ),
         'C' => 
         array (
             'Core\\' => 5,
@@ -21,6 +29,14 @@ class ComposerStaticInitd977ecc6db23d628ea37438cfecf5624
         'SCIM\\' => 
         array (
             0 => __DIR__ . '/../..' . '/include/classes/scim',
+        ),
+        'RobRichards\\XMLSecLibs\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/robrichards/xmlseclibs/src',
+        ),
+        'OneLogin\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/onelogin/php-saml/src',
         ),
         'Core\\' => 
         array (
