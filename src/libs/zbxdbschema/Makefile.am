@@ -3,9 +3,6 @@
 if DBSCHEMA
 dbschema.c: $(top_srcdir)/create/src/schema.tmpl $(top_srcdir)/create/bin/gen_schema.pl
 	$(top_srcdir)/create/bin/gen_schema.pl c > dbschema.c
-
-clean:
-	rm -f dbschema.c dbschema.o libzbxdbschema.a
 endif
 
 noinst_LIBRARIES = libzbxdbschema.a
