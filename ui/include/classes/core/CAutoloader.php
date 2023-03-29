@@ -54,7 +54,7 @@ class CAutoloader {
 	 * @return bool
 	 */
 	public function register(): bool {
-		return spl_autoload_register([$this, 'loadClass']);
+		return spl_autoload_register([$this, 'loadClass'], true, true);
 	}
 
 	/**
