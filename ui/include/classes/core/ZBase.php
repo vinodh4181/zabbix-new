@@ -22,8 +22,6 @@
 use Core\CModule,
 	CController as CAction;
 
-// require_once dirname(__FILE__).'/CAutoloader.php';
-
 class ZBase {
 	const EXEC_MODE_DEFAULT = 'default';
 	const EXEC_MODE_SETUP = 'setup';
