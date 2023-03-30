@@ -247,7 +247,7 @@
 		<for list="${conf.list}" param="name" delimiter=",">
 			<sequential>
 				<make-tests conf="${cmocka-@{name}}" conf-name="@{name}"/>
-				<clean-tests />
+				<antcall target="clean-tests"/>
 			</sequential>
 		</for>
 	</target>
@@ -275,7 +275,7 @@
 		<for list="${conf.list}" param="name" delimiter=",">
 			<sequential>
 				<make-tests conf="${cmocka-ora-@{name}}" conf-name="@{name}"/>
-				<clean-tests />
+				<antcall target="clean-tests"/>
 			</sequential>
 		</for>
 	</target>
@@ -308,7 +308,7 @@
 			<arg line="tests_results/html"/>
 			<arg line="tests_results/html/app.info"/>
 		</exec>
-		<clean-tests />
+		<antcall target="clean-tests"/>
 	</target>
 
 	<target name="make-gcc" depends="init-conf-options,init-conf-options-2">
