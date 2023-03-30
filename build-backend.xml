@@ -188,6 +188,21 @@
 	<!-- Build Zabbix with all supported databases  -->
 	<target name="make-db" depends="make-db-mysql,make-db-postgresql,make-db-oracle"/>
 
+	<target name="clean-tests">
+		<exec executable="make" failonerror="on">
+			<arg line="-s"/>
+			<arg line="-j5"/>
+			<arg line="clean"/>
+		</exec>
+		<exec executable="make" failonerror="on">
+			<arg line="-s"/>
+			<arg line="-j5"/>
+			<arg line="-C"/>
+			<arg line="tests"/>
+			<arg line="clean"/>
+		</exec>
+	</target>
+
 	<macrodef name="make-tests">
 		<!-- Build Zabbix cmocka tests with the specified command line arguments -->
 		<attribute name="conf"/>
@@ -210,18 +225,7 @@
 					</exec>
 				</try>
 				<finally>
-					<exec executable="make" failonerror="on">
-						<arg line="-s"/>
-						<arg line="-j5"/>
-						<arg line="clean"/>
-					</exec>
-					<exec executable="make" failonerror="on">
-						<arg line="-s"/>
-						<arg line="-j5"/>
-						<arg line="-C"/>
-						<arg line="tests"/>
-						<arg line="clean"/>
-					</exec>
+				<clean-tests />
 				</finally>
 			</trycatch>
 		</sequential>
@@ -250,6 +254,7 @@
 		<for list="${conf.list}" param="name" delimiter=",">
 			<sequential>
 				<make-tests conf="${cmocka-@{name}}" conf-name="@{name}"/>
+				<clean-tests />
 			</sequential>
 		</for>
 	</target>
@@ -277,6 +282,7 @@
 		<for list="${conf.list}" param="name" delimiter=",">
 			<sequential>
 				<make-tests conf="${cmocka-ora-@{name}}" conf-name="@{name}"/>
+				<clean-tests />
 			</sequential>
 		</for>
 	</target>
@@ -309,6 +315,7 @@
 			<arg line="tests_results/html"/>
 			<arg line="tests_results/html/app.info"/>
 		</exec>
+		<clean-tests />
 	</target>
 
 	<target name="make-gcc" depends="init-conf-options,init-conf-options-2">
