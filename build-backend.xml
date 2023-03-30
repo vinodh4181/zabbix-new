@@ -225,7 +225,7 @@
 					</exec>
 				</try>
 				<finally>
-				<clean-tests />
+					<antcall target="clean-tests"/>
 				</finally>
 			</trycatch>
 		</sequential>
