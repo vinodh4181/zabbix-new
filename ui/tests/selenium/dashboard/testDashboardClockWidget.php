@@ -92,8 +92,8 @@ class testDashboardClockWidget extends CWebTest {
 			]
 		]);
 		$hostid = CDataHelper::getIds('host');
-
-		$interfaceid = CDBHelper::getValue('SELECT interfaceid FROM interface WHERE hostid='.$hostid['Host for clock widget']);
+		$interfaceid = CDBHelper::getValue('SELECT interfaceid FROM interface WHERE hostid='.
+				$hostid['Host for clock widget']);
 
 		CDataHelper::call('item.create', [
 			[
@@ -194,7 +194,8 @@ class testDashboardClockWidget extends CWebTest {
 	 * Check clock widgets layout.
 	 */
 	public function testDashboardClockWidget_Layout() {
-		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.self::$dashboardid['Dashboard for creating clock widgets']);
+		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.
+				self::$dashboardid['Dashboard for creating clock widgets']);
 		$dialog = CDashboardElement::find()->one()->edit()->addWidget();
 		$form = $dialog->asForm();
 		$this->assertEquals('Add widget', $dialog->getTitle());
@@ -210,8 +211,8 @@ class testDashboardClockWidget extends CWebTest {
 
 		// Check fields "Refresh interval" and "Time type" values.
 		$dropdowns =[
-			'Refresh interval' => ['Default (15 minutes)',  'No refresh', '10 seconds', '30 seconds', '1 minute', '2 minutes',
-					'10 minutes',  '15 minutes'
+			'Refresh interval' => ['Default (15 minutes)',  'No refresh', '10 seconds', '30 seconds', '1 minute',
+					'2 minutes', '10 minutes',  '15 minutes'
 			],
 			'Time type' => ['Local time', 'Server time', 'Host time']
 		];
@@ -226,10 +227,12 @@ class testDashboardClockWidget extends CWebTest {
 		foreach (['Local time', 'Server time', 'Host time'] as $type) {
 			$form->fill(['Time type' => CFormElement::RELOADABLE_FILL($type)]);
 
-			// If the clock widgets type equals to "Host time", then additional field appears - 'Item',
-			// which requires to select item of the "Host", in this case array_splice function allows us to put
-			// this fields name into the array. Positive offset (4) starts from the beginning of the array,
-			// while - (0) length parameter - specifies how many elements will be removed.
+			/**
+			 * If the clock widgets type equals to "Host time", then additional field appears - 'Item',
+			 * which requires to select item of the "Host", in this case array_splice function allows us to put
+			 * this fields name into the array. Positive offset (4) starts from the beginning of the array,
+			 * while - (0) length parameter - specifies how many elements will be removed.
+			 */
 			if ($type === 'Host time') {
 				array_splice($fields, 4, 0, ['Item']);
 				$form->checkValue(['Item' => '']);
@@ -263,7 +266,8 @@ class testDashboardClockWidget extends CWebTest {
 				$form->fill(['Advanced configuration' => true]);
 
 				// Check that only Background color and Time fields are visible (because only Time checkbox is checked).
-				foreach (['Background color' => true, 'Date' => false, 'Time' => true, 'Time zone' => false] as $name => $visible) {
+				foreach (['Background color' => true, 'Date' => false, 'Time' => true,
+							'Time zone' => false] as $name => $visible) {
 					$this->assertTrue($form->getField($name)->isVisible($visible));
 				}
 
@@ -272,12 +276,12 @@ class testDashboardClockWidget extends CWebTest {
 
 				$advanced_configuration = [
 					'Date' => ['id:date_size' => 20, 'id:date_bold' => false, 'id:date_color' => null],
-					'Time' => ['id:time_size' => 30, 'id:time_bold' => false, 'id:time_color' => null, 'id:time_sec' => true,
-							'id:time_format' => '24-hour'
-					] ,
+					'Time' => ['id:time_size' => 30, 'id:time_bold' => false, 'id:time_color' => null,
+						'id:time_sec' => true, 'id:time_format' => '24-hour'
+					],
 					// This is Time zone field found by xpath, because we have one more field with Time zone label.
 					'xpath:.//div[@class="fields-group fields-group-tzone"]' => ['id:tzone_size' => 20, 'id:tzone_bold' => false,
-							'id:tzone_color' => null, 'id:tzone_timezone' => 'Local default: (UTC+02:00) Europe/Riga' ,
+							'id:tzone_color' => null, 'id:tzone_timezone' => 'Local default: (UTC+03:00) Europe/Riga',
 							'id:tzone_format' => 'Short'
 					]
 				];
@@ -288,9 +292,8 @@ class testDashboardClockWidget extends CWebTest {
 
 					// Check that with Host time 'Time zone' and 'Format' fields disappear.
 					if ($type === 'Host time') {
-						$advanced_configuration['xpath:.//div[@class="fields-group fields-group-tzone"]'] = ['id:tzone_size' => 20,
-							'id:tzone_bold' => false, 'id:tzone_color' => null
-						];
+						$advanced_configuration['xpath:.//div[@class="fields-group fields-group-tzone"]'] =
+								['id:tzone_size' => 20,'id:tzone_bold' => false, 'id:tzone_color' => null];
 
 						foreach (['id:tzone_timezone', 'id:tzone_format'] as $id) {
 							$this->assertFalse($form->getField($id)->isVisible());
@@ -311,7 +314,8 @@ class testDashboardClockWidget extends CWebTest {
 				}
 
 				// Check form fields' maximal lenghts.
-				foreach (['Name' =>  255, 'id:date_size' => 3, 'id:time_size' => 3, 'id:tzone_size' => 3] as $field => $length) {
+				foreach (['Name' =>  255, 'id:date_size' => 3, 'id:time_size' => 3, 'id:tzone_size' => 3]
+						as $field => $length) {
 					$this->assertEquals($length, $form->getField($field)->getAttribute('maxlength'));
 				}
 
@@ -332,7 +336,8 @@ class testDashboardClockWidget extends CWebTest {
 	 * the widget name.
 	 */
 	public function testDashboardClockWidget_CheckClockWidgetsName() {
-		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.self::$dashboardid['Dashboard for creating clock widgets']);
+		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.
+				self::$dashboardid['Dashboard for creating clock widgets']);
 		$dashboard = CDashboardElement::find()->one();
 		$form = $dashboard->getWidget('LayoutClock')->edit();
 		$form->fill(['Name' => '']);
@@ -694,7 +699,8 @@ class testDashboardClockWidget extends CWebTest {
 						'id:tzone_size' => '20',
 						'id:tzone_bold' => false,
 						'xpath://button[@id="lbl_tzone_color"]/..' => '06081F',
-						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Atlantic/Stanley'),
+						'xpath://button[@id="label-tzone_timezone"]/..'
+								=> CDateTimeHelper::getTimeZoneFormat('Atlantic/Stanley'),
 						'id:time_format' => '24-hour'
 					]
 				]
@@ -726,7 +732,8 @@ class testDashboardClockWidget extends CWebTest {
 						'id:tzone_size' => '35',
 						'id:tzone_bold' => true,
 						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
-						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
+						'xpath://button[@id="label-tzone_timezone"]/..'
+								=> CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
 						'id:time_format' => '12-hour'
 					]
 				]
@@ -868,7 +875,8 @@ class testDashboardClockWidget extends CWebTest {
 						'id:tzone_size' => '353',
 						'id:tzone_bold' => true,
 						'xpath://button[@id="lbl_tzone_color"]/..' => 'CDDC39',
-						'xpath://button[@id="label-tzone_timezone"]/..' => CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
+						'xpath://button[@id="label-tzone_timezone"]/..'
+								=> CDateTimeHelper::getTimeZoneFormat('Africa/Bangui'),
 						'id:time_format' => '12-hour'
 					],
 					'Error message' => [
@@ -927,9 +935,9 @@ class testDashboardClockWidget extends CWebTest {
 			$old_hash = CDBHelper::getHash($this->sql);
 		}
 
-		$update
-			? $linkid = self::$dashboardid['Dashboard for updating clock widgets']
-			: $linkid = self::$dashboardid['Dashboard for creating clock widgets'];
+		$linkid = $update
+			?  self::$dashboardid['Dashboard for updating clock widgets']
+			:  self::$dashboardid['Dashboard for creating clock widgets'];
 
 		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.$linkid);
 		$dashboard = CDashboardElement::find()->one()->waitUntilVisible();
@@ -1078,7 +1086,8 @@ class testDashboardClockWidget extends CWebTest {
 	private function checkNoChanges($cancel = false, $create = false, $save_dashboard = true) {
 		$old_hash = CDBHelper::getHash($this->sql);
 
-		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.self::$dashboardid['Dashboard for creating clock widgets']);
+		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.
+				self::$dashboardid['Dashboard for creating clock widgets']);
 
 		$dashboard = CDashboardElement::find()->one();
 		$old_widget_count = $dashboard->getWidgets()->count();
@@ -1145,7 +1154,8 @@ class testDashboardClockWidget extends CWebTest {
 	 * Check clock widgets deletion.
 	 */
 	public function testDashboardClockWidget_Delete() {
-		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.self::$dashboardid['Dashboard for creating clock widgets']);
+		$this->page->login()->open('zabbix.php?action=dashboard.view&dashboardid='.
+				self::$dashboardid['Dashboard for creating clock widgets']);
 		$dashboard = CDashboardElement::find()->one();
 		$widget = $dashboard->edit()->getWidget('DeleteClock');
 		$this->assertTrue($widget->isEditable());
