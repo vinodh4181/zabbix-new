@@ -27,6 +27,7 @@
 #include "zbxnum.h"
 #include "zbx_host_constants.h"
 #include "zbx_trigger_constants.h"
+#include "zbx_dbversion_constants.h"
 
 #define ZBX_DB_WAIT_DOWN	10
 
@@ -1297,23 +1298,23 @@ void	zbx_db_add_condition_alloc(char **sql, size_t *sql_alloc, size_t *sql_offse
 #endif
 }
 
-/*******************************************************************************
- *                                                                             *
- * Purpose: This function is similar to zbx_db_add_condition_alloc(), except   *
- *          it is designed for generating WHERE conditions for strings. Hence, *
- *          this function is simpler, because only IN condition is possible.   *
- *                                                                             *
- * Parameters: sql        - [IN/OUT] buffer for SQL query construction         *
- *             sql_alloc  - [IN/OUT] size of the 'sql' buffer                  *
- *             sql_offset - [IN/OUT] current position in the 'sql' buffer      *
- *             fieldname  - [IN] field name to be used in SQL WHERE condition  *
- *             values     - [IN] array of string values                        *
- *             num        - [IN] number of elements in 'values' array          *
- *                                                                             *
- * Comments: To support Oracle empty values are checked separately (is null    *
- *           for Oracle and ='' for the other databases).                      *
- *                                                                             *
- *******************************************************************************/
+/******************************************************************************
+ *                                                                            *
+ * Purpose: This function is similar to DBadd_condition_alloc(), except it is *
+ *          designed for generating WHERE conditions for strings. Hence, this *
+ *          function is simpler, because only IN condition is possible.       *
+ *                                                                            *
+ * Parameters: sql        - [IN/OUT] buffer for SQL query construction        *
+ *             sql_alloc  - [IN/OUT] size of the 'sql' buffer                 *
+ *             sql_offset - [IN/OUT] current position in the 'sql' buffer     *
+ *             fieldname  - [IN] field name to be used in SQL WHERE condition *
+ *             values     - [IN] array of string values                       *
+ *             num        - [IN] number of elements in 'values' array         *
+ *                                                                            *
+ * Comments: To support Oracle empty values are checked separately (is null   *
+ *           for Oracle and ='' for the other databases).                     *
+ *                                                                            *
+ ******************************************************************************/
 void	zbx_db_add_str_condition_alloc(char **sql, size_t *sql_alloc, size_t *sql_offset, const char *fieldname,
 		const char **values, const int num)
 {
@@ -3694,3 +3695,42 @@ char	*zbx_db_get_schema_esc(void)
 	return name;
 }
 #endif
+
+void	zbx_recalc_time_period(int *ts_from, int table_group)
+{
+#define HK_CFG_UPDATE_INTERVAL	5
+	int			least_ts, now;
+	zbx_config_t		cfg;
+	static int		last_cfg_retrieval = 0;
+	static zbx_config_hk_t	hk;
+
+	now = (int)time(NULL);
+
+	if (HK_CFG_UPDATE_INTERVAL < now - last_cfg_retrieval)
+	{
+		last_cfg_retrieval = now;
+
+		zbx_config_get(&cfg, ZBX_CONFIG_FLAGS_HOUSEKEEPER);
+		hk = cfg.hk;
+	}
+
+	if (ZBX_RECALC_TIME_PERIOD_HISTORY == table_group)
+	{
+		if (1 != hk.history_global)
+			return;
+
+		least_ts = now - hk.history;
+	}
+	else if (ZBX_RECALC_TIME_PERIOD_TRENDS == table_group)
+	{
+		if (1 != hk.trends_global)
+			return;
+
+		least_ts = now - hk.trends + 1;
+	}
+
+
+	if (least_ts > *ts_from)
+		*ts_from = least_ts;
+#undef HK_CFG_UPDATE_INTERVAL
+}
