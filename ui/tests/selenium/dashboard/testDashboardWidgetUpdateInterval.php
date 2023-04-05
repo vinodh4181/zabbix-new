@@ -30,7 +30,7 @@ require_once dirname(__FILE__).'/../../include/CWebTest.php';
  */
 class testDashboardWidgetUpdateInterval extends CWebTest {
 
-	const HOSTID = '10084';
+	protected const HOSTID = '10084';
 
 	protected static $dashboardid;
 	protected static $mapid;
@@ -39,7 +39,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 	/**
 	 * Function creates  map with defined host.
 	 */
-	public static function mapCreate($hostid = self::HOSTID) {
+	public static function mapCreate() {
 		$response = CDataHelper::call('map.create', [
 			[
 				'name' => 'Test map',
@@ -50,7 +50,7 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 					[
 						'selementid' => "1",
 						'elements' => [
-							['hostid' => $hostid]
+							['hostid' => self::HOSTID]
 						],
 						'elementtype' => 0,
 						'iconid_off' => 4
@@ -566,22 +566,6 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 					$this->assertNotEquals($attribute, $widget->query($id_xpath.'table')->one()->getAttribute('id'));
 					break;
 			}
-
-
-
-//		$widget = CDashboardElement::find()->one()->getWidgets()->first();
-//		$widget->query('xpath:(//button[@class="btn-widget-action"])')->one()->click();
-//		CPopupMenuElement::find()->waitUntilVisible()->one()->select('10 seconds');
-//		$attribute = $widget->query('xpath:(//div[@class="dashbrd-grid-widget-content"]/*[1])')->one()->getAttribute('id');
-//		$attribute = $widget->getAttribute('id');
-//		var_dump($widget->getRefreshInterval());
-//		echo spl_object_hash($widget);
-//		sleep(12);
-//		$widgetNew = CDashboardElement::find()->one()->getWidgets()->first();
-//		echo spl_object_hash($widget)."\r\n";
-//		echo spl_object_hash($widgetNew);
-//		var_dump($widget === $widgetNew);
-//		$this->assertNotEquals($attribute, $widget->query('xpath:(//div[@class="dashbrd-grid-widget-content"]/*[1])')->one()->getAttribute('id'));
 	}
 }
 
