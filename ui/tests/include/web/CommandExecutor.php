@@ -23,6 +23,8 @@ require_once 'vendor/autoload.php';
 use Facebook\WebDriver\Remote\HttpCommandExecutor;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\Remote\WebDriverCommand;
+use Facebook\WebDriver\Exception\Internal\WebDriverCurlException;
+use \Facebook\WebDriver\Exception\WebDriverException;
 
 
 /**
@@ -54,11 +56,11 @@ class CommandExecutor extends HttpCommandExecutor {
 			return $this->executor->execute($command);
 		}
 		// Allow single communication timeout during test execution
-		catch (\Facebook\WebDriver\Exception\WebDriverCurlException $exception) {
+		catch (WebDriverCurlException $exception) {
 			// Code is not missing here
 		}
 		// Workaraund for communication errors present on Jenkins
-		catch (\Facebook\WebDriver\Exception\WebDriverException $exception) {
+		catch (WebDriverException $exception) {
 			if (strpos($exception->getMessage(), 'START_MAP') === false) {
 				throw $exception;
 			}
