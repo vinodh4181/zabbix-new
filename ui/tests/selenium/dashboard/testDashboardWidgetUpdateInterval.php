@@ -160,8 +160,8 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 					[
 						'type' => 'favscreens', // 6
 						'name' => 'Favorite screens widget',
-						'x' => 0,
-						'y' => 2,
+						'x' => 12,
+						'y' => 0,
 						'width' => 2,
 						'height' => 2,
 							'fields' => [
@@ -173,25 +173,10 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 							]
 					],
 					[
-						'type' => 'svggraph', // 7
-						'name' => 'SVG graph widget',
-						'x' => 2,
-						'y' => 2,
-						'width' => 2,
-						'height' => 2,
-							'fields' => [
-								[
-									'type' => 0,
-									'name' => 'rf_rate',
-									'value' => 10
-								]
-							]
-					],
-					[
-						'type' => 'graph', // 8
+						'type' => 'graph', // 7
 						'name' => 'Graph widget',
-						'x' => 4,
-						'y' => 2,
+						'x' => 14,
+						'y' => 0,
 						'width' => 2,
 						'height' => 2,
 							'fields' => [
@@ -203,10 +188,40 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 							]
 					],
 					[
-						'type' => 'map', // 9
+						'type' => 'graphprototype', // 8
+						'name' => 'Graph prototype widget',
+						'x' => 16,
+						'y' => 0,
+						'width' => 2,
+						'height' => 2,
+							'fields' => [
+								[
+									'type' => 0,
+									'name' => 'rf_rate',
+									'value' => 10
+								]
+							]
+					],
+					[
+						'type' => 'hostavail', // 9
+						'name' => 'Host availability widget',
+						'x' => 18,
+						'y' => 0,
+						'width' => 2,
+						'height' => 2,
+							'fields' => [
+								[
+									'type' => 0,
+									'name' => 'rf_rate',
+									'value' => 10
+								]
+							]
+					],
+					[
+						'type' => 'map', // 10
 						'name' => 'Map widget',
-						'x' => 6,
-						'y' => 2,
+						'x' => 20,
+						'y' => 0,
 						'width' => 2,
 						'height' => 2,
 							'fields' => [
@@ -223,10 +238,10 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 							]
 					],
 					[
-						'type' => 'navtree', // 10
+						'type' => 'navtree', // 11
 						'name' => 'Map Navigation Tree widget',
-						'x' => 8,
-						'y' => 2,
+						'x' => 22,
+						'y' => 0,
 						'width' => 2,
 						'height' => 2,
 							'fields' => [
@@ -238,8 +253,83 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 							]
 					],
 					[
-						'type' => 'plaintext', // 11
+						'type' => 'plaintext', // 12
 						'name' => 'Plain text widget',
+						'x' => 0,
+						'y' => 2,
+						'width' => 2,
+						'height' => 2,
+							'fields' => [
+								[
+									'type' => 0,
+									'name' => 'rf_rate',
+									'value' => 10
+								]
+							]
+					],
+					[
+						'type' => 'problemhosts', // 13
+						'name' => 'Problem hosts widget',
+						'x' => 2,
+						'y' => 2,
+						'width' => 2,
+						'height' => 2,
+							'fields' => [
+								[
+									'type' => 0,
+									'name' => 'rf_rate',
+									'value' => 10
+								]
+							]
+					],
+					[
+						'type' => 'problems', // 14
+						'name' => 'Problems widget',
+						'x' => 4,
+						'y' => 2,
+						'width' => 2,
+						'height' => 2,
+							'fields' => [
+								[
+									'type' => 0,
+									'name' => 'rf_rate',
+									'value' => 10
+								]
+							]
+					],
+					[
+						'type' => 'problemsbysv', // 15
+						'name' => 'Problems by severity widget',
+						'x' => 6,
+						'y' => 2,
+						'width' => 2,
+						'height' => 2,
+							'fields' => [
+								[
+									'type' => 0,
+									'name' => 'rf_rate',
+									'value' => 10
+								]
+							]
+					],
+					[
+						'type' => 'svggraph', // 16
+						'name' => 'SVG graph widget',
+						'x' => 8,
+						'y' => 2,
+						'width' => 2,
+						'height' => 2,
+							'fields' => [
+								[
+									'type' => 0,
+									'name' => 'rf_rate',
+									'value' => 10
+								]
+							]
+					],
+					[
+						'type' => 'systeminfo', // 17
+						'name' => 'System information widget',
 						'x' => 10,
 						'y' => 2,
 						'width' => 2,
@@ -253,70 +343,10 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 							]
 					],
 					[
-						'type' => 'problemhosts', // 12
-						'name' => 'Problem hosts widget',
-						'x' => 0,
-						'y' => 4,
-						'width' => 2,
-						'height' => 2,
-							'fields' => [
-								[
-									'type' => 0,
-									'name' => 'rf_rate',
-									'value' => 10
-								]
-							]
-					],
-					[
-						'type' => 'problems', // 13
-						'name' => 'Problems widget',
-						'x' => 2,
-						'y' => 4,
-						'width' => 2,
-						'height' => 2,
-							'fields' => [
-								[
-									'type' => 0,
-									'name' => 'rf_rate',
-									'value' => 10
-								]
-							]
-					],
-					[
-						'type' => 'problemsbysv', // 14
-						'name' => 'Problems by severity widget',
-						'x' => 4,
-						'y' => 4,
-						'width' => 2,
-						'height' => 2,
-							'fields' => [
-								[
-									'type' => 0,
-									'name' => 'rf_rate',
-									'value' => 10
-								]
-							]
-					],
-					[
-						'type' => 'systeminfo', // 15
-						'name' => 'System information widget',
-						'x' => 6,
-						'y' => 4,
-						'width' => 2,
-						'height' => 2,
-							'fields' => [
-								[
-									'type' => 0,
-									'name' => 'rf_rate',
-									'value' => 10
-								]
-							]
-					],
-					[
-						'type' => 'trigover', // 16
+						'type' => 'trigover', // 18
 						'name' => 'Trigger overview widget',
-						'x' => 8,
-						'y' => 4,
+						'x' => 12,
+						'y' => 2,
 						'width' => 2,
 						'height' => 2,
 							'fields' => [
@@ -328,10 +358,10 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 							]
 					],
 					[
-						'type' => 'url', // 17
+						'type' => 'url', // 19
 						'name' => 'URL widget',
-						'x' => 10,
-						'y' => 4,
+						'x' => 14,
+						'y' => 2,
 						'width' => 2,
 						'height' => 2,
 							'fields' => [
@@ -343,40 +373,10 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 							]
 					],
 					[
-						'type' => 'web', // 18
+						'type' => 'web', // 20
 						'name' => 'Web monitoring widget',
-						'x' => 0,
-						'y' => 6,
-						'width' => 2,
-						'height' => 2,
-							'fields' => [
-								[
-									'type' => 0,
-									'name' => 'rf_rate',
-									'value' => 10
-								]
-							]
-					],
-					[
-						'type' => 'graphprototype', // 19
-						'name' => 'Graph prototype widget',
-						'x' => 2,
-						'y' => 6,
-						'width' => 2,
-						'height' => 2,
-							'fields' => [
-								[
-									'type' => 0,
-									'name' => 'rf_rate',
-									'value' => 10
-								]
-							]
-					],
-					[
-						'type' => 'hostavail', // 20
-						'name' => 'Host availability widget',
-						'x' => 4,
-						'y' => 6,
+						'x' => 16,
+						'y' => 2,
 						'width' => 2,
 						'height' => 2,
 							'fields' => [
@@ -437,79 +437,79 @@ class testDashboardWidgetUpdateInterval extends CWebTest {
 			],
 			[
 				[
-					'name' => 'SVG graph widget', // 7
-					'check_type' => 'tag',
-					'tag' => 'xpath:.//*[local-name()="svg"]'
+					'name' => 'Graph widget' // 7
 				]
 			],
 			[
 				[
-					'name' => 'Graph widget' // 8
-				]
-			],
-			[
-				[
-					'name' => 'Map widget', // 9
-					'check_type' => 'map'
-				]
-			],
-			[
-				[
-					'name' => 'Map Navigation Tree widget', // 10
-					'check_type' => 'id',
-					'tag' => 'div'
-				]
-			],
-			[
-				[
-					'name' => 'Plain text widget' // 11
-				]
-			],
-			[
-				[
-					'name' => 'Problem hosts widget' // 12
-				]
-			],
-			[
-				[
-					'name' => 'Problems widget' // 13
-				]
-			],
-			[
-				[
-					'name' => 'Problems by severity widget' // 14
-				]
-			],
-			[
-				[
-					'name' => 'System information widget' // 15
-				]
-			],
-			[
-				[
-					'name' => 'Trigger overview widget' // 16
-				]
-			],
-			[
-				[
-					'name' => 'URL widget' // 17
-				]
-			],
-			[
-				[
-					'name' => 'Web monitoring widget', // 18
-				]
-			],
-			[
-				[
-					'name' => 'Graph prototype widget', // 19
+					'name' => 'Graph prototype widget', // 8
 					'check_type' => 'tag',
 					'tag' => 'xpath:.//div[@class="dashbrd-grid-iterator-content"]/div/table'
 				]
 			],
 			[
 				[
-					'name' => 'Host availability widget', // 20
+					'name' => 'Host availability widget', // 9
+				]
+			],
+			[
+				[
+					'name' => 'Map widget', // 10
+					'check_type' => 'map'
+				]
+			],
+			[
+				[
+					'name' => 'Map Navigation Tree widget', // 11
+					'check_type' => 'id',
+					'tag' => 'div'
+				]
+			],
+			[
+				[
+					'name' => 'Plain text widget' // 12
+				]
+			],
+			[
+				[
+					'name' => 'Problem hosts widget' // 13
+				]
+			],
+			[
+				[
+					'name' => 'Problems widget' // 14
+				]
+			],
+			[
+				[
+					'name' => 'Problems by severity widget' // 15
+				]
+			],
+			[
+				[
+					'name' => 'SVG graph widget', // 16
+					'check_type' => 'tag',
+					'tag' => 'xpath:.//*[local-name()="svg"]'
+				]
+			],
+			[
+				[
+					'name' => 'System information widget' // 17
+				]
+			],
+			[
+				[
+					'name' => 'Trigger overview widget' // 18
+				]
+			],
+			[
+				[
+					'name' => 'URL widget' // 19
+				]
+			],
+			[
+				[
+					'name' => 'Web monitoring widget', // 20
 				]
 			]
 		];
